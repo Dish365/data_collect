@@ -1,0 +1,26 @@
+# Kivy GUI requirements (for Python 3.10/3.11 on Windows)
+# --------------------------------------------------------
+kivy==2.2.1
+kivymd==1.1.1
+kivy-garden==0.1.5
+kivy-garden.matplotlib==0.1.0
+matplotlib==3.8.2
+pandas==2.1.4
+numpy==1.26.2
+requests==2.31.0
+
+# Mobile Development (Kivy)
+# NOTE: These packages require additional setup and may need to be installed separately
+# Installation order:
+# 1. pip install kivy_deps.sdl2==0.8.0
+# 2. pip install kivy_deps.glew==0.3.1
+# 3. pip install kivy_deps.angle==0.4.0
+# 4. pip install kivy_deps.gstreamer==0.3.4
+# 5. pip install kivy==2.3.0
+# 6. pip install kivymd==1.2.0
+# 7. pip install plyer==2.1.0
+# 8. pip install peewee==3.17.5
+# 9. pip install buildozer==1.5.0
+# 10. pip install cython==3.0.10
+# 11. pip install kivysome==0.2.1
+# 12. pip install urllib3==2.2.2
