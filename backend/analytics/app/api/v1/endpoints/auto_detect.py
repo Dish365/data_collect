@@ -1,5 +1,5 @@
 """
-Auto-detection endpoints for data analysis suggestions.
+Auto-detection endpoints for data analysis.
 """
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -7,13 +7,12 @@ from sqlalchemy.orm import Session
 from typing import Dict, Any, List
 import pandas as pd
 
-from ....core.deps import get_db
-from ....analytics.auto_detect.detector import (
-    detect_data_types,
-    detect_distribution,
-    detect_correlations,
-    detect_clusters,
-    suggest_analyses
+from core.database import get_db
+from app.analytics.auto_detect.detector import (
+    detect_data_type,
+    detect_analysis_type,
+    suggest_visualizations,
+    detect_anomalies
 )
 
 router = APIRouter()
@@ -35,7 +34,7 @@ async def analyze_data_types(
     """
     try:
         df = pd.DataFrame(data)
-        return detect_data_types(df)
+        return detect_data_type(df)
     except Exception as e:
         raise HTTPException(
             status_code=400,
@@ -66,7 +65,7 @@ async def analyze_distribution(
                 status_code=400,
                 detail=f"Column {column} not found in data"
             )
-        return detect_distribution(df, column)
+        return detect_analysis_type(df, column)
     except Exception as e:
         raise HTTPException(
             status_code=400,
@@ -92,7 +91,7 @@ async def analyze_correlations(
     """
     try:
         df = pd.DataFrame(data)
-        return detect_correlations(df, threshold)
+        return detect_anomalies(df, threshold)
     except Exception as e:
         raise HTTPException(
             status_code=400,
@@ -118,7 +117,7 @@ async def analyze_clusters(
     """
     try:
         df = pd.DataFrame(data)
-        return detect_clusters(df, max_clusters)
+        return suggest_visualizations(df, max_clusters)
     except Exception as e:
         raise HTTPException(
             status_code=400,
@@ -142,7 +141,7 @@ async def get_analysis_suggestions(
     """
     try:
         df = pd.DataFrame(data)
-        return suggest_analyses(df)
+        return suggest_visualizations(df)
     except Exception as e:
         raise HTTPException(
             status_code=400,

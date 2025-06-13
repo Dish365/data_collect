@@ -7,14 +7,14 @@ from sqlalchemy.orm import Session
 from typing import Dict, Any, List, Optional
 import pandas as pd
 
-from ....core.database import get_db
-from ....analytics.qualitative.text_analysis import (
+from core.database import get_db
+from app.analytics.qualitative.text_analysis import (
     analyze_text_frequency,
     analyze_text_similarity,
     extract_key_phrases,
     analyze_text_patterns
 )
-from ....analytics.qualitative.sentiment import (
+from app.analytics.qualitative.sentiment import (
     analyze_sentiment,
     analyze_sentiment_batch,
     analyze_sentiment_trends,
