@@ -2,6 +2,7 @@ from kivymd.uix.screen import MDScreen
 from kivy.lang import Builder
 from kivymd.toast import toast
 from kivymd.app import MDApp
+from widgets.forgot_password_popup import ForgotPasswordPopup
 
 Builder.load_file("kv/login.kv")
 
@@ -27,3 +28,10 @@ class LoginScreen(MDScreen):
         print("Sign up logic goes here")
         self.manager.transition.direction = "left"
         self.manager.current = "signup"
+
+    def on_forgot_password(self):
+        print("Forgot password logic goes here")
+        popup = ForgotPasswordPopup(
+            # submit_callback=self.handle_forgot_password
+        )
+        popup.open()
