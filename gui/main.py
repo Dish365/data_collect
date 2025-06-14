@@ -5,6 +5,8 @@ from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
 from kivy.core.window import Window
 from kivy.utils import platform
+from kivymd.app import MDApp
+
 
 # Import screens
 from screens.login import LoginScreen
@@ -14,14 +16,17 @@ from screens.data_collection import DataCollectionScreen
 from screens.analytics import AnalyticsScreen
 from screens.form_builder import FormBuilderScreen
 from screens.sync import SyncScreen
+from screens.signup import SignUpScreen
 
 # Import services
 from services.database import DatabaseService
 from services.sync_service import SyncService
 from services.auth_service import AuthService
 
-class ResearchCollectorApp(App):
+class ResearchCollectorApp(MDApp):
     def build(self):
+        self.theme_cls.primary_palette = "Blue"    
+        self.theme_cls.primary_hue     = "500" 
         # Set window size for development
         if platform != 'android':
             Window.size = (768, 1024)
@@ -36,6 +41,7 @@ class ResearchCollectorApp(App):
         
         # Add screens
         sm.add_widget(LoginScreen(name='login'))
+        sm.add_widget(SignUpScreen(name='signup'))
         sm.add_widget(DashboardScreen(name='dashboard'))
         sm.add_widget(ProjectsScreen(name='projects'))
         sm.add_widget(DataCollectionScreen(name='data_collection'))

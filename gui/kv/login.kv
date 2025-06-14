@@ -1,0 +1,75 @@
+#:import dp kivy.metrics.dp
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDCard kivymd.uix.card.MDCard
+#:import MDRaisedButton kivymd.uix.button.MDRaisedButton
+#:import MDTextField kivymd.uix.textfield.MDTextField
+#:import MDLabel kivymd.uix.label.MDLabel
+
+<LoginScreen>:
+    name: "login"
+    md_bg_color: app.theme_cls.primary_color
+
+    AnchorLayout:
+        anchor_x: "center"
+        anchor_y: "center"
+
+        MDCard:
+            # remove shadow
+            elevation: 0
+            radius: [dp(16)]
+            padding: [dp(32), dp(16), dp(32), dp(32)]
+            size_hint: None, None
+            size: dp(400), dp(420)
+
+            MDBoxLayout:
+                orientation: "vertical"
+                spacing: dp(20)
+
+                MDLabel:
+                    text: "Research Data Collector"
+                    font_style: "H5"
+                    halign: "center"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+
+                MDTextField:
+                    id: username
+                    hint_text: "Username"
+                    mode: "rectangle"
+                    size_hint_y: None
+                    height: dp(48)
+
+                MDTextField:
+                    id: password
+                    hint_text: "Password"
+                    password: True
+                    mode: "rectangle"
+                    size_hint_y: None
+                    height: dp(48)
+
+                MDLabel:
+                    # forgot-password link
+                    markup: True
+                    text: "[ref=forgot][color=377DFF]Forgot Password?[/color][/ref]"
+                    halign: "right"
+                    size_hint_y: None
+                    font_size:dp(12)
+                    height: self.texture_size[1]
+                    on_ref_press: root.on_forgot_password()
+
+                MDRaisedButton:
+                    text: "Login"
+                    # full width & centered
+                    size_hint_x: 1
+                    pos_hint: {"center_x": .5}
+                    size_hint_y: None
+                    height: dp(50)
+                    on_release: root.login()
+
+                MDLabel:
+                    markup: True
+                    text: "[color=888888]Don't have an account? [/color][ref=signup][color=377DFF]Sign Up[/color][/ref]"
+                    halign: "center"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    on_ref_press: root.on_signup()
