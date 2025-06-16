@@ -1,5 +1,6 @@
 """
-Generate realistic mock research data for testing descriptive statistics.
+Generate realistic mock research data for commodity value chain analysis in African countries.
+Focus: Trade, sustainability, climate impact, and traceability research.
 """
 
 import pandas as pd
@@ -7,386 +8,452 @@ import numpy as np
 from datetime import datetime, timedelta
 import random
 from typing import Dict, List, Tuple
+import uuid
 
 # Set random seed for reproducibility
 np.random.seed(42)
 random.seed(42)
 
-# African countries and regions for realistic data
-AFRICAN_REGIONS = {
-    "East Africa": ["Kenya", "Tanzania", "Uganda", "Ethiopia", "Rwanda"],
-    "West Africa": ["Nigeria", "Ghana", "Senegal", "Mali", "Burkina Faso"],
-    "Southern Africa": ["South Africa", "Zimbabwe", "Zambia", "Botswana", "Mozambique"],
-    "North Africa": ["Egypt", "Morocco", "Tunisia", "Algeria", "Libya"],
-    "Central Africa": ["DRC", "Cameroon", "Chad", "CAR", "Gabon"]
+# African countries and their main commodities for research
+COMMODITY_COUNTRIES = {
+    "Ghana": {
+        "commodities": ["Cocoa", "Maize", "Palm Oil"],
+        "major_regions": ["Ashanti", "Eastern", "Western", "Brong-Ahafo"],
+        "coordinates": (7.9465, -1.0232),
+        "main_exports": ["Cocoa", "Palm Oil"],
+        "trade_partners": ["Netherlands", "Germany", "Belgium", "USA"]
+    },
+    "Nigeria": {
+        "commodities": ["Groundnut", "Maize", "Palm Oil", "Fish"],
+        "major_regions": ["Kano", "Kaduna", "Lagos", "Rivers"],
+        "coordinates": (9.0820, 8.6753),
+        "main_exports": ["Palm Oil", "Fish", "Groundnut"],
+        "trade_partners": ["Spain", "Netherlands", "France", "UK"]
+    },
+    "South Africa": {
+        "commodities": ["Honey", "Maize"],
+        "major_regions": ["Western Cape", "Eastern Cape", "KwaZulu-Natal", "Gauteng"],
+        "coordinates": (-30.5595, 22.9375),
+        "main_exports": ["Honey", "Maize"],
+        "trade_partners": ["Germany", "UK", "Netherlands", "France"]
+    },
+    "Kenya": {
+        "commodities": ["Maize", "Groundnut"],
+        "major_regions": ["Central", "Rift Valley", "Eastern", "Nyanza"],
+        "coordinates": (-0.0236, 37.9062),
+        "main_exports": ["Maize", "Groundnut"],
+        "trade_partners": ["Uganda", "Tanzania", "Netherlands", "Germany"]
+    },
+    "Burkina Faso": {
+        "commodities": ["Maize", "Groundnut"],
+        "major_regions": ["Centre", "Hauts-Bassins", "Cascades", "Sud-Ouest"],
+        "coordinates": (12.2383, -1.5616),
+        "main_exports": ["Groundnut", "Maize"],
+        "trade_partners": ["Côte d'Ivoire", "Ghana", "France", "Netherlands"]
+    },
+    "Senegal": {
+        "commodities": ["Maize", "Palm Oil", "Groundnut"],
+        "major_regions": ["Thiès", "Kaolack", "Fatick", "Diourbel"],
+        "coordinates": (14.4974, -14.4524),
+        "main_exports": ["Groundnut", "Palm Oil"],
+        "trade_partners": ["France", "Mali", "India", "Netherlands"]
+    }
 }
 
-# Research locations with coordinates
-RESEARCH_LOCATIONS = {
-    "Kibera, Nairobi": (-1.3133, 36.7846),
-    "Soweto, Johannesburg": (-26.2309, 27.8589),
-    "Makoko, Lagos": (6.4969, 3.3903),
-    "Khayelitsha, Cape Town": (-34.0440, 18.6739),
-    "Mathare, Nairobi": (-1.2620, 36.8588),
-    "Mukuru, Nairobi": (-1.3147, 36.8791),
-    "Accra Slums": (5.5600, -0.2057),
-    "Cairo Slums": (30.0626, 31.2497),
-    "Dar es Salaam Slums": (-6.8160, 39.2803),
-    "Kampala Slums": (0.3476, 32.5825)
-}
+# Value chain stages
+VALUE_CHAIN_STAGES = [
+    "Production", "Collection", "Processing", "Wholesale", "Export", "Retail"
+]
 
-def generate_rural_health_survey_data(n_samples: int = 1000) -> pd.DataFrame:
+# Sustainability certifications
+CERTIFICATIONS = [
+    "Organic", "Fair Trade", "Rainforest Alliance", "UTZ", "RSPO", "None"
+]
+
+def generate_commodity_production_data(n_producers: int = 1000) -> pd.DataFrame:
     """
-    Generate mock rural health survey data.
+    Generate mock commodity production data across African countries.
     
     Args:
-        n_samples: Number of survey responses to generate
+        n_producers: Number of producers to generate
         
     Returns:
-        DataFrame with mock survey data
+        DataFrame with production data
     """
     data = []
     
-    # Generate temporal distribution - surveys collected over 6 months
-    start_date = datetime(2024, 1, 1)
-    end_date = datetime(2024, 6, 30)
-    
-    for i in range(n_samples):
-        # Basic demographics
-        age = int(np.random.lognormal(3.4, 0.4))  # Skewed age distribution
-        age = max(18, min(age, 85))  # Clamp to reasonable range
+    for i in range(n_producers):
+        # Select country and commodity
+        country = random.choice(list(COMMODITY_COUNTRIES.keys()))
+        country_info = COMMODITY_COUNTRIES[country]
+        commodity = random.choice(country_info["commodities"])
+        region = random.choice(country_info["major_regions"])
         
-        gender = np.random.choice(['Male', 'Female'], p=[0.48, 0.52])
+        # Producer characteristics
+        producer_id = f"PROD_{country[:2].upper()}_{i+1:04d}"
+        producer_name = f"{region} {commodity} Producer {i+1}"
         
-        # Education - correlated with age
-        if age < 30:
-            education = np.random.choice(
-                ['None', 'Primary', 'Secondary', 'Tertiary'],
-                p=[0.05, 0.25, 0.50, 0.20]
-            )
-        else:
-            education = np.random.choice(
-                ['None', 'Primary', 'Secondary', 'Tertiary'],
-                p=[0.30, 0.40, 0.25, 0.05]
-            )
+        # Location with noise around country center
+        base_lat, base_lon = country_info["coordinates"]
+        latitude = base_lat + np.random.normal(0, 2.0)
+        longitude = base_lon + np.random.normal(0, 2.0)
         
-        # Location
-        location_name = random.choice(list(RESEARCH_LOCATIONS.keys()))
-        lat, lon = RESEARCH_LOCATIONS[location_name]
-        # Add some noise to coordinates
-        lat += np.random.normal(0, 0.01)
-        lon += np.random.normal(0, 0.01)
+        # Production metrics
+        if commodity == "Cocoa":
+            farm_size_hectares = np.random.lognormal(0.5, 0.8)  # Small farms
+            yield_per_hectare = np.random.normal(450, 150)  # kg/hectare
+            price_per_kg_usd = np.random.normal(2.5, 0.5)
+        elif commodity == "Maize":
+            farm_size_hectares = np.random.lognormal(1.0, 1.0)
+            yield_per_hectare = np.random.normal(2000, 600)
+            price_per_kg_usd = np.random.normal(0.35, 0.1)
+        elif commodity == "Palm Oil":
+            farm_size_hectares = np.random.lognormal(1.5, 0.8)
+            yield_per_hectare = np.random.normal(3500, 800)
+            price_per_kg_usd = np.random.normal(0.8, 0.2)
+        elif commodity == "Groundnut":
+            farm_size_hectares = np.random.lognormal(0.8, 0.7)
+            yield_per_hectare = np.random.normal(1200, 300)
+            price_per_kg_usd = np.random.normal(1.2, 0.3)
+        elif commodity == "Fish":
+            farm_size_hectares = np.random.lognormal(0.3, 0.5)  # Pond size
+            yield_per_hectare = np.random.normal(8000, 2000)  # kg/hectare
+            price_per_kg_usd = np.random.normal(3.5, 0.8)
+        elif commodity == "Honey":
+            farm_size_hectares = np.random.lognormal(0.1, 0.3)  # Beehive area
+            yield_per_hectare = np.random.normal(25, 10)  # kg/hectare
+            price_per_kg_usd = np.random.normal(8.0, 2.0)
         
-        # Collection date - more responses on weekdays
-        days_since_start = random.randint(0, (end_date - start_date).days)
-        collection_date = start_date + timedelta(days=days_since_start)
-        if collection_date.weekday() >= 5:  # Weekend
-            if random.random() > 0.3:  # 70% chance to skip weekend
-                continue
+        # Ensure positive values
+        farm_size_hectares = max(0.1, farm_size_hectares)
+        yield_per_hectare = max(50, yield_per_hectare)
+        price_per_kg_usd = max(0.1, price_per_kg_usd)
         
-        # Health metrics
-        # BMI - normal distribution with some outliers
-        if random.random() < 0.05:  # 5% extreme values
-            bmi = random.choice([random.uniform(14, 18), random.uniform(35, 45)])
-        else:
-            bmi = np.random.normal(24, 4)
-            bmi = max(16, min(bmi, 40))
+        total_production_kg = farm_size_hectares * yield_per_hectare
+        gross_revenue_usd = total_production_kg * price_per_kg_usd
         
-        # Blood pressure - correlated with age and BMI
-        systolic_base = 90 + age * 0.5 + bmi * 0.8
-        systolic = int(np.random.normal(systolic_base, 10))
-        diastolic = int(systolic * np.random.uniform(0.6, 0.7))
+        # Costs and sustainability
+        production_costs_usd = gross_revenue_usd * np.random.uniform(0.4, 0.7)
+        net_income_usd = gross_revenue_usd - production_costs_usd
         
-        # Health score (0-100) - multimodal distribution
-        if education == 'Tertiary':
-            health_score = np.random.normal(75, 10)
-        elif education == 'None':
-            health_score = np.random.normal(45, 15)
-        else:
-            health_score = np.random.normal(60, 12)
-        health_score = max(0, min(health_score, 100))
+        # Sustainability metrics
+        has_certification = random.choice([True, False])
+        certification_type = random.choice(CERTIFICATIONS) if has_certification else "None"
         
-        # Income - lognormal with missing data
-        if random.random() < 0.15:  # 15% missing income data
-            monthly_income = np.nan
-        else:
-            income_base = {'None': 50, 'Primary': 100, 'Secondary': 200, 'Tertiary': 500}
-            monthly_income = np.random.lognormal(
-                np.log(income_base.get(education, 100)), 0.8
-            )
+        # Environmental impact
+        water_usage_liters_per_kg = np.random.normal(500, 200) if commodity != "Fish" else 2000
+        carbon_footprint_kg_co2_per_kg = np.random.normal(2.5, 1.0)
+        pesticide_use_kg_per_hectare = np.random.normal(15, 8) if certification_type != "Organic" else 0
         
-        # Disease prevalence
-        has_malaria = random.random() < 0.25  # 25% prevalence
-        has_diabetes = random.random() < (0.05 + age/1000)  # Age-dependent
-        has_hypertension = systolic > 140 or diastolic > 90
+        # Climate resilience
+        climate_adaptation_score = np.random.uniform(1, 10)  # 1-10 scale
+        drought_risk_level = random.choice(["Low", "Medium", "High"])
+        flood_risk_level = random.choice(["Low", "Medium", "High"])
         
-        # Water access
-        water_access = np.random.choice(
-            ['Piped', 'Well', 'River', 'None'],
-            p=[0.15, 0.40, 0.35, 0.10]
-        )
+        # Traceability
+        has_traceability_system = random.choice([True, False])
+        traceability_id = str(uuid.uuid4())[:8] if has_traceability_system else None
         
-        # Distance to health facility (km) - exponential distribution
-        distance_to_clinic = np.random.exponential(5)
-        distance_to_clinic = min(distance_to_clinic, 50)  # Cap at 50km
+        # Cooperative membership
+        is_cooperative_member = random.choice([True, False])
+        cooperative_name = f"{region} {commodity} Cooperative" if is_cooperative_member else None
         
-        # Survey metadata
-        survey_duration_minutes = np.random.normal(15, 3)
-        survey_duration_minutes = max(5, min(survey_duration_minutes, 30))
+        # Collection date
+        collection_date = datetime(2024, 1, 1) + timedelta(days=random.randint(0, 365))
         
         # Missing data patterns
-        # If no education info, likely to miss other data too
-        if education == 'None' and random.random() < 0.3:
-            water_access = np.nan
-            
-        # Add some completely missing responses (incomplete surveys)
-        if random.random() < 0.02:  # 2% incomplete
-            health_score = np.nan
-            has_malaria = np.nan
-            has_diabetes = np.nan
+        if random.random() < 0.1:  # 10% missing income data
+            net_income_usd = np.nan
+            production_costs_usd = np.nan
         
-        # Survey weights (for sampling design)
-        # Rural areas get higher weights
-        if 'Slums' not in location_name:
-            survey_weight = 1.5
-        else:
-            survey_weight = 1.0
-            
+        if random.random() < 0.05:  # 5% missing environmental data
+            carbon_footprint_kg_co2_per_kg = np.nan
+            water_usage_liters_per_kg = np.nan
+        
         record = {
-            'respondent_id': f'R{i+1:04d}',
-            'age': age,
-            'gender': gender,
-            'education_level': education,
-            'location_name': location_name,
-            'latitude': lat,
-            'longitude': lon,
-            'collection_date': collection_date,
-            'collection_time': collection_date + timedelta(
-                hours=random.randint(6, 18),
-                minutes=random.randint(0, 59)
-            ),
-            'bmi': round(bmi, 1),
-            'systolic_bp': systolic,
-            'diastolic_bp': diastolic,
-            'health_score': round(health_score, 1),
-            'monthly_income_usd': round(monthly_income, 2) if not pd.isna(monthly_income) else np.nan,
-            'has_malaria': has_malaria,
-            'has_diabetes': has_diabetes,
-            'has_hypertension': has_hypertension,
-            'water_access': water_access,
-            'distance_to_clinic_km': round(distance_to_clinic, 1),
-            'survey_duration_minutes': round(survey_duration_minutes, 1),
-            'survey_weight': survey_weight,
-            'data_collector_id': f'DC{random.randint(1, 10):02d}'
-        }
-        
-        data.append(record)
-    
-    df = pd.DataFrame(data)
-    
-    # Add some data quality issues
-    # Duplicate entries (same person surveyed twice)
-    if len(df) > 10:
-        duplicate_indices = random.sample(range(len(df)), k=min(5, len(df)//100))
-        for idx in duplicate_indices:
-            duplicate = df.iloc[idx].copy()
-            duplicate['collection_date'] += timedelta(days=random.randint(1, 7))
-            duplicate['respondent_id'] = duplicate['respondent_id'] + '_dup'
-            df = pd.concat([df, pd.DataFrame([duplicate])], ignore_index=True)
-    
-    return df
-
-def generate_education_study_data(n_students: int = 500) -> pd.DataFrame:
-    """
-    Generate mock education study data.
-    
-    Args:
-        n_students: Number of students to generate
-        
-    Returns:
-        DataFrame with mock education data
-    """
-    data = []
-    
-    # Schools in different regions
-    schools = [
-        ("Nairobi Primary", "Kenya", "Urban", (-1.2921, 36.8219)),
-        ("Lagos Secondary", "Nigeria", "Urban", (6.5244, 3.3792)),
-        ("Cape Town High", "South Africa", "Urban", (-33.9249, 18.4241)),
-        ("Rural Uganda School", "Uganda", "Rural", (0.3476, 32.5825)),
-        ("Accra Academy", "Ghana", "Urban", (5.6037, -0.1870))
-    ]
-    
-    for i in range(n_students):
-        school = random.choice(schools)
-        school_name, country, area_type, (lat, lon) = school
-        
-        # Student demographics
-        age = random.randint(10, 18)
-        gender = random.choice(['Male', 'Female'])
-        grade = min(age - 5, 12)  # Approximate grade from age
-        
-        # Academic performance - normal distribution with school effects
-        if "Primary" in school_name:
-            base_score = 65
-        elif "Academy" in school_name:
-            base_score = 75
-        else:
-            base_score = 70
-            
-        math_score = np.random.normal(base_score, 15)
-        math_score = max(0, min(math_score, 100))
-        
-        reading_score = np.random.normal(base_score + 5, 12)
-        reading_score = max(0, min(reading_score, 100))
-        
-        science_score = np.random.normal(base_score - 2, 18)
-        science_score = max(0, min(science_score, 100))
-        
-        # Attendance - beta distribution
-        attendance_rate = np.random.beta(9, 2) * 100  # Skewed towards high attendance
-        
-        # Socioeconomic factors
-        if area_type == "Rural":
-            has_electricity = random.random() < 0.3
-            has_internet = random.random() < 0.1
-            books_at_home = random.randint(0, 20)
-        else:
-            has_electricity = random.random() < 0.9
-            has_internet = random.random() < 0.6
-            books_at_home = random.randint(5, 100)
-        
-        # Parent education
-        parent_education = random.choice(['None', 'Primary', 'Secondary', 'Tertiary'])
-        
-        # Class size
-        class_size = random.randint(20, 60) if area_type == "Urban" else random.randint(30, 80)
-        
-        # Missing data - some students don't complete all tests
-        if random.random() < 0.05:
-            science_score = np.nan
-        if random.random() < 0.02:
-            math_score = np.nan
-            
-        record = {
-            'student_id': f'S{i+1:04d}',
-            'school_name': school_name,
+            'producer_id': producer_id,
             'country': country,
-            'area_type': area_type,
-            'latitude': lat + np.random.normal(0, 0.005),
-            'longitude': lon + np.random.normal(0, 0.005),
-            'age': age,
-            'gender': gender,
-            'grade': grade,
-            'math_score': round(math_score, 1) if not pd.isna(math_score) else np.nan,
-            'reading_score': round(reading_score, 1),
-            'science_score': round(science_score, 1) if not pd.isna(science_score) else np.nan,
-            'attendance_rate': round(attendance_rate, 1),
-            'has_electricity': has_electricity,
-            'has_internet': has_internet,
-            'books_at_home': books_at_home,
-            'parent_education': parent_education,
-            'class_size': class_size,
-            'assessment_date': datetime(2024, 3, 1) + timedelta(days=random.randint(0, 90))
+            'region': region,
+            'commodity': commodity,
+            'producer_name': producer_name,
+            'latitude': round(latitude, 6),
+            'longitude': round(longitude, 6),
+            'farm_size_hectares': round(farm_size_hectares, 2),
+            'yield_per_hectare_kg': round(yield_per_hectare, 1),
+            'total_production_kg': round(total_production_kg, 1),
+            'price_per_kg_usd': round(price_per_kg_usd, 2),
+            'gross_revenue_usd': round(gross_revenue_usd, 2),
+            'production_costs_usd': round(production_costs_usd, 2) if not pd.isna(production_costs_usd) else np.nan,
+            'net_income_usd': round(net_income_usd, 2) if not pd.isna(net_income_usd) else np.nan,
+            'has_certification': has_certification,
+            'certification_type': certification_type,
+            'water_usage_liters_per_kg': round(water_usage_liters_per_kg, 1) if not pd.isna(water_usage_liters_per_kg) else np.nan,
+            'carbon_footprint_kg_co2_per_kg': round(carbon_footprint_kg_co2_per_kg, 2) if not pd.isna(carbon_footprint_kg_co2_per_kg) else np.nan,
+            'pesticide_use_kg_per_hectare': round(pesticide_use_kg_per_hectare, 1),
+            'climate_adaptation_score': round(climate_adaptation_score, 1),
+            'drought_risk_level': drought_risk_level,
+            'flood_risk_level': flood_risk_level,
+            'has_traceability_system': has_traceability_system,
+            'traceability_id': traceability_id,
+            'is_cooperative_member': is_cooperative_member,
+            'cooperative_name': cooperative_name,
+            'collection_date': collection_date
         }
         
         data.append(record)
     
     return pd.DataFrame(data)
 
-def generate_agricultural_survey_data(n_farmers: int = 300) -> pd.DataFrame:
+def generate_trade_flow_data(n_trades: int = 800) -> pd.DataFrame:
     """
-    Generate mock agricultural survey data.
+    Generate mock trade flow data between African countries and to Europe.
     
     Args:
-        n_farmers: Number of farmers to generate
+        n_trades: Number of trade transactions to generate
         
     Returns:
-        DataFrame with mock agricultural data
+        DataFrame with trade flow data
     """
     data = []
     
-    crops = ['Maize', 'Rice', 'Cassava', 'Wheat', 'Sorghum', 'Millet', 'Beans', 'Groundnuts']
-    regions = ['Northern', 'Southern', 'Eastern', 'Western', 'Central']
-    
-    for i in range(n_farmers):
-        # Farm characteristics
-        farm_size_hectares = np.random.lognormal(1.5, 0.8)
-        farm_size_hectares = max(0.1, min(farm_size_hectares, 50))
+    for i in range(n_trades):
+        # Origin country
+        origin_country = random.choice(list(COMMODITY_COUNTRIES.keys()))
+        origin_info = COMMODITY_COUNTRIES[origin_country]
+        commodity = random.choice(origin_info["commodities"])
         
-        region = random.choice(regions)
+        # Destination - either within Africa or to Europe
+        if random.random() < 0.6:  # 60% intra-Africa trade
+            destination_country = random.choice([c for c in COMMODITY_COUNTRIES.keys() if c != origin_country])
+            trade_type = "Intra-Africa"
+        else:  # 40% Africa-Europe trade
+            destination_country = random.choice(origin_info["trade_partners"])
+            trade_type = "Africa-Europe"
         
-        # Crop selection based on region
-        if region == 'Northern':
-            primary_crop = random.choice(['Millet', 'Sorghum', 'Groundnuts'])
-        elif region == 'Southern':
-            primary_crop = random.choice(['Maize', 'Wheat'])
+        # Trade transaction details
+        trade_id = f"TRADE_{i+1:06d}"
+        quantity_kg = np.random.lognormal(8, 2)  # Large shipments
+        quantity_kg = max(1000, quantity_kg)  # Minimum 1 ton
+        
+        # Price varies by commodity and destination
+        base_prices = {
+            "Cocoa": 3.0, "Maize": 0.4, "Palm Oil": 0.9,
+            "Groundnut": 1.4, "Fish": 4.0, "Honey": 9.0
+        }
+        
+        price_per_kg_usd = base_prices[commodity]
+        
+        # Premium for European exports
+        if trade_type == "Africa-Europe":
+            price_per_kg_usd *= np.random.uniform(1.2, 1.8)
+        
+        # Premium for certified products
+        is_certified = random.choice([True, False])
+        if is_certified:
+            price_per_kg_usd *= np.random.uniform(1.1, 1.4)
+            certification_type = random.choice(["Organic", "Fair Trade", "Rainforest Alliance"])
         else:
-            primary_crop = random.choice(crops)
+            certification_type = "None"
         
-        # Yield - affected by various factors
-        base_yield = {'Maize': 2000, 'Rice': 3000, 'Cassava': 15000, 
-                     'Wheat': 2500, 'Sorghum': 1200, 'Millet': 900,
-                     'Beans': 800, 'Groundnuts': 1000}
+        total_value_usd = quantity_kg * price_per_kg_usd
         
-        # Add variability
-        yield_kg_per_hectare = np.random.normal(base_yield[primary_crop], base_yield[primary_crop] * 0.3)
-        yield_kg_per_hectare = max(100, yield_kg_per_hectare)
+        # Logistics and costs
+        transportation_cost_usd = total_value_usd * np.random.uniform(0.08, 0.15)
+        customs_fees_usd = total_value_usd * np.random.uniform(0.02, 0.05)
+        insurance_cost_usd = total_value_usd * np.random.uniform(0.01, 0.03)
         
-        # Farming practices
-        uses_fertilizer = random.random() < 0.6
-        uses_irrigation = random.random() < 0.3
-        uses_improved_seeds = random.random() < 0.4
+        # Transportation method
+        if trade_type == "Intra-Africa":
+            transport_method = random.choice(["Road", "Rail", "River"])
+            transport_distance_km = np.random.uniform(500, 3000)
+        else:
+            transport_method = random.choice(["Sea", "Air"])
+            transport_distance_km = np.random.uniform(5000, 12000)
         
-        # If using modern practices, increase yield
-        if uses_fertilizer:
-            yield_kg_per_hectare *= 1.3
-        if uses_irrigation:
-            yield_kg_per_hectare *= 1.2
-        if uses_improved_seeds:
-            yield_kg_per_hectare *= 1.15
-            
-        # Income and expenses
-        income_per_season = yield_kg_per_hectare * farm_size_hectares * random.uniform(0.3, 0.8)
-        expenses = income_per_season * random.uniform(0.4, 0.7)
+        # Quality and traceability
+        quality_grade = random.choice(["A", "B", "C"])
+        has_traceability = random.choice([True, False])
+        traceability_code = f"TR_{i+1:08d}" if has_traceability else None
         
-        # Demographics
-        farmer_age = random.randint(25, 70)
-        years_farming = min(farmer_age - 18, random.randint(5, 40))
-        household_size = random.randint(2, 12)
+        # Sustainability metrics
+        carbon_footprint_transport_kg = transport_distance_km * 0.12  # kg CO2 per km
+        sustainable_packaging = random.choice([True, False])
         
-        # Technology adoption
-        has_mobile_phone = random.random() < 0.8
-        uses_mobile_money = has_mobile_phone and random.random() < 0.6
+        # Time metrics
+        trade_date = datetime(2024, 1, 1) + timedelta(days=random.randint(0, 365))
+        transit_time_days = random.randint(3, 30)
+        delivery_date = trade_date + timedelta(days=transit_time_days)
         
-        # Climate impact
-        experienced_drought = random.random() < 0.4
-        experienced_flood = random.random() < 0.2
+        # Value chain stage
+        stage_from = random.choice(["Production", "Processing", "Wholesale"])
+        stage_to = random.choice(["Processing", "Wholesale", "Export", "Retail"])
         
-        # Missing data - some farmers reluctant to share income
-        if random.random() < 0.2:
-            income_per_season = np.nan
-            expenses = np.nan
-            
+        # Payment terms
+        payment_terms = random.choice(["Cash", "30 days", "60 days", "90 days"])
+        
+        # Missing data
+        if random.random() < 0.08:  # 8% missing cost data
+            transportation_cost_usd = np.nan
+            customs_fees_usd = np.nan
+        
         record = {
-            'farmer_id': f'F{i+1:04d}',
+            'trade_id': trade_id,
+            'origin_country': origin_country,
+            'destination_country': destination_country,
+            'commodity': commodity,
+            'trade_type': trade_type,
+            'quantity_kg': round(quantity_kg, 1),
+            'price_per_kg_usd': round(price_per_kg_usd, 2),
+            'total_value_usd': round(total_value_usd, 2),
+            'is_certified': is_certified,
+            'certification_type': certification_type,
+            'quality_grade': quality_grade,
+            'transportation_cost_usd': round(transportation_cost_usd, 2) if not pd.isna(transportation_cost_usd) else np.nan,
+            'customs_fees_usd': round(customs_fees_usd, 2) if not pd.isna(customs_fees_usd) else np.nan,
+            'insurance_cost_usd': round(insurance_cost_usd, 2),
+            'transport_method': transport_method,
+            'transport_distance_km': round(transport_distance_km, 1),
+            'carbon_footprint_transport_kg': round(carbon_footprint_transport_kg, 2),
+            'sustainable_packaging': sustainable_packaging,
+            'has_traceability': has_traceability,
+            'traceability_code': traceability_code,
+            'stage_from': stage_from,
+            'stage_to': stage_to,
+            'payment_terms': payment_terms,
+            'trade_date': trade_date,
+            'delivery_date': delivery_date,
+            'transit_time_days': transit_time_days
+        }
+        
+        data.append(record)
+    
+    return pd.DataFrame(data)
+
+def generate_value_chain_participant_data(n_participants: int = 600) -> pd.DataFrame:
+    """
+    Generate mock value chain participant data.
+    
+    Args:
+        n_participants: Number of participants to generate
+        
+    Returns:
+        DataFrame with value chain participant data
+    """
+    data = []
+    
+    for i in range(n_participants):
+        # Participant details
+        participant_id = f"VC_{i+1:05d}"
+        country = random.choice(list(COMMODITY_COUNTRIES.keys()))
+        country_info = COMMODITY_COUNTRIES[country]
+        commodity = random.choice(country_info["commodities"])
+        
+        # Value chain stage
+        stage = random.choice(VALUE_CHAIN_STAGES)
+        
+        # Business characteristics
+        if stage == "Production":
+            business_type = "Farm"
+            business_size = random.choice(["Small", "Medium", "Large"])
+            employees = random.randint(1, 50)
+        elif stage == "Processing":
+            business_type = "Processing Plant"
+            business_size = random.choice(["Small", "Medium", "Large"])
+            employees = random.randint(5, 200)
+        else:
+            business_type = "Trading Company"
+            business_size = random.choice(["Small", "Medium", "Large"])
+            employees = random.randint(2, 100)
+        
+        # Location
+        region = random.choice(country_info["major_regions"])
+        base_lat, base_lon = country_info["coordinates"]
+        latitude = base_lat + np.random.normal(0, 1.5)
+        longitude = base_lon + np.random.normal(0, 1.5)
+        
+        # Financial metrics
+        if business_size == "Small":
+            annual_revenue_usd = np.random.lognormal(8, 1)
+        elif business_size == "Medium":
+            annual_revenue_usd = np.random.lognormal(10, 1)
+        else:
+            annual_revenue_usd = np.random.lognormal(12, 1)
+        
+        annual_costs_usd = annual_revenue_usd * np.random.uniform(0.6, 0.8)
+        profit_margin = (annual_revenue_usd - annual_costs_usd) / annual_revenue_usd
+        
+        # Capacity and volume
+        if stage == "Production":
+            annual_capacity_kg = np.random.lognormal(7, 1.5)
+        else:
+            annual_capacity_kg = np.random.lognormal(9, 1.5)
+        
+        capacity_utilization = np.random.uniform(0.5, 0.95)
+        actual_volume_kg = annual_capacity_kg * capacity_utilization
+        
+        # Technology and innovation
+        technology_level = random.choice(["Basic", "Intermediate", "Advanced"])
+        digital_adoption_score = np.random.uniform(1, 10)
+        
+        # Sustainability practices
+        sustainability_score = np.random.uniform(1, 10)
+        environmental_certification = random.choice([True, False])
+        waste_reduction_practices = random.choice([True, False])
+        renewable_energy_use = random.choice([True, False])
+        
+        # Supply chain relationships
+        num_suppliers = random.randint(1, 20)
+        num_buyers = random.randint(1, 15)
+        avg_contract_length_months = random.randint(3, 36)
+        
+        # Challenges and risks
+        main_challenges = random.choice([
+            "Access to Finance", "Market Access", "Climate Change",
+            "Infrastructure", "Regulation", "Competition"
+        ])
+        
+        risk_level = random.choice(["Low", "Medium", "High"])
+        
+        # Traceability and compliance
+        traceability_system = random.choice([True, False])
+        compliance_certifications = random.randint(0, 5)
+        
+        # Missing data patterns
+        if random.random() < 0.12:  # 12% missing financial data
+            annual_revenue_usd = np.nan
+            annual_costs_usd = np.nan
+            profit_margin = np.nan
+        
+        record = {
+            'participant_id': participant_id,
+            'country': country,
             'region': region,
-            'farmer_age': farmer_age,
-            'years_farming': years_farming,
-            'household_size': household_size,
-            'farm_size_hectares': round(farm_size_hectares, 2),
-            'primary_crop': primary_crop,
-            'yield_kg_per_hectare': round(yield_kg_per_hectare, 0),
-            'uses_fertilizer': uses_fertilizer,
-            'uses_irrigation': uses_irrigation,
-            'uses_improved_seeds': uses_improved_seeds,
-            'income_per_season_usd': round(income_per_season, 2) if not pd.isna(income_per_season) else np.nan,
-            'expenses_usd': round(expenses, 2) if not pd.isna(expenses) else np.nan,
-            'has_mobile_phone': has_mobile_phone,
-            'uses_mobile_money': uses_mobile_money,
-            'experienced_drought': experienced_drought,
-            'experienced_flood': experienced_flood,
-            'survey_date': datetime(2024, 4, 1) + timedelta(days=random.randint(0, 60))
+            'commodity': commodity,
+            'value_chain_stage': stage,
+            'business_type': business_type,
+            'business_size': business_size,
+            'latitude': round(latitude, 6),
+            'longitude': round(longitude, 6),
+            'employees': employees,
+            'annual_revenue_usd': round(annual_revenue_usd, 2) if not pd.isna(annual_revenue_usd) else np.nan,
+            'annual_costs_usd': round(annual_costs_usd, 2) if not pd.isna(annual_costs_usd) else np.nan,
+            'profit_margin': round(profit_margin, 3) if not pd.isna(profit_margin) else np.nan,
+            'annual_capacity_kg': round(annual_capacity_kg, 1),
+            'capacity_utilization': round(capacity_utilization, 2),
+            'actual_volume_kg': round(actual_volume_kg, 1),
+            'technology_level': technology_level,
+            'digital_adoption_score': round(digital_adoption_score, 1),
+            'sustainability_score': round(sustainability_score, 1),
+            'environmental_certification': environmental_certification,
+            'waste_reduction_practices': waste_reduction_practices,
+            'renewable_energy_use': renewable_energy_use,
+            'num_suppliers': num_suppliers,
+            'num_buyers': num_buyers,
+            'avg_contract_length_months': avg_contract_length_months,
+            'main_challenges': main_challenges,
+            'risk_level': risk_level,
+            'traceability_system': traceability_system,
+            'compliance_certifications': compliance_certifications,
         }
         
         data.append(record)
@@ -418,10 +485,18 @@ def add_data_quality_issues(df: pd.DataFrame,
             # Create outlier
             if random.random() < 0.5:
                 # Extremely high value
-                df.loc[idx, col] = df[col].mean() + 5 * df[col].std()
+                outlier_value = df[col].mean() + 5 * df[col].std()
             else:
                 # Extremely low value
-                df.loc[idx, col] = df[col].mean() - 5 * df[col].std()
+                outlier_value = df[col].mean() - 5 * df[col].std()
+            
+            # Convert to appropriate type to avoid dtype warnings
+            if df[col].dtype == 'int64':
+                outlier_value = int(outlier_value)
+            elif df[col].dtype == 'float64':
+                outlier_value = float(outlier_value)
+            
+            df.loc[idx, col] = outlier_value
         
         # Add some data entry errors
         if 'age' in df.columns:
@@ -434,22 +509,22 @@ def add_data_quality_issues(df: pd.DataFrame,
 
 def generate_all_datasets() -> Dict[str, pd.DataFrame]:
     """
-    Generate all mock datasets for testing.
+    Generate all mock datasets for commodity value chain research.
     
     Returns:
         Dictionary of DataFrames
     """
-    print("Generating mock datasets...")
+    print("Generating mock commodity research datasets...")
     
     datasets = {
-        'rural_health': generate_rural_health_survey_data(1000),
-        'education': generate_education_study_data(500),
-        'agriculture': generate_agricultural_survey_data(300)
+        'commodity_production': generate_commodity_production_data(1000),
+        'trade_flows': generate_trade_flow_data(800),
+        'value_chain_participants': generate_value_chain_participant_data(600)
     }
     
     # Add some data quality issues
     for name, df in datasets.items():
-        datasets[name] = add_data_quality_issues(df, error_rate=0.02)
+        datasets[name] = add_data_quality_issues(df, error_rate=0.01)
         print(f"Generated {name} dataset with {len(df)} records")
     
     return datasets
@@ -470,3 +545,11 @@ if __name__ == "__main__":
         print(f"  Shape: {df.shape}")
         print(f"  Columns: {', '.join(df.columns[:5])}...")
         print(f"  Missing data: {df.isna().sum().sum()} cells")
+        
+        # Show commodity distribution
+        if 'commodity' in df.columns:
+            print(f"  Commodity distribution: {df['commodity'].value_counts().to_dict()}")
+        
+        # Show country distribution
+        if 'country' in df.columns:
+            print(f"  Country distribution: {df['country'].value_counts().to_dict()}")

@@ -80,7 +80,7 @@ class TestDescriptiveStatistics:
         print("TESTING BASIC STATISTICS")
         print("="*50)
         
-        df = self.datasets['rural_health']
+        df = self.datasets['commodity_production']
         
         # Test 1: Basic stats for all numeric columns
         print("\n1. Basic Statistics for All Numeric Columns:")
@@ -97,34 +97,40 @@ class TestDescriptiveStatistics:
         
         # Test 2: Percentiles
         print("\n2. Percentile Analysis:")
-        percentiles = calculate_percentiles(df, ['age', 'bmi', 'health_score'])
+        percentiles = calculate_percentiles(df, ['farm_size_hectares', 'yield_per_hectare_kg', 'price_per_kg_usd'])
         
         for col, percs in percentiles.items():
             print(f"\n{col} percentiles:")
             print(f"  P25: {percs['p25']:.2f}, P50: {percs['p50']:.2f}, P75: {percs['p75']:.2f}")
         
         # Test 3: Grouped statistics
-        print("\n3. Grouped Statistics by Gender:")
-        grouped = calculate_grouped_stats(df, 'gender', ['age', 'health_score'])
+        print("\n3. Grouped Statistics by Country:")
+        grouped = calculate_grouped_stats(df, 'country', ['farm_size_hectares', 'yield_per_hectare_kg'])
         print(grouped.head(10))
         
-        # Test 4: Weighted statistics
-        print("\n4. Weighted Statistics:")
-        weighted = calculate_weighted_stats(df, 'health_score', 'survey_weight')
-        print(f"  Weighted mean: {weighted['weighted_mean']:.2f}")
-        print(f"  Weighted std: {weighted['weighted_std']:.2f}")
-        print(f"  Effective sample size: {weighted['effective_sample_size']:.0f}")
+        # Test 4: Weighted statistics (skip if no weight column)
+        weighted = None
+        if 'survey_weight' in df.columns:
+            print("\n4. Weighted Statistics:")
+            weighted = calculate_weighted_stats(df, 'yield_per_hectare_kg', 'survey_weight')
+            print(f"  Weighted mean: {weighted['weighted_mean']:.2f}")
+            print(f"  Weighted std: {weighted['weighted_std']:.2f}")
+            print(f"  Effective sample size: {weighted['effective_sample_size']:.0f}")
+        else:
+            print("\n4. Weighted Statistics: Skipped (no weight column)")
         
         # Test 5: Correlation matrix
         print("\n5. Correlation Matrix:")
-        corr_matrix = calculate_correlation_matrix(df[['age', 'bmi', 'health_score', 'systolic_bp']])
+        numeric_cols = ['farm_size_hectares', 'yield_per_hectare_kg', 'price_per_kg_usd', 'total_production_kg']
+        available_cols = [col for col in numeric_cols if col in df.columns]
+        corr_matrix = calculate_correlation_matrix(df[available_cols])
         print(corr_matrix)
         
         self.results['basic_statistics'] = {
             'basic_stats': basic_stats,
             'percentiles': percentiles,
             'grouped_stats': grouped.to_dict(),
-            'weighted_stats': weighted,
+            'weighted_stats': weighted if weighted is not None else {},
             'correlations': corr_matrix.to_dict()
         }
         
@@ -134,38 +140,43 @@ class TestDescriptiveStatistics:
         print("TESTING DISTRIBUTION ANALYSIS")
         print("="*50)
         
-        df = self.datasets['rural_health']
+        df = self.datasets['commodity_production']
         
         # Test 1: Distribution analysis
         print("\n1. Distribution Analysis for Key Variables:")
         
-        for col in ['age', 'bmi', 'health_score']:
-            print(f"\n{col}:")
-            dist_analysis = analyze_distribution(df[col])
-            print(f"  Skewness: {dist_analysis['skewness']:.3f} ({dist_analysis['shape_interpretation']['skewness']})")
-            print(f"  Kurtosis: {dist_analysis['excess_kurtosis']:.3f} ({dist_analysis['shape_interpretation']['kurtosis']})")
+        for col in ['farm_size_hectares', 'yield_per_hectare_kg', 'price_per_kg_usd']:
+            if col in df.columns:
+                print(f"\n{col}:")
+                dist_analysis = analyze_distribution(df[col])
+                print(f"  Skewness: {dist_analysis['skewness']:.3f} ({dist_analysis['shape_interpretation']['skewness']})")
+                print(f"  Kurtosis: {dist_analysis['excess_kurtosis']:.3f} ({dist_analysis['shape_interpretation']['kurtosis']})")
         
         # Test 2: Normality tests
         print("\n2. Normality Tests:")
-        for col in ['bmi', 'health_score']:
-            print(f"\n{col}:")
-            norm_test = test_normality(df[col])
-            print(f"  Shapiro-Wilk p-value: {norm_test.get('shapiro_wilk', {}).get('p_value', 'N/A'):.4f}")
-            print(f"  Overall assessment: {norm_test['overall_assessment']['confidence']}")
+        for col in ['yield_per_hectare_kg', 'price_per_kg_usd']:
+            if col in df.columns:
+                print(f"\n{col}:")
+                norm_test = test_normality(df[col])
+                print(f"  Shapiro-Wilk p-value: {norm_test.get('shapiro_wilk', {}).get('p_value', 'N/A'):.4f}")
+                print(f"  Overall assessment: {norm_test['overall_assessment']['confidence']}")
         
         # Test 3: Distribution fitting
-        print("\n3. Distribution Fitting for Income:")
-        income_data = df['monthly_income_usd'].dropna()
-        if len(income_data) > 10:
-            fit_results = fit_distribution(income_data, ['norm', 'lognorm', 'gamma'])
-            print(f"  Best fit: {fit_results['best_fit']['distribution']}")
-            print(f"  AIC: {fit_results['best_fit']['aic']:.2f}")
+        print("\n3. Distribution Fitting for Production Revenue:")
+        if 'gross_revenue_usd' in df.columns:
+            revenue_data = df['gross_revenue_usd'].dropna()
+            if len(revenue_data) > 10:
+                fit_results = fit_distribution(revenue_data, ['norm', 'lognorm', 'gamma'])
+                print(f"  Best fit: {fit_results['best_fit']['distribution']}")
+                print(f"  AIC: {fit_results['best_fit']['aic']:.2f}")
+        else:
+            print("  Revenue data not available")
         
         self.results['distributions'] = {
             'distribution_analysis': {col: analyze_distribution(df[col]) 
-                                    for col in ['age', 'bmi', 'health_score']},
+                                    for col in ['farm_size_hectares', 'yield_per_hectare_kg', 'price_per_kg_usd'] if col in df.columns},
             'normality_tests': {col: test_normality(df[col]) 
-                               for col in ['bmi', 'health_score']}
+                               for col in ['yield_per_hectare_kg', 'price_per_kg_usd'] if col in df.columns}
         }
         
     def test_categorical_analysis(self):
@@ -174,37 +185,41 @@ class TestDescriptiveStatistics:
         print("TESTING CATEGORICAL ANALYSIS")
         print("="*50)
         
-        df = self.datasets['rural_health']
+        df = self.datasets['commodity_production']
         
         # Test 1: Categorical analysis
         print("\n1. Categorical Variable Analysis:")
         
-        for col in ['gender', 'education_level', 'water_access']:
-            print(f"\n{col}:")
-            cat_analysis = analyze_categorical(df[col])
-            print(f"  Unique categories: {cat_analysis['unique_categories']}")
-            print(f"  Mode: {cat_analysis['mode']} ({cat_analysis['mode_percentage']:.1f}%)")
-            print(f"  Shannon entropy: {cat_analysis['diversity']['shannon_entropy']:.3f}")
+        for col in ['country', 'commodity', 'certification_type']:
+            if col in df.columns:
+                print(f"\n{col}:")
+                cat_analysis = analyze_categorical(df[col])
+                print(f"  Unique categories: {cat_analysis['unique_categories']}")
+                print(f"  Mode: {cat_analysis['mode']} ({cat_analysis['mode_percentage']:.1f}%)")
+                print(f"  Shannon entropy: {cat_analysis['diversity']['shannon_entropy']:.3f}")
         
         # Test 2: Chi-square test
-        print("\n2. Chi-Square Test (Education vs Water Access):")
-        chi2_result = calculate_chi_square(df, 'education_level', 'water_access')
+        print("\n2. Chi-Square Test (Country vs Commodity):")
+        chi2_result = calculate_chi_square(df, 'country', 'commodity')
         print(f"  Chi-square statistic: {chi2_result['chi2_statistic']:.2f}")
         print(f"  P-value: {chi2_result['p_value']:.4f}")
         print(f"  Cramér's V: {chi2_result['cramers_v']:.3f}")
         print(f"  Interpretation: {chi2_result['effect_size_interpretation']}")
         
         # Test 3: Cross-tabulation
-        print("\n3. Cross-tabulation (Gender vs Has Malaria):")
-        crosstab = analyze_cross_tabulation(df, 'gender', 'has_malaria')
-        print("Contingency Table:")
-        print(pd.DataFrame(crosstab['crosstab']))
+        print("\n3. Cross-tabulation (Country vs Has Certification):")
+        if 'has_certification' in df.columns:
+            crosstab = analyze_cross_tabulation(df, 'country', 'has_certification')
+            print("Contingency Table:")
+            print(pd.DataFrame(crosstab['crosstab']))
+        else:
+            print("  Certification data not available")
         
         self.results['categorical_analysis'] = {
             'categorical_stats': {col: analyze_categorical(df[col]) 
-                                for col in ['gender', 'education_level']},
+                                for col in ['country', 'commodity'] if col in df.columns},
             'chi_square': chi2_result,
-            'crosstab': crosstab
+            'crosstab': crosstab if 'has_certification' in df.columns else {}
         }
         
     def test_outlier_detection(self):
@@ -213,36 +228,35 @@ class TestDescriptiveStatistics:
         print("TESTING OUTLIER DETECTION")
         print("="*50)
         
-        df = self.datasets['rural_health']
+        df = self.datasets['commodity_production']
         
-        # Test different methods on BMI (known to have outliers)
-        print("\n1. Outlier Detection for BMI:")
+        # Test different methods on yield (known to have outliers)
+        print("\n1. Outlier Detection for Yield per Hectare:")
         
         # IQR method
-        iqr_outliers = detect_outliers_iqr(df['bmi'])
+        iqr_outliers = detect_outliers_iqr(df['yield_per_hectare_kg'])
         print(f"\nIQR Method:")
         print(f"  Outliers found: {iqr_outliers['n_outliers']}")
         print(f"  Percentage: {iqr_outliers['outlier_percentage']:.1f}%")
         print(f"  Bounds: [{iqr_outliers['lower_bound']:.1f}, {iqr_outliers['upper_bound']:.1f}]")
         
         # Z-score method
-        zscore_outliers = detect_outliers_zscore(df['bmi'])
+        zscore_outliers = detect_outliers_zscore(df['yield_per_hectare_kg'])
         print(f"\nZ-score Method:")
         print(f"  Outliers found: {zscore_outliers['n_outliers']}")
         print(f"  Percentage: {zscore_outliers['outlier_percentage']:.1f}%")
         
         # MAD method
-        mad_outliers = detect_outliers_mad(df['bmi'])
+        mad_outliers = detect_outliers_mad(df['yield_per_hectare_kg'])
         print(f"\nMAD Method:")
         print(f"  Outliers found: {mad_outliers['n_outliers']}")
         print(f"  Percentage: {mad_outliers['outlier_percentage']:.1f}%")
         
         # Test 2: Multivariate outlier detection
         print("\n2. Multivariate Outlier Detection:")
-        multi_outliers = detect_outliers_isolation_forest(
-            df, 
-            columns=['age', 'bmi', 'systolic_bp', 'health_score']
-        )
+        numeric_cols = ['farm_size_hectares', 'yield_per_hectare_kg', 'price_per_kg_usd', 'total_production_kg']
+        available_cols = [col for col in numeric_cols if col in df.columns]
+        multi_outliers = detect_outliers_isolation_forest(df, columns=available_cols)
         print(f"  Outliers found: {multi_outliers['n_outliers']}")
         print(f"  Percentage: {multi_outliers['outlier_percentage']:.1f}%")
         
@@ -263,7 +277,7 @@ class TestDescriptiveStatistics:
         print("TESTING MISSING DATA ANALYSIS")
         print("="*50)
         
-        df = self.datasets['rural_health']
+        df = self.datasets['commodity_production']
         
         # Test 1: Overall missing data analysis
         print("\n1. Missing Data Summary:")
@@ -300,14 +314,14 @@ class TestDescriptiveStatistics:
         print("TESTING TEMPORAL ANALYSIS")
         print("="*50)
         
-        df = self.datasets['rural_health']
+        df = self.datasets['commodity_production']
         
         # Test 1: Temporal patterns
         print("\n1. Temporal Patterns Analysis:")
         temporal = analyze_temporal_patterns(
             df, 
             'collection_date',
-            ['health_score', 'bmi']
+            ['yield_per_hectare_kg', 'price_per_kg_usd']
         )
         
         date_range = temporal['date_range']
@@ -323,7 +337,7 @@ class TestDescriptiveStatistics:
         # Test 2: Time series statistics
         print("\n2. Time Series Statistics:")
         # Create a time series
-        ts_data = df.groupby('collection_date')['health_score'].mean()
+        ts_data = df.groupby('collection_date')['yield_per_hectare_kg'].mean()
         if len(ts_data) > 20:
             ts_stats = calculate_time_series_stats(ts_data, ts_data.index)
             print(f"  Length: {ts_stats['length']}")
@@ -339,7 +353,7 @@ class TestDescriptiveStatistics:
         print("TESTING GEOSPATIAL ANALYSIS")
         print("="*50)
         
-        df = self.datasets['rural_health']
+        df = self.datasets['commodity_production']
         
         # Test 1: Spatial distribution
         print("\n1. Spatial Distribution Analysis:")
@@ -347,7 +361,7 @@ class TestDescriptiveStatistics:
             df, 
             'latitude', 
             'longitude',
-            'health_score'
+            'yield_per_hectare_kg'
         )
         
         bbox = spatial['bounding_box']
@@ -361,13 +375,13 @@ class TestDescriptiveStatistics:
             print(f"  Noise points: {clusters['n_noise_points']}")
         
         # Test 2: Spatial autocorrelation
-        print("\n2. Spatial Autocorrelation (Health Score):")
+        print("\n2. Spatial Autocorrelation (Yield per Hectare):")
         spatial_auto = calculate_spatial_autocorrelation(
-            df.dropna(subset=['latitude', 'longitude', 'health_score']),
+            df.dropna(subset=['latitude', 'longitude', 'yield_per_hectare_kg']),
             'latitude',
             'longitude', 
-            'health_score',
-            max_distance_km=20
+            'yield_per_hectare_kg',
+            max_distance_km=50
         )
         
         if 'error' not in spatial_auto:
@@ -377,7 +391,7 @@ class TestDescriptiveStatistics:
         
         # Test 3: Location clustering
         print("\n3. Creating Location Clusters:")
-        df_clustered = create_location_clusters(df, 'latitude', 'longitude', n_clusters=5)
+        df_clustered = create_location_clusters(df, 'latitude', 'longitude', n_clusters=6)
         cluster_counts = df_clustered['location_cluster'].value_counts()
         print(f"  Cluster distribution: {cluster_counts.to_dict()}")
         
@@ -389,7 +403,7 @@ class TestDescriptiveStatistics:
         print("TESTING SUMMARY GENERATION")
         print("="*50)
         
-        df = self.datasets['education']
+        df = self.datasets['trade_flows']
         
         # Test 1: Executive summary
         print("\n1. Executive Summary:")
@@ -412,7 +426,7 @@ class TestDescriptiveStatistics:
         print("\n2. Generating Full Report...")
         full_report = generate_full_report(
             df.iloc[:100],  # Use subset for speed
-            project_name="Education Study Test",
+            project_name="Commodity Trade Study Test",
             include_advanced=False
         )
         
@@ -485,7 +499,22 @@ class TestDescriptiveStatistics:
             elif isinstance(obj, pd.DataFrame):
                 return obj.to_dict()
             elif isinstance(obj, dict):
-                return {k: convert_types(v) for k, v in obj.items()}
+                # Handle tuple keys and numpy integer keys by converting them to appropriate types
+                converted_dict = {}
+                for k, v in obj.items():
+                    if isinstance(k, tuple):
+                        # Convert tuple key to string representation
+                        key_str = str(k)
+                    elif isinstance(k, np.integer):
+                        # Convert numpy integer key to regular Python int
+                        key_str = int(k)
+                    elif isinstance(k, np.floating):
+                        # Convert numpy float key to regular Python float
+                        key_str = float(k)
+                    else:
+                        key_str = k
+                    converted_dict[key_str] = convert_types(v)
+                return converted_dict
             elif isinstance(obj, list):
                 return [convert_types(v) for v in obj]
             else:
