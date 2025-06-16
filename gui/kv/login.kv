@@ -14,15 +14,18 @@
         anchor_y: "center"
 
         MDCard:
-            # remove shadow
             elevation: 0
             radius: [dp(16)]
-            padding: [dp(32), dp(16), dp(32), dp(32)]
-            size_hint: None, None
+            padding: [dp(16), dp(24), dp(16), dp(24)]
+            size_hint: 0.9, None
+            max_width: dp(500)
+            height: self.minimum_height
+            orientation: "vertical"
             size: dp(400), dp(420)
 
             MDBoxLayout:
                 orientation: "vertical"
+                adaptive_height: True
                 spacing: dp(20)
 
                 MDLabel:
@@ -48,20 +51,17 @@
                     height: dp(48)
 
                 MDLabel:
-                    # forgot-password link
                     markup: True
                     text: "[ref=forgot][color=377DFF]Forgot Password?[/color][/ref]"
                     halign: "right"
                     size_hint_y: None
-                    font_size:dp(12)
+                    font_size: dp(12)
                     height: self.texture_size[1]
                     on_ref_press: root.on_forgot_password()
 
                 MDRaisedButton:
                     text: "Login"
-                    # full width & centered
-                    size_hint_x: 1
-                    pos_hint: {"center_x": .5}
+                    size_hint_x:1
                     size_hint_y: None
                     height: dp(50)
                     on_release: root.login()

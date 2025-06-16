@@ -1,56 +1,46 @@
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
+from kivymd.uix.card import MDCard
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.label import MDLabel
+from kivymd.uix.button import MDIconButton
 from kivy.metrics import dp
-from kivy.properties import StringProperty
 
-class StatCard(BoxLayout):
-    title = StringProperty('')
-    value = StringProperty('0')
-    icon = StringProperty('')
-    
-    def __init__(self, **kwargs):
+class StatCard(MDCard):
+    def __init__(self, title="", value="0", icon="information", note="", **kwargs):
         super().__init__(**kwargs)
-        self.orientation = 'vertical'
-        self.padding = dp(10)
-        self.spacing = dp(5)
+        print("StatCard initialized with title:", title, "value:", value, "icon:", icon, "note:", note)
         self.size_hint_y = None
-        self.height = dp(100)
-        
-        # Icon and title
-        header = BoxLayout(
-            orientation='horizontal',
-            size_hint_y=None,
-            height=dp(30)
+        self.height = dp(120)
+        self.radius = [12, 12, 12, 12]
+        self.elevation = 0.5
+        self.padding = dp(10)
+        self.title = title
+
+        layout = MDBoxLayout(orientation="horizontal", spacing=10)
+
+        self.icon_btn = MDIconButton(
+            icon=icon,
+            theme_icon_color="Custom",
+            icon_color=(0.1, 0.4, 0.8, 1),
+            user_font_size="32sp"
         )
-        
-        icon_label = Label(
-            text=self.icon,
-            size_hint_x=None,
-            width=dp(30),
-            font_size=dp(20)
-        )
-        header.add_widget(icon_label)
-        
-        title_label = Label(
-            text=self.title,
-            size_hint_x=None,
-            width=dp(120),
-            font_size=dp(16)
-        )
-        header.add_widget(title_label)
-        
-        self.add_widget(header)
-        
-        # Value
-        value_label = Label(
-            text=self.value,
-            size_hint_y=None,
-            height=dp(40),
-            font_size=dp(24)
-        )
-        self.add_widget(value_label)
-        
-        # Bind properties
-        self.bind(value=value_label.setter('text'))
-        self.bind(title=title_label.setter('text'))
-        self.bind(icon=icon_label.setter('text')) 
+
+        text_col = MDBoxLayout(orientation="vertical", spacing=2)
+        self.value_label = MDLabel(text=value, font_style="H5", bold=True, theme_text_color="Custom", text_color=(0, 0, 0, 1))
+        self.title_label = MDLabel(text=title, font_style="Caption", theme_text_color="Secondary")
+        self.note_label = MDLabel(text=note, font_style="Caption", theme_text_color="Hint")
+
+        text_col.add_widget(self.value_label)
+        text_col.add_widget(self.title_label)
+        text_col.add_widget(self.note_label)
+
+        layout.add_widget(self.icon_btn)
+        layout.add_widget(text_col)
+        self.add_widget(layout)
+
+    @property
+    def value(self):
+        return self.value_label.text
+
+    @value.setter
+    def value(self, val):
+        self.value_label.text = val

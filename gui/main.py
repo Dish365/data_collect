@@ -18,6 +18,8 @@ from screens.form_builder import FormBuilderScreen
 from screens.sync import SyncScreen
 from screens.signup import SignUpScreen
 
+from kivy.modules import inspector
+
 # Import services
 from services.database import DatabaseService
 from services.sync_service import SyncService
@@ -29,7 +31,7 @@ class ResearchCollectorApp(MDApp):
         self.theme_cls.primary_hue     = "500" 
         # Set window size for development
         if platform != 'android':
-            Window.size = (768, 1024)
+            Window.size = (768, 924)
         
         # Initialize services
         self.db_service = DatabaseService()
@@ -48,6 +50,8 @@ class ResearchCollectorApp(MDApp):
         sm.add_widget(AnalyticsScreen(name='analytics'))
         sm.add_widget(FormBuilderScreen(name='form_builder'))
         sm.add_widget(SyncScreen(name='sync'))
+
+        inspector.create_inspector(Window, sm)
         
         return sm
     

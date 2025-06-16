@@ -5,101 +5,26 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.metrics import dp
 from widgets.stat_card import StatCard
+from kivymd.uix.screen import MDScreen
+from kivy.lang import Builder
+from kivy.core.window import Window
 
-class DashboardScreen(Screen):
+
+Builder.load_file("kv/dashboard.kv")
+
+
+class DashboardScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.setup_ui()
+
     
-    def setup_ui(self):
-        # Main layout
-        layout = BoxLayout(orientation='vertical', padding=dp(20), spacing=dp(10))
-        
-        # Header
-        header = Label(
-            text='Dashboard',
-            size_hint_y=None,
-            height=dp(50),
-            font_size=dp(24)
-        )
-        layout.add_widget(header)
-        
-        # Stats grid
-        stats_grid = GridLayout(
-            cols=2,
-            spacing=dp(10),
-            size_hint_y=None,
-            height=dp(200)
-        )
-        
-        # Add stat cards
-        stats_grid.add_widget(StatCard(
-            title='Total Projects',
-            value='0',
-            icon='folder'
-        ))
-        stats_grid.add_widget(StatCard(
-            title='Active Forms',
-            value='0',
-            icon='file-document'
-        ))
-        stats_grid.add_widget(StatCard(
-            title='Responses Today',
-            value='0',
-            icon='chart-bar'
-        ))
-        stats_grid.add_widget(StatCard(
-            title='Pending Sync',
-            value='0',
-            icon='sync'
-        ))
-        
-        layout.add_widget(stats_grid)
-        
-        # Quick actions
-        actions_label = Label(
-            text='Quick Actions',
-            size_hint_y=None,
-            height=dp(40),
-            font_size=dp(18)
-        )
-        layout.add_widget(actions_label)
-        
-        actions_grid = GridLayout(
-            cols=2,
-            spacing=dp(10),
-            size_hint_y=None,
-            height=dp(200)
-        )
-        
-        # Add action buttons
-        actions = [
-            ('New Project', 'projects'),
-            ('Data Collection', 'data_collection'),
-            ('Analytics', 'analytics'),
-            ('Form Builder', 'form_builder')
-        ]
-        
-        for text, screen in actions:
-            btn = Button(
-                text=text,
-                size_hint_y=None,
-                height=dp(80),
-                on_press=lambda x, s=screen: self.navigate_to(s)
-            )
-            actions_grid.add_widget(btn)
-        
-        layout.add_widget(actions_grid)
-        
-        # Add layout to screen
-        self.add_widget(layout)
     
     def navigate_to(self, screen_name):
         self.manager.current = screen_name
     
-    def on_enter(self):
-        # Update stats when entering screen
-        self.update_stats()
+    # def on_enter(self):
+    #     # Update stats when entering screen
+    #     self.update_stats()
     
     def update_stats(self):
         # Get app instance

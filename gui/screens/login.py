@@ -3,7 +3,7 @@ from kivy.lang import Builder
 from kivymd.toast import toast
 from kivymd.app import MDApp
 from widgets.forgot_password_popup import ForgotPasswordPopup
-
+from kivymd.uix.snackbar import Snackbar
 Builder.load_file("kv/login.kv")
 
 class LoginScreen(MDScreen):
@@ -13,11 +13,15 @@ class LoginScreen(MDScreen):
 
         try:
             app = MDApp.get_running_app()
+            self.manager.transition.direction = "left"
+            self.manager.current = "dashboard"
             # if auth_service isn't set, this will raise AttributeError
-            if app.auth_service.authenticate(user, pwd):
-                self.manager.current = "dashboard"
-            else:
-                toast("Invalid username or password")
+            # if app.auth_service.authenticate(user, pwd):
+            #     self.manager.current = "dashboard"
+            # else:
+            #     Snackbar(
+            #         text="Invalid username or password").open()
+                # toast("Invalid username or password")
         except Exception as e:
             # catch both missing auth_service and any other errors
             toast(f"Login error: {e}")
