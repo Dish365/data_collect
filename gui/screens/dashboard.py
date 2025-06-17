@@ -8,6 +8,7 @@ from widgets.stat_card import StatCard
 from kivymd.uix.screen import MDScreen
 from kivy.lang import Builder
 from kivy.core.window import Window
+from widgets.top_bar import TopBar
 
 
 Builder.load_file("kv/dashboard.kv")
@@ -22,9 +23,10 @@ class DashboardScreen(MDScreen):
     def navigate_to(self, screen_name):
         self.manager.current = screen_name
     
-    # def on_enter(self):
-    #     # Update stats when entering screen
-    #     self.update_stats()
+    def on_enter(self):
+        # Update stats when entering screen
+        self.ids.top_bar.set_title("Dashboard")
+        # self.update_stats()
     
     def update_stats(self):
         # Get app instance

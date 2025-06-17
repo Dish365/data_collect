@@ -5,51 +5,10 @@
         orientation: 'vertical'
 
         # Responsive Top Bar
-        MDBoxLayout:
-            size_hint_y: None
-            height: dp(56)
-            md_bg_color: app.theme_cls.primary_color
-            padding: dp(8), 0
-            spacing: dp(8)
+        TopBar:
+            id: top_bar
 
-            MDIconButton:
-                icon: "view-dashboard"
-                theme_icon_color: "Custom"
-                icon_color: 1, 1, 1, 1
-                pos_hint: {"center_y": 0.5}
-
-            MDLabel:
-                id: "top_title"
-                text: "Research Data Collector"
-                font_style: "H6"
-                theme_text_color: "Custom"
-                text_color: 1, 1, 1, 1
-                halign: "left"
-                size_hint_x: 1
-                pos_hint: {"center_y": 0.5}
-
-            MDBoxLayout:
-                orientation: "horizontal"
-                spacing: dp(4)
-                size_hint_x: None
-                width: self.minimum_width
-                pos_hint: {"center_y": 0.5}
-
-
-                MDIconButton:
-                    icon: "account-circle"
-                    theme_icon_color: "Custom"
-                    icon_color: 1, 1, 1, 1
-                    pos_hint: {"center_y": 0.5}
-
-                MDLabel:
-                    text: "John Doe"
-                    font_style: "Body1"
-                    theme_text_color: "Custom"
-                    text_color: 1, 1, 1, 1
-                    size_hint_x: None
-                    width: dp(80)
-                    pos_hint: {"center_y": 0.5}
+            
 
         # Scrollable main content
         ScrollView:
