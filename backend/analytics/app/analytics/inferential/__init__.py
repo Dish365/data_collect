@@ -2,6 +2,8 @@
 Inferential statistics module for research data analysis.
 """
 
+import numpy as np
+
 from .hypothesis_testing import (
     perform_t_test,
     perform_paired_t_test,
@@ -107,6 +109,10 @@ from .bayesian_inference import (
 from .bootstrap_methods import (
     bootstrap_mean,
     bootstrap_median,
+    bootstrap_std,
+    bootstrap_quantile,
+    bootstrap_difference_means,
+    bootstrap_ratio_means,
     bootstrap_correlation,
     bootstrap_regression,
     permutation_test,
@@ -114,7 +120,136 @@ from .bootstrap_methods import (
     bootstrap_hypothesis_test
 )
 
+from .inference_utils import (
+    validate_series_data,
+    validate_two_samples,
+    validate_dataframe_columns,
+    test_normality,
+    test_equal_variances,
+    test_independence,
+    calculate_standard_error,
+    calculate_degrees_of_freedom,
+    welch_degrees_of_freedom,
+    pooled_variance,
+    interpret_cohens_d,
+    interpret_correlation,
+    interpret_eta_squared,
+    interpret_cramers_v,
+    interpret_odds_ratio,
+    format_p_value,
+    format_confidence_interval,
+    create_summary_statistics,
+    check_test_assumptions,
+    get_test_recommendations
+)
+
+from .auto_detection import (
+    InferentialAutoDetector,
+    auto_detect_statistical_tests,
+    quick_test_suggestion
+)
+
+# Main analysis functions for easy access
+def analyze_inferential_data(data, target_variable=None, grouping_variable=None, 
+                           analysis_type="auto", **kwargs):
+    """
+    Main function to perform inferential analysis with automatic test selection.
+    
+    Args:
+        data: Input data (DataFrame, Series, or dict)
+        target_variable: Name of dependent/target variable
+        grouping_variable: Name of independent/grouping variable
+        analysis_type: Type of analysis ("auto", "t_test", "anova", "correlation", etc.)
+        **kwargs: Additional parameters for specific analyses
+        
+    Returns:
+        Dictionary with analysis results
+    """
+    if analysis_type == "auto":
+        return auto_detect_statistical_tests(data, target_variable, grouping_variable, **kwargs)
+    elif analysis_type == "t_test":
+        # Implement specific t-test logic based on data structure
+        if grouping_variable and target_variable:
+            groups = data.groupby(grouping_variable)[target_variable]
+            if len(groups) == 2:
+                group_list = [group for _, group in groups]
+                return perform_t_test(group_list[0], group_list[1], **kwargs)
+        return {"error": "Invalid data structure for t-test"}
+    elif analysis_type == "anova":
+        if grouping_variable and target_variable:
+            return perform_anova(data, grouping_variable, target_variable, **kwargs)
+        return {"error": "ANOVA requires both grouping and target variables"}
+    elif analysis_type == "correlation":
+        if len(data.columns) >= 2:
+            cols = data.select_dtypes(include=[np.number]).columns
+            if len(cols) >= 2:
+                return perform_correlation_test(data, cols[0], cols[1], **kwargs)
+        return {"error": "Correlation requires at least 2 numeric variables"}
+    else:
+        return {"error": f"Unknown analysis type: {analysis_type}"}
+
+# Convenience functions
+def quick_compare_groups(group1, group2, paired=False):
+    """Quick comparison between two groups with automatic test selection."""
+    return quick_test_suggestion(group1, group2, paired)
+
+def auto_test_assumptions(data, target_variable=None, grouping_variable=None):
+    """Automatically test statistical assumptions for the data."""
+    detector = InferentialAutoDetector()
+    characteristics = detector.detect_data_characteristics(data, target_variable, grouping_variable)
+    return characteristics['statistical_assumptions']
+
+def get_test_recommendations_smart(data, target_variable=None, grouping_variable=None):
+    """Get smart recommendations for statistical tests."""
+    detector = InferentialAutoDetector()
+    return detector.suggest_statistical_tests(data, target_variable, grouping_variable)
+
+def generate_analysis_workflow(data, target_variable=None, grouping_variable=None):
+    """Generate a complete analysis workflow with step-by-step recommendations."""
+    detector = InferentialAutoDetector()
+    characteristics = detector.detect_data_characteristics(data, target_variable, grouping_variable)
+    suggestions = detector.suggest_statistical_tests(data, target_variable, grouping_variable)
+    
+    workflow = {
+        'step_1_data_exploration': {
+            'function': 'create_summary_statistics',
+            'description': 'Generate descriptive statistics',
+            'data_characteristics': characteristics
+        },
+        'step_2_assumption_testing': {
+            'function': 'check_test_assumptions',
+            'description': 'Test statistical assumptions',
+            'assumptions': characteristics['statistical_assumptions']
+        },
+        'step_3_primary_analysis': {
+            'recommended_tests': suggestions['primary_recommendations'][:2],
+            'description': 'Perform primary statistical analysis'
+        },
+        'step_4_effect_size': {
+            'function': 'calculate_effect_sizes',
+            'description': 'Calculate and interpret effect sizes'
+        },
+        'step_5_power_analysis': {
+            'needed': suggestions['power_analysis_needed'],
+            'description': 'Assess statistical power and sample size adequacy'
+        }
+    }
+    
+    return workflow
+
 __all__ = [
+    # Main analysis functions
+    'analyze_inferential_data',
+    'quick_compare_groups',
+    'auto_test_assumptions',
+    'get_test_recommendations_smart',
+    'generate_analysis_workflow',
+    
+    # Auto-detection classes and functions
+    'InferentialAutoDetector',
+    'auto_detect_statistical_tests',
+    'quick_test_suggestion',
+    
     # Hypothesis Testing
     'perform_t_test', 'perform_paired_t_test', 'perform_welch_t_test',
     'perform_anova', 'perform_two_way_anova', 'perform_repeated_measures_anova',
@@ -165,7 +300,17 @@ __all__ = [
     'bayesian_ab_test',
     
     # Bootstrap Methods
-    'bootstrap_mean', 'bootstrap_median', 'bootstrap_correlation',
+    'bootstrap_mean', 'bootstrap_median', 'bootstrap_std', 'bootstrap_quantile',
+    'bootstrap_difference_means', 'bootstrap_ratio_means', 'bootstrap_correlation',
     'bootstrap_regression', 'permutation_test', 'jackknife_estimate',
-    'bootstrap_hypothesis_test'
+    'bootstrap_hypothesis_test',
+    
+    # Inference Utilities
+    'validate_series_data', 'validate_two_samples', 'validate_dataframe_columns',
+    'test_normality', 'test_equal_variances', 'test_independence',
+    'calculate_standard_error', 'calculate_degrees_of_freedom', 'welch_degrees_of_freedom',
+    'pooled_variance', 'interpret_cohens_d', 'interpret_correlation',
+    'interpret_eta_squared', 'interpret_cramers_v', 'interpret_odds_ratio',
+    'format_p_value', 'format_confidence_interval', 'create_summary_statistics',
+    'check_test_assumptions', 'get_test_recommendations'
 ]
