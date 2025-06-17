@@ -21,6 +21,7 @@ class DashboardScreen(MDScreen):
     
     
     def navigate_to(self, screen_name):
+        self.manager.transition.direction = "left"  
         self.manager.current = screen_name
     
     def on_enter(self):

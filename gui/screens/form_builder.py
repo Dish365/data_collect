@@ -125,9 +125,9 @@ class FormBuilderScreen(Screen):
         # Add layout to screen
         self.add_widget(layout)
     
-    def on_enter(self):
-        # Load projects when entering screen
-        self.load_projects()
+    # def on_enter(self):
+    #     # Load projects when entering screen
+    #     self.load_projects()
     
     def load_projects(self):
         # Get app instance
