@@ -6,7 +6,13 @@ from kivy.uix.spinner import Spinner
 from kivy.uix.textinput import TextInput
 from kivy.uix.scrollview import ScrollView
 from kivy.metrics import dp
-from widgets.form_fields import ShortTextField, MultipleChoiceField, LongTextField,LocationPickerField , PhotoUploadField, RatingScaleField
+from widgets.form_fields import ShortTextField, MultipleChoiceField ,LongTextField,LocationPickerField , PhotoUploadField, RatingScaleField
+from widgets.questionBlock import QuestionBlock
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.scrollview import MDScrollView
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.button import MDRaisedButton
+from kivy.clock import Clock
 
 
 from kivy.lang import Builder
@@ -137,6 +143,53 @@ class FormBuilderScreen(Screen):
     #     # Load projects when entering screen
     #     self.load_projects()
     
+    def preview_questions(self):
+        questions = []
+        preview_container = MDBoxLayout(
+            orientation="vertical",
+            spacing=dp(10),
+            padding=dp(10),
+            size_hint_y=None
+        )
+        preview_container.bind(minimum_height=preview_container.setter("height"))
+
+        for widget in self.ids.question_blocks_container.children[::-1]:
+            if hasattr(widget, "to_dict"):
+                q_dict = widget.to_dict()
+                questions.append(q_dict)
+                preview = widget.render_preview()
+                preview.size_hint_y = None
+                preview.height = preview.minimum_height
+                preview_container.add_widget(preview)
+
+        scroll = MDScrollView()
+        scroll.add_widget(preview_container)
+
+        def open_dialog(*args):
+            content_wrapper = MDBoxLayout(
+                orientation="vertical",
+                size_hint_y=None,
+                height=preview_container.height if preview_container.height < dp(500) else dp(500)
+            )
+            content_wrapper.add_widget(scroll)
+
+            dialog = MDDialog(
+                title="Preview Questions",
+                type="custom",
+                content_cls=content_wrapper,
+                size_hint=(0.9, None),
+                height=dp(600),
+                buttons=[
+                    MDRaisedButton(
+                        text="Export JSON",
+                        on_release=lambda x: self.export_to_json(questions)
+                    )
+                ]
+            )
+            dialog.open()
+
+        Clock.schedule_once(open_dialog, 0.1)
+
 
     def add_text_field(self):
         field = ShortTextField(question_text="Question 1: What is your name?")
@@ -172,6 +225,10 @@ class FormBuilderScreen(Screen):
     def add_number_field(self):
         field = ShortTextField(question_text="Question 3: Enter a number", input_type='number')
         self.ids.field_container.add_widget(field)
+        
+    def add_question_block(self):
+        block = QuestionBlock()
+        self.ids.question_blocks_container.add_widget(block)
 
     def load_projects(self):
         # Get app instance

@@ -222,3 +222,4 @@ class RatingScaleField(MDCard):
 
         self.add_widget(self.label)
         self.add_widget(self.rating_row)
+

@@ -38,91 +38,36 @@
                     size_hint_x: None
                     width: dp(220)
 
-        # Main Content Area
-        MDBoxLayout:
-            orientation: "horizontal"
-            spacing: dp(10)
+        ScrollView:
+            do_scroll_x: False
 
-            # Sidebar ScrollView
-            ScrollView:
-                size_hint_x: 0.3
-                do_scroll_x: False
+            MDBoxLayout:
+                orientation: "vertical"
+                padding: dp(16)
+                spacing: dp(10)
+                size_hint_y: None
+                height: self.minimum_height
 
-                MDBoxLayout:
-                    orientation: "vertical"
-                    padding: dp(16)
-                    spacing: dp(12)
-                    size_hint_y: None
-                    height: self.minimum_height
+                MDLabel:
+                    text: "Add Questions"
+                    font_style: "H6"
+                    halign: "left"
 
-                    MDLabel:
-                        text: "Question Types"
-                        font_style: "H6"
-                        halign: "left"
-                        theme_text_color: "Primary"
+                MDRaisedButton:
+                    text: "Add Question"
+                    on_release: root.add_question_block()
+                    size_hint_x: None
+                    width: dp(160)
 
-                    MDRaisedButton:
-                        text: "Short Text"
-                        on_release: root.add_text_field()
-
-                    MDRaisedButton:
-                        text: "Long Text"
-                        on_release: root.add_long_text_field()
-
-                    MDRaisedButton:
-                        text: "Number"
-                        on_release: root.add_number_field()
-
-                    MDRaisedButton:
-                        text: "Multiple Choice"
-                        on_release: root.add_multiple_choice_field()
-
-                    MDRaisedButton:
-                        text: "Date"
-                        on_release: root.add_date_field()
-
-                    MDRaisedButton:
-                        text: "Location"
-                        on_release: root.add_location_field()
-
-                    MDRaisedButton:
-                        text: "Photo"
-                        on_release: root.add_photo_field()
-
-                    MDRaisedButton:
-                        text: "Rating Scale"
-                        on_release: root.add_rating_scale_field()
-
-            # Form Builder ScrollView
-            ScrollView:
-                size_hint_x: 0.7
-                do_scroll_x: False
+                MDRaisedButton:
+                    text: "Preview Questions"
+                    on_release: root.preview_questions()
+                    size_hint_x: None
+                    width: dp(180)
 
                 MDBoxLayout:
+                    id: question_blocks_container
                     orientation: "vertical"
-                    padding: dp(20)
-                    spacing: dp(12)
+                    spacing: dp(20)
                     size_hint_y: None
                     height: self.minimum_height
-
-                    MDLabel:
-                        text: "New Survey Form"
-                        font_style: "H6"
-                        halign: "left"
-                        theme_text_color: "Primary"
-                        size_hint_y: None
-                        height: dp(28)
-
-                    MDBoxLayout:
-                        id: field_container
-                        orientation: "vertical"
-                        spacing: dp(10)
-                        size_hint_y: None
-                        height: self.minimum_height
-
-                    MDLabel:
-                        text: "Drag question types here to add"
-                        halign: "center"
-                        theme_text_color: "Hint"
-                        size_hint_y: None
-                        height: dp(24)
