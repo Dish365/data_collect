@@ -6,13 +6,21 @@ from kivy.uix.spinner import Spinner
 from kivy.uix.textinput import TextInput
 from kivy.uix.scrollview import ScrollView
 from kivy.metrics import dp
+from widgets.form_fields import ShortTextField, MultipleChoiceField, LongTextField,LocationPickerField , PhotoUploadField, RatingScaleField
+
+
+from kivy.lang import Builder
+
 import uuid
 import json
+
+
+Builder.load_file("kv/form_builder.kv")
 
 class FormBuilderScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.setup_ui()
+        # self.setup_ui()
         self.current_project = None
         self.current_questions = []
     
@@ -129,6 +137,42 @@ class FormBuilderScreen(Screen):
     #     # Load projects when entering screen
     #     self.load_projects()
     
+
+    def add_text_field(self):
+        field = ShortTextField(question_text="Question 1: What is your name?")
+        self.ids.field_container.add_widget(field)
+
+    def add_multiple_choice_field(self):
+        field = MultipleChoiceField(
+            question_text="Question 2: Select your age group",
+            options=["Under 18", "18-25", "26-40", "Over 40"]
+        )
+        self.ids.field_container.add_widget(field)
+
+    def add_long_text_field(self):
+        field = LongTextField(question_text="Describe your experience")
+        self.ids.field_container.add_widget(field)
+
+    # def add_date_field(self):
+    #     field = DateField(question_text="Select your birth date")
+    #     self.ids.field_container.add_widget(field)
+
+    def add_location_field(self):
+        field = LocationPickerField(question_text="Where are you located?")
+        self.ids.field_container.add_widget(field)
+
+    def add_photo_field(self):
+        field = PhotoUploadField(question_text="Upload your photo")
+        self.ids.field_container.add_widget(field)
+
+    def add_rating_scale_field(self):
+        field = RatingScaleField(question_text="Rate your satisfaction")
+        self.ids.field_container.add_widget(field)
+    
+    def add_number_field(self):
+        field = ShortTextField(question_text="Question 3: Enter a number", input_type='number')
+        self.ids.field_container.add_widget(field)
+
     def load_projects(self):
         # Get app instance
         app = self.manager.get_screen('form_builder').parent
