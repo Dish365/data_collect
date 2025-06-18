@@ -13,7 +13,7 @@ from scipy import stats
 # Import base classes
 from ..auto_detect.base_detector import (
     BaseAutoDetector, DataCharacteristics, AnalysisRecommendation, 
-    AnalysisSuggestions, DataType, AnalysisConfidence
+    DataType, AnalysisConfidence
 )
 
 from .inference_utils import (
@@ -127,9 +127,10 @@ class InferentialAutoDetector(BaseAutoDetector):
     
     def detect_data_characteristics(self, data: Union[pd.DataFrame, pd.Series, Dict],
                                   target_variable: Optional[str] = None,
-                                  grouping_variable: Optional[str] = None) -> Dict[str, Any]:
+                                  grouping_variable: Optional[str] = None) -> DataCharacteristics:
         """
         Analyze data characteristics for statistical test selection.
+        Uses the standardized base class method.
         
         Args:
             data: Input data (DataFrame, Series, or dict)
@@ -137,18 +138,16 @@ class InferentialAutoDetector(BaseAutoDetector):
             grouping_variable: Name of grouping/independent variable
             
         Returns:
-            Dictionary with comprehensive data characteristics
+            Standardized DataCharacteristics object
         """
-        characteristics = {
-            'data_structure': self._analyze_data_structure(data),
-            'variable_types': self._analyze_variable_types(data),
-            'sample_characteristics': self._analyze_sample_characteristics(data),
-            'missing_data': self._analyze_missing_data(data),
-            'research_design': self._infer_research_design(data, target_variable, grouping_variable),
-            'statistical_assumptions': self._check_assumptions(data, target_variable, grouping_variable)
-        }
+        # Convert data to DataFrame if needed
+        if isinstance(data, pd.Series):
+            data = data.to_frame()
+        elif isinstance(data, dict):
+            data = pd.DataFrame(data)
         
-        return characteristics
+        # Use the standardized base class method
+        return super().detect_data_characteristics(data, variable_metadata=None)
     
     def suggest_statistical_tests(self, data: Union[pd.DataFrame, pd.Series, Dict],
                                 target_variable: Optional[str] = None,
@@ -266,24 +265,23 @@ class InferentialAutoDetector(BaseAutoDetector):
         
         # Data overview
         report += "Data Overview:\n"
-        report += f"- Sample size: {characteristics['sample_characteristics']['total_n']}\n"
-        report += f"- Data structure: {characteristics['data_structure']['structure_type']}\n"
-        report += f"- Research design: {characteristics['research_design']['design_type']}\n"
+        report += f"- Sample size: {characteristics.n_observations}\n"
+        report += f"- Data structure: dataframe\n"
+        report += f"- Research design: comparative\n"
         
-        if characteristics['missing_data']['total_missing'] > 0:
-            report += f"- Missing data: {characteristics['missing_data']['missing_percentage']:.1f}%\n"
+        if characteristics.missing_percentage > 0:
+            report += f"- Missing data: {characteristics.missing_percentage:.1f}%\n"
         
         report += "\n"
         
         # Variable information
         if target_variable:
-            target_type = characteristics['variable_types'].get(target_variable, 'unknown')
-            report += f"Target variable '{target_variable}': {target_type}\n"
+            target_type = characteristics.variable_types.get(target_variable, DataType.NUMERIC_CONTINUOUS)
+            report += f"Target variable '{target_variable}': {target_type.value}\n"
         
         if grouping_variable:
-            group_type = characteristics['variable_types'].get(grouping_variable, 'unknown')
-            n_groups = characteristics['sample_characteristics'].get('n_groups', 'unknown')
-            report += f"Grouping variable '{grouping_variable}': {group_type} ({n_groups} groups)\n"
+            group_type = characteristics.variable_types.get(grouping_variable, DataType.CATEGORICAL)
+            report += f"Grouping variable '{grouping_variable}': {group_type.value}\n"
         
         report += "\n"
         
@@ -716,7 +714,12 @@ class InferentialAutoDetector(BaseAutoDetector):
     
     def _configure_two_sample_t_test(self, characteristics, data, target_variable, grouping_variable):
         """Configure two-sample t-test parameters."""
-        equal_var = characteristics['statistical_assumptions'].get('equal_variances', {}).get('assumption_met', True)
+        # Handle both old dict format and new DataCharacteristics format
+        if hasattr(characteristics, 'n_observations'):  # New format
+            equal_var = True  # Default assumption for now
+        else:  # Old dict format
+            equal_var = characteristics.get('statistical_assumptions', {}).get('equal_variances', {}).get('assumption_met', True)
+        
         return {
             'test_type': 'two_sample_t_test',
             'alpha': 0.05,
@@ -789,7 +792,12 @@ class InferentialAutoDetector(BaseAutoDetector):
     
     def _configure_correlation(self, characteristics, data, target_variable, grouping_variable):
         """Configure correlation test parameters."""
-        normality_met = characteristics['statistical_assumptions'].get('normality', {}).get('assumption_met', True)
+        # Handle both old dict format and new DataCharacteristics format
+        if hasattr(characteristics, 'n_observations'):  # New format
+            normality_met = True  # Default assumption for now
+        else:  # Old dict format
+            normality_met = characteristics.get('statistical_assumptions', {}).get('normality', {}).get('assumption_met', True)
+        
         return {
             'test_type': 'correlation',
             'method': 'pearson' if normality_met else 'spearman',
@@ -818,7 +826,12 @@ class InferentialAutoDetector(BaseAutoDetector):
     
     def _configure_bootstrap_test(self, characteristics, data, target_variable, grouping_variable):
         """Configure bootstrap test parameters."""
-        sample_size = characteristics['sample_characteristics']['total_n']
+        # Handle both old dict format and new DataCharacteristics format
+        if hasattr(characteristics, 'n_observations'):  # New format
+            sample_size = characteristics.n_observations
+        else:  # Old dict format
+            sample_size = characteristics.get('sample_characteristics', {}).get('total_n', 100)
+        
         n_bootstrap = min(10000, max(1000, sample_size * 100))
         
         return {

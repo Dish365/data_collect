@@ -11,7 +11,7 @@ from statsmodels.api import OLS, Logit, GLM, RLM
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from statsmodels.stats.diagnostic import het_breuschpagan, het_white
 import statsmodels.api as sm
-from typing import Dict, Any, List, Optional, Union
+from typing import Dict, Any, List, Optional, Union, Tuple
 import warnings
 
 def perform_linear_regression(

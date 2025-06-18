@@ -12,7 +12,7 @@ from textblob import TextBlob
 # Import base classes
 from ..auto_detect.base_detector import (
     BaseAutoDetector, DataCharacteristics, AnalysisRecommendation, 
-    AnalysisSuggestions, DataType, AnalysisConfidence
+    DataType, AnalysisConfidence
 )
 
 class QualitativeAutoDetector(BaseAutoDetector):
@@ -115,6 +115,7 @@ class QualitativeAutoDetector(BaseAutoDetector):
                                metadata: List[Dict[str, Any]] = None,
                                research_goals: List[str] = None) -> Dict[str, Any]:
         """
+        Legacy method - use suggest_analyses instead.
         Suggest appropriate analysis methods based on data characteristics.
         
         Args:
@@ -123,23 +124,97 @@ class QualitativeAutoDetector(BaseAutoDetector):
             research_goals: Optional list of research objectives
             
         Returns:
-            Dictionary with analysis method suggestions
+            Dictionary with analysis method suggestions (legacy format)
         """
         if not texts:
             return {"error": "No texts provided"}
         
-        # Detect data type first
-        data_detection = self.detect_data_type(texts, metadata)
+        # Use the standardized method and convert back to legacy format for backward compatibility
+        from ..auto_detect.base_detector import AnalysisSuggestions
         
+        # Create a simple DataFrame-like structure for the standardized method
+        import pandas as pd
+        df = pd.DataFrame({'text_data': texts})
+        
+        standardized_suggestions = self.suggest_analyses(df, texts=texts, research_goals=research_goals)
+        
+        # Convert back to legacy format
         suggestions = {
-            'primary_recommendations': [],
-            'secondary_recommendations': [],
-            'not_recommended': [],
+            'primary_recommendations': [
+                {
+                    'method': rec.method,
+                    'score': rec.score,
+                    'rationale': rec.rationale,
+                    'parameters': rec.parameters
+                }
+                for rec in standardized_suggestions.primary_recommendations
+            ],
+            'secondary_recommendations': [
+                {
+                    'method': rec.method,
+                    'score': rec.score,
+                    'rationale': rec.rationale,
+                    'parameters': rec.parameters
+                }
+                for rec in standardized_suggestions.secondary_recommendations
+            ],
+            'not_recommended': [
+                {
+                    'method': rec.method,
+                    'score': rec.score,
+                    'reason': rec.rationale
+                }
+                for rec in standardized_suggestions.optional_analyses
+            ],
             'analysis_rationale': {},
             'parameter_suggestions': {}
         }
         
-        # Check each analysis method
+        return suggestions
+    
+    def suggest_analyses(self, data, analysis_goals=None, **kwargs):
+        """
+        Suggest appropriate qualitative analyses using the standardized interface.
+        
+        Args:
+            data: Input data (DataFrame, list of texts, or other format)
+            analysis_goals: Optional list of analysis goals
+            **kwargs: Additional parameters including 'texts' for direct text input
+            
+        Returns:
+            AnalysisSuggestions object with standardized recommendations
+        """
+        from ..auto_detect.base_detector import AnalysisSuggestions
+        
+        # Extract texts from various input formats
+        texts = kwargs.get('texts', [])
+        if not texts:
+            if isinstance(data, list):
+                texts = [str(item) for item in data if str(item).strip()]
+            elif hasattr(data, 'select_dtypes'):
+                # DataFrame - extract text columns
+                text_cols = data.select_dtypes(include=['object']).columns
+                for col in text_cols:
+                    if hasattr(data[col], 'str') and data[col].str.len().mean() > 20:
+                        texts.extend(data[col].dropna().tolist())
+            elif hasattr(data, 'dtype') and data.dtype == 'object':
+                # Series with text
+                texts = data.dropna().tolist()
+        
+        if not texts:
+            # Return empty suggestions if no text data found
+            return AnalysisSuggestions(
+                primary_recommendations=[],
+                secondary_recommendations=[],
+                optional_analyses=[],
+                data_quality_warnings=["No text data found for qualitative analysis"],
+                analysis_order=[]
+            )
+        
+        # Detect data characteristics for the standardized format
+        characteristics = self.detect_data_characteristics(data, texts=texts)
+        
+        # Check each analysis method using the standardized assess_method_suitability
         methods_to_check = [
             'sentiment_analysis',
             'thematic_analysis', 
@@ -148,35 +223,65 @@ class QualitativeAutoDetector(BaseAutoDetector):
             'survey_analysis'
         ]
         
+        primary_recs = []
+        secondary_recs = []
+        optional_recs = []
+        
         for method in methods_to_check:
-            suitability = self._assess_method_suitability(method, texts, data_detection, research_goals)
+            # Filter out 'texts' from kwargs to avoid duplicate parameter
+            filtered_kwargs = {k: v for k, v in kwargs.items() if k != 'texts'}
+            recommendation = self.assess_method_suitability(
+                method, 
+                characteristics, 
+                texts=texts,
+                analysis_goals=analysis_goals,
+                **filtered_kwargs
+            )
             
-            if suitability['score'] >= 0.7:
-                suggestions['primary_recommendations'].append({
-                    'method': method,
-                    'score': suitability['score'],
-                    'rationale': suitability['rationale'],
-                    'parameters': suitability['suggested_parameters']
-                })
-            elif suitability['score'] >= 0.4:
-                suggestions['secondary_recommendations'].append({
-                    'method': method,
-                    'score': suitability['score'],
-                    'rationale': suitability['rationale'],
-                    'parameters': suitability['suggested_parameters']
-                })
+            if recommendation.score >= 0.7:
+                primary_recs.append(recommendation)
+            elif recommendation.score >= 0.4:
+                secondary_recs.append(recommendation)
             else:
-                suggestions['not_recommended'].append({
-                    'method': method,
-                    'score': suitability['score'],
-                    'reason': suitability['rationale']
-                })
+                optional_recs.append(recommendation)
         
         # Sort recommendations by score
-        suggestions['primary_recommendations'].sort(key=lambda x: x['score'], reverse=True)
-        suggestions['secondary_recommendations'].sort(key=lambda x: x['score'], reverse=True)
+        primary_recs.sort(key=lambda x: x.score, reverse=True)
+        secondary_recs.sort(key=lambda x: x.score, reverse=True)
+        optional_recs.sort(key=lambda x: x.score, reverse=True)
+        
+        # Create standardized AnalysisSuggestions object
+        suggestions = AnalysisSuggestions(
+            primary_recommendations=primary_recs,
+            secondary_recommendations=secondary_recs,
+            optional_analyses=optional_recs,
+            data_quality_warnings=self._generate_text_quality_warnings(texts),
+            analysis_order=[rec.method for rec in primary_recs + secondary_recs]
+        )
         
         return suggestions
+    
+    def _generate_text_quality_warnings(self, texts: List[str]) -> List[str]:
+        """Generate data quality warnings specific to text data."""
+        warnings = []
+        
+        if not texts:
+            warnings.append("No text data available for analysis")
+            return warnings
+        
+        word_counts = [len(text.split()) for text in texts]
+        avg_words = np.mean(word_counts) if word_counts else 0
+        
+        if len(texts) < 5:
+            warnings.append("Very small text sample - results may not be reliable")
+        
+        if avg_words < 5:
+            warnings.append("Texts are very short - may limit analysis depth")
+        
+        if len(set(texts)) < len(texts) * 0.8:
+            warnings.append("High text duplication detected - may affect analysis")
+        
+        return warnings
     
     def auto_configure_analysis(self, texts: List[str], 
                               method: str,
@@ -595,50 +700,57 @@ class QualitativeAutoDetector(BaseAutoDetector):
     def detect_data_characteristics(self, data, **kwargs) -> DataCharacteristics:
         """
         Override to handle text data specifically for qualitative analysis.
+        Uses standardized base class method when possible, with text-specific enhancements.
         """
         # Extract text data from various input formats
-        texts = []
+        texts = kwargs.get('texts', [])
+        if not texts:
+            if isinstance(data, list):
+                texts = [str(item) for item in data if str(item).strip()]
+            elif hasattr(data, 'select_dtypes'):
+                # DataFrame - extract text columns
+                text_cols = data.select_dtypes(include=['object']).columns
+                for col in text_cols:
+                    if hasattr(data[col], 'str') and data[col].str.len().mean() > 10:
+                        texts.extend(data[col].dropna().tolist())
+            elif hasattr(data, 'dtype') and data.dtype == 'object':
+                # Series with text
+                texts = data.dropna().tolist()
         
-        if isinstance(data, list):
-            texts = [str(item) for item in data if str(item).strip()]
-        elif hasattr(data, 'select_dtypes'):
-            # DataFrame - extract text columns
-            text_cols = data.select_dtypes(include=['object']).columns
-            for col in text_cols:
-                if hasattr(data[col], 'str') and data[col].str.len().mean() > 10:
-                    texts.extend(data[col].dropna().tolist())
-        elif hasattr(data, 'dtype') and data.dtype == 'object':
-            # Series with text
-            texts = data.dropna().tolist()
-        
-        # Create characteristics based on text data
-        characteristics = DataCharacteristics()
-        
-        if texts:
-            characteristics.n_observations = len(texts)
-            characteristics.n_variables = 1  # Text is treated as one variable
-            characteristics.data_shape = (len(texts), 1)
-            characteristics.variable_types = {'text_data': DataType.TEXT}
-            characteristics.type_counts = {DataType.TEXT: 1}
-            characteristics.has_text = True
-            characteristics.missing_percentage = 0  # Assuming we filtered out empty texts
-            characteristics.completeness_score = 100
-            characteristics.sample_size_category = self._categorize_text_sample_size(len(texts))
+        # Use the base class method for core characteristics if we have DataFrame-like data
+        if hasattr(data, 'select_dtypes') and len(data.columns) > 0:
+            characteristics = super().detect_data_characteristics(data, **kwargs)
+            # Add text-specific enhancements
+            characteristics.has_text = len(texts) > 0
+        else:
+            # Create characteristics based on text data only
+            characteristics = DataCharacteristics()
             
-            # Text-specific characteristics
-            word_counts = [len(text.split()) for text in texts]
-            characteristics.numeric_summaries = {
-                'text_data': {
-                    'avg_words': float(np.mean(word_counts)),
-                    'median_words': float(np.median(word_counts)),
-                    'std_words': float(np.std(word_counts)),
-                    'min_words': float(np.min(word_counts)),
-                    'max_words': float(np.max(word_counts))
+            if texts:
+                characteristics.n_observations = len(texts)
+                characteristics.n_variables = 1  # Text is treated as one variable
+                characteristics.data_shape = (len(texts), 1)
+                characteristics.variable_types = {'text_data': DataType.TEXT}
+                characteristics.type_counts = {DataType.TEXT: 1}
+                characteristics.has_text = True
+                characteristics.missing_percentage = 0  # Assuming we filtered out empty texts
+                characteristics.completeness_score = 100
+                characteristics.sample_size_category = self._categorize_text_sample_size(len(texts))
+                
+                # Text-specific characteristics
+                word_counts = [len(text.split()) for text in texts]
+                characteristics.numeric_summaries = {
+                    'text_data': {
+                        'avg_words': float(np.mean(word_counts)),
+                        'median_words': float(np.median(word_counts)),
+                        'std_words': float(np.std(word_counts)),
+                        'min_words': float(np.min(word_counts)),
+                        'max_words': float(np.max(word_counts))
+                    }
                 }
-            }
-        
-        from datetime import datetime
-        characteristics.detection_timestamp = datetime.now().isoformat()
+            
+            from datetime import datetime
+            characteristics.detection_timestamp = datetime.now().isoformat()
         
         return characteristics
     

@@ -14,22 +14,35 @@ try:
     # Try relative import first (when run as module)
     from . import UnifiedAutoDetector, create_auto_detector, get_analysis_for_api
 except ImportError:
-    # Fall back to absolute import (when run directly)
+    # Fall back to importing from current directory when run directly
     import sys
     import os
     
-    # Add the parent directory to the path
+    # Add current directory to path to ensure we can import from __init__.py
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    parent_dir = os.path.dirname(current_dir)
+    if current_dir not in sys.path:
+        sys.path.insert(0, current_dir)
+    
+    # Add the parent analytics directory to path for the module imports to work
+    parent_dir = os.path.dirname(current_dir)  # analytics directory
     if parent_dir not in sys.path:
         sys.path.insert(0, parent_dir)
     
-    # Now try absolute import
+    # Import from the current __init__.py file
     try:
-        from auto_detect import UnifiedAutoDetector, create_auto_detector, get_analysis_for_api
-    except ImportError:
-        # Last resort - try importing from current directory
         from __init__ import UnifiedAutoDetector, create_auto_detector, get_analysis_for_api
+    except ImportError as e:
+        print(f"Failed to import from __init__.py: {e}")
+        # Try direct import of the class
+        try:
+            sys.path.insert(0, current_dir)
+            import __init__ as auto_detect_module
+            UnifiedAutoDetector = auto_detect_module.UnifiedAutoDetector
+            create_auto_detector = auto_detect_module.create_auto_detector
+            get_analysis_for_api = auto_detect_module.get_analysis_for_api
+        except Exception as final_e:
+            print(f"All import attempts failed: {final_e}")
+            raise ImportError("Could not import required modules")
 
 def create_sample_datasets():
     """Create sample datasets for testing different analysis types."""

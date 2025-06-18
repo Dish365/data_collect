@@ -12,7 +12,7 @@ import warnings
 # Import base classes
 from ..auto_detect.base_detector import (
     BaseAutoDetector, DataCharacteristics, AnalysisRecommendation, 
-    AnalysisSuggestions, DataType, AnalysisConfidence
+    DataType, AnalysisConfidence
 )
 
 class DescriptiveAutoDetector(BaseAutoDetector):
@@ -89,30 +89,20 @@ class DescriptiveAutoDetector(BaseAutoDetector):
         }
     
     def detect_data_characteristics(self, data: pd.DataFrame, 
-                                  variable_metadata: Optional[List[Dict]] = None) -> Dict[str, Any]:
+                                  variable_metadata: Optional[List[Dict]] = None) -> DataCharacteristics:
         """
         Analyze data characteristics for descriptive analysis selection.
+        Uses the standardized base class method.
         
         Args:
             data: Input DataFrame
             variable_metadata: Optional metadata about variables
             
         Returns:
-            Dictionary with comprehensive data characteristics
+            Standardized DataCharacteristics object
         """
-        characteristics = {
-            'data_structure': self._analyze_data_structure(data),
-            'variable_types': self._analyze_variable_types(data),
-            'data_quality': self._analyze_data_quality(data),
-            'sample_characteristics': self._analyze_sample_characteristics(data),
-            'relationships': self._analyze_relationships(data),
-            'special_features': self._detect_special_features(data)
-        }
-        
-        if variable_metadata:
-            characteristics['metadata_analysis'] = self._analyze_metadata(variable_metadata, data)
-        
-        return characteristics
+        # Use the standardized base class method
+        return super().detect_data_characteristics(data, variable_metadata=variable_metadata)
     
     def suggest_descriptive_analyses(self, data: pd.DataFrame,
                                    variable_metadata: Optional[List[Dict]] = None,
@@ -213,15 +203,14 @@ class DescriptiveAutoDetector(BaseAutoDetector):
         
         # Data overview
         report += "Data Overview:\n"
-        report += f"- Sample size: {characteristics['sample_characteristics']['n_observations']}\n"
-        report += f"- Variables: {characteristics['sample_characteristics']['n_variables']}\n"
-        report += f"- Missing data: {characteristics['data_quality']['missing_percentage']:.1f}%\n"
+        report += f"- Sample size: {characteristics.n_observations}\n"
+        report += f"- Variables: {characteristics.n_variables}\n"
+        report += f"- Missing data: {characteristics.missing_percentage:.1f}%\n"
         
         # Variable types summary
-        var_types = characteristics['variable_types']
         report += "\nVariable Types:\n"
-        for dtype, count in Counter(var_types.values()).items():
-            report += f"- {dtype.title()}: {count} variables\n"
+        for dtype, count in characteristics.type_counts.items():
+            report += f"- {dtype.value.title()}: {count} variables\n"
         
         # Primary recommendations
         if suggestions['primary_recommendations']:
@@ -630,102 +619,42 @@ class DescriptiveAutoDetector(BaseAutoDetector):
         
         return calls
     
-    def _generate_quality_warnings(self, characteristics: DataCharacteristics) -> List[str]:
-        """Generate data quality warnings."""
-        warnings = []
-        
-        if characteristics.missing_percentage > 20:
-            warnings.append(f"High missing data rate: {characteristics.missing_percentage:.1f}%")
-        
-        if characteristics.duplicate_rows > 0:
-            warnings.append(f"{characteristics.duplicate_rows} duplicate rows detected")
-        
-        if characteristics.constant_columns:
-            warnings.append(f"Constant columns detected: {', '.join(characteristics.constant_columns)}")
-        
-        if characteristics.sample_size_category == 'very_small':
-            warnings.append("Very small sample size may limit analysis reliability")
-        
-        return warnings
+
     
-    def _generate_analysis_order(self, suggestions: Dict[str, Any]) -> List[str]:
-        """Generate recommended order for executing analyses."""
-        # Priority order for analyses
-        priority_order = [
-            'missing_data_analysis',
-            'basic_statistics',
-            'categorical_analysis', 
-            'distribution_analysis',
-            'outlier_detection',
-            'correlation_analysis',
-            'cross_tabulation',
-            'grouped_analysis',
-            'temporal_analysis',
-            'geospatial_analysis'
-        ]
-        
-        # Get all recommended analyses
-        all_analyses = []
-        for category in ['primary_recommendations', 'secondary_recommendations']:
-            for rec in suggestions.get(category, []):
-                all_analyses.append(rec['method'])
-        
-        # Sort by priority order
-        ordered_analyses = []
-        for analysis in priority_order:
-            if analysis in all_analyses:
-                ordered_analyses.append(analysis)
-        
-        # Add any remaining analyses
-        for analysis in all_analyses:
-            if analysis not in ordered_analyses:
-                ordered_analyses.append(analysis)
-        
-        return ordered_analyses
+
     
-    def _filter_by_goals(self, suggestions: Dict[str, Any], goals: List[str]) -> Dict[str, Any]:
-        """Filter suggestions based on analysis goals."""
-        goal_mappings = {
-            'overview': ['basic_statistics', 'categorical_analysis', 'missing_data_analysis'],
-            'quality': ['missing_data_analysis', 'outlier_detection', 'distribution_analysis'],
-            'relationships': ['correlation_analysis', 'cross_tabulation', 'grouped_analysis'],
-            'temporal': ['temporal_analysis'],
-            'spatial': ['geospatial_analysis']
-        }
-        
-        relevant_analyses = set()
-        for goal in goals:
-            if goal in goal_mappings:
-                relevant_analyses.update(goal_mappings[goal])
-        
-        if relevant_analyses:
-            # Filter recommendations
-            for category in ['primary_recommendations', 'secondary_recommendations', 'optional_analyses']:
-                suggestions[category] = [
-                    rec for rec in suggestions[category] 
-                    if rec['method'] in relevant_analyses
-                ]
-        
-        return suggestions
+
     
     # Configuration methods for specific analyses
     def _configure_basic_statistics(self, characteristics, data, target_variables):
         """Configure basic statistics parameters."""
-        numeric_cols = [col for col, dtype in characteristics['variable_types'].items() 
-                       if dtype in ['continuous', 'discrete']]
+        # Handle both old dict format and new DataCharacteristics format
+        if hasattr(characteristics, 'variable_types'):
+            numeric_cols = [col for col, dtype in characteristics.variable_types.items() 
+                           if dtype in [DataType.NUMERIC_CONTINUOUS, DataType.NUMERIC_DISCRETE]]
+            grouping_vars = characteristics.grouping_variables[:2]
+        else:
+            numeric_cols = [col for col, dtype in characteristics['variable_types'].items() 
+                           if dtype in ['continuous', 'discrete']]
+            grouping_vars = characteristics['relationships']['grouping_variables'][:2]
         
         return {
             'analysis_type': 'basic_statistics',
             'target_columns': target_variables or numeric_cols,
             'include_percentiles': True,
             'confidence_level': 0.95,
-            'grouping_variables': characteristics['relationships']['grouping_variables'][:2]
+            'grouping_variables': grouping_vars
         }
     
     def _configure_distribution_analysis(self, characteristics, data, target_variables):
         """Configure distribution analysis parameters."""
-        numeric_cols = [col for col, dtype in characteristics['variable_types'].items() 
-                       if dtype in ['continuous', 'discrete']]
+        # Handle both old dict format and new DataCharacteristics format
+        if hasattr(characteristics, 'variable_types'):
+            numeric_cols = [col for col, dtype in characteristics.variable_types.items() 
+                           if dtype in [DataType.NUMERIC_CONTINUOUS, DataType.NUMERIC_DISCRETE]]
+        else:
+            numeric_cols = [col for col, dtype in characteristics['variable_types'].items() 
+                           if dtype in ['continuous', 'discrete']]
         
         return {
             'analysis_type': 'distribution_analysis',
@@ -747,8 +676,13 @@ class DescriptiveAutoDetector(BaseAutoDetector):
     
     def _configure_categorical_analysis(self, characteristics, data, target_variables):
         """Configure categorical analysis parameters."""
-        cat_cols = [col for col, dtype in characteristics['variable_types'].items() 
-                   if dtype in ['categorical', 'binary']]
+        # Handle both old dict format and new DataCharacteristics format
+        if hasattr(characteristics, 'variable_types'):
+            cat_cols = [col for col, dtype in characteristics.variable_types.items() 
+                       if dtype in [DataType.CATEGORICAL, DataType.BINARY]]
+        else:
+            cat_cols = [col for col, dtype in characteristics['variable_types'].items() 
+                       if dtype in ['categorical', 'binary']]
         
         return {
             'analysis_type': 'categorical_analysis',
@@ -770,7 +704,11 @@ class DescriptiveAutoDetector(BaseAutoDetector):
     
     def _configure_outlier_detection(self, characteristics, data, target_variables):
         """Configure outlier detection parameters."""
-        sample_size = characteristics['sample_characteristics']['n_observations']
+        # Handle both old dict format and new DataCharacteristics format
+        if hasattr(characteristics, 'n_observations'):
+            sample_size = characteristics.n_observations
+        else:
+            sample_size = characteristics['sample_characteristics']['n_observations']
         
         return {
             'analysis_type': 'outlier_detection',
@@ -812,7 +750,11 @@ class DescriptiveAutoDetector(BaseAutoDetector):
     
     def _configure_grouped_analysis(self, characteristics, data, target_variables):
         """Configure grouped analysis parameters."""
-        grouping_vars = characteristics['relationships']['grouping_variables']
+        # Handle both old dict format and new DataCharacteristics format
+        if hasattr(characteristics, 'grouping_variables'):
+            grouping_vars = characteristics.grouping_variables
+        else:
+            grouping_vars = characteristics['relationships']['grouping_variables']
         
         return {
             'analysis_type': 'grouped_analysis',
@@ -848,14 +790,20 @@ def auto_analyze_descriptive_data(data: pd.DataFrame,
     # Generate report
     report = detector.generate_analysis_report(data, variable_metadata)
     
+    # Get the first primary recommendation method name
+    first_method = 'basic_statistics'  # default
+    if suggestions['primary_recommendations']:
+        first_rec = suggestions['primary_recommendations'][0]
+        if hasattr(first_rec, 'method'):
+            first_method = first_rec.method
+        else:
+            first_method = first_rec.get('method', 'basic_statistics')
+    
     return {
         'data_characteristics': characteristics,
         'analysis_suggestions': suggestions,
         'analysis_report': report,
-        'recommended_configuration': detector.auto_configure_analysis(
-            suggestions['primary_recommendations'][0]['method'] if suggestions['primary_recommendations'] else 'basic_statistics',
-            data
-        )
+        'recommended_configuration': detector.auto_configure_analysis(first_method, data)
     }
 
 def quick_descriptive_recommendation(data: pd.DataFrame, analysis_type: str = 'auto') -> str:
@@ -872,9 +820,12 @@ def quick_descriptive_recommendation(data: pd.DataFrame, analysis_type: str = 'a
     detector = DescriptiveAutoDetector()
     characteristics = detector.detect_data_characteristics(data)
     
-    n_numeric = characteristics['sample_characteristics']['n_numeric']
-    n_categorical = characteristics['sample_characteristics']['n_categorical']
-    n_obs = characteristics['sample_characteristics']['n_observations']
+    # Handle standardized DataCharacteristics format
+    n_numeric = sum(1 for dtype in characteristics.variable_types.values() 
+                   if dtype in [DataType.NUMERIC_CONTINUOUS, DataType.NUMERIC_DISCRETE])
+    n_categorical = sum(1 for dtype in characteristics.variable_types.values() 
+                       if dtype in [DataType.CATEGORICAL, DataType.BINARY])
+    n_obs = characteristics.n_observations
     
     if analysis_type == 'auto':
         if n_obs < 50:

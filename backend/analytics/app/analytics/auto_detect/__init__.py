@@ -7,19 +7,36 @@ import warnings
 from typing import Dict, Any, List, Optional, Union
 
 # Import standardized base classes first
-from .base_detector import (
-    BaseAutoDetector, DataCharacteristics, AnalysisRecommendation, 
-    AnalysisSuggestions, DataType, AnalysisConfidence, StandardizedDataProfiler
-)
+try:
+    from .base_detector import (
+        BaseAutoDetector, DataCharacteristics, AnalysisRecommendation, 
+        AnalysisSuggestions, DataType, AnalysisConfidence, StandardizedDataProfiler
+    )
+except ImportError:
+    # Fallback for direct execution
+    from base_detector import (
+        BaseAutoDetector, DataCharacteristics, AnalysisRecommendation, 
+        AnalysisSuggestions, DataType, AnalysisConfidence, StandardizedDataProfiler
+    )
 
 # Import survey-specific classes (keeping for specialized survey analysis)
-from .survey_detector import (
-    SurveyDetector,
-    SurveyVariable,
-    SurveyDataset,
-    SurveyQuestionType,
-    DataType as SurveyDataType  # Alias to avoid confusion
-)
+try:
+    from .survey_detector import (
+        SurveyDetector,
+        SurveyVariable,
+        SurveyDataset,
+        SurveyQuestionType,
+        DataType as SurveyDataType  # Alias to avoid confusion
+    )
+except ImportError:
+    # Fallback for direct execution
+    from survey_detector import (
+        SurveyDetector,
+        SurveyVariable,
+        SurveyDataset,
+        SurveyQuestionType,
+        DataType as SurveyDataType  # Alias to avoid confusion
+    )
 
 
 # Import module-specific auto-detection systems with better error handling
@@ -31,19 +48,52 @@ try:
     from ..descriptive.auto_detection import DescriptiveAutoDetector
     descriptive_available = True
 except ImportError as e:
-    print(f"Warning: Could not import descriptive auto-detection: {e}")
+    try:
+        # Try absolute import when relative import fails
+        import sys
+        import os
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        parent_dir = os.path.dirname(current_dir)
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+        from descriptive.auto_detection import DescriptiveAutoDetector
+        descriptive_available = True
+    except ImportError:
+        print(f"Warning: Could not import descriptive auto-detection: {e}")
 
 try:
     from ..inferential.auto_detection import InferentialAutoDetector
     inferential_available = True
 except ImportError as e:
-    print(f"Warning: Could not import inferential auto-detection: {e}")
+    try:
+        # Try absolute import when relative import fails
+        import sys
+        import os
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        parent_dir = os.path.dirname(current_dir)
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+        from inferential.auto_detection import InferentialAutoDetector
+        inferential_available = True
+    except ImportError:
+        print(f"Warning: Could not import inferential auto-detection: {e}")
 
 try:
     from ..qualitative.auto_detection import QualitativeAutoDetector
     qualitative_available = True
 except ImportError as e:
-    print(f"Warning: Could not import qualitative auto-detection: {e}")
+    try:
+        # Try absolute import when relative import fails
+        import sys
+        import os
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        parent_dir = os.path.dirname(current_dir)
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+        from qualitative.auto_detection import QualitativeAutoDetector
+        qualitative_available = True
+    except ImportError:
+        print(f"Warning: Could not import qualitative auto-detection: {e}")
 
 class UnifiedAutoDetector:
     """
@@ -172,8 +222,8 @@ class UnifiedAutoDetector:
             # Convert data to text format if needed
             texts = self._extract_text_data(data)
             if texts:
-                # Use qualitative-specific method
-                suggestions = detector.suggest_analysis_methods(texts, **kwargs)
+                # Use standardized method with text data
+                suggestions = detector.suggest_analyses(data, texts=texts, **kwargs)
                 return {
                     "suggestions": suggestions,
                     "characteristics": characteristics,
@@ -194,8 +244,10 @@ class UnifiedAutoDetector:
             text_cols = data.select_dtypes(include=['object']).columns
             for col in text_cols:
                 # Only include columns with substantial text content
-                if data[col].str.len().mean() > 20:  
-                    texts.extend(data[col].dropna().tolist())
+                mean_length = data[col].str.len().mean()
+                if mean_length > 20:  
+                    col_texts = data[col].dropna().tolist()
+                    texts.extend(col_texts)
         elif hasattr(data, 'dtype') and data.dtype == 'object':
             # Series with text
             texts = data.dropna().tolist()
@@ -273,11 +325,22 @@ class UnifiedAutoDetector:
             "sample_size_adequacy": False
         }
         
-        # Check if both modules recommend correlation analysis
-        desc_methods = [rec.method if hasattr(rec, 'method') else rec.get('method', '') 
-                       for rec in desc_results.get("suggestions", {}).get("primary_recommendations", [])]
-        inf_methods = [rec.method if hasattr(rec, 'method') else rec.get('method', '') 
-                      for rec in inf_results.get("suggestions", {}).get("primary_recommendations", [])]
+        # Safely extract methods from results
+        desc_methods = []
+        if "suggestions" in desc_results:
+            suggestions = desc_results["suggestions"]
+            if hasattr(suggestions, 'primary_recommendations'):
+                desc_methods = [rec.method for rec in suggestions.primary_recommendations]
+            elif isinstance(suggestions, dict):
+                desc_methods = [rec.get('method', '') for rec in suggestions.get("primary_recommendations", [])]
+        
+        inf_methods = []
+        if "suggestions" in inf_results:
+            suggestions = inf_results["suggestions"]
+            if hasattr(suggestions, 'primary_recommendations'):
+                inf_methods = [rec.method for rec in suggestions.primary_recommendations]
+            elif isinstance(suggestions, dict):
+                inf_methods = [rec.get('method', '') for rec in suggestions.get("primary_recommendations", [])]
         
         if any("correlation" in method for method in desc_methods) and \
            any("correlation" in method for method in inf_methods):
@@ -530,10 +593,26 @@ def get_analysis_for_api(data, analysis_type="auto", **kwargs):
         # Add module-specific results
         for module_name, module_result in results["module_results"].items():
             if "error" not in module_result:
+                # Safely extract recommendations
+                recommendations = []
+                if "suggestions" in module_result:
+                    suggestions = module_result["suggestions"]
+                    if hasattr(suggestions, 'primary_recommendations'):
+                        recommendations = [
+                            {
+                                "method": rec.method,
+                                "score": rec.score,
+                                "confidence": rec.confidence.value,
+                                "rationale": rec.rationale
+                            }
+                            for rec in suggestions.primary_recommendations[:3]
+                        ]
+                    elif isinstance(suggestions, dict):
+                        recommendations = suggestions.get("primary_recommendations", [])[:3]
+                
                 api_response[f"{module_name}_analysis"] = {
                     "available": True,
-                    "recommendations": getattr(module_result.get("suggestions", {}), 
-                                             "primary_recommendations", [])[:3]  # Top 3
+                    "recommendations": recommendations
                 }
             else:
                 api_response[f"{module_name}_analysis"] = {
