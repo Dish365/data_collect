@@ -1,0 +1,801 @@
+trade_id,origin_country,destination_country,commodity,trade_type,quantity_kg,price_per_kg_usd,total_value_usd,is_certified,certification_type,quality_grade,transportation_cost_usd,customs_fees_usd,insurance_cost_usd,transport_method,transport_distance_km,carbon_footprint_transport_kg,sustainable_packaging,has_traceability,traceability_code,stage_from,stage_to,payment_terms,trade_date,delivery_date,transit_time_days
+TRADE_000001,Senegal,Kenya,Palm Oil,Intra-Africa,2155.7,1.19,2556.97,True,Rainforest Alliance,C,,,75.85,River,2521.2,302.54,True,False,,Wholesale,Export,90 days,2024-12-23,2025-01-05,13
+TRADE_000002,Ghana,Nigeria,Palm Oil,Intra-Africa,32544.2,1.03,33624.16,True,Fair Trade,B,3343.7,1005.18,773.6,River,2392.5,287.1,True,False,,Production,Retail,90 days,2024-05-01,2024-05-07,6
+TRADE_000003,Ghana,Nigeria,Palm Oil,Intra-Africa,3400.9,1.21,4111.37,True,Fair Trade,C,454.7,97.51,87.53,Rail,2880.8,345.69,True,True,TR_00000003,Wholesale,Retail,90 days,2024-06-13,2024-06-19,6
+TRADE_000004,Senegal,Nigeria,Groundnut,Intra-Africa,83306.7,1.4,116629.44,False,None,B,15804.4,4357.39,2675.03,Rail,2826.4,339.17,True,False,,Production,Retail,30 days,2024-04-13,2024-05-09,26
+TRADE_000005,Ghana,Netherlands,Palm Oil,Africa-Europe,1000.0,2.18,2184.93,True,Organic,A,224.2,74.1,39.99,Sea,6043.7,725.24,False,False,,Production,Export,30 days,2024-10-17,2024-11-06,20
+TRADE_000006,Senegal,Nigeria,Groundnut,Intra-Africa,1000.0,1.94,1942.28,True,Rainforest Alliance,C,210.35,89.85,26.78,Rail,1869.7,224.36,False,False,,Production,Processing,90 days,2024-11-12,2024-12-02,20
+TRADE_000007,Kenya,Nigeria,Maize,Intra-Africa,120058.5,0.4,48023.38,False,None,A,4015.74,1264.51,551.63,Road,1222.3,146.67,True,False,,Wholesale,Export,Cash,2024-01-27,2024-02-18,22
+TRADE_000008,South Africa,Kenya,Maize,Intra-Africa,32243.1,0.52,16614.63,True,Organic,A,1987.66,637.41,348.66,Rail,1182.6,141.91,False,True,TR_00000008,Production,Processing,90 days,2024-07-23,2024-08-14,22
+TRADE_000009,South Africa,Burkina Faso,Honey,Intra-Africa,1000.0,9.0,9000.0,False,None,B,1254.91,346.45,123.57,Road,943.0,113.16,True,True,TR_00000009,Wholesale,Export,Cash,2024-04-14,2024-05-04,20
+TRADE_000010,Ghana,Netherlands,Palm Oil,Africa-Europe,1346.6,1.55,2089.1,False,None,B,,,37.89,Sea,6833.8,820.06,False,True,TR_00000010,Wholesale,Processing,Cash,2024-03-07,2024-03-18,11
+TRADE_000011,Burkina Faso,Netherlands,Maize,Africa-Europe,15371.8,0.66,10178.31,False,None,A,1025.93,333.81,139.64,Air,5777.4,693.28,True,True,TR_00000011,Production,Retail,Cash,2024-01-14,2024-02-10,27
+TRADE_000012,Ghana,Germany,Maize,Africa-Europe,1169.7,0.65,764.37,False,None,C,75.46,34.09,22.86,Air,5536.3,664.36,True,True,TR_00000012,Wholesale,Export,60 days,2024-08-12,2024-08-18,6
+TRADE_000013,Kenya,Ghana,Maize,Intra-Africa,49873.2,0.53,26665.91,True,Organic,C,3551.89,812.51,508.71,Rail,1987.4,238.49,True,True,TR_00000013,Production,Processing,Cash,2024-05-07,2024-06-05,29
+TRADE_000014,Nigeria,Kenya,Palm Oil,Intra-Africa,2318.1,1.25,2904.51,True,Fair Trade,C,298.96,138.53,44.69,Road,2972.7,356.72,False,False,,Wholesale,Processing,Cash,2024-12-02,2024-12-08,6
+TRADE_000015,Burkina Faso,South Africa,Maize,Intra-Africa,1260.3,0.51,647.32,True,Fair Trade,B,64.14,18.27,7.94,River,785.1,94.22,False,False,,Wholesale,Export,60 days,2024-11-30,2024-12-10,10
+TRADE_000016,Burkina Faso,Kenya,Maize,Intra-Africa,165536.3,0.4,66214.54,False,None,A,6908.63,2839.65,1467.28,Rail,756.5,90.78,True,True,TR_00000016,Processing,Wholesale,Cash,2024-09-23,2024-10-03,10
+TRADE_000017,Nigeria,UK,Groundnut,Africa-Europe,5521.7,2.49,13733.14,False,None,A,1742.91,346.83,267.46,Sea,9539.5,1144.74,True,False,,Wholesale,Retail,60 days,2024-05-18,2024-05-29,11
+TRADE_000018,Ghana,Senegal,Cocoa,Intra-Africa,25388.2,3.0,76164.69,False,None,A,6243.87,1557.36,958.77,Rail,1129.2,135.5,False,False,,Production,Wholesale,90 days,2024-08-15,2024-08-19,4
+TRADE_000019,Kenya,Uganda,Maize,Africa-Europe,1120.1,0.51,574.75,False,None,C,73.07,21.77,9.13,Sea,5095.6,611.47,False,False,,Production,Export,90 days,2024-10-29,2024-11-07,9
+TRADE_000020,Senegal,France,Groundnut,Africa-Europe,1000.0,1.75,1745.22,False,None,C,187.47,42.97,30.6,Air,9397.3,1127.67,False,False,,Wholesale,Export,30 days,2024-10-20,2024-11-15,26
+TRADE_000021,Kenya,Ghana,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,B,41.63,15.37,10.89,River,2383.0,285.96,True,True,TR_00000021,Processing,Retail,Cash,2024-10-04,2024-10-16,12
+TRADE_000022,South Africa,Germany,Maize,Africa-Europe,5108.3,0.74,3783.7,True,Fair Trade,B,,,40.81,Air,11915.9,1429.91,False,True,TR_00000022,Processing,Processing,90 days,2024-08-24,2024-08-27,3
+TRADE_000023,South Africa,UK,Maize,Africa-Europe,36486.3,0.49,17846.17,False,None,C,2184.14,616.47,216.22,Sea,6945.5,833.45,False,True,TR_00000023,Processing,Processing,90 days,2024-11-08,2024-11-28,20
+TRADE_000024,South Africa,UK,Maize,Africa-Europe,28938.0,0.88,25393.02,True,Rainforest Alliance,A,2766.29,563.23,616.6,Sea,9920.0,1190.39,True,True,TR_00000024,Production,Wholesale,90 days,2024-02-28,2024-03-22,23
+TRADE_000025,Ghana,Netherlands,Palm Oil,Africa-Europe,4606.7,1.31,6054.26,False,None,A,735.77,163.48,174.52,Air,9121.6,1094.59,True,False,,Processing,Processing,Cash,2024-11-03,2024-11-13,10
+TRADE_000026,Ghana,South Africa,Palm Oil,Intra-Africa,375788.8,0.9,338209.88,False,None,B,34424.18,11326.78,8831.91,River,904.0,108.48,True,False,,Processing,Wholesale,Cash,2024-11-24,2024-12-10,16
+TRADE_000027,South Africa,Netherlands,Maize,Africa-Europe,22715.1,0.56,12623.17,False,None,C,1710.13,301.87,318.78,Air,5478.5,657.42,True,True,TR_00000027,Processing,Wholesale,Cash,2024-07-07,2024-07-11,4
+TRADE_000028,Nigeria,Senegal,Palm Oil,Intra-Africa,1000.0,0.9,900.0,False,None,B,72.79,29787.971938165672,19.46,Road,1379.6,165.55,True,True,TR_00000028,Wholesale,Processing,Cash,2024-07-14,2024-08-10,27
+TRADE_000029,Nigeria,Ghana,Fish,Intra-Africa,9658.1,5.01,48395.04,True,Rainforest Alliance,C,7230.79,2395.38,1098.59,Rail,1607.2,192.86,False,False,,Wholesale,Export,30 days,2024-05-17,2024-05-26,9
+TRADE_000030,South Africa,Ghana,Honey,Intra-Africa,1000.0,11.23,11226.08,True,Fair Trade,B,1434.4,258.73,185.98,River,21527.147754470538,82.58,True,False,,Wholesale,Processing,60 days,2024-06-29,2024-07-19,20
+TRADE_000031,Burkina Faso,Kenya,Maize,Intra-Africa,59487.0,0.5,29639.98,True,Rainforest Alliance,C,3067.24,666.03,622.61,Road,1178.2,141.38,False,True,TR_00000031,Wholesale,Wholesale,60 days,2024-12-11,2025-01-01,21
+TRADE_000032,South Africa,Burkina Faso,Maize,Intra-Africa,2552.9,0.4,1021.16,False,None,A,125.65,50.36,12.48,River,1030.3,123.64,True,False,,Production,Wholesale,Cash,2024-04-02,2024-04-19,17
+TRADE_000033,Burkina Faso,Ghana,Groundnut,Africa-Europe,8133.9,3.19,25935.56,True,Fair Trade,C,2680.7,1290.58,312.7,Sea,5370.8,644.5,True,True,TR_00000033,Wholesale,Retail,90 days,2024-03-08,2024-03-27,19
+TRADE_000034,Kenya,Uganda,Maize,Africa-Europe,2814.0,0.69,1928.57,False,None,C,279.47,43.81,23.66,Air,5232.2,627.87,True,True,TR_00000034,Processing,Retail,90 days,2024-02-07,2024-03-04,26
+TRADE_000035,Senegal,Kenya,Palm Oil,Intra-Africa,2157.4,1.25,2700.84,True,Rainforest Alliance,C,342.33,117.1,68.93,Road,1837.7,220.52,True,True,TR_00000035,Wholesale,Export,90 days,2024-01-04,2024-01-25,21
+TRADE_000036,Kenya,Senegal,Maize,Intra-Africa,1919.6,0.4,767.86,False,None,A,104.29,29.08,12.51,Road,1902.8,228.33,False,False,,Wholesale,Retail,60 days,2024-06-23,2024-06-27,4
+TRADE_000037,South Africa,Germany,Honey,Africa-Europe,40524.8,19.7,798215.41,True,Fair Trade,C,106511.75,18353.28,20383.73,Air,7599.9,911.99,True,False,,Production,Processing,60 days,2024-06-26,2024-07-08,12
+TRADE_000038,Kenya,Netherlands,Maize,Africa-Europe,3906.3,0.49,1911.97,False,None,A,201.57,73.27,23.68,Sea,11468.2,1376.19,True,False,,Wholesale,Wholesale,Cash,2024-02-19,2024-02-28,9
+TRADE_000039,Ghana,South Africa,Palm Oil,Intra-Africa,1000.0,1.1,1095.5,True,Fair Trade,B,144.45,41.68,25.67,Road,1472.9,176.75,False,True,TR_00000039,Wholesale,Retail,30 days,2024-10-19,2024-11-04,16
+TRADE_000040,South Africa,Germany,Honey,Africa-Europe,34166.0,13.43,458992.53,False,None,B,68523.33,12125.52,8425.78,Air,7042.8,845.13,True,False,,Wholesale,Processing,60 days,2024-03-11,2024-03-22,11
+TRADE_000041,Senegal,India,Maize,Africa-Europe,13627.9,0.62,8430.75,True,Rainforest Alliance,B,681.21,276.73,153.5,Air,11918.7,1430.25,True,False,,Processing,Processing,90 days,2024-12-27,2025-01-21,25
+TRADE_000042,Senegal,Burkina Faso,Groundnut,Intra-Africa,13714.4,1.74,23826.22,True,Rainforest Alliance,A,2333.76,1113.56,472.27,River,1997.9,239.75,True,True,TR_00000042,Production,Wholesale,60 days,2024-10-27,2024-11-11,15
+TRADE_000043,Kenya,Netherlands,Maize,Africa-Europe,1878.9,0.9,1695.2,True,Organic,C,,,47.82,Sea,6917.9,830.15,True,True,TR_00000043,Processing,Wholesale,30 days,2024-08-10,2024-08-15,5
+TRADE_000044,Senegal,Mali,Palm Oil,Africa-Europe,1000.0,1.35,1352.76,False,None,C,199.0,34.05,33.0,Air,9301.4,1116.16,False,True,TR_00000044,Wholesale,Retail,90 days,2024-04-28,2024-05-10,12
+TRADE_000045,Kenya,South Africa,Groundnut,Intra-Africa,1000.0,1.67,1671.83,True,Organic,B,213.82,44.25,30.75,Road,970.4,116.45,False,False,,Wholesale,Retail,Cash,2024-06-15,2024-06-25,10
+TRADE_000046,South Africa,Burkina Faso,Honey,Intra-Africa,43916.1,9.92,435754.58,True,Fair Trade,C,,,12805.52,Rail,850.8,102.1,True,False,,Processing,Wholesale,90 days,2024-01-15,2024-01-27,12
+TRADE_000047,South Africa,France,Maize,Africa-Europe,1000.0,0.67,669.62,False,None,B,90.3,15.65,18.91,Air,6362.4,763.49,False,False,,Processing,Wholesale,60 days,2024-01-28,2024-02-08,11
+TRADE_000048,Ghana,South Africa,Maize,Intra-Africa,6448.5,0.51,3311.68,True,Rainforest Alliance,C,493.42,153.9,96.47,Road,1356.5,162.78,False,True,TR_00000048,Wholesale,Processing,Cash,2024-03-07,2024-03-29,22
+TRADE_000049,Ghana,Kenya,Palm Oil,Intra-Africa,55384.3,1.03,57075.81,True,Rainforest Alliance,C,7201.89,1695.57,960.25,Road,2154.8,258.58,False,True,TR_00000049,Production,Retail,30 days,2024-10-01,2024-10-10,9
+TRADE_000050,Nigeria,South Africa,Palm Oil,Intra-Africa,2995.7,1.12,3343.47,True,Organic,A,,,86.26,Road,660.6,79.27,False,True,TR_00000050,Production,Export,60 days,2024-09-05,2024-09-09,4
+TRADE_000051,Senegal,South Africa,Groundnut,Intra-Africa,9083.3,1.9,17249.86,True,Fair Trade,B,,,357.8,River,1028.9,123.47,False,True,TR_00000051,Production,Retail,Cash,2024-02-13,2024-02-18,5
+TRADE_000052,Burkina Faso,Senegal,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,C,54.71,17.28,5.16,Road,1659.6,199.15,False,False,,Wholesale,Processing,60 days,2024-08-05,2024-08-24,19
+TRADE_000053,Nigeria,Senegal,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,B,174.04,30.11,31.04,Rail,881.6,105.8,True,False,,Wholesale,Export,90 days,2024-04-23,2024-05-09,16
+TRADE_000054,Senegal,Kenya,Groundnut,Intra-Africa,29872.6,1.89,56424.73,True,Fair Trade,B,5917.91,1605.09,1513.19,River,625.4,75.04,True,False,,Wholesale,Processing,90 days,2024-08-19,2024-08-29,10
+TRADE_000055,Kenya,Ghana,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,A,139.91,66.29,35.03,Rail,659.8,79.18,True,True,TR_00000055,Production,Retail,30 days,2024-10-14,2024-10-22,8
+TRADE_000056,Kenya,Senegal,Groundnut,Intra-Africa,1000.0,1.84,1840.17,True,Organic,B,215.14,86.54,29.92,Rail,1935.4,232.25,False,False,,Production,Processing,60 days,2024-06-21,2024-07-20,29
+TRADE_000057,Burkina Faso,France,Groundnut,Africa-Europe,1000.0,2.4,2396.71,True,Rainforest Alliance,C,318.52,80.39,69.91,Air,6825.7,819.08,False,False,,Processing,Retail,90 days,2024-11-29,2024-12-09,10
+TRADE_000058,Senegal,Ghana,Groundnut,Intra-Africa,5258.4,1.4,7361.72,False,None,A,940.77,354.99,171.3,River,2678.2,321.38,True,False,,Wholesale,Processing,30 days,2024-01-07,2024-01-15,8
+TRADE_000059,Ghana,USA,Cocoa,Africa-Europe,1193.5,5.37,6406.29,True,Rainforest Alliance,A,752.65,172.41,159.35,Air,8696.4,1043.57,False,False,,Production,Retail,60 days,2024-01-05,2024-01-17,12
+TRADE_000060,Senegal,Burkina Faso,Palm Oil,Intra-Africa,25411.4,0.9,22870.23,False,None,C,2487.96,641.83,685.51,River,679.3,81.51,True,True,TR_00000060,Wholesale,Wholesale,60 days,2024-05-28,2024-06-16,19
+TRADE_000061,South Africa,Kenya,Maize,Intra-Africa,15450.0,0.47,7194.69,True,Organic,C,,,86.5,River,780.5,93.66,True,False,,Production,Wholesale,90 days,2024-06-11,2024-06-27,16
+TRADE_000062,Ghana,Germany,Maize,Africa-Europe,5829.2,0.82,4803.22,True,Rainforest Alliance,B,507.54,236.98,89.76,Air,6053.1,726.38,True,True,TR_00000062,Wholesale,Wholesale,Cash,2024-11-15,2024-12-02,17
+TRADE_000063,Burkina Faso,Ghana,Maize,Intra-Africa,154476.5,0.54,83396.77,True,Fair Trade,B,,,1279.88,Rail,2114.8,253.77,False,False,,Processing,Export,30 days,2024-11-15,2024-12-12,27
+TRADE_000064,Nigeria,France,Groundnut,Africa-Europe,1407.5,2.8,3935.26,True,Fair Trade,A,559.03,145.09,59.19,Sea,11684.2,1402.11,False,False,,Wholesale,Export,90 days,2024-10-21,2024-11-17,27
+TRADE_000065,Ghana,Netherlands,Cocoa,Africa-Europe,1000.0,4.61,4607.33,True,Organic,B,637.19,177.07,130.23,Sea,6623.8,794.85,False,True,TR_00000065,Production,Retail,90 days,2024-02-09,2024-02-13,4
+TRADE_000066,South Africa,Ghana,Maize,Intra-Africa,1978.6,0.45,899.34,True,Rainforest Alliance,B,72.33,31.69,26.95,Rail,2237.4,268.49,False,False,,Wholesale,Export,Cash,2024-06-30,2024-07-12,12
+TRADE_000067,Nigeria,France,Maize,Africa-Europe,12842.3,0.74,9470.71,True,Fair Trade,B,,,123.06,Air,6584.3,790.12,True,False,,Wholesale,Export,30 days,2024-10-12,2024-10-28,16
+TRADE_000068,South Africa,Netherlands,Maize,Africa-Europe,1418.6,0.59,840.48,False,None,C,92.23,24.09,11.3,Sea,10335.6,1240.27,False,True,TR_00000068,Wholesale,Processing,30 days,2024-07-10,2024-07-18,8
+TRADE_000069,Burkina Faso,South Africa,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,B,38.09,9.64,8.41,Road,2013.5,241.62,True,False,,Production,Export,90 days,2024-11-06,2024-11-17,11
+TRADE_000070,Senegal,Ghana,Groundnut,Intra-Africa,1000.0,1.84,1836.31,True,Rainforest Alliance,C,234.34,52.83,30.49,Rail,2203.8,264.45,False,False,,Wholesale,Processing,Cash,2024-03-29,2024-04-16,18
+TRADE_000071,Burkina Faso,Ghana,Maize,Africa-Europe,1000.0,0.67,673.34,True,Organic,A,58.03,30.24,18.22,Air,6538.3,784.59,False,True,TR_00000071,Production,Export,Cash,2024-11-22,2024-12-17,25
+TRADE_000072,South Africa,Germany,Honey,Africa-Europe,1000.0,11.15,11149.77,False,None,C,1468.62,293.75,199.23,Air,5448.9,653.87,False,True,TR_00000072,Wholesale,Retail,90 days,2024-09-21,2024-09-24,3
+TRADE_000073,Senegal,Burkina Faso,Maize,Intra-Africa,11772.8,0.54,6316.44,True,Rainforest Alliance,A,596.88,189.98,80.12,Rail,685.4,82.25,False,True,TR_00000073,Wholesale,Wholesale,90 days,2024-01-23,2024-02-03,11
+TRADE_000074,Senegal,Burkina Faso,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,B,59.78,15.87,8.34,Road,2413.7,289.65,True,False,,Production,Processing,Cash,2024-10-16,2024-11-02,17
+TRADE_000075,Ghana,Nigeria,Cocoa,Intra-Africa,6594.1,3.31,21858.82,True,Organic,C,2034.54,866.64,382.86,Road,2956.2,354.74,False,False,,Production,Export,30 days,2024-02-11,2024-03-08,26
+TRADE_000076,Senegal,Kenya,Maize,Intra-Africa,7188.9,0.4,2875.57,False,None,B,363.98,140.03,40.34,Road,2659.9,319.19,False,True,TR_00000076,Production,Export,30 days,2024-07-30,2024-08-09,10
+TRADE_000077,South Africa,Netherlands,Maize,Africa-Europe,3351.7,0.82,2762.82,True,Fair Trade,C,311.55,137.01,51.13,Air,9228.5,1107.42,False,False,,Processing,Wholesale,Cash,2024-11-24,2024-12-13,19
+TRADE_000078,Burkina Faso,Senegal,Groundnut,Intra-Africa,1000.0,1.56,1562.91,True,Rainforest Alliance,B,217.17,61.65,28.26,Rail,540.4,64.85,True,False,,Wholesale,Export,Cash,2024-06-24,2024-07-19,25
+TRADE_000079,Nigeria,Kenya,Palm Oil,Intra-Africa,2085.6,0.99,2065.4,True,Organic,C,254.31,53.02,28.58,River,2133.2,255.98,False,True,TR_00000079,Wholesale,Export,60 days,2024-03-12,2024-03-29,17
+TRADE_000080,Senegal,India,Groundnut,Africa-Europe,3188.1,2.06,6566.95,True,Rainforest Alliance,A,594.05,245.64,152.59,Air,10048.0,1205.75,False,True,TR_00000080,Processing,Processing,30 days,2024-08-31,2024-09-13,13
+TRADE_000081,South Africa,Nigeria,Honey,Intra-Africa,1441.8,10.11,14580.14,True,Fair Trade,B,1601.35,705.32,209.29,River,1141.9,137.02,False,False,,Production,Export,60 days,2024-08-30,2024-09-28,29
+TRADE_000082,Kenya,Nigeria,Groundnut,Intra-Africa,1933.6,1.58,3059.75,True,Fair Trade,B,374.48,123.6,69.94,Rail,2652.8,318.34,True,False,,Production,Export,30 days,2024-03-24,2024-04-12,19
+TRADE_000083,Burkina Faso,South Africa,Maize,Intra-Africa,1000.0,0.47,474.73,True,Organic,A,59.99,18.23,9.79,Rail,2207.4,264.89,False,False,,Processing,Processing,30 days,2024-07-21,2024-07-29,8
+TRADE_000084,Nigeria,South Africa,Palm Oil,Intra-Africa,2743.6,1.16,3188.3,True,Organic,A,451.76,119.82,81.53,Rail,1121.8,134.61,True,True,TR_00000084,Processing,Processing,90 days,2024-12-16,2025-01-05,20
+TRADE_000085,Ghana,Burkina Faso,Maize,Intra-Africa,11034.4,0.49,5365.91,True,Fair Trade,B,721.92,223.99,60.05,River,1953.8,234.45,True,False,,Production,Export,30 days,2024-02-19,2024-03-05,15
+TRADE_000086,South Africa,France,Maize,Africa-Europe,5323.2,0.51,2721.44,False,None,B,401.99,120.67,33.19,Sea,5852.3,702.27,True,False,,Production,Wholesale,60 days,2024-04-23,2024-05-15,22
+TRADE_000087,Burkina Faso,Netherlands,Maize,Africa-Europe,1000.0,0.62,616.57,True,Rainforest Alliance,A,66.07,14.2,16.05,Sea,11405.5,1368.66,True,False,,Processing,Retail,Cash,2024-01-23,2024-02-01,9
+TRADE_000088,Senegal,South Africa,Maize,Intra-Africa,24195.2,0.4,9678.08,False,None,C,1286.81,432.35,138.68,Rail,1158.9,139.07,True,False,,Production,Wholesale,90 days,2024-05-13,2024-05-29,16
+TRADE_000089,Ghana,Belgium,Maize,Africa-Europe,11090.0,0.93,10318.11,True,Rainforest Alliance,A,,,183.18,Air,7980.3,957.64,False,True,TR_00000089,Wholesale,Retail,90 days,2024-03-06,2024-03-27,21
+TRADE_000090,Senegal,Ghana,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,B,119.38,29.32,33.47,Rail,1596.1,191.53,False,True,TR_00000090,Processing,Export,60 days,2024-09-14,2024-09-28,14
+TRADE_000091,Nigeria,Burkina Faso,Fish,Intra-Africa,170135.1,4.73,805224.15,True,Organic,B,,,14307.66,Road,2551.7,306.2,True,False,,Wholesale,Retail,90 days,2024-09-20,2024-10-19,29
+TRADE_000092,South Africa,Burkina Faso,Honey,Intra-Africa,116117.1,9.0,1045053.72,False,None,A,116608.64,39826.3,29167.87,Rail,2665.6,319.87,False,False,,Wholesale,Export,Cash,2024-08-05,2024-08-18,13
+TRADE_000093,Nigeria,Ghana,Palm Oil,Intra-Africa,1576.6,0.9,1418.95,False,None,B,116.99,39.49,22.1,Rail,2773.4,332.81,True,True,TR_00000093,Production,Retail,30 days,2024-07-01,2024-07-27,26
+TRADE_000094,Burkina Faso,Nigeria,Maize,Intra-Africa,8789.0,0.4,3515.62,False,None,B,,,44.67,Rail,889.2,106.7,False,False,,Production,Retail,Cash,2024-12-18,2025-01-09,22
+TRADE_000095,South Africa,Ghana,Honey,Intra-Africa,46806.2,9.0,421256.15,False,None,C,,,5911.95,River,1274.4,152.93,False,True,TR_00000095,Processing,Retail,90 days,2024-11-22,2024-12-18,26
+TRADE_000096,Senegal,France,Palm Oil,Africa-Europe,13706.4,1.21,16581.64,False,None,A,1742.95,786.63,356.54,Sea,10167.3,1220.08,False,False,,Wholesale,Wholesale,Cash,2024-11-11,2024-11-30,19
+TRADE_000097,Kenya,Germany,Maize,Africa-Europe,1126.4,0.5,558.0,False,None,B,65.65,23.19,7.98,Sea,10053.4,1206.4,False,True,TR_00000097,Processing,Export,Cash,2024-04-02,2024-04-26,24
+TRADE_000098,Ghana,Belgium,Maize,Africa-Europe,2920.7,0.67,1970.21,False,None,C,,,35.62,Air,9748.5,1169.81,True,False,,Production,Export,30 days,2024-04-23,2024-05-03,10
+TRADE_000099,South Africa,Senegal,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,B,36.64,10.45,9.55,River,2792.6,335.11,True,False,,Processing,Export,90 days,2024-06-24,2024-07-07,13
+TRADE_000100,Senegal,Nigeria,Palm Oil,Intra-Africa,1000.0,0.9,900.0,False,None,B,96.86,22.86,14.13,Rail,1637.6,196.52,True,True,TR_00000100,Wholesale,Export,Cash,2024-11-19,2024-12-07,18
+TRADE_000101,Burkina Faso,South Africa,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,B,184.13,28.33,29.1,River,2484.4,298.13,True,True,TR_00000101,Production,Export,90 days,2024-11-15,2024-12-06,21
+TRADE_000102,Ghana,Burkina Faso,Maize,Intra-Africa,1000.0,0.47,471.95,True,Fair Trade,A,57.69,18.91,10.9,River,1614.6,193.75,True,False,,Production,Wholesale,Cash,2024-02-19,2024-03-05,15
+TRADE_000103,Nigeria,UK,Maize,Africa-Europe,22088.4,0.66,14623.09,False,None,A,1498.69,337.66,167.23,Air,5659.9,679.19,False,False,,Processing,Processing,60 days,2024-06-12,2024-07-09,27
+TRADE_000104,Burkina Faso,Kenya,Groundnut,Intra-Africa,1194.3,1.4,1671.97,False,None,B,201.98,36.03,27.99,Rail,2383.0,285.96,True,False,,Processing,Processing,60 days,2024-03-31,2024-04-15,15
+TRADE_000105,Senegal,France,Maize,Africa-Europe,22062.6,0.66,14537.34,False,None,B,1413.14,608.6,362.79,Air,7782.2,933.86,True,False,,Wholesale,Wholesale,30 days,2024-11-21,2024-11-24,3
+TRADE_000106,Burkina Faso,Kenya,Maize,Intra-Africa,1000.0,0.47,465.25,True,Fair Trade,A,54.2,22.17,10.6,River,932.3,111.88,False,True,TR_00000106,Processing,Processing,90 days,2024-12-16,2024-12-21,5
+TRADE_000107,Nigeria,South Africa,Maize,Intra-Africa,1000.0,0.51,510.98,True,Fair Trade,A,67.14,18.11,13.43,River,2305.4,276.65,True,False,,Production,Wholesale,90 days,2024-05-30,2024-06-04,5
+TRADE_000108,Senegal,Nigeria,Groundnut,Intra-Africa,107909.7,1.8,194057.27,True,Fair Trade,C,17572.95,8747.81,5572.96,River,842.4,101.09,False,True,TR_00000108,Processing,Processing,Cash,2024-03-22,2024-04-01,10
+TRADE_000109,Senegal,Burkina Faso,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,A,185.94,58.31,17.94,Rail,2692.6,323.11,False,False,,Wholesale,Processing,90 days,2024-10-02,2024-10-08,6
+TRADE_000110,Senegal,Kenya,Maize,Intra-Africa,2524.3,0.46,1165.53,True,Fair Trade,C,158.29,39.29,19.31,Rail,895.6,107.47,False,False,,Production,Export,Cash,2024-03-04,2024-03-10,6
+TRADE_000111,South Africa,UK,Maize,Africa-Europe,7803.6,0.7,5429.23,True,Fair Trade,B,477.17,120.36,135.05,Sea,9983.2,1197.98,False,True,TR_00000111,Production,Retail,90 days,2024-11-24,2024-12-19,25
+TRADE_000112,South Africa,Burkina Faso,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,C,,,4.68,Rail,2759.4,331.12,False,False,,Production,Wholesale,60 days,2024-10-31,2024-11-04,4
+TRADE_000113,South Africa,Netherlands,Maize,Africa-Europe,5173.6,0.94,4881.18,True,Rainforest Alliance,B,673.59,181.05,78.69,Air,6524.6,782.95,False,False,,Wholesale,Wholesale,30 days,2024-03-20,2024-04-15,26
+TRADE_000114,Kenya,Uganda,Groundnut,Africa-Europe,9249.1,2.52,23297.6,True,Rainforest Alliance,A,2145.38,646.72,451.07,Air,6631.4,795.76,False,True,TR_00000114,Wholesale,Retail,90 days,2024-07-05,2024-07-31,26
+TRADE_000115,Nigeria,France,Palm Oil,Africa-Europe,13261.1,1.48,19679.0,False,None,B,2492.34,737.6,388.84,Air,6305.9,756.71,False,True,TR_00000115,Processing,Processing,Cash,2024-03-30,2024-04-17,18
+TRADE_000116,South Africa,Kenya,Honey,Intra-Africa,4075.1,12.32,50188.05,True,Rainforest Alliance,B,4888.19,1141.24,1254.72,Road,939.0,112.68,False,False,,Production,Wholesale,30 days,2024-10-18,2024-11-10,23
+TRADE_000117,Ghana,Belgium,Maize,Africa-Europe,1667.4,0.59,985.13,True,Fair Trade,A,82.56,39.11,26.34,Sea,7613.2,913.58,True,False,,Wholesale,Wholesale,30 days,2024-05-05,2024-05-16,11
+TRADE_000118,Senegal,Burkina Faso,Palm Oil,Intra-Africa,2545.8,0.9,2291.26,False,None,B,323.57,60.49,37.82,River,876.8,105.22,True,True,TR_00000118,Wholesale,Export,Cash,2024-02-02,2024-02-09,7
+TRADE_000119,Nigeria,Senegal,Fish,Intra-Africa,1000.0,5.14,5135.94,True,Fair Trade,A,684.71,186.8,115.83,River,2838.1,340.58,False,True,TR_00000119,Production,Retail,30 days,2024-02-29,2024-03-17,17
+TRADE_000120,Burkina Faso,South Africa,Maize,Intra-Africa,121645.6,0.48,57889.63,True,Rainforest Alliance,A,6086.6,2404.22,1286.66,Rail,946.3,113.56,True,False,,Wholesale,Retail,Cash,2024-10-28,2024-11-25,28
+TRADE_000121,Kenya,Nigeria,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,B,153.1,35.49,39.88,River,2405.8,288.7,False,False,,Wholesale,Wholesale,60 days,2024-05-15,2024-06-14,30
+TRADE_000122,Burkina Faso,Côte d'Ivoire,Groundnut,Africa-Europe,1000.0,2.72,2718.02,True,Fair Trade,B,388.16,65.46,40.79,Sea,8798.9,1055.87,False,False,,Production,Retail,60 days,2024-03-24,2024-04-01,8
+TRADE_000123,Kenya,Tanzania,Groundnut,Africa-Europe,2801.0,2.35,6593.43,True,Organic,A,607.95,288.44,191.92,Sea,7895.5,947.46,False,False,,Wholesale,Retail,Cash,2024-06-12,2024-07-09,27
+TRADE_000124,Burkina Faso,Nigeria,Maize,Intra-Africa,5816.2,0.4,2326.47,False,None,A,341.22,104.03,45.65,Road,2185.1,262.21,True,False,,Wholesale,Wholesale,60 days,2024-03-21,2024-04-12,22
+TRADE_000125,Kenya,Netherlands,Groundnut,Africa-Europe,102579.8,2.26,232111.0,True,Fair Trade,B,19427.16,10331.85,6150.7,Air,6659.5,799.14,True,False,,Wholesale,Export,60 days,2024-06-05,2024-06-18,13
+TRADE_000126,Kenya,Uganda,Groundnut,Africa-Europe,1000.0,1.95,1951.88,False,None,B,221.91,73.98,30.74,Sea,9147.4,1097.69,True,False,,Processing,Processing,30 days,2024-08-21,2024-09-17,27
+TRADE_000127,Senegal,South Africa,Palm Oil,Intra-Africa,1704.1,0.99,1688.19,True,Fair Trade,B,147.01,73.89,49.34,Rail,1567.4,188.09,True,False,,Wholesale,Retail,60 days,2024-04-20,2024-05-12,22
+TRADE_000128,Nigeria,Burkina Faso,Maize,Intra-Africa,2311.4,0.4,924.55,False,None,C,107.14,22.56,19.43,Road,861.6,103.4,False,False,,Wholesale,Retail,Cash,2024-05-07,2024-05-18,11
+TRADE_000129,Senegal,South Africa,Palm Oil,Intra-Africa,10861.2,0.9,9775.09,False,None,A,915.92,419.71,102.35,Rail,1438.7,172.65,True,False,,Wholesale,Retail,30 days,2024-02-07,2024-02-20,13
+TRADE_000130,Burkina Faso,Senegal,Groundnut,Intra-Africa,4154.3,1.59,6590.81,True,Fair Trade,B,689.88,166.13,115.12,Road,1543.8,185.26,False,False,,Production,Processing,60 days,2024-12-19,2024-12-22,3
+TRADE_000131,South Africa,UK,Maize,Africa-Europe,22831.9,0.85,19515.91,True,Fair Trade,A,1824.04,548.82,528.49,Air,9001.5,1080.18,False,False,,Wholesale,Export,60 days,2024-06-19,2024-06-28,9
+TRADE_000132,Ghana,Burkina Faso,Cocoa,Intra-Africa,1000.0,3.0,3000.0,False,None,B,335.55,73.47,56.98,Rail,1196.2,143.55,True,True,TR_00000132,Production,Retail,Cash,2024-09-19,2024-10-03,14
+TRADE_000133,South Africa,Kenya,Maize,Intra-Africa,3192.0,0.47,1490.7,True,Rainforest Alliance,C,162.12,69.03,30.63,Road,1335.5,160.26,True,True,TR_00000133,Wholesale,Processing,90 days,2024-09-29,2024-10-07,8
+TRADE_000134,Nigeria,UK,Groundnut,Africa-Europe,1000.0,1.85,1854.63,False,None,B,252.27,71.84,35.91,Air,6522.4,782.69,False,True,TR_00000134,Wholesale,Export,90 days,2024-02-07,2024-02-15,8
+TRADE_000135,Senegal,Netherlands,Groundnut,Africa-Europe,5251.5,2.58,13564.69,True,Fair Trade,A,1580.28,588.3,227.92,Air,6250.9,750.11,True,False,,Processing,Retail,30 days,2024-01-05,2024-01-15,10
+TRADE_000136,Nigeria,South Africa,Palm Oil,Intra-Africa,2430.6,0.9,2187.53,False,None,C,,,53.06,River,2705.0,324.6,True,True,TR_00000136,Processing,Wholesale,Cash,2024-03-16,2024-03-25,9
+TRADE_000137,Burkina Faso,France,Maize,Africa-Europe,1000.0,0.87,873.66,True,Fair Trade,A,108.01,34.94,18.29,Air,6436.8,772.42,True,True,TR_00000137,Processing,Export,30 days,2024-06-04,2024-06-12,8
+TRADE_000138,Nigeria,Burkina Faso,Palm Oil,Intra-Africa,1995.9,1.19,2382.9,True,Fair Trade,B,324.7,87.19,47.11,Road,784.8,94.18,False,True,TR_00000138,Processing,Retail,30 days,2024-01-26,2024-02-12,17
+TRADE_000139,Kenya,Nigeria,Maize,Intra-Africa,1831.8,0.48,874.3,True,Organic,A,128.31,38.04,20.28,Road,1794.1,215.29,False,False,,Production,Wholesale,Cash,2024-06-11,2024-06-27,16
+TRADE_000140,South Africa,Ghana,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,A,36.69,19.74,7.0,Road,767.3,92.08,False,False,,Production,Export,60 days,2024-07-23,2024-08-22,30
+TRADE_000141,Ghana,Belgium,Maize,Africa-Europe,25708.8,0.76,19654.98,True,Rainforest Alliance,C,2791.81,553.18,211.87,Sea,10934.5,1312.14,False,False,,Wholesale,Export,Cash,2024-01-09,2024-01-20,11
+TRADE_000142,Nigeria,South Africa,Maize,Intra-Africa,2876.3,0.54,1563.77,True,Organic,B,190.37,58.22,41.07,River,2465.8,295.89,True,True,TR_00000142,Production,Export,60 days,2024-11-01,2024-11-29,28
+TRADE_000143,Nigeria,Senegal,Fish,Intra-Africa,3874.2,5.56,21545.19,True,Rainforest Alliance,A,3225.97,506.23,581.52,River,1749.6,209.95,True,False,,Processing,Wholesale,60 days,2024-03-24,2024-03-27,3
+TRADE_000144,South Africa,Germany,Maize,Africa-Europe,20710.7,0.74,15237.03,True,Fair Trade,B,1278.65,536.25,417.77,Sea,6494.2,779.31,True,True,TR_00000144,Wholesale,Retail,30 days,2024-07-27,2024-07-31,4
+TRADE_000145,Ghana,Netherlands,Maize,Africa-Europe,11371.6,0.58,6628.01,False,None,A,696.51,220.16,135.14,Sea,9423.9,1130.87,False,False,,Wholesale,Retail,30 days,2024-07-31,2024-08-30,30
+TRADE_000146,Senegal,Kenya,Maize,Intra-Africa,2382.1,0.4,952.85,False,None,B,129.63,31.98,25.11,Road,1834.3,220.12,True,False,,Wholesale,Wholesale,30 days,2024-09-01,2024-09-19,18
+TRADE_000147,Nigeria,Ghana,Maize,Intra-Africa,36052.2,0.53,18968.01,True,Rainforest Alliance,B,2258.4,411.58,254.13,Rail,1213.2,145.59,True,True,TR_00000147,Production,Export,60 days,2024-04-25,2024-05-06,11
+TRADE_000148,Kenya,Tanzania,Groundnut,Africa-Europe,1000.0,1.92,1917.41,False,None,B,,,48.15,Air,6857.4,822.89,True,True,TR_00000148,Production,Wholesale,30 days,2024-07-16,2024-08-08,23
+TRADE_000149,Senegal,Mali,Maize,Africa-Europe,5264.7,0.73,3822.77,True,Fair Trade,A,328.67,127.42,103.17,Air,9310.9,1117.31,False,False,,Wholesale,Retail,90 days,2024-06-25,2024-07-04,9
+TRADE_000150,Kenya,Ghana,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,C,140.65,45.67,33.79,River,2933.2,351.98,False,False,,Processing,Retail,90 days,2024-04-05,2024-04-16,11
+TRADE_000151,Senegal,India,Palm Oil,Africa-Europe,1625.8,1.78,2898.25,True,Fair Trade,C,237.47,129.6,40.54,Air,5425.4,651.05,True,True,TR_00000151,Processing,Processing,Cash,2024-02-18,2024-02-28,10
+TRADE_000152,South Africa,Netherlands,Honey,Africa-Europe,13528.8,12.08,163435.6,False,None,C,17949.64,6850.73,3675.13,Air,6663.3,799.6,True,True,TR_00000152,Wholesale,Wholesale,30 days,2024-07-22,2024-08-20,29
+TRADE_000153,Nigeria,Kenya,Groundnut,Intra-Africa,14737.3,1.88,27740.04,True,Rainforest Alliance,C,2846.77,1372.24,670.54,River,656.1,78.73,False,True,TR_00000153,Wholesale,Wholesale,60 days,2024-10-03,2024-10-13,10
+TRADE_000154,Senegal,Mali,Maize,Africa-Europe,3017.7,0.56,1695.85,True,Rainforest Alliance,A,222.07,43.26,34.31,Air,5652.8,678.34,True,False,,Processing,Retail,90 days,2024-07-24,2024-08-05,12
+TRADE_000155,Nigeria,Kenya,Palm Oil,Intra-Africa,1888.2,0.9,1699.34,False,None,C,243.97,82.16,17.2,Road,1660.3,199.24,True,True,TR_00000155,Production,Retail,30 days,2024-07-29,2024-08-05,7
+TRADE_000156,Nigeria,UK,Fish,Africa-Europe,10216.0,4.86,49641.29,False,None,A,7128.91,1764.86,570.82,Sea,5771.9,692.63,True,False,,Production,Retail,Cash,2024-04-25,2024-05-06,11
+TRADE_000157,Burkina Faso,Nigeria,Maize,Intra-Africa,9722.3,0.4,3888.93,False,None,A,499.74,179.0,67.39,Rail,608.0,72.96,False,True,TR_00000157,Wholesale,Retail,30 days,2024-09-25,2024-10-01,6
+TRADE_000158,South Africa,Senegal,Honey,Intra-Africa,2180.2,9.0,19621.99,False,None,A,2908.02,402.55,568.12,Road,1421.7,170.6,False,False,,Processing,Processing,90 days,2024-01-21,2024-02-05,15
+TRADE_000159,Nigeria,Netherlands,Fish,Africa-Europe,1430.8,7.95,11374.82,True,Organic,A,1498.74,289.28,331.92,Air,9471.2,1136.54,False,False,,Wholesale,Processing,60 days,2024-08-03,2024-08-07,4
+TRADE_000160,Senegal,India,Palm Oil,Africa-Europe,1365.4,1.54,2099.13,False,None,B,247.29,68.07,62.02,Air,9074.8,1088.98,True,True,TR_00000160,Processing,Wholesale,90 days,2024-02-21,2024-03-17,25
+TRADE_000161,Kenya,Burkina Faso,Groundnut,Intra-Africa,8784.7,1.4,12298.6,False,None,C,986.91,260.74,172.39,River,965.0,115.8,True,False,,Wholesale,Processing,Cash,2024-11-04,2024-11-10,6
+TRADE_000162,Nigeria,Senegal,Palm Oil,Intra-Africa,143279.7,0.9,128951.77,False,None,C,12615.75,3758.69,2218.14,Rail,1551.3,186.16,False,True,TR_00000162,Processing,Retail,Cash,2024-11-27,2024-12-25,28
+TRADE_000163,Senegal,France,Groundnut,Africa-Europe,6997.5,2.65,18537.53,True,Rainforest Alliance,A,2557.02,608.6,423.07,Sea,11675.0,1401.0,True,False,,Production,Retail,60 days,2024-05-29,2024-06-14,16
+TRADE_000164,Senegal,Nigeria,Palm Oil,Intra-Africa,158833.7,0.9,142950.35,False,None,A,19837.75,4685.92,3272.75,Rail,942.7,113.12,False,False,,Processing,Wholesale,30 days,2024-12-23,2025-01-15,23
+TRADE_000165,Burkina Faso,France,Groundnut,Africa-Europe,5942.4,2.92,17325.75,True,Fair Trade,B,1880.08,865.69,373.97,Sea,5295.9,635.51,True,False,,Processing,Processing,Cash,2024-06-11,2024-07-10,29
+TRADE_000166,South Africa,France,Maize,Africa-Europe,3251.1,0.73,2386.43,True,Fair Trade,B,,,37.02,Air,10575.8,1269.1,False,False,,Production,Wholesale,60 days,2024-07-04,2024-07-31,27
+TRADE_000167,Nigeria,France,Palm Oil,Africa-Europe,1000.0,1.94,1940.75,True,Fair Trade,A,236.96,74.33,41.16,Sea,11402.9,1368.34,True,True,TR_00000167,Wholesale,Retail,60 days,2024-12-30,2025-01-21,22
+TRADE_000168,South Africa,Burkina Faso,Maize,Intra-Africa,1000.0,0.52,520.93,True,Rainforest Alliance,C,56.4,23.9,7.1,Rail,1860.6,223.27,False,True,TR_00000168,Production,Wholesale,30 days,2024-04-25,2024-05-12,17
+TRADE_000169,South Africa,Nigeria,Honey,Intra-Africa,3933.4,12.11,47617.52,True,Organic,C,5987.87,2151.41,1375.66,Rail,1182.3,141.88,True,True,TR_00000169,Production,Processing,90 days,2024-01-07,2024-01-19,12
+TRADE_000170,Kenya,Senegal,Maize,Intra-Africa,8072.5,0.4,3229.02,False,None,C,296.67,111.46,77.62,River,1068.0,128.16,False,False,,Processing,Export,90 days,2024-12-27,2025-01-24,28
+TRADE_000171,Nigeria,Ghana,Palm Oil,Intra-Africa,1000.0,1.09,1086.14,True,Fair Trade,A,99.8,25.19,30.56,River,2994.1,359.3,True,True,TR_00000171,Processing,Export,Cash,2024-09-16,2024-10-11,25
+TRADE_000172,Burkina Faso,Ghana,Maize,Africa-Europe,1328.2,0.52,689.83,False,None,C,57.82,20.62,13.27,Air,6433.7,772.05,False,True,TR_00000172,Processing,Retail,Cash,2024-11-12,2024-11-29,17
+TRADE_000173,Nigeria,Senegal,Groundnut,Intra-Africa,1000.0,1.87,1865.19,True,Fair Trade,C,242.25,72.83,33.1,Rail,2772.6,332.71,True,True,TR_00000173,Production,Export,60 days,2024-12-15,2024-12-29,14
+TRADE_000174,Senegal,Netherlands,Maize,Africa-Europe,1000.0,0.71,712.69,False,None,B,65.68,19.02,14.62,Sea,5638.8,676.65,False,True,TR_00000174,Wholesale,Export,60 days,2024-06-07,2024-06-27,20
+TRADE_000175,Burkina Faso,Senegal,Groundnut,Intra-Africa,156858.7,1.4,219602.14,False,None,C,25593.56,6572.09,4578.47,Road,2897.0,347.64,False,True,TR_00000175,Production,Processing,90 days,2024-10-27,2024-11-02,6
+TRADE_000176,Senegal,Burkina Faso,Maize,Intra-Africa,1000.0,0.46,464.72,True,Organic,C,58.48,9.9,5.26,Road,1879.6,225.55,True,False,,Production,Retail,90 days,2024-06-18,2024-06-23,5
+TRADE_000177,Kenya,South Africa,Groundnut,Intra-Africa,4868.7,1.84,8936.04,True,Organic,B,841.54,357.87,121.97,Rail,2033.6,244.04,False,True,TR_00000177,Production,Wholesale,60 days,2024-05-09,2024-05-27,18
+TRADE_000178,Nigeria,Spain,Palm Oil,Africa-Europe,1000.0,1.3,1302.46,False,None,A,163.8,64.93,37.45,Air,5030.0,603.6,True,False,,Wholesale,Processing,60 days,2024-11-06,2024-11-10,4
+TRADE_000179,Ghana,Kenya,Palm Oil,Intra-Africa,1000.0,0.9,900.0,False,None,A,79.07,37.62,26.0,Rail,2026.9,243.22,True,False,,Wholesale,Retail,30 days,2024-03-29,2024-04-07,9
+TRADE_000180,South Africa,UK,Honey,Africa-Europe,1905.8,14.67,27949.95,False,None,B,3726.79,779.37,304.78,Sea,5013.1,601.57,True,True,TR_00000180,Wholesale,Processing,Cash,2024-08-15,2024-08-18,3
+TRADE_000181,South Africa,Nigeria,Maize,Intra-Africa,1000.0,0.45,447.48,True,Organic,A,41.42,10.62,12.66,Rail,850.7,102.08,False,True,TR_00000181,Wholesale,Retail,90 days,2024-08-20,2024-09-13,24
+TRADE_000182,Senegal,Nigeria,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,A,164.69,52.91,29.22,Road,747.6,89.72,True,False,,Processing,Processing,90 days,2024-07-25,2024-07-29,4
+TRADE_000183,Senegal,France,Groundnut,Africa-Europe,1524.9,2.33,3549.25,True,Rainforest Alliance,C,423.48,144.75,73.26,Air,8039.7,964.76,True,False,,Production,Retail,30 days,2024-05-24,2024-06-06,13
+TRADE_000184,Senegal,Kenya,Palm Oil,Intra-Africa,2274.1,1.09,2489.16,True,Fair Trade,B,345.79,66.16,61.44,Road,2393.7,287.24,False,True,TR_00000184,Wholesale,Retail,60 days,2024-10-14,2024-11-01,18
+TRADE_000185,South Africa,Ghana,Honey,Intra-Africa,1000.0,11.17,11170.46,True,Organic,C,966.52,238.8,136.64,Rail,967.9,116.14,False,True,TR_00000185,Production,Processing,60 days,2024-01-25,2024-02-14,20
+TRADE_000186,South Africa,France,Honey,Africa-Europe,1000.0,18.32,18319.56,True,Rainforest Alliance,C,,,533.07,Air,11712.3,1405.48,True,True,TR_00000186,Production,Wholesale,60 days,2024-02-20,2024-03-08,17
+TRADE_000187,Nigeria,Senegal,Fish,Intra-Africa,1282.8,4.49,5756.41,True,Organic,A,689.72,211.61,155.42,Rail,2990.0,358.8,False,True,TR_00000187,Wholesale,Export,30 days,2024-01-03,2024-01-13,10
+TRADE_000188,Nigeria,UK,Palm Oil,Africa-Europe,24103.5,1.63,39291.34,True,Organic,C,3654.61,791.48,792.99,Sea,8888.6,1066.64,False,True,TR_00000188,Wholesale,Export,30 days,2024-08-04,2024-08-28,24
+TRADE_000189,Senegal,Netherlands,Groundnut,Africa-Europe,3093.3,3.16,9763.64,True,Fair Trade,B,,,264.66,Air,9726.0,1167.12,True,False,,Wholesale,Processing,90 days,2024-09-06,2024-09-17,11
+TRADE_000190,Kenya,Tanzania,Maize,Africa-Europe,41166.3,0.6,24806.57,True,Rainforest Alliance,A,3593.36,520.11,477.54,Sea,7194.3,863.32,False,True,TR_00000190,Wholesale,Export,30 days,2024-02-04,2024-02-12,8
+TRADE_000191,South Africa,Kenya,Maize,Intra-Africa,20051.7,0.4,8020.69,False,None,B,843.99,263.14,237.72,River,2459.8,295.17,True,True,TR_00000191,Production,Processing,90 days,2024-07-21,2024-08-19,29
+TRADE_000192,Burkina Faso,Ghana,Maize,Intra-Africa,7528.5,0.55,4123.08,True,Organic,B,456.48,111.42,75.19,Road,2290.2,274.83,True,True,TR_00000192,Production,Wholesale,90 days,2024-12-21,2025-01-18,28
+TRADE_000193,Kenya,Ghana,Maize,Intra-Africa,1577.2,0.45,702.79,True,Organic,B,77.49,31.5,7.37,River,2188.3,262.6,True,True,TR_00000193,Processing,Wholesale,60 days,2024-03-19,2024-04-01,13
+TRADE_000194,Senegal,Nigeria,Maize,Intra-Africa,1009.0,0.4,403.62,False,None,A,58.64,10.94,9.64,River,2937.8,352.53,True,True,TR_00000194,Processing,Retail,Cash,2024-11-17,2024-11-26,9
+TRADE_000195,Ghana,Belgium,Cocoa,Africa-Europe,24582.4,5.78,142093.85,True,Organic,A,13056.21,5317.55,2795.5,Air,10101.8,1212.22,True,True,TR_00000195,Wholesale,Processing,30 days,2024-07-28,2024-08-16,19
+TRADE_000196,South Africa,Ghana,Maize,Intra-Africa,19694.3,0.49,9708.56,True,Organic,A,,,138.15,Rail,1164.4,139.72,False,True,TR_00000196,Production,Processing,Cash,2024-10-17,2024-10-23,6
+TRADE_000197,Kenya,Senegal,Groundnut,Intra-Africa,1744.5,1.4,2442.25,False,None,C,201.63,62.5,60.9,Rail,1313.7,157.64,False,True,TR_00000197,Processing,Retail,90 days,2024-11-09,2024-11-20,11
+TRADE_000198,Nigeria,Kenya,Fish,Intra-Africa,1000.0,5.2,5201.88,True,Organic,C,677.19,194.74,151.76,Rail,553.6,66.43,False,True,TR_00000198,Processing,Processing,90 days,2024-05-11,2024-05-19,8
+TRADE_000199,Nigeria,Senegal,Groundnut,Intra-Africa,2090.8,1.68,3506.77,True,Fair Trade,C,322.87,133.39,85.02,Road,1292.7,155.12,True,False,,Processing,Retail,90 days,2024-07-26,2024-08-11,16
+TRADE_000200,Kenya,South Africa,Groundnut,Intra-Africa,4389.3,1.4,6145.06,False,None,C,723.68,250.27,113.23,Road,2635.0,316.2,True,True,TR_00000200,Production,Wholesale,60 days,2024-04-21,2024-05-16,25
+TRADE_000201,Burkina Faso,South Africa,Groundnut,Intra-Africa,1000.0,1.77,1774.16,True,Fair Trade,B,260.77,82.27,32.1,Road,1228.8,147.45,False,True,TR_00000201,Wholesale,Retail,Cash,2024-06-02,2024-07-01,29
+TRADE_000202,South Africa,France,Honey,Africa-Europe,10141.0,15.2,154142.74,True,Fair Trade,C,13564.16,5622.86,1545.54,Sea,7266.9,872.03,False,True,TR_00000202,Production,Export,30 days,2024-10-17,2024-11-10,24
+TRADE_000203,Burkina Faso,South Africa,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,C,34.6,14.2,5.71,Road,1841.1,220.93,False,True,TR_00000203,Wholesale,Processing,Cash,2024-06-10,2024-07-02,22
+TRADE_000204,Ghana,Nigeria,Cocoa,Intra-Africa,40101.8,3.0,120305.45,False,None,B,16659.34,4628.61,2728.02,Road,1852.6,222.31,True,False,,Processing,Processing,60 days,2024-03-18,2024-03-27,9
+TRADE_000205,South Africa,Nigeria,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,A,44.87,10.24,9.09,Rail,1750.2,210.03,True,True,TR_00000205,Production,Retail,30 days,2024-03-24,2024-04-09,16
+TRADE_000206,Senegal,India,Palm Oil,Africa-Europe,3842.7,1.32,5059.74,True,Organic,B,574.66,235.92,107.91,Sea,9770.7,1172.49,True,True,TR_00000206,Processing,Retail,90 days,2024-03-10,2024-03-25,15
+TRADE_000207,Ghana,Belgium,Palm Oil,Africa-Europe,15630.9,1.32,20657.59,False,None,B,2605.73,444.49,410.38,Sea,7071.9,848.63,False,True,TR_00000207,Processing,Export,Cash,2024-12-09,2024-12-30,21
+TRADE_000208,Ghana,Kenya,Cocoa,Intra-Africa,1000.0,3.0,3000.0,False,None,A,,,40.96,Road,1278.1,153.37,False,True,TR_00000208,Production,Export,90 days,2024-05-29,2024-06-23,25
+TRADE_000209,Burkina Faso,France,Groundnut,Africa-Europe,28596.9,2.03,58051.77,False,None,C,7666.93,2652.46,940.46,Sea,7749.3,929.91,True,False,,Production,Processing,30 days,2024-09-07,2024-09-20,13
+TRADE_000210,South Africa,Netherlands,Maize,Africa-Europe,3170.4,0.76,2420.42,True,Fair Trade,C,201.15,70.8,57.09,Air,8958.1,1074.97,False,True,TR_00000210,Production,Processing,Cash,2024-10-09,2024-10-13,4
+TRADE_000211,Nigeria,Ghana,Fish,Intra-Africa,55533.9,4.0,222135.46,False,None,B,20843.17,7313.03,4450.28,River,2753.0,330.36,False,False,,Processing,Retail,60 days,2024-09-19,2024-10-19,30
+TRADE_000212,South Africa,Burkina Faso,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,A,39.3,18.41,9.15,Rail,550.9,66.1,True,False,,Wholesale,Processing,Cash,2024-12-07,2024-12-20,13
+TRADE_000213,Ghana,Kenya,Cocoa,Intra-Africa,1000.0,3.64,3643.3,True,Organic,A,382.3,113.56,59.62,River,2052.8,246.34,True,True,TR_00000213,Production,Export,Cash,2024-01-05,2024-01-31,26
+TRADE_000214,Senegal,India,Palm Oil,Africa-Europe,1000.0,1.58,1582.18,True,Rainforest Alliance,A,216.55,54.26,42.81,Sea,6730.0,807.6,True,True,TR_00000214,Production,Processing,Cash,2024-02-11,2024-02-19,8
+TRADE_000215,Senegal,Ghana,Maize,Intra-Africa,3213.5,0.4,1285.41,False,None,C,144.04,47.58,35.97,Rail,2924.8,350.98,False,True,TR_00000215,Processing,Wholesale,90 days,2024-04-11,2024-05-06,25
+TRADE_000216,Senegal,France,Groundnut,Africa-Europe,2199.4,2.21,4867.25,False,None,C,649.7,109.58,64.32,Sea,10132.4,1215.89,True,True,TR_00000216,Processing,Wholesale,30 days,2024-03-31,2024-04-09,9
+TRADE_000217,Senegal,South Africa,Maize,Intra-Africa,1000.0,0.48,477.03,True,Organic,C,58.44,12.19,10.75,Rail,934.5,112.14,False,False,,Processing,Wholesale,90 days,2024-09-16,2024-10-09,23
+TRADE_000218,South Africa,Kenya,Honey,Intra-Africa,1000.0,9.0,9000.0,False,None,A,,,131.61,Road,2722.5,326.7,True,True,TR_00000218,Wholesale,Processing,90 days,2024-09-09,2024-09-23,14
+TRADE_000219,Senegal,Ghana,Palm Oil,Intra-Africa,1000.0,0.9,900.0,False,None,B,74.89,18.2,26.79,River,2147.1,257.65,False,True,TR_00000219,Processing,Retail,60 days,2024-06-12,2024-06-29,17
+TRADE_000220,Kenya,Nigeria,Groundnut,Intra-Africa,808346.4,1.69,1368910.87,True,Rainforest Alliance,A,154591.46,38324.72,23131.14,Road,2122.6,254.71,False,False,,Processing,Retail,90 days,2024-08-26,2024-09-12,17
+TRADE_000221,Kenya,Burkina Faso,Groundnut,Intra-Africa,2394.1,1.4,3351.69,False,None,A,465.3,79.26,47.93,Road,592.9,71.15,False,False,,Processing,Export,Cash,2024-11-19,2024-11-26,7
+TRADE_000222,Senegal,Nigeria,Maize,Intra-Africa,3888.3,0.46,1776.54,True,Organic,B,256.2,60.02,20.52,Road,2899.3,347.92,True,False,,Production,Processing,90 days,2024-05-18,2024-05-31,13
+TRADE_000223,South Africa,Burkina Faso,Maize,Intra-Africa,5838.0,0.4,2335.22,False,None,B,339.41,62.13,62.41,Rail,2225.0,267.0,False,True,TR_00000223,Processing,Processing,Cash,2024-12-06,2024-12-10,4
+TRADE_000224,Senegal,Mali,Palm Oil,Africa-Europe,8104.9,2.08,16818.68,True,Rainforest Alliance,A,1753.43,727.1,256.47,Air,7300.1,876.02,False,False,,Wholesale,Wholesale,60 days,2024-01-07,2024-01-19,12
+TRADE_000225,Senegal,Ghana,Groundnut,Intra-Africa,4297.7,1.7,7324.78,True,Rainforest Alliance,B,1078.17,220.12,187.3,Rail,2638.5,316.62,True,False,,Processing,Processing,Cash,2024-07-08,2024-07-29,21
+TRADE_000226,Kenya,South Africa,Maize,Intra-Africa,1000.0,0.49,492.27,True,Fair Trade,B,52.41,20.89,13.91,River,2387.3,286.48,False,False,,Processing,Wholesale,30 days,2024-10-22,2024-11-19,28
+TRADE_000227,Senegal,Mali,Groundnut,Africa-Europe,6293.7,2.55,16066.76,True,Organic,C,2220.43,412.14,412.76,Air,9173.1,1100.78,True,False,,Production,Retail,30 days,2024-06-09,2024-06-28,19
+TRADE_000228,Ghana,Senegal,Palm Oil,Intra-Africa,1763.1,0.9,1586.82,False,None,B,226.18,39.92,29.22,Road,2582.1,309.85,True,False,,Production,Export,Cash,2024-05-21,2024-06-15,25
+TRADE_000229,Nigeria,Senegal,Groundnut,Intra-Africa,40124.5,1.4,56174.3,False,None,A,7080.46,2102.81,1157.08,River,2608.6,313.03,False,False,,Wholesale,Wholesale,30 days,2024-09-05,2024-09-18,13
+TRADE_000230,Burkina Faso,Ghana,Maize,Intra-Africa,1000.0,0.47,468.19,True,Rainforest Alliance,B,51.96,11.55,10.26,River,1126.4,135.16,False,True,TR_00000230,Production,Export,60 days,2024-08-04,2024-08-29,25
+TRADE_000231,South Africa,Burkina Faso,Honey,Intra-Africa,1464.1,9.97,14600.72,True,Fair Trade,A,1262.02,592.47,271.27,Rail,2662.0,319.44,False,False,,Wholesale,Retail,60 days,2024-10-11,2024-10-19,8
+TRADE_000232,South Africa,Senegal,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,A,51.45,8.1,8.93,Rail,734.3,88.12,False,True,TR_00000232,Production,Export,90 days,2024-01-09,2024-01-15,6
+TRADE_000233,South Africa,Burkina Faso,Maize,Intra-Africa,151313.0,0.4,60525.19,False,None,A,5847.46,2005.07,1641.56,Rail,918.6,110.23,True,False,,Processing,Processing,Cash,2024-11-25,2024-12-07,12
+TRADE_000234,Senegal,Ghana,Maize,Intra-Africa,5827.4,0.47,2749.73,True,Organic,C,305.72,113.75,48.17,Road,2819.3,338.32,True,True,TR_00000234,Processing,Export,60 days,2024-02-17,2024-03-15,27
+TRADE_000235,South Africa,Senegal,Honey,Intra-Africa,1831.2,11.81,21634.4,True,Rainforest Alliance,C,2072.99,858.72,287.4,Rail,640.0,76.79,True,False,,Production,Wholesale,90 days,2024-10-07,2024-11-05,29
+TRADE_000236,South Africa,Senegal,Honey,Intra-Africa,1000.0,10.23,10226.74,True,Organic,C,1483.89,373.81,265.15,River,1331.6,159.8,False,True,TR_00000236,Production,Wholesale,30 days,2024-01-22,2024-01-26,4
+TRADE_000237,Nigeria,Burkina Faso,Palm Oil,Intra-Africa,2247.6,1.25,2799.05,True,Rainforest Alliance,B,370.4,117.33,30.59,Rail,1874.2,224.9,False,True,TR_00000237,Production,Wholesale,Cash,2024-10-08,2024-10-13,5
+TRADE_000238,Burkina Faso,Ghana,Groundnut,Intra-Africa,531463.3,1.4,744048.63,False,None,A,83846.4,35591.77,11269.99,River,1174.6,140.95,True,False,,Production,Export,60 days,2024-03-18,2024-04-07,20
+TRADE_000239,Burkina Faso,Nigeria,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,A,,,29.63,Rail,2653.4,318.41,False,False,,Wholesale,Export,90 days,2024-07-20,2024-07-26,6
+TRADE_000240,Burkina Faso,Ghana,Groundnut,Intra-Africa,1074.3,1.89,2029.42,True,Fair Trade,C,202.42,73.94,23.67,Road,2788.1,334.58,True,True,TR_00000240,Wholesale,Export,30 days,2024-10-18,2024-11-13,26
+TRADE_000241,South Africa,Nigeria,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,C,40.48,13.53,6.01,Road,1437.1,172.46,False,True,TR_00000241,Production,Export,30 days,2024-01-07,2024-01-16,9
+TRADE_000242,Senegal,Netherlands,Palm Oil,Africa-Europe,1000.0,1.51,1511.97,False,None,B,209.25,44.04,29.3,Sea,11116.7,1334.01,False,False,,Production,Processing,Cash,2024-12-07,2025-01-06,30
+TRADE_000243,Ghana,Nigeria,Palm Oil,Intra-Africa,11724.4,0.9,10551.98,False,None,B,1274.45,386.08,286.88,Road,753.9,90.47,False,False,,Production,Processing,60 days,2024-10-17,2024-10-25,8
+TRADE_000244,Nigeria,France,Fish,Africa-Europe,1000.0,7.11,7105.73,True,Fair Trade,C,971.99,188.25,185.17,Air,7797.5,935.7,False,True,TR_00000244,Processing,Wholesale,60 days,2024-01-18,2024-01-24,6
+TRADE_000245,Nigeria,Spain,Groundnut,Africa-Europe,9665.5,1.76,16975.99,False,None,A,,,290.77,Sea,9207.5,1104.9,True,True,TR_00000245,Wholesale,Export,60 days,2024-04-30,2024-05-17,17
+TRADE_000246,Burkina Faso,Nigeria,Groundnut,Intra-Africa,1000.0,1.77,1773.57,True,Organic,C,192.12,58.3,25.78,Rail,1639.7,196.76,True,False,,Processing,Retail,90 days,2024-01-20,2024-02-07,18
+TRADE_000247,Ghana,Netherlands,Palm Oil,Africa-Europe,3269.6,1.37,4480.77,False,None,C,603.34,131.92,87.99,Air,11780.6,1413.68,True,False,,Wholesale,Export,30 days,2024-05-16,2024-05-19,3
+TRADE_000248,Kenya,Uganda,Maize,Africa-Europe,13331.3,0.64,8549.59,False,None,A,775.98,205.16,120.42,Air,10367.0,1244.04,False,True,TR_00000248,Wholesale,Export,90 days,2024-07-05,2024-07-10,5
+TRADE_000249,Burkina Faso,South Africa,Maize,Intra-Africa,1248.7,0.55,687.37,True,Fair Trade,C,97.29,23.17,12.52,River,1887.5,226.5,False,False,,Processing,Export,90 days,2024-03-30,2024-04-20,21
+TRADE_000250,South Africa,France,Honey,Africa-Europe,1000.0,12.11,12114.65,False,None,B,1013.43,583.64,166.38,Air,6388.8,766.66,False,True,TR_00000250,Processing,Retail,90 days,2024-03-11,2024-03-24,13
+TRADE_000251,Senegal,India,Maize,Africa-Europe,1000.0,0.55,554.37,True,Rainforest Alliance,C,59.02,22.46,8.08,Air,7961.1,955.33,True,True,TR_00000251,Wholesale,Retail,Cash,2024-04-15,2024-05-14,29
+TRADE_000252,Ghana,Senegal,Palm Oil,Intra-Africa,1000.0,1.14,1140.48,True,Rainforest Alliance,B,162.18,33.97,14.45,Road,1723.2,206.78,True,True,TR_00000252,Processing,Retail,Cash,2024-12-16,2025-01-10,25
+TRADE_000253,South Africa,Burkina Faso,Maize,Intra-Africa,1146.4,0.49,562.86,True,Rainforest Alliance,C,45.73,11.82,11.07,Rail,1245.5,149.46,True,False,,Wholesale,Retail,30 days,2024-04-25,2024-05-18,23
+TRADE_000254,Nigeria,Spain,Groundnut,Africa-Europe,5455.1,2.39,13037.01,False,None,A,,,236.74,Sea,8480.7,1017.69,True,False,,Production,Processing,30 days,2024-07-26,2024-08-07,12
+TRADE_000255,Ghana,South Africa,Maize,Intra-Africa,36661.8,0.54,19861.54,True,Organic,B,2634.19,665.18,442.06,Rail,2220.7,266.49,False,True,TR_00000255,Processing,Processing,60 days,2024-07-02,2024-07-26,24
+TRADE_000256,South Africa,Senegal,Honey,Intra-Africa,36426.7,9.0,327840.44,False,None,C,37993.94,11234.94,7508.19,River,1893.7,227.24,False,True,TR_00000256,Processing,Export,Cash,2024-01-17,2024-02-04,18
+TRADE_000257,Kenya,Uganda,Groundnut,Africa-Europe,35416.4,2.28,80895.4,False,None,C,10111.62,2879.25,1912.04,Air,8146.4,977.56,True,False,,Processing,Processing,90 days,2024-07-13,2024-07-17,4
+TRADE_000258,Ghana,Nigeria,Cocoa,Intra-Africa,70030.4,3.0,210091.33,False,None,C,20361.42,4210.77,4453.79,Rail,1976.6,237.2,True,False,,Production,Export,60 days,2024-11-05,2024-11-23,18
+TRADE_000259,Senegal,Kenya,Palm Oil,Intra-Africa,2582.6,1.1,2831.58,True,Organic,A,266.52,62.62,72.08,River,1124.2,134.9,False,True,TR_00000259,Production,Retail,60 days,2024-02-05,2024-02-24,19
+TRADE_000260,Kenya,Ghana,Maize,Intra-Africa,4860.4,0.4,1944.15,False,None,B,238.4,79.0,37.76,Road,2690.9,322.91,True,False,,Wholesale,Export,90 days,2024-01-21,2024-02-02,12
+TRADE_000261,Nigeria,Burkina Faso,Groundnut,Intra-Africa,1000.0,1.92,1916.33,True,Organic,C,268.88,47.76,20.16,Rail,725.0,87.0,False,True,TR_00000261,Production,Wholesale,60 days,2024-01-23,2024-02-04,12
+TRADE_000262,Burkina Faso,Kenya,Groundnut,Intra-Africa,1199.4,1.66,1991.39,True,Organic,A,294.84,73.19,34.78,Road,2721.8,326.61,True,True,TR_00000262,Processing,Retail,Cash,2024-08-12,2024-08-30,18
+TRADE_000263,Senegal,France,Palm Oil,Africa-Europe,1000.0,1.59,1588.26,False,None,A,221.51,71.96,32.16,Air,10526.1,1263.13,False,False,,Processing,Processing,Cash,2024-10-12,2024-11-06,25
+TRADE_000264,Senegal,Burkina Faso,Palm Oil,Intra-Africa,1134.8,1.04,1178.44,True,Organic,A,141.56,58.35,18.64,Road,2485.9,298.31,True,True,TR_00000264,Wholesale,Wholesale,90 days,2024-10-19,2024-10-27,8
+TRADE_000265,Burkina Faso,Kenya,Groundnut,Intra-Africa,1000.0,1.86,1860.47,True,Rainforest Alliance,C,170.79,72.45,21.79,Road,2867.2,344.06,True,False,,Production,Wholesale,30 days,2024-10-13,2024-10-17,4
+TRADE_000266,Senegal,South Africa,Groundnut,Intra-Africa,2910.8,1.66,4839.35,True,Rainforest Alliance,A,463.86,115.54,139.95,Road,2279.8,273.57,True,False,,Production,Export,30 days,2024-06-04,2024-07-02,28
+TRADE_000267,Nigeria,UK,Maize,Africa-Europe,2956.0,0.59,1755.68,False,None,A,153.98,64.6,26.23,Sea,11840.0,1420.8,False,True,TR_00000267,Wholesale,Processing,30 days,2024-10-10,2024-11-02,23
+TRADE_000268,Burkina Faso,Côte d'Ivoire,Maize,Africa-Europe,90284.8,0.67,60597.32,False,None,C,6599.62,1487.07,1557.75,Sea,5854.4,702.53,True,True,TR_00000268,Processing,Export,30 days,2024-11-16,2024-12-13,27
+TRADE_000269,Kenya,Uganda,Maize,Africa-Europe,1000.0,0.61,613.65,False,None,A,82.9,18.06,7.18,Air,8251.8,990.21,False,True,TR_00000269,Wholesale,Wholesale,30 days,2024-07-19,2024-08-05,17
+TRADE_000270,Burkina Faso,Ghana,Groundnut,Africa-Europe,1000.0,2.69,2692.76,True,Rainforest Alliance,B,256.88,130.37,78.31,Air,11933.3,1431.99,False,True,TR_00000270,Processing,Processing,Cash,2024-11-03,2024-11-06,3
+TRADE_000271,Nigeria,Burkina Faso,Groundnut,Intra-Africa,1058.3,1.4,1481.58,False,None,C,140.51,44.75,24.24,Rail,2891.3,346.96,False,False,,Processing,Export,90 days,2024-10-01,2024-10-23,22
+TRADE_000272,Kenya,Ghana,Maize,Intra-Africa,8281.7,0.4,3312.69,False,None,C,447.99,138.21,45.45,Rail,2773.8,332.86,False,True,TR_00000272,Processing,Export,30 days,2024-11-18,2024-11-29,11
+TRADE_000273,South Africa,Kenya,Honey,Intra-Africa,1456.9,9.0,13112.1,False,None,B,1848.57,369.33,152.33,Road,2142.1,257.05,False,False,,Processing,Wholesale,30 days,2024-05-15,2024-06-06,22
+TRADE_000274,Senegal,South Africa,Palm Oil,Intra-Africa,5990.1,0.9,5391.11,False,None,B,678.02,123.18,88.29,Road,2982.0,357.84,True,True,TR_00000274,Production,Wholesale,60 days,2024-05-29,2024-06-21,23
+TRADE_000275,Senegal,Kenya,Palm Oil,Intra-Africa,30466.5,0.9,27419.83,False,None,B,2602.26,613.2,426.05,River,1122.2,134.67,False,False,,Wholesale,Processing,60 days,2024-03-15,2024-03-26,11
+TRADE_000276,Kenya,Nigeria,Groundnut,Intra-Africa,18080.6,1.4,25312.78,False,None,B,2440.61,652.63,544.1,Rail,1320.3,158.43,False,False,,Production,Retail,90 days,2024-04-11,2024-04-22,11
+TRADE_000277,Kenya,Ghana,Groundnut,Intra-Africa,1197.8,1.74,2078.34,True,Organic,B,168.25,71.6,23.1,Road,2944.3,353.32,True,True,TR_00000277,Production,Export,30 days,2024-02-05,2024-02-16,11
+TRADE_000278,Senegal,Ghana,Groundnut,Intra-Africa,7511.2,1.87,14061.3,True,Organic,B,1607.32,317.75,307.22,Road,2396.9,287.63,False,False,,Production,Wholesale,60 days,2024-08-08,2024-08-18,10
+TRADE_000279,South Africa,Senegal,Honey,Intra-Africa,5335.3,9.0,48017.86,False,None,A,6578.2,2067.05,1251.34,Road,2698.3,323.8,True,False,,Production,Wholesale,Cash,2024-10-04,2024-10-26,22
+TRADE_000280,Burkina Faso,Côte d'Ivoire,Groundnut,Africa-Europe,1000.0,3.01,3014.62,True,Organic,A,361.19,131.8,72.18,Air,11968.6,1436.24,False,True,TR_00000280,Production,Wholesale,60 days,2024-11-08,2024-11-16,8
+TRADE_000281,Nigeria,Senegal,Palm Oil,Intra-Africa,1000.0,0.9,900.0,False,None,A,86.02,37.15,10.53,Rail,2354.0,282.48,True,True,TR_00000281,Wholesale,Retail,90 days,2024-02-11,2024-02-27,16
+TRADE_000282,Kenya,South Africa,Groundnut,Intra-Africa,1000.0,1.83,1831.24,True,Rainforest Alliance,B,178.65,50.51,41.34,Rail,2405.4,288.65,False,False,,Wholesale,Retail,90 days,2024-01-11,2024-01-29,18
+TRADE_000283,South Africa,France,Honey,Africa-Europe,3518.3,21.09,74190.65,True,Fair Trade,A,10581.57,1509.69,2175.13,Sea,8314.7,997.77,False,False,,Production,Export,30 days,2024-07-26,2024-08-06,11
+TRADE_000284,Kenya,Tanzania,Maize,Africa-Europe,7682.3,0.76,5871.95,True,Fair Trade,B,632.5,165.26,92.97,Sea,5862.8,703.53,False,False,,Processing,Retail,90 days,2024-07-14,2024-07-17,3
+TRADE_000285,Ghana,South Africa,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,B,48.49,11.05,6.07,Rail,1720.8,206.5,True,False,,Wholesale,Wholesale,Cash,2024-03-27,2024-04-06,10
+TRADE_000286,South Africa,Germany,Honey,Africa-Europe,1025.5,16.28,16692.98,True,Organic,B,1540.52,457.64,492.02,Sea,7780.1,933.61,False,True,TR_00000286,Processing,Wholesale,90 days,2024-08-19,2024-08-26,7
+TRADE_000287,Nigeria,South Africa,Maize,Intra-Africa,1000.0,0.5,498.86,True,Organic,C,42.5,10.5,9.67,Road,1496.6,179.6,True,True,TR_00000287,Processing,Retail,30 days,2024-05-27,2024-06-16,20
+TRADE_000288,Nigeria,Ghana,Groundnut,Intra-Africa,8957.6,1.4,12540.63,False,None,C,1123.41,509.5,374.44,Road,1489.1,178.69,False,True,TR_00000288,Processing,Wholesale,30 days,2024-10-10,2024-11-06,27
+TRADE_000289,Nigeria,France,Maize,Africa-Europe,6578.3,0.84,5539.12,True,Fair Trade,C,729.08,132.08,112.12,Sea,6953.4,834.41,False,True,TR_00000289,Production,Retail,30 days,2024-03-10,2024-03-18,8
+TRADE_000290,Nigeria,Kenya,Palm Oil,Intra-Africa,3688.4,0.9,3319.58,False,None,B,303.02,108.84,41.89,Road,2247.5,269.7,True,True,TR_00000290,Production,Processing,Cash,2024-12-31,2025-01-10,10
+TRADE_000291,Nigeria,Senegal,Groundnut,Intra-Africa,95260.4,1.4,133364.52,False,None,B,12035.66,3226.51,2889.78,River,2962.5,355.5,False,False,,Processing,Retail,60 days,2024-11-27,2024-12-16,19
+TRADE_000292,Kenya,Burkina Faso,Maize,Intra-Africa,1000.0,0.45,451.55,True,Organic,A,45.16,20.81,5.17,Road,2689.7,322.77,False,False,,Processing,Retail,90 days,2024-02-29,2024-03-22,22
+TRADE_000293,Ghana,Nigeria,Maize,Intra-Africa,1000.0,0.48,477.16,True,Fair Trade,A,48.1,13.92,13.22,River,2309.5,277.14,True,False,,Processing,Retail,30 days,2024-11-28,2024-12-26,28
+TRADE_000294,Nigeria,Burkina Faso,Fish,Intra-Africa,11155.6,4.0,44622.5,False,None,B,5661.73,1961.72,675.69,River,2045.1,245.41,True,False,,Processing,Processing,30 days,2024-08-25,2024-09-01,7
+TRADE_000295,Senegal,Ghana,Maize,Intra-Africa,57937.9,0.4,23175.15,False,None,B,2355.71,910.68,640.66,Rail,1505.4,180.65,True,False,,Processing,Retail,Cash,2024-11-02,2024-11-14,12
+TRADE_000296,Kenya,Nigeria,Maize,Intra-Africa,1959.6,0.4,783.83,False,None,A,,,13.26,River,2180.6,261.67,True,True,TR_00000296,Wholesale,Export,Cash,2024-03-15,2024-04-10,26
+TRADE_000297,Nigeria,Burkina Faso,Palm Oil,Intra-Africa,2861.6,0.9,2575.47,False,None,B,290.08,102.09,31.09,River,1133.8,136.05,False,False,,Production,Processing,90 days,2024-05-25,2024-06-08,14
+TRADE_000298,Kenya,Uganda,Maize,Africa-Europe,10725.1,0.91,9774.96,True,Fair Trade,C,791.2,255.51,231.24,Air,10350.8,1242.1,False,False,,Production,Processing,90 days,2024-03-14,2024-03-21,7
+TRADE_000299,Nigeria,Ghana,Groundnut,Intra-Africa,1102.4,1.93,2128.78,True,Organic,C,,,46.69,Rail,806.9,96.82,False,True,TR_00000299,Wholesale,Export,30 days,2024-03-18,2024-04-03,16
+TRADE_000300,Ghana,Belgium,Cocoa,Africa-Europe,15164.9,5.33,80883.87,False,None,A,7166.42,2236.15,2125.03,Sea,9330.2,1119.62,True,False,,Production,Processing,90 days,2024-12-10,2024-12-28,18
+TRADE_000301,South Africa,Netherlands,Maize,Africa-Europe,3348.0,0.57,1909.98,False,None,C,276.05,40.28,51.8,Air,6615.7,793.89,False,True,TR_00000301,Production,Wholesale,Cash,2024-10-31,2024-11-27,27
+TRADE_000302,South Africa,Netherlands,Maize,Africa-Europe,36149.7,0.68,24715.45,False,None,A,2218.06,924.52,686.15,Air,8314.8,997.77,False,False,,Production,Wholesale,30 days,2024-02-24,2024-03-24,29
+TRADE_000303,Nigeria,Spain,Fish,Africa-Europe,13825.8,6.57,90802.32,False,None,C,13145.73,3033.25,1222.43,Air,5334.7,640.16,False,False,,Processing,Processing,30 days,2024-10-17,2024-10-30,13
+TRADE_000304,Kenya,Uganda,Maize,Africa-Europe,10318.4,0.54,5563.17,False,None,B,500.82,204.38,76.21,Air,5272.5,632.7,False,True,TR_00000304,Processing,Export,Cash,2024-08-30,2024-09-02,3
+TRADE_000305,Kenya,Germany,Groundnut,Africa-Europe,1000.0,2.73,2725.46,True,Fair Trade,A,405.07,104.9,37.26,Air,9753.5,1170.42,True,False,,Production,Export,30 days,2024-11-08,2024-12-06,28
+TRADE_000306,Burkina Faso,Côte d'Ivoire,Groundnut,Africa-Europe,28500.2,2.85,81292.38,True,Organic,A,,,1266.27,Sea,5654.4,678.53,False,False,,Wholesale,Wholesale,Cash,2024-02-17,2024-03-16,28
+TRADE_000307,Nigeria,Kenya,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,C,201.93,31.28,25.97,River,1831.0,219.72,True,True,TR_00000307,Processing,Processing,Cash,2024-03-25,2024-04-06,12
+TRADE_000308,Ghana,Germany,Cocoa,Africa-Europe,1000.0,7.3,7301.1,True,Fair Trade,A,969.13,358.66,187.95,Air,11742.4,1409.09,False,False,,Wholesale,Processing,60 days,2024-11-11,2024-12-10,29
+TRADE_000309,Kenya,Senegal,Groundnut,Intra-Africa,1195.1,1.71,2042.17,True,Fair Trade,A,255.81,62.33,31.59,River,1943.5,233.22,True,False,,Processing,Wholesale,90 days,2024-07-20,2024-08-19,30
+TRADE_000310,South Africa,Burkina Faso,Maize,Intra-Africa,4678.9,0.4,1871.56,False,None,B,,,47.51,Road,2306.8,276.82,True,False,,Production,Wholesale,Cash,2024-05-03,2024-05-20,17
+TRADE_000311,Burkina Faso,Kenya,Maize,Intra-Africa,3822.9,0.46,1775.76,True,Organic,A,209.84,76.29,49.57,River,2474.3,296.91,False,False,,Wholesale,Wholesale,90 days,2024-12-18,2024-12-31,13
+TRADE_000312,Ghana,Belgium,Palm Oil,Africa-Europe,72854.7,1.52,110539.24,True,Fair Trade,B,11413.41,2241.31,1548.04,Sea,5792.5,695.11,False,True,TR_00000312,Production,Processing,Cash,2024-04-08,2024-04-22,14
+TRADE_000313,South Africa,Burkina Faso,Maize,Intra-Africa,1133.5,0.4,453.4,False,None,B,45.31,22.12,7.97,River,524.0,62.88,False,False,,Processing,Retail,60 days,2024-03-09,2024-04-07,29
+TRADE_000314,Burkina Faso,Nigeria,Maize,Intra-Africa,11757.5,0.4,4702.98,False,None,A,469.68,110.89,56.7,Rail,693.7,83.25,False,False,,Production,Wholesale,90 days,2024-03-16,2024-03-20,4
+TRADE_000315,Nigeria,Ghana,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,B,42.11,18.34,7.39,River,2789.2,334.71,False,False,,Processing,Wholesale,30 days,2024-01-02,2024-01-08,6
+TRADE_000316,Senegal,India,Groundnut,Africa-Europe,6352.6,2.1,13329.48,False,None,B,1438.5,566.66,152.8,Sea,5626.3,675.16,False,True,TR_00000316,Processing,Retail,Cash,2024-10-29,2024-11-18,20
+TRADE_000317,Ghana,Nigeria,Maize,Intra-Africa,2052.6,0.4,821.03,False,None,B,111.11,38.99,14.59,Rail,1991.0,238.92,False,True,TR_00000317,Processing,Export,60 days,2024-10-29,2024-11-08,10
+TRADE_000318,Ghana,Belgium,Cocoa,Africa-Europe,229208.1,4.5,1031723.98,False,None,A,,,29130.47,Air,6780.4,813.65,True,True,TR_00000318,Processing,Wholesale,90 days,2024-04-23,2024-05-22,29
+TRADE_000319,Ghana,Belgium,Cocoa,Africa-Europe,1000.0,3.98,3975.74,False,None,C,580.85,81.82,116.52,Sea,6044.8,725.38,True,False,,Production,Export,Cash,2024-09-11,2024-10-02,21
+TRADE_000320,Kenya,Nigeria,Groundnut,Intra-Africa,17001.7,1.88,32034.07,True,Rainforest Alliance,A,3181.45,977.71,459.21,Rail,1963.8,235.65,True,False,,Production,Wholesale,60 days,2024-09-02,2024-09-05,3
+TRADE_000321,South Africa,Burkina Faso,Maize,Intra-Africa,40820.9,0.44,18037.82,True,Rainforest Alliance,B,1524.31,414.69,331.53,Road,2537.0,304.44,False,True,TR_00000321,Wholesale,Processing,Cash,2024-06-07,2024-06-27,20
+TRADE_000322,Ghana,Netherlands,Cocoa,Africa-Europe,1000.0,5.2,5198.72,False,None,A,504.99,193.55,131.88,Sea,7021.8,842.62,False,False,,Wholesale,Retail,Cash,2024-03-03,2024-03-22,19
+TRADE_000323,Burkina Faso,France,Groundnut,Africa-Europe,11126.7,1.99,22104.34,True,Fair Trade,B,2004.78,857.77,253.59,Sea,6327.9,759.34,False,True,TR_00000323,Production,Processing,30 days,2024-01-10,2024-02-01,22
+TRADE_000324,Nigeria,Kenya,Maize,Intra-Africa,1000.0,0.48,480.54,True,Fair Trade,B,41.06,12.37,13.56,Rail,548.2,65.79,False,True,TR_00000324,Production,Retail,Cash,2024-04-18,2024-04-26,8
+TRADE_000325,Senegal,Netherlands,Maize,Africa-Europe,1000.0,0.64,641.44,False,None,B,77.75,17.13,17.28,Air,8443.6,1013.23,True,False,,Processing,Wholesale,Cash,2024-01-22,2024-01-26,4
+TRADE_000326,Ghana,Belgium,Palm Oil,Africa-Europe,67826.6,1.52,103379.16,False,None,B,11208.46,5121.46,2626.84,Sea,11761.7,1411.4,True,False,,Production,Processing,30 days,2024-03-09,2024-04-07,29
+TRADE_000327,Burkina Faso,Ghana,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,B,186.03,64.97,41.0,Road,1311.4,157.37,False,False,,Production,Processing,60 days,2024-01-20,2024-02-19,30
+TRADE_000328,Nigeria,Netherlands,Palm Oil,Africa-Europe,73826.3,1.51,111573.69,False,None,B,,,1517.06,Air,7431.8,891.81,False,True,TR_00000328,Processing,Export,90 days,2024-02-08,2024-02-26,18
+TRADE_000329,South Africa,Ghana,Maize,Intra-Africa,34252.2,0.45,15567.22,True,Rainforest Alliance,C,1600.6,574.27,213.95,River,2501.6,300.19,False,True,TR_00000329,Processing,Export,60 days,2024-02-28,2024-03-05,6
+TRADE_000330,Nigeria,Ghana,Maize,Intra-Africa,96528.8,0.56,53733.61,True,Organic,B,5106.47,1375.98,1026.24,Rail,2369.4,284.33,False,True,TR_00000330,Processing,Processing,90 days,2024-10-09,2024-11-02,24
+TRADE_000331,Ghana,USA,Maize,Africa-Europe,9636.4,0.7,6780.46,True,Rainforest Alliance,B,1002.31,276.9,165.33,Air,8938.9,1072.67,True,True,TR_00000331,Wholesale,Processing,Cash,2024-02-05,2024-02-11,6
+TRADE_000332,Ghana,USA,Maize,Africa-Europe,3314.0,0.93,3091.44,True,Fair Trade,C,441.0,126.69,76.37,Sea,7032.9,843.95,True,True,TR_00000332,Production,Processing,Cash,2024-06-20,2024-06-28,8
+TRADE_000333,Senegal,Burkina Faso,Groundnut,Intra-Africa,22137.1,1.66,36849.74,True,Fair Trade,C,4399.63,1012.65,970.61,Road,776.3,93.15,True,False,,Production,Processing,90 days,2024-09-09,2024-09-29,20
+TRADE_000334,Senegal,Burkina Faso,Palm Oil,Intra-Africa,1000.0,0.9,900.0,False,None,A,124.26,34.27,12.36,Rail,1855.1,222.61,False,False,,Processing,Wholesale,Cash,2024-10-23,2024-11-04,12
+TRADE_000335,South Africa,Ghana,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,A,41.84,8.76,11.89,River,578.8,69.46,True,False,,Wholesale,Processing,30 days,2024-10-22,2024-10-30,8
+TRADE_000336,Ghana,Netherlands,Cocoa,Africa-Europe,1000.0,5.81,5805.48,True,Rainforest Alliance,A,726.97,178.16,136.28,Air,10104.6,1212.56,False,True,TR_00000336,Production,Wholesale,Cash,2024-02-27,2024-03-19,21
+TRADE_000337,Ghana,South Africa,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,A,50.39,11.36,4.23,Road,1537.1,184.45,False,True,TR_00000337,Processing,Export,90 days,2024-06-15,2024-07-01,16
+TRADE_000338,Senegal,South Africa,Maize,Intra-Africa,5913.0,0.49,2909.32,True,Rainforest Alliance,A,327.89,119.7,47.06,River,1288.2,154.58,False,False,,Production,Export,Cash,2024-05-20,2024-06-05,16
+TRADE_000339,Nigeria,Spain,Groundnut,Africa-Europe,4170.2,2.16,8995.06,False,None,A,939.62,370.2,186.62,Air,8284.7,994.17,True,False,,Processing,Export,30 days,2024-05-27,2024-06-03,7
+TRADE_000340,Ghana,Netherlands,Maize,Africa-Europe,1353.3,0.6,815.65,False,None,B,101.59,32.46,12.87,Air,5985.2,718.22,False,True,TR_00000340,Processing,Retail,90 days,2024-04-12,2024-05-07,25
+TRADE_000341,Kenya,Nigeria,Maize,Intra-Africa,6791.7,0.54,3699.72,True,Organic,B,402.03,92.81,92.98,River,2581.2,309.75,True,False,,Wholesale,Wholesale,Cash,2024-10-09,2024-10-28,19
+TRADE_000342,South Africa,Netherlands,Maize,Africa-Europe,1000.0,0.69,691.34,False,None,A,84.67,31.68,7.13,Air,5750.7,690.08,True,True,TR_00000342,Processing,Wholesale,30 days,2024-05-03,2024-05-15,12
+TRADE_000343,Burkina Faso,Ghana,Maize,Intra-Africa,5102.1,0.4,2040.85,False,None,C,173.21,71.21,39.7,River,1276.8,153.21,False,False,,Production,Wholesale,Cash,2024-01-01,2024-01-19,18
+TRADE_000344,Senegal,South Africa,Palm Oil,Intra-Africa,1064.4,1.23,1303.86,True,Rainforest Alliance,C,119.86,39.86,33.23,Rail,576.1,69.13,True,False,,Wholesale,Wholesale,30 days,2024-07-13,2024-07-31,18
+TRADE_000345,South Africa,Nigeria,Maize,Intra-Africa,22175.2,0.4,8870.1,False,None,A,1288.46,410.59,145.36,Rail,1965.9,235.91,True,False,,Production,Wholesale,30 days,2024-12-19,2024-12-24,5
+TRADE_000346,Ghana,Senegal,Cocoa,Intra-Africa,8927.8,3.37,30082.83,True,Organic,C,2949.65,686.69,490.46,River,2688.0,322.56,True,False,,Production,Wholesale,60 days,2024-04-23,2024-05-19,26
+TRADE_000347,South Africa,France,Honey,Africa-Europe,14494.0,16.26,235720.75,True,Fair Trade,A,34856.04,-27977.739896155563,5314.68,Air,7940.4,952.85,False,True,TR_00000347,Production,Processing,60 days,2024-05-01,2024-05-23,22
+TRADE_000348,Burkina Faso,South Africa,Maize,Intra-Africa,1000.0,0.45,447.34,True,Rainforest Alliance,C,51.11,19.86,5.36,River,674.0,80.88,False,True,TR_00000348,Processing,Export,Cash,2024-04-20,2024-05-18,28
+TRADE_000349,Burkina Faso,France,Maize,Africa-Europe,7332.8,0.83,6085.84,True,Fair Trade,B,686.34,283.9,154.18,Air,10683.6,1282.03,True,False,,Production,Processing,60 days,2024-01-14,2024-02-09,26
+TRADE_000350,Nigeria,Netherlands,Maize,Africa-Europe,1000.0,0.87,872.89,True,Organic,A,,,24.89,Sea,5166.6,620.0,False,False,,Processing,Wholesale,30 days,2024-02-01,2024-02-25,24
+TRADE_000351,Senegal,South Africa,Groundnut,Intra-Africa,10761.8,1.4,15066.52,False,None,C,,,174.91,Road,891.3,106.95,True,True,TR_00000351,Production,Wholesale,60 days,2024-08-30,2024-09-14,15
+TRADE_000352,Nigeria,South Africa,Fish,Intra-Africa,1385.5,4.7,6511.63,True,Organic,B,743.6,267.27,193.58,Road,1603.8,192.45,False,True,TR_00000352,Production,Export,60 days,2024-04-27,2024-05-22,25
+TRADE_000353,Nigeria,UK,Maize,Africa-Europe,542281.7,0.77,414885.65,True,Rainforest Alliance,B,33445.69,8319.18,4959.26,Air,5710.9,685.31,False,False,,Wholesale,Processing,30 days,2024-11-06,2024-11-15,9
+TRADE_000354,Kenya,Uganda,Groundnut,Africa-Europe,228096.1,2.64,601946.19,True,Organic,C,85855.58,28808.06,17768.17,Sea,11573.6,1388.83,False,True,TR_00000354,Wholesale,Wholesale,Cash,2024-07-21,2024-08-13,23
+TRADE_000355,Burkina Faso,Ghana,Maize,Africa-Europe,3469.1,0.7,2430.44,True,Rainforest Alliance,A,345.58,110.68,45.37,Sea,10310.7,1237.29,False,True,TR_00000355,Production,Export,60 days,2024-09-25,2024-10-15,20
+TRADE_000356,Nigeria,Burkina Faso,Maize,Intra-Africa,1000.0,0.45,451.71,True,Organic,C,37.41,19.24,8.36,Road,2988.9,358.66,True,True,TR_00000356,Production,Retail,Cash,2024-11-15,2024-12-02,17
+TRADE_000357,South Africa,Kenya,Maize,Intra-Africa,39918.5,0.4,15967.4,False,None,A,2190.71,758.13,254.79,Road,2874.5,344.94,True,True,TR_00000357,Production,Processing,Cash,2024-12-06,2024-12-31,25
+TRADE_000358,Senegal,Ghana,Groundnut,Intra-Africa,2543.4,1.6,4078.81,True,Fair Trade,B,349.71,134.39,108.36,Road,1683.6,202.03,True,False,,Wholesale,Processing,30 days,2024-11-18,2024-12-14,26
+TRADE_000359,South Africa,Netherlands,Maize,Africa-Europe,8708.2,0.53,4617.63,False,None,A,676.12,100.77,129.13,Air,7131.1,855.73,True,True,TR_00000359,Wholesale,Retail,60 days,2024-11-03,2024-11-27,24
+TRADE_000360,Ghana,Kenya,Cocoa,Intra-Africa,13861.7,3.75,51983.04,True,Fair Trade,B,5695.5,1307.64,892.18,Rail,982.3,117.88,False,True,TR_00000360,Production,Processing,Cash,2024-08-27,2024-08-30,3
+TRADE_000361,Nigeria,Kenya,Fish,Intra-Africa,1000.0,4.99,4986.82,True,Fair Trade,C,677.49,184.86,138.95,River,2091.4,250.96,True,False,,Wholesale,Processing,30 days,2024-07-26,2024-08-10,15
+TRADE_000362,South Africa,Netherlands,Honey,Africa-Europe,1031.9,18.88,19486.14,True,Fair Trade,A,2171.97,792.7,222.03,Air,11019.0,1322.28,True,False,,Production,Retail,Cash,2024-10-09,2024-11-03,25
+TRADE_000363,Nigeria,UK,Fish,Africa-Europe,1000.0,6.64,6643.28,False,None,C,537.34,176.16,75.09,Sea,10461.6,1255.39,True,True,TR_00000363,Processing,Processing,Cash,2024-02-03,2024-02-07,4
+TRADE_000364,South Africa,Germany,Honey,Africa-Europe,14284.5,14.88,212578.14,False,None,C,29113.54,4280.14,4256.8,Air,9933.9,1192.06,False,True,TR_00000364,Wholesale,Wholesale,90 days,2024-09-12,2024-09-22,10
+TRADE_000365,Nigeria,South Africa,Groundnut,Intra-Africa,6990.5,1.58,11012.38,True,Rainforest Alliance,A,1020.77,377.44,254.07,Road,864.7,103.76,False,False,,Wholesale,Export,90 days,2024-03-28,2024-04-16,19
+TRADE_000366,Ghana,Germany,Cocoa,Africa-Europe,1000.0,3.93,3933.4,False,None,A,370.96,106.84,57.16,Air,7766.0,931.93,False,True,TR_00000366,Processing,Processing,90 days,2024-05-08,2024-05-13,5
+TRADE_000367,Senegal,South Africa,Palm Oil,Intra-Africa,1000.0,0.9,900.0,False,None,A,120.89,37.42,11.28,Road,622.1,74.65,True,False,,Processing,Wholesale,60 days,2024-12-11,2024-12-25,14
+TRADE_000368,Senegal,Netherlands,Maize,Africa-Europe,146961.5,0.69,101507.22,False,None,B,8687.82,2481.87,1060.01,Air,9398.4,1127.8,False,False,,Wholesale,Processing,30 days,2024-09-19,2024-10-10,21
+TRADE_000369,South Africa,Senegal,Honey,Intra-Africa,4627.5,12.29,56893.53,True,Fair Trade,C,,,906.71,Rail,881.0,105.72,False,True,TR_00000369,Wholesale,Processing,60 days,2024-11-08,2024-12-07,29
+TRADE_000370,Senegal,South Africa,Groundnut,Intra-Africa,3211.2,1.6,5131.46,True,Organic,A,458.03,120.2,76.0,Road,1266.7,152.0,True,False,,Wholesale,Export,Cash,2024-09-26,2024-10-07,11
+TRADE_000371,Nigeria,Spain,Maize,Africa-Europe,3539.9,0.87,3075.62,True,Rainforest Alliance,C,344.57,91.46,42.01,Air,6002.2,720.26,True,False,,Wholesale,Wholesale,30 days,2024-10-05,2024-10-09,4
+TRADE_000372,Senegal,Nigeria,Groundnut,Intra-Africa,8191.4,1.94,15866.18,True,Fair Trade,B,2365.28,338.7,206.37,River,1558.8,187.06,True,True,TR_00000372,Production,Processing,Cash,2024-07-27,2024-08-26,30
+TRADE_000373,Burkina Faso,France,Groundnut,Africa-Europe,1117.0,1.79,1997.66,False,None,B,223.65,56.24,34.04,Sea,5660.2,679.22,True,False,,Production,Processing,Cash,2024-01-06,2024-01-14,8
+TRADE_000374,South Africa,Nigeria,Maize,Intra-Africa,1000.0,0.49,491.38,True,Organic,B,73.13,14.67,13.53,River,2608.0,312.96,False,False,,Processing,Export,60 days,2024-11-22,2024-12-17,25
+TRADE_000375,Burkina Faso,Netherlands,Maize,Africa-Europe,18280.1,0.62,11281.36,True,Rainforest Alliance,B,1683.72,486.09,329.88,Sea,10457.4,1254.89,False,False,,Production,Export,Cash,2024-03-09,2024-03-13,4
+TRADE_000376,Burkina Faso,South Africa,Groundnut,Intra-Africa,6712.3,1.91,12803.43,True,Organic,C,1657.49,548.18,262.0,Rail,2810.6,337.27,False,False,,Production,Retail,30 days,2024-01-14,2024-02-04,21
+TRADE_000377,Senegal,Mali,Maize,Africa-Europe,5898.5,0.76,4508.18,True,Organic,B,371.9,216.71,97.93,Air,7087.0,850.44,False,False,,Production,Export,Cash,2024-08-02,2024-08-07,5
+TRADE_000378,Senegal,Burkina Faso,Palm Oil,Intra-Africa,5682.0,0.9,5113.77,False,None,A,462.49,229.54,136.69,River,2536.3,304.35,True,False,,Processing,Retail,90 days,2024-06-21,2024-07-01,10
+TRADE_000379,Senegal,Ghana,Maize,Intra-Africa,1000.0,0.48,476.49,True,Rainforest Alliance,B,38.4,21.45,5.6,Road,2076.9,249.23,True,True,TR_00000379,Production,Wholesale,60 days,2024-04-08,2024-05-08,30
+TRADE_000380,Burkina Faso,Côte d'Ivoire,Maize,Africa-Europe,50627.6,0.6,30426.09,False,None,C,3555.84,1454.41,323.5,Sea,10413.7,1249.65,True,False,,Production,Processing,30 days,2024-06-13,2024-07-09,26
+TRADE_000381,South Africa,Burkina Faso,Maize,Intra-Africa,1000.0,0.53,534.7,True,Fair Trade,A,62.6,11.16,5.78,River,2031.7,243.8,False,False,,Wholesale,Wholesale,30 days,2024-08-05,2024-09-01,27
+TRADE_000382,South Africa,Germany,Maize,Africa-Europe,2388.3,0.83,1980.51,True,Organic,C,235.32,87.13,43.99,Air,6573.3,788.8,False,True,TR_00000382,Processing,Wholesale,90 days,2024-04-09,2024-04-22,13
+TRADE_000383,Burkina Faso,Nigeria,Maize,Intra-Africa,66740.3,0.53,35245.1,True,Rainforest Alliance,C,4351.4,1729.73,491.52,Rail,2877.7,345.33,True,True,TR_00000383,Processing,Retail,Cash,2024-02-22,2024-03-17,24
+TRADE_000384,Ghana,Senegal,Palm Oil,Intra-Africa,46145.8,1.14,52391.76,True,Fair Trade,C,6655.69,1204.16,922.7,Rail,2423.4,290.81,True,True,TR_00000384,Processing,Wholesale,90 days,2024-12-31,2025-01-17,17
+TRADE_000385,Senegal,Netherlands,Groundnut,Africa-Europe,1000.0,2.52,2516.52,False,None,C,359.39,51.92,68.38,Air,11436.0,1372.32,True,False,,Production,Export,90 days,2024-09-24,2024-10-06,12
+TRADE_000386,Burkina Faso,Senegal,Maize,Intra-Africa,3622.7,0.48,1747.69,True,Fair Trade,C,227.84,58.13,40.38,Road,1350.8,162.1,True,False,,Production,Wholesale,30 days,2024-03-30,2024-04-08,9
+TRADE_000387,Nigeria,Senegal,Fish,Intra-Africa,1000.0,4.57,4574.68,True,Fair Trade,C,632.13,139.35,82.36,River,2735.1,328.22,False,True,TR_00000387,Wholesale,Processing,90 days,2024-03-20,2024-04-04,15
+TRADE_000388,Ghana,South Africa,Palm Oil,Intra-Africa,1000.0,0.9,900.0,False,None,C,103.29,32.69,26.22,River,2716.8,326.02,True,True,TR_00000388,Wholesale,Export,30 days,2024-06-15,2024-07-09,24
+TRADE_000389,Burkina Faso,Côte d'Ivoire,Maize,Africa-Europe,2423.5,0.71,1728.22,False,None,B,-97283.19135219113,,24.02,Sea,5800.3,696.03,True,False,,Wholesale,Retail,60 days,2024-03-13,2024-04-07,25
+TRADE_000390,Nigeria,Kenya,Fish,Intra-Africa,1000.0,5.29,5288.37,True,Fair Trade,B,708.12,259.5,134.69,River,1108.4,133.01,False,True,TR_00000390,Processing,Retail,Cash,2024-10-20,2024-11-04,15
+TRADE_000391,Nigeria,Burkina Faso,Groundnut,Intra-Africa,1000.0,1.92,1920.5,True,Rainforest Alliance,A,232.3,50.79,53.36,River,2983.4,358.01,False,True,TR_00000391,Production,Export,30 days,2024-10-19,2024-11-01,13
+TRADE_000392,Kenya,South Africa,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,A,34.43,18.35,7.12,River,1810.2,217.22,True,True,TR_00000392,Production,Processing,Cash,2024-09-01,2024-09-28,27
+TRADE_000393,Burkina Faso,Netherlands,Groundnut,Africa-Europe,1000.0,2.22,2216.94,True,Organic,B,,,25.42,Sea,7836.6,940.39,True,True,TR_00000393,Production,Export,Cash,2024-02-11,2024-03-06,24
+TRADE_000394,Ghana,Senegal,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,B,33.12,18.02,5.68,Road,1320.8,158.49,False,True,TR_00000394,Processing,Wholesale,30 days,2024-01-28,2024-02-14,17
+TRADE_000395,Kenya,Uganda,Groundnut,Africa-Europe,6375.0,1.86,11882.9,False,None,C,1010.44,492.79,211.68,Sea,10362.6,1243.51,False,False,,Processing,Retail,60 days,2024-01-09,2024-01-27,18
+TRADE_000396,Ghana,Germany,Palm Oil,Africa-Europe,9341.3,1.32,12334.86,False,None,C,1285.54,413.66,308.02,Air,11315.5,1357.87,True,True,TR_00000396,Wholesale,Processing,90 days,2024-06-25,2024-06-28,3
+TRADE_000397,Kenya,Tanzania,Groundnut,Africa-Europe,3193.2,2.12,6764.2,True,Fair Trade,B,960.31,208.66,193.79,Sea,9414.3,1129.71,True,False,,Production,Retail,30 days,2024-04-09,2024-04-18,9
+TRADE_000398,Nigeria,South Africa,Palm Oil,Intra-Africa,1000.0,1.24,1242.22,True,Fair Trade,A,,,18.17,Rail,1485.4,178.25,True,False,,Production,Wholesale,Cash,2024-08-25,2024-08-28,3
+TRADE_000399,Nigeria,South Africa,Groundnut,Intra-Africa,2864.7,1.4,4010.6,False,None,C,453.18,195.27,74.9,Road,2464.1,295.69,True,False,,Wholesale,Export,90 days,2024-08-27,2024-09-14,18
+TRADE_000400,Nigeria,Senegal,Fish,Intra-Africa,1000.0,4.0,4000.0,False,None,B,583.73,185.24,56.69,Rail,1740.1,208.81,True,True,TR_00000400,Production,Wholesale,90 days,2024-10-23,2024-11-05,13
+TRADE_000401,Ghana,Kenya,Cocoa,Intra-Africa,1000.0,3.62,3624.73,True,Organic,A,499.65,121.66,74.21,Rail,2956.1,354.73,True,False,,Wholesale,Processing,30 days,2024-07-22,2024-08-09,18
+TRADE_000402,Senegal,Mali,Palm Oil,Africa-Europe,1000.0,1.39,1386.47,True,Organic,A,186.04,34.02,30.82,Sea,6676.3,801.15,False,True,TR_00000402,Production,Processing,30 days,2024-10-28,2024-11-17,20
+TRADE_000403,Kenya,South Africa,Maize,Intra-Africa,1370.6,0.4,548.23,False,None,C,56.49,20.8,7.49,River,1212.2,145.47,True,False,,Production,Wholesale,Cash,2024-08-06,2024-09-05,30
+TRADE_000404,Nigeria,Kenya,Palm Oil,Intra-Africa,15539.1,1.1,17131.7,True,Rainforest Alliance,C,1794.63,612.4,376.77,Rail,1916.7,230.0,False,True,TR_00000404,Wholesale,Retail,90 days,2024-12-25,2025-01-15,21
+TRADE_000405,Ghana,Nigeria,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,A,35.54,17.13,10.81,Rail,1142.5,137.1,True,False,,Production,Retail,30 days,2024-01-08,2024-01-22,14
+TRADE_000406,Nigeria,Kenya,Maize,Intra-Africa,24462.6,0.4,9785.05,False,None,A,1061.64,342.06,202.22,River,2148.7,257.85,False,True,TR_00000406,Wholesale,Export,Cash,2024-12-13,2025-01-12,30
+TRADE_000407,Burkina Faso,France,Groundnut,Africa-Europe,2686.5,2.38,6380.99,False,None,C,712.02,156.16,189.52,Sea,11225.0,1347.0,True,True,TR_00000407,Production,Export,90 days,2024-02-07,2024-02-28,21
+TRADE_000408,Burkina Faso,Senegal,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,B,53.6,12.94,5.47,Road,2853.5,342.42,True,False,,Production,Export,Cash,2024-03-22,2024-03-29,7
+TRADE_000409,Senegal,Burkina Faso,Groundnut,Intra-Africa,31015.4,1.4,43421.52,False,None,C,4513.52,1305.19,1290.09,River,1804.6,216.55,False,False,,Processing,Export,Cash,2024-11-27,2024-12-04,7
+TRADE_000410,South Africa,Senegal,Maize,Intra-Africa,3696.2,0.4,1478.46,False,None,C,132.84,39.31,29.04,Road,606.2,72.74,True,False,,Production,Retail,90 days,2024-07-01,2024-07-09,8
+TRADE_000411,Nigeria,Senegal,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,B,53.82,12.26,11.86,Rail,951.9,114.23,True,True,TR_00000411,Processing,Retail,90 days,2024-11-17,2024-12-11,24
+TRADE_000412,Nigeria,South Africa,Fish,Intra-Africa,1000.0,5.11,5109.18,True,Fair Trade,C,440.82,214.67,152.74,River,2547.8,305.74,False,True,TR_00000412,Wholesale,Export,Cash,2024-01-20,2024-02-17,28
+TRADE_000413,Nigeria,Kenya,Maize,Intra-Africa,1000.0,0.54,540.2,True,Rainforest Alliance,B,78.61,26.84,9.69,Rail,2977.3,357.28,False,False,,Wholesale,Processing,Cash,2024-12-17,2025-01-03,17
+TRADE_000414,Nigeria,Netherlands,Palm Oil,Africa-Europe,862667.4,1.16,1004317.51,False,None,B,98170.51,22768.36,15501.41,Air,10375.6,1245.07,True,False,,Processing,Retail,30 days,2024-09-25,2024-10-10,15
+TRADE_000415,Burkina Faso,Nigeria,Groundnut,Intra-Africa,6677.8,1.81,12053.76,True,Rainforest Alliance,C,1397.97,497.35,214.76,River,2603.3,312.39,False,False,,Production,Processing,60 days,2024-04-23,2024-05-23,30
+TRADE_000416,South Africa,Netherlands,Honey,Africa-Europe,8272.1,18.93,156581.48,True,Rainforest Alliance,C,18400.75,7289.94,2355.03,Air,7668.0,920.16,True,False,,Production,Wholesale,90 days,2024-06-24,2024-07-09,15
+TRADE_000417,Nigeria,Senegal,Maize,Intra-Africa,2751.6,0.4,1100.63,False,None,A,156.56,33.45,19.14,Road,2721.8,326.62,False,True,TR_00000417,Production,Retail,60 days,2024-07-08,2024-07-22,14
+TRADE_000418,Burkina Faso,South Africa,Groundnut,Intra-Africa,63960.8,1.4,89545.07,False,None,B,10074.35,3177.39,1491.4,River,1191.7,143.0,True,False,,Processing,Processing,Cash,2024-01-04,2024-01-13,9
+TRADE_000419,Ghana,South Africa,Maize,Intra-Africa,1000.0,0.55,545.51,True,Organic,C,73.4,14.03,13.03,River,2006.6,240.79,True,False,,Production,Processing,60 days,2024-05-17,2024-06-14,28
+TRADE_000420,South Africa,Burkina Faso,Honey,Intra-Africa,5840.2,10.4,60728.17,True,Fair Trade,A,6019.63,1959.67,1456.56,Rail,2096.8,251.62,True,True,TR_00000420,Wholesale,Wholesale,90 days,2024-03-29,2024-04-12,14
+TRADE_000421,Burkina Faso,Kenya,Maize,Intra-Africa,67125.7,0.4,26850.27,False,None,A,3572.58,1034.7,691.12,Rail,1335.7,160.28,False,True,TR_00000421,Wholesale,Processing,60 days,2024-03-17,2024-04-11,25
+TRADE_000422,Ghana,Germany,Cocoa,Africa-Europe,4333.0,5.19,22472.02,False,None,C,,,470.24,Air,6529.1,783.49,False,True,TR_00000422,Wholesale,Wholesale,90 days,2024-10-14,2024-10-18,4
+TRADE_000423,South Africa,Senegal,Honey,Intra-Africa,1000.0,9.0,9000.0,False,None,A,1159.42,308.46,240.5,Rail,2195.2,263.42,False,True,TR_00000423,Processing,Retail,Cash,2024-10-12,2024-11-09,28
+TRADE_000424,Burkina Faso,Netherlands,Groundnut,Africa-Europe,12429.5,2.26,28028.68,False,None,B,2668.35,1388.19,752.11,Air,10523.0,1262.76,True,True,TR_00000424,Processing,Export,60 days,2024-09-09,2024-10-04,25
+TRADE_000425,South Africa,Netherlands,Maize,Africa-Europe,6941.4,0.51,3560.27,False,None,C,,,74.98,Sea,9541.1,1144.93,False,True,TR_00000425,Production,Retail,60 days,2024-11-10,2024-11-16,6
+TRADE_000426,Ghana,Kenya,Cocoa,Intra-Africa,1000.0,3.0,3000.0,False,None,A,321.94,104.87,82.54,River,771.4,92.57,True,True,TR_00000426,Wholesale,Processing,60 days,2024-05-01,2024-05-08,7
+TRADE_000427,Ghana,Kenya,Cocoa,Intra-Africa,1021.1,3.0,3063.27,False,None,C,252.93,78.32,77.5,Road,1512.8,181.54,False,True,TR_00000427,Production,Processing,60 days,2024-10-11,2024-11-06,26
+TRADE_000428,Burkina Faso,Senegal,Groundnut,Intra-Africa,7702.6,1.4,10783.58,False,None,B,1521.31,385.42,112.63,Road,2291.8,275.01,False,True,TR_00000428,Processing,Export,90 days,2024-08-17,2024-09-09,23
+TRADE_000429,Ghana,Senegal,Cocoa,Intra-Africa,4490.9,3.45,15499.3,True,Fair Trade,A,1614.74,663.96,450.79,Rail,1428.6,171.43,True,True,TR_00000429,Wholesale,Processing,30 days,2024-03-29,2024-04-23,25
+TRADE_000430,Ghana,South Africa,Cocoa,Intra-Africa,1716.5,4.05,6945.7,True,Rainforest Alliance,C,648.42,307.11,160.79,Rail,981.9,117.82,True,True,TR_00000430,Production,Processing,30 days,2024-07-12,2024-08-07,26
+TRADE_000431,Kenya,Senegal,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,A,42.72,10.44,9.15,Rail,2986.3,358.35,False,True,TR_00000431,Wholesale,Processing,90 days,2024-07-25,2024-08-13,19
+TRADE_000432,Nigeria,Kenya,Palm Oil,Intra-Africa,1338.1,0.9,1204.31,False,None,B,97.36,43.63,25.86,River,2785.5,334.26,False,False,,Production,Processing,60 days,2024-03-10,2024-03-25,15
+TRADE_000433,Ghana,USA,Palm Oil,Africa-Europe,1432064.4,1.33,1911365.68,False,None,C,188887.47,41440.08,34735.54,Sea,5368.1,644.18,False,True,TR_00000433,Production,Retail,Cash,2024-01-28,2024-02-17,20
+TRADE_000434,Nigeria,South Africa,Groundnut,Intra-Africa,6963.9,1.77,12334.58,True,Fair Trade,C,1252.09,444.14,156.48,River,2831.6,339.79,True,True,TR_00000434,Production,Wholesale,30 days,2024-01-15,2024-01-28,13
+TRADE_000435,Burkina Faso,Ghana,Maize,Africa-Europe,29387.3,0.61,17831.07,True,Rainforest Alliance,B,1739.92,846.36,482.33,Air,9058.8,1087.06,False,True,TR_00000435,Wholesale,Wholesale,30 days,2024-04-30,2024-05-20,20
+TRADE_000436,South Africa,UK,Maize,Africa-Europe,1000.0,0.83,834.27,True,Fair Trade,B,121.19,40.95,10.43,Air,6123.9,734.87,True,False,,Wholesale,Retail,90 days,2024-09-07,2024-10-03,26
+TRADE_000437,Kenya,Ghana,Groundnut,Intra-Africa,7472.7,1.4,10461.82,False,None,B,850.47,228.69,290.44,Rail,2672.2,320.66,True,False,,Wholesale,Retail,Cash,2024-04-02,2024-04-19,17
+TRADE_000438,Nigeria,Ghana,Fish,Intra-Africa,150243.9,4.0,600975.47,False,None,C,63107.81,28084.5,13145.44,Road,2514.8,301.77,False,False,,Processing,Export,30 days,2024-02-27,2024-03-07,9
+TRADE_000439,Burkina Faso,Ghana,Maize,Intra-Africa,1000.0,0.49,492.05,True,Organic,B,55.11,17.97,5.96,Rail,2978.5,357.42,True,True,TR_00000439,Production,Export,90 days,2024-03-29,2024-04-02,4
+TRADE_000440,Senegal,Burkina Faso,Palm Oil,Intra-Africa,2076.7,0.9,1869.07,False,None,C,181.47,48.51,38.38,Rail,1843.0,221.16,False,True,TR_00000440,Processing,Wholesale,30 days,2024-12-07,2024-12-26,19
+TRADE_000441,Kenya,Uganda,Maize,Africa-Europe,59151.4,0.77,45834.86,True,Organic,B,5988.89,951.11,981.46,Air,11189.4,1342.72,False,True,TR_00000441,Wholesale,Export,Cash,2024-11-26,2024-12-01,5
+TRADE_000442,South Africa,Germany,Honey,Africa-Europe,1538.7,13.31,20476.02,True,Organic,C,2965.66,626.46,392.62,Sea,11870.8,1424.49,True,False,,Production,Retail,60 days,2024-02-17,2024-02-29,12
+TRADE_000443,Senegal,Burkina Faso,Groundnut,Intra-Africa,61025.6,1.89,115401.68,True,Organic,B,15198.31,3225.99,1193.01,River,1699.3,203.91,True,False,,Wholesale,Retail,Cash,2024-04-17,2024-05-11,24
+TRADE_000444,Ghana,South Africa,Cocoa,Intra-Africa,1000.0,4.07,4073.02,True,Organic,A,581.25,198.3,112.38,Road,1950.1,234.01,False,True,TR_00000444,Wholesale,Wholesale,Cash,2024-07-28,2024-08-14,17
+TRADE_000445,Senegal,Ghana,Groundnut,Intra-Africa,58825.6,1.4,82355.87,False,None,A,10853.48,2976.7,967.4,Rail,2815.2,337.82,True,True,TR_00000445,Wholesale,Processing,90 days,2024-01-22,2024-01-28,6
+TRADE_000446,South Africa,UK,Maize,Africa-Europe,1634.2,0.71,1164.42,True,Organic,C,144.47,46.83,16.55,Air,10858.6,1303.03,False,True,TR_00000446,Production,Processing,30 days,2024-07-13,2024-07-26,13
+TRADE_000447,Senegal,France,Palm Oil,Africa-Europe,1000.0,1.71,1714.2,True,Fair Trade,A,252.99,75.9,49.38,Sea,5984.2,718.11,False,True,TR_00000447,Wholesale,Retail,30 days,2024-01-12,2024-02-09,28
+TRADE_000448,Ghana,Germany,Palm Oil,Africa-Europe,1000.0,1.42,1417.41,True,Rainforest Alliance,B,142.2,63.56,33.22,Air,11795.1,1415.41,True,True,TR_00000448,Wholesale,Export,60 days,2024-10-29,2024-11-07,9
+TRADE_000449,Ghana,Netherlands,Palm Oil,Africa-Europe,2452.4,1.58,3881.25,True,Rainforest Alliance,A,470.82,129.24,73.49,Air,7539.2,904.7,True,False,,Processing,Processing,30 days,2024-02-19,2024-02-29,10
+TRADE_000450,Kenya,Senegal,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,B,113.66,49.93,23.39,Rail,503.3,60.4,True,True,TR_00000450,Production,Wholesale,Cash,2024-01-14,2024-01-25,11
+TRADE_000451,Kenya,South Africa,Maize,Intra-Africa,1000.0,0.49,487.21,True,Fair Trade,C,43.47,17.16,11.62,Road,2075.5,249.06,False,False,,Wholesale,Processing,90 days,2024-01-31,2024-02-08,8
+TRADE_000452,Ghana,Senegal,Maize,Intra-Africa,1000.0,0.54,536.45,True,Fair Trade,A,59.89,19.08,14.06,Road,1569.3,188.31,False,True,TR_00000452,Production,Export,60 days,2024-09-28,2024-10-21,23
+TRADE_000453,Nigeria,Kenya,Groundnut,Intra-Africa,1000.0,1.72,1715.45,True,Organic,A,228.52,43.31,28.77,Road,1060.4,127.25,False,True,TR_00000453,Wholesale,Retail,60 days,2024-07-26,2024-08-13,18
+TRADE_000454,South Africa,Senegal,Honey,Intra-Africa,101209.3,9.0,910884.07,False,None,B,95768.25,24513.02,19664.27,Rail,2495.4,299.45,True,False,,Processing,Processing,30 days,2024-05-06,2024-05-17,11
+TRADE_000455,South Africa,Ghana,Maize,Intra-Africa,1000.0,0.56,558.65,True,Rainforest Alliance,A,67.92,17.87,14.92,Road,2324.7,278.96,True,True,TR_00000455,Wholesale,Retail,30 days,2024-04-16,2024-04-19,3
+TRADE_000456,Kenya,Uganda,Groundnut,Africa-Europe,34232.9,2.31,79057.14,False,None,B,7410.01,2691.87,2153.24,Sea,8528.3,1023.39,True,True,TR_00000456,Wholesale,Export,90 days,2024-09-21,2024-09-27,6
+TRADE_000457,Burkina Faso,Côte d'Ivoire,Maize,Africa-Europe,15360.2,0.68,10478.21,False,None,B,1046.98,390.46,130.61,Sea,9831.5,1179.78,True,True,TR_00000457,Processing,Retail,Cash,2024-09-17,2024-09-21,4
+TRADE_000458,Kenya,Ghana,Maize,Intra-Africa,91171.8,0.4,36468.72,False,None,C,4786.07,776.24,857.59,Rail,1536.7,184.41,False,False,,Processing,Wholesale,Cash,2024-06-02,2024-06-11,9
+TRADE_000459,Ghana,South Africa,Cocoa,Intra-Africa,1943.9,3.0,5831.75,False,None,C,,,103.14,River,2346.0,281.52,False,False,,Processing,Export,90 days,2024-08-06,2024-08-31,25
+TRADE_000460,Ghana,South Africa,Palm Oil,Intra-Africa,1000.0,1.2,1199.04,True,Rainforest Alliance,A,146.87,24.8,34.32,Rail,2215.6,265.87,False,False,,Processing,Wholesale,Cash,2024-08-11,2024-08-26,15
+TRADE_000461,Ghana,South Africa,Palm Oil,Intra-Africa,6042.9,0.9,5438.58,False,None,A,612.73,177.27,151.16,Road,1593.4,191.21,False,True,TR_00000461,Processing,Processing,60 days,2024-07-25,2024-08-10,16
+TRADE_000462,Senegal,Ghana,Groundnut,Intra-Africa,1000.0,1.57,1571.64,True,Organic,C,229.88,74.84,37.23,Rail,1669.7,200.37,False,False,,Production,Processing,60 days,2024-03-04,2024-03-15,11
+TRADE_000463,Burkina Faso,France,Maize,Africa-Europe,1000.0,0.59,591.2,True,Fair Trade,C,52.98,14.67,6.82,Sea,6435.7,772.28,False,True,TR_00000463,Processing,Processing,60 days,2024-03-29,2024-04-02,4
+TRADE_000464,Burkina Faso,Netherlands,Groundnut,Africa-Europe,3903.4,2.28,8903.68,False,None,C,1216.46,298.95,179.24,Sea,5228.6,627.43,True,True,TR_00000464,Processing,Processing,90 days,2024-08-25,2024-09-15,21
+TRADE_000465,Burkina Faso,Kenya,Groundnut,Intra-Africa,2412.9,1.77,4267.06,True,Organic,B,562.26,162.79,76.14,Road,795.8,95.5,True,False,,Wholesale,Export,30 days,2024-09-05,2024-09-23,18
+TRADE_000466,Nigeria,South Africa,Palm Oil,Intra-Africa,2047.6,0.9,1842.83,False,None,C,248.14,56.97,45.56,River,1782.4,213.89,False,True,TR_00000466,Wholesale,Export,30 days,2024-01-08,2024-01-13,5
+TRADE_000467,Senegal,Kenya,Maize,Intra-Africa,6819.3,0.55,3754.17,True,Rainforest Alliance,C,440.96,132.69,57.49,Rail,2839.5,340.74,True,True,TR_00000467,Production,Wholesale,Cash,2024-02-15,2024-03-02,16
+TRADE_000468,Senegal,Burkina Faso,Groundnut,Intra-Africa,4841.1,1.73,8386.39,True,Organic,C,745.81,276.59,105.17,Rail,1756.3,210.76,True,False,,Processing,Processing,60 days,2024-02-27,2024-03-03,5
+TRADE_000469,Burkina Faso,Côte d'Ivoire,Maize,Africa-Europe,1000.0,0.5,497.2,False,None,B,72.61,21.48,13.31,Air,7568.1,908.17,True,True,TR_00000469,Processing,Wholesale,90 days,2024-03-02,2024-03-19,17
+TRADE_000470,South Africa,UK,Maize,Africa-Europe,12762.2,0.83,10533.2,True,Organic,C,990.92,249.98,178.02,Air,5962.9,715.54,False,True,TR_00000470,Processing,Processing,30 days,2024-08-30,2024-09-12,13
+TRADE_000471,Kenya,Burkina Faso,Maize,Intra-Africa,1000.0,0.48,476.08,True,Rainforest Alliance,A,57.13,11.66,12.22,River,1331.1,159.73,False,True,TR_00000471,Wholesale,Export,30 days,2024-12-11,2025-01-09,29
+TRADE_000472,Kenya,Burkina Faso,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,C,48.56,16.59,11.11,River,2589.5,310.74,False,True,TR_00000472,Processing,Wholesale,Cash,2024-01-23,2024-02-13,21
+TRADE_000473,Ghana,Kenya,Palm Oil,Intra-Africa,1000.0,0.9,900.0,False,None,B,103.7,38.76,24.8,Road,759.5,91.13,True,True,TR_00000473,Wholesale,Wholesale,60 days,2024-09-06,2024-09-18,12
+TRADE_000474,South Africa,France,Honey,Africa-Europe,60499.6,12.88,779127.36,False,None,B,104658.75,25671.9,12968.23,Sea,7879.3,945.51,False,True,TR_00000474,Processing,Retail,90 days,2024-12-25,2025-01-17,23
+TRADE_000475,Senegal,Netherlands,Palm Oil,Africa-Europe,1000.0,1.3,1299.57,True,Fair Trade,C,154.8,47.22,18.33,Air,9867.3,1184.08,True,False,,Production,Wholesale,60 days,2024-02-03,2024-02-20,17
+TRADE_000476,Nigeria,France,Maize,Africa-Europe,2777.8,0.77,2152.19,True,Rainforest Alliance,B,224.02,106.99,37.63,Air,10325.6,1239.07,True,True,TR_00000476,Production,Export,90 days,2024-09-14,2024-10-05,21
+TRADE_000477,Burkina Faso,Netherlands,Maize,Africa-Europe,51477.5,0.86,44484.45,True,Fair Trade,B,6220.46,2143.11,960.85,Air,6662.3,799.47,False,True,TR_00000477,Production,Retail,Cash,2024-11-04,2024-11-25,21
+TRADE_000478,Ghana,South Africa,Cocoa,Intra-Africa,1883.5,3.66,6891.24,True,Rainforest Alliance,A,917.1,272.39,93.42,River,628.1,75.37,True,False,,Processing,Processing,30 days,2024-04-14,2024-05-09,25
+TRADE_000479,Senegal,India,Palm Oil,Africa-Europe,1000.0,1.79,1787.2,True,Organic,B,213.37,40.21,24.51,Sea,6535.3,784.24,True,False,,Wholesale,Processing,30 days,2024-07-24,2024-08-06,13
+TRADE_000480,South Africa,Kenya,Maize,Intra-Africa,15426.5,0.47,7265.02,True,Rainforest Alliance,B,868.74,255.14,102.17,Road,668.9,80.27,True,False,,Processing,Export,Cash,2024-04-08,2024-05-03,25
+TRADE_000481,Kenya,Germany,Groundnut,Africa-Europe,26896.9,2.39,64363.01,False,None,C,7453.65,2651.8,891.75,Sea,9818.8,1178.25,False,True,TR_00000481,Wholesale,Processing,Cash,2024-10-31,2024-11-20,20
+TRADE_000482,Kenya,Ghana,Maize,Intra-Africa,2469.2,0.4,987.68,False,None,B,97.85,44.41,11.53,Rail,2432.8,291.94,True,True,TR_00000482,Production,Retail,90 days,2024-06-16,2024-07-08,22
+TRADE_000483,Burkina Faso,Ghana,Groundnut,Africa-Europe,23528.0,2.09,49161.9,False,None,B,5193.52,1935.17,1423.26,Air,5288.9,634.67,False,False,,Production,Export,60 days,2024-12-18,2025-01-17,30
+TRADE_000484,South Africa,Senegal,Honey,Intra-Africa,1000.0,12.38,12380.9,True,Rainforest Alliance,C,1518.34,547.48,218.86,River,1679.6,201.55,True,True,TR_00000484,Processing,Export,30 days,2024-12-17,2025-01-13,27
+TRADE_000485,Kenya,Ghana,Maize,Intra-Africa,1854.5,0.4,741.8,False,None,B,87.11,15.29,9.77,Road,2104.2,252.51,True,True,TR_00000485,Wholesale,Retail,30 days,2024-11-01,2024-11-21,20
+TRADE_000486,Nigeria,Netherlands,Fish,Africa-Europe,23293.2,8.31,193625.35,True,Rainforest Alliance,B,17432.42,6459.76,3311.36,Air,8469.6,1016.36,True,False,,Production,Processing,Cash,2024-07-13,2024-07-31,18
+TRADE_000487,Senegal,Nigeria,Groundnut,Intra-Africa,5847.7,1.4,8186.8,False,None,C,703.08,382.4,159.11,River,2359.7,283.16,True,False,,Processing,Retail,60 days,2024-01-25,2024-02-06,12
+TRADE_000488,Senegal,Netherlands,Groundnut,Africa-Europe,7365.4,1.8,13240.29,False,None,A,1680.86,358.68,248.49,Air,5118.0,614.16,False,False,,Production,Export,60 days,2024-05-14,2024-05-22,8
+TRADE_000489,South Africa,Netherlands,Maize,Africa-Europe,1444.7,0.72,1034.83,True,Rainforest Alliance,B,127.53,25.06,29.91,Air,11531.7,1383.8,True,False,,Wholesale,Processing,90 days,2024-04-08,2024-05-06,28
+TRADE_000490,South Africa,France,Maize,Africa-Europe,1860.7,0.69,1276.39,True,Rainforest Alliance,B,104.61,61.21,26.11,Sea,5302.6,636.31,False,False,,Processing,Export,60 days,2024-01-28,2024-02-03,6
+TRADE_000491,Ghana,USA,Cocoa,Africa-Europe,1000.0,5.6,5603.7,True,Organic,A,632.61,176.58,69.39,Sea,6714.6,805.75,False,True,TR_00000491,Processing,Retail,90 days,2024-04-02,2024-04-29,27
+TRADE_000492,Kenya,South Africa,Groundnut,Intra-Africa,1909.0,1.58,3020.22,True,Fair Trade,A,412.34,72.66,66.17,Road,1356.9,162.82,True,True,TR_00000492,Production,Processing,60 days,2024-05-23,2024-06-17,25
+TRADE_000493,Burkina Faso,Senegal,Groundnut,Intra-Africa,10563.6,1.4,14788.98,False,None,A,1656.22,473.31,323.24,Road,1728.2,207.38,True,True,TR_00000493,Wholesale,Retail,90 days,2024-08-30,2024-09-20,21
+TRADE_000494,Burkina Faso,Ghana,Maize,Intra-Africa,1000.0,0.48,476.42,True,Rainforest Alliance,B,56.76,19.1,5.02,River,1664.7,199.76,True,False,,Production,Retail,60 days,2024-05-19,2024-06-05,17
+TRADE_000495,Senegal,Ghana,Palm Oil,Intra-Africa,25702.0,1.23,31571.27,True,Organic,C,2680.28,1028.38,683.84,Road,867.7,104.12,True,False,,Production,Retail,60 days,2024-09-02,2024-09-15,13
+TRADE_000496,Senegal,France,Palm Oil,Africa-Europe,4255.5,1.49,6354.95,False,None,C,839.47,299.32,64.63,Air,6516.8,782.01,False,True,TR_00000496,Production,Export,30 days,2024-05-15,2024-06-03,19
+TRADE_000497,Burkina Faso,South Africa,Maize,Intra-Africa,8261.3,0.4,3304.5,False,None,A,471.25,71.76,72.5,Rail,1922.6,230.71,False,True,TR_00000497,Wholesale,Export,60 days,2024-05-10,2024-05-22,12
+TRADE_000498,South Africa,Germany,Honey,Africa-Europe,21060.7,13.79,290330.15,True,Organic,A,35613.76,7472.75,4490.42,Sea,9482.4,1137.89,False,False,,Wholesale,Retail,Cash,2024-10-02,2024-10-24,22
+TRADE_000499,Kenya,South Africa,Maize,Intra-Africa,29417.1,0.48,14152.13,True,Fair Trade,A,1396.34,701.18,399.41,Road,572.5,68.7,False,True,TR_00000499,Production,Retail,60 days,2024-12-16,2024-12-24,8
+TRADE_000500,Senegal,Ghana,Groundnut,Intra-Africa,2434.0,1.4,3407.63,False,None,A,456.46,79.43,35.95,Road,1184.2,142.11,False,False,,Production,Processing,90 days,2024-12-31,2025-01-23,23
+TRADE_000501,Nigeria,Netherlands,Palm Oil,Africa-Europe,14523.0,1.46,21258.23,False,None,B,3161.37,878.93,390.41,Sea,9892.5,1187.1,False,True,TR_00000501,Wholesale,Processing,Cash,2024-01-07,2024-01-11,4
+TRADE_000502,Kenya,South Africa,Groundnut,Intra-Africa,1000.0,1.96,1959.77,True,Fair Trade,A,254.2,83.98,56.38,Rail,784.1,94.1,False,False,,Processing,Export,60 days,2024-05-10,2024-06-03,24
+TRADE_000503,Burkina Faso,France,Maize,Africa-Europe,14393.8,0.82,11872.47,True,Fair Trade,B,1368.6,479.85,177.49,Sea,9203.3,1104.4,True,True,TR_00000503,Wholesale,Export,30 days,2024-11-24,2024-12-18,24
+TRADE_000504,Ghana,Senegal,Cocoa,Intra-Africa,7473.7,3.0,22421.22,False,None,C,2197.96,672.72,422.2,River,1823.0,218.76,False,False,,Wholesale,Wholesale,Cash,2024-10-27,2024-11-15,19
+TRADE_000505,South Africa,Nigeria,Maize,Intra-Africa,1333.3,0.4,533.3,False,None,B,53.81,13.21,5.84,Road,989.9,118.79,True,False,,Production,Processing,Cash,2024-05-09,2024-05-24,15
+TRADE_000506,Burkina Faso,Ghana,Groundnut,Africa-Europe,1000.0,2.17,2168.83,False,None,A,292.85,54.39,26.4,Sea,10245.0,1229.4,False,True,TR_00000506,Production,Wholesale,Cash,2024-03-24,2024-04-12,19
+TRADE_000507,Ghana,USA,Palm Oil,Africa-Europe,4787.7,1.76,8407.17,True,Fair Trade,C,842.97,300.23,97.38,Sea,5823.7,698.85,True,True,TR_00000507,Wholesale,Processing,30 days,2024-09-21,2024-10-21,30
+TRADE_000508,Ghana,Netherlands,Cocoa,Africa-Europe,2429.7,5.22,12679.41,True,Organic,A,1470.43,257.61,297.59,Sea,7965.8,955.9,True,True,TR_00000508,Processing,Retail,90 days,2024-12-20,2025-01-08,19
+TRADE_000509,Ghana,Senegal,Cocoa,Intra-Africa,1000.0,3.0,3000.0,False,None,B,355.87,148.12,34.41,River,1209.8,145.18,True,True,TR_00000509,Processing,Wholesale,60 days,2024-10-07,2024-10-12,5
+TRADE_000510,Ghana,South Africa,Maize,Intra-Africa,3338.8,0.4,1335.53,False,None,C,129.56,36.67,23.47,Rail,2545.3,305.43,True,True,TR_00000510,Production,Retail,60 days,2024-10-28,2024-11-16,19
+TRADE_000511,Burkina Faso,South Africa,Maize,Intra-Africa,212006.3,0.4,84802.53,False,None,B,9881.86,2800.37,1173.63,River,1720.5,206.47,True,True,TR_00000511,Wholesale,Processing,90 days,2024-01-02,2024-01-11,9
+TRADE_000512,Kenya,South Africa,Maize,Intra-Africa,11360.3,0.4,4544.12,False,None,C,108747.31883896983,199.34,114.84,River,835.0,100.2,False,False,,Production,Processing,90 days,2024-02-08,2024-02-21,13
+TRADE_000513,Senegal,Ghana,Palm Oil,Intra-Africa,29309.3,1.01,29476.4,True,Organic,B,,,802.17,River,744.0,89.28,False,False,,Production,Wholesale,60 days,2024-02-14,2024-03-10,25
+TRADE_000514,Kenya,Senegal,Groundnut,Intra-Africa,3740.0,1.4,5235.95,False,None,B,507.0,168.58,143.03,River,2847.2,341.66,True,True,TR_00000514,Wholesale,Wholesale,90 days,2024-07-07,2024-08-03,27
+TRADE_000515,Nigeria,Burkina Faso,Palm Oil,Intra-Africa,1323.1,0.9,1190.75,False,None,B,164.44,55.7,16.36,Road,2049.2,245.9,True,False,,Wholesale,Retail,Cash,2024-09-27,2024-10-07,10
+TRADE_000516,Senegal,France,Groundnut,Africa-Europe,1000.0,2.45,2450.58,False,None,B,,,46.94,Sea,7630.6,915.67,True,False,,Production,Retail,90 days,2024-07-04,2024-07-21,17
+TRADE_000517,Burkina Faso,Ghana,Maize,Intra-Africa,1000.0,0.44,442.08,True,Fair Trade,B,66.13,16.05,8.61,River,2886.5,346.39,True,False,,Processing,Processing,Cash,2024-07-13,2024-07-16,3
+TRADE_000518,Burkina Faso,Côte d'Ivoire,Groundnut,Africa-Europe,161943.1,1.81,293266.4,False,None,B,27346.1,12974.24,4462.52,Air,10594.6,1271.35,True,False,,Processing,Export,Cash,2024-08-23,2024-09-10,18
+TRADE_000519,Nigeria,Senegal,Fish,Intra-Africa,1000.0,5.31,5309.42,True,Organic,C,663.06,253.3,136.24,Road,951.9,114.23,False,True,TR_00000519,Wholesale,Retail,30 days,2024-02-17,2024-03-10,22
+TRADE_000520,Nigeria,Burkina Faso,Maize,Intra-Africa,3491.7,0.4,1396.68,False,None,C,189.96,54.82,32.65,River,2580.7,309.68,False,True,TR_00000520,Wholesale,Export,60 days,2024-01-28,2024-02-25,28
+TRADE_000521,Nigeria,France,Groundnut,Africa-Europe,1000.0,2.21,2214.78,False,None,B,223.38,56.43,49.46,Air,6636.9,796.43,False,True,TR_00000521,Wholesale,Wholesale,Cash,2024-08-10,2024-09-06,27
+TRADE_000522,Nigeria,France,Maize,Africa-Europe,399182.5,0.5,199263.77,False,None,C,15948.83,7621.76,3435.9,Sea,10266.2,1231.94,True,True,TR_00000522,Processing,Wholesale,60 days,2024-02-02,2024-02-25,23
+TRADE_000523,Ghana,South Africa,Maize,Intra-Africa,1765.4,0.4,706.14,False,None,A,76.61,27.9,12.09,Rail,2909.4,349.13,False,True,TR_00000523,Production,Processing,90 days,2024-05-23,2024-05-26,3
+TRADE_000524,Burkina Faso,South Africa,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,A,58.21,18.18,11.36,Road,1622.8,194.74,False,True,TR_00000524,Wholesale,Export,Cash,2024-02-07,2024-02-22,15
+TRADE_000525,Ghana,Netherlands,Maize,Africa-Europe,84332.7,0.88,74607.73,True,Organic,A,9709.69,3725.65,1266.1,Air,10831.0,1299.72,False,True,TR_00000525,Wholesale,Processing,60 days,2024-02-25,2024-03-25,29
+TRADE_000526,Ghana,Belgium,Palm Oil,Africa-Europe,4929.5,1.9,9388.39,True,Fair Trade,C,965.21,409.03,262.95,Sea,6529.8,783.58,True,True,TR_00000526,Processing,Processing,90 days,2024-01-23,2024-01-27,4
+TRADE_000527,Senegal,Kenya,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,C,59.71,13.75,5.83,River,1454.6,174.56,False,True,TR_00000527,Processing,Export,30 days,2024-10-14,2024-11-08,25
+TRADE_000528,Nigeria,Senegal,Fish,Intra-Africa,72391.2,5.18,375320.0,True,Fair Trade,A,32024.65,14302.72,10743.35,Rail,2625.9,315.11,False,False,,Production,Retail,Cash,2024-08-29,2024-09-25,27
+TRADE_000529,Senegal,Netherlands,Groundnut,Africa-Europe,1000.0,1.95,1946.33,True,Fair Trade,A,269.9,40.19,28.54,Sea,10301.1,1236.14,True,True,TR_00000529,Production,Wholesale,60 days,2024-05-12,2024-05-25,13
+TRADE_000530,Senegal,Nigeria,Groundnut,Intra-Africa,8115.2,1.79,14495.14,True,Fair Trade,A,1953.82,614.37,159.62,Rail,2731.3,327.75,False,False,,Production,Export,30 days,2024-05-11,2024-05-30,19
+TRADE_000531,Ghana,USA,Maize,Africa-Europe,5367.0,0.73,3919.0,True,Rainforest Alliance,B,581.33,135.77,43.71,Air,11560.8,1387.3,True,True,TR_00000531,Wholesale,Wholesale,60 days,2024-05-08,2024-05-20,12
+TRADE_000532,South Africa,Kenya,Honey,Intra-Africa,1000.0,9.0,9000.0,False,None,C,1089.35,368.78,184.53,Road,2586.8,310.42,False,True,TR_00000532,Processing,Retail,60 days,2024-06-20,2024-06-24,4
+TRADE_000533,Kenya,South Africa,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,B,181.18,44.53,21.63,Road,508.4,61.01,True,False,,Production,Processing,Cash,2024-04-15,2024-05-06,21
+TRADE_000534,South Africa,Burkina Faso,Maize,Intra-Africa,2655.2,0.4,1062.07,False,None,A,138.48,47.81,19.01,River,1910.5,229.27,True,True,TR_00000534,Production,Retail,90 days,2024-02-21,2024-02-26,5
+TRADE_000535,Senegal,South Africa,Maize,Intra-Africa,9665.1,0.4,3866.04,False,None,B,312.57,133.99,88.47,River,2795.5,335.46,True,True,TR_00000535,Production,Retail,60 days,2024-03-27,2024-04-19,23
+TRADE_000536,South Africa,Germany,Maize,Africa-Europe,1000.0,0.76,759.87,True,Organic,C,,,13.65,Sea,7233.7,868.04,True,True,TR_00000536,Wholesale,Export,Cash,2024-08-12,2024-08-25,13
+TRADE_000537,Kenya,Ghana,Maize,Intra-Africa,2208.9,0.4,883.55,False,None,C,70.93,28.32,12.14,Road,2061.0,247.32,False,True,TR_00000537,Wholesale,Export,90 days,2024-12-01,2024-12-25,24
+TRADE_000538,Burkina Faso,South Africa,Groundnut,Intra-Africa,27572.8,1.83,50329.47,True,Fair Trade,B,5743.95,1067.77,1163.75,Road,2605.1,312.61,True,True,TR_00000538,Wholesale,Processing,60 days,2024-08-25,2024-09-16,22
+TRADE_000539,Burkina Faso,Ghana,Groundnut,Africa-Europe,14762.2,2.53,37291.92,True,Organic,B,3824.42,760.84,1001.95,Sea,11592.7,1391.13,True,False,,Wholesale,Processing,30 days,2024-06-04,2024-07-01,27
+TRADE_000540,Burkina Faso,South Africa,Maize,Intra-Africa,8675.5,0.52,4499.69,True,Organic,B,432.87,123.98,86.99,Road,2744.6,329.35,False,True,TR_00000540,Wholesale,Export,Cash,2024-02-02,2024-02-07,5
+TRADE_000541,Senegal,Mali,Palm Oil,Africa-Europe,5271.5,1.24,6522.44,False,None,A,,,120.99,Air,7555.4,906.64,False,False,,Processing,Retail,Cash,2024-03-16,2024-03-20,4
+TRADE_000542,Kenya,Senegal,Groundnut,Intra-Africa,1615.2,1.88,3031.61,True,Rainforest Alliance,B,354.89,122.88,68.08,Road,882.2,105.87,True,False,,Processing,Retail,90 days,2024-02-07,2024-02-27,20
+TRADE_000543,Senegal,India,Maize,Africa-Europe,1385.8,0.83,1146.05,True,Rainforest Alliance,C,,,18.74,Sea,7170.0,860.4,False,True,TR_00000543,Wholesale,Export,30 days,2024-06-06,2024-06-27,21
+TRADE_000544,Kenya,Nigeria,Groundnut,Intra-Africa,7102.0,1.4,9942.85,False,None,A,1315.96,364.95,275.01,Rail,1268.4,152.21,True,True,TR_00000544,Production,Processing,90 days,2024-11-20,2024-12-04,14
+TRADE_000545,Kenya,Burkina Faso,Groundnut,Intra-Africa,25506.3,1.6,40902.46,True,Fair Trade,B,4419.15,1410.5,699.99,Road,1305.3,156.63,True,False,,Wholesale,Wholesale,30 days,2024-10-25,2024-10-29,4
+TRADE_000546,Nigeria,Ghana,Palm Oil,Intra-Africa,15204.8,1.18,17870.75,True,Organic,A,1699.7,737.74,512.91,River,1913.0,229.56,False,True,TR_00000546,Processing,Wholesale,Cash,2024-12-12,2024-12-16,4
+TRADE_000547,Burkina Faso,Nigeria,Groundnut,Intra-Africa,1000.0,1.9,1903.08,True,Organic,A,190.27,73.18,56.3,Road,1988.8,238.65,False,False,,Production,Processing,60 days,2024-08-15,2024-08-25,10
+TRADE_000548,South Africa,Senegal,Maize,Intra-Africa,4192.2,0.4,1676.86,False,None,C,219.22,55.94,18.79,Rail,2494.0,299.28,True,True,TR_00000548,Wholesale,Retail,60 days,2024-03-28,2024-04-18,21
+TRADE_000549,Ghana,Germany,Cocoa,Africa-Europe,3302.4,4.67,15438.34,False,None,A,1729.53,466.59,298.83,Sea,7179.9,861.59,False,True,TR_00000549,Wholesale,Wholesale,Cash,2024-07-08,2024-07-22,14
+TRADE_000550,Kenya,Tanzania,Maize,Africa-Europe,1000.0,0.71,706.67,True,Fair Trade,A,84.54,19.18,21.04,Sea,8506.1,1020.73,True,False,,Wholesale,Processing,30 days,2024-04-25,2024-05-20,25
+TRADE_000551,Senegal,Burkina Faso,Maize,Intra-Africa,2418.5,0.54,1315.58,True,Organic,C,107.25,53.13,27.57,Rail,923.9,110.87,False,True,TR_00000551,Processing,Processing,90 days,2024-01-03,2024-01-27,24
+TRADE_000552,Ghana,Senegal,Palm Oil,Intra-Africa,1000.0,0.9,900.0,False,None,C,123.5,27.96,14.29,Rail,2570.3,308.44,False,True,TR_00000552,Processing,Retail,30 days,2024-10-18,2024-11-13,26
+TRADE_000553,Ghana,Nigeria,Maize,Intra-Africa,14179.4,0.52,7310.7,True,Fair Trade,B,963.97,329.66,81.11,Road,2440.1,292.81,True,True,TR_00000553,Wholesale,Wholesale,90 days,2024-10-07,2024-10-22,15
+TRADE_000554,Burkina Faso,South Africa,Groundnut,Intra-Africa,5127.9,1.8,9218.71,True,Rainforest Alliance,C,782.35,325.03,107.39,Road,2339.9,280.78,True,True,TR_00000554,Production,Processing,30 days,2024-09-01,2024-09-09,8
+TRADE_000555,Burkina Faso,Nigeria,Groundnut,Intra-Africa,9980.5,1.62,16137.71,True,Rainforest Alliance,A,1975.62,425.19,359.57,Road,2306.6,276.79,True,False,,Processing,Export,30 days,2024-05-22,2024-06-02,11
+TRADE_000556,Senegal,France,Groundnut,Africa-Europe,3374.1,2.29,7715.71,False,None,C,,,89.08,Air,7402.9,888.34,True,True,TR_00000556,Wholesale,Processing,30 days,2024-12-10,2024-12-17,7
+TRADE_000557,Nigeria,South Africa,Groundnut,Intra-Africa,2893.0,1.62,4686.87,True,Organic,C,556.28,151.03,83.43,Road,2524.4,302.93,False,False,,Production,Processing,30 days,2024-07-02,2024-08-01,30
+TRADE_000558,Nigeria,Netherlands,Groundnut,Africa-Europe,157215.0,2.24,352267.22,True,Fair Trade,A,29613.14,16094.15,10290.44,Air,9818.9,1178.26,False,False,,Production,Processing,60 days,2024-07-21,2024-07-30,9
+TRADE_000559,Burkina Faso,Netherlands,Maize,Africa-Europe,9104.0,0.64,5818.09,False,None,B,809.32,250.04,102.3,Air,8350.9,1002.11,True,False,,Production,Wholesale,Cash,2024-11-08,2024-11-28,20
+TRADE_000560,Senegal,France,Maize,Africa-Europe,2110.6,0.52,1107.39,False,None,B,111.23,48.0,30.87,Sea,10071.2,1208.55,False,False,,Production,Wholesale,Cash,2024-11-07,2024-11-11,4
+TRADE_000561,Ghana,Senegal,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,C,33.59,12.49,7.71,Road,2022.8,242.74,False,False,,Wholesale,Processing,30 days,2024-03-24,2024-03-31,7
+TRADE_000562,Kenya,Ghana,Groundnut,Intra-Africa,2578.7,1.4,3610.19,False,None,C,290.46,179.4,62.38,Rail,2620.2,314.43,False,False,,Production,Retail,30 days,2024-07-20,2024-08-06,17
+TRADE_000563,Nigeria,Burkina Faso,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,A,190.16,57.81,28.77,Rail,1786.4,214.37,False,False,,Wholesale,Processing,90 days,2024-05-10,2024-05-22,12
+TRADE_000564,Kenya,Tanzania,Maize,Africa-Europe,3661.5,0.65,2378.76,True,Rainforest Alliance,B,342.04,54.23,36.32,Air,11316.2,1357.94,False,True,TR_00000564,Processing,Wholesale,90 days,2024-11-27,2024-12-19,22
+TRADE_000565,Nigeria,Ghana,Fish,Intra-Africa,18995.0,5.04,95768.76,True,Fair Trade,B,11659.17,3109.96,1532.28,Road,621.3,74.56,False,True,TR_00000565,Wholesale,Export,60 days,2024-12-06,2024-12-13,7
+TRADE_000566,Nigeria,Spain,Groundnut,Africa-Europe,1000.0,2.31,2305.2,False,None,C,304.81,92.49,52.73,Sea,6706.0,804.72,True,False,,Wholesale,Export,Cash,2024-11-23,2024-12-03,10
+TRADE_000567,Burkina Faso,Nigeria,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,A,121.99,30.63,23.77,Road,2511.8,301.42,False,False,,Wholesale,Processing,60 days,2024-04-05,2024-04-19,14
+TRADE_000568,Nigeria,South Africa,Maize,Intra-Africa,2493.2,0.55,1371.88,True,Rainforest Alliance,A,195.87,65.3,38.62,Road,1818.1,218.17,False,True,TR_00000568,Processing,Retail,Cash,2024-12-08,2024-12-27,19
+TRADE_000569,Senegal,Kenya,Palm Oil,Intra-Africa,10967.5,0.9,9870.75,False,None,C,937.33,276.54,144.76,River,1787.5,214.49,False,False,,Processing,Retail,60 days,2024-06-18,2024-07-16,28
+TRADE_000570,Senegal,India,Palm Oil,Africa-Europe,1000.0,1.44,1437.15,True,Fair Trade,C,160.56,66.42,30.77,Air,11148.3,1337.8,False,False,,Wholesale,Retail,Cash,2024-07-20,2024-08-04,15
+TRADE_000571,South Africa,Kenya,Honey,Intra-Africa,1154.5,9.0,10390.28,False,None,A,1249.85,352.23,241.09,Rail,2486.6,298.39,False,True,TR_00000571,Wholesale,Processing,60 days,2024-11-12,2024-11-24,12
+TRADE_000572,Kenya,South Africa,Maize,Intra-Africa,1253.5,0.4,501.41,False,None,B,66.48,24.2,9.01,Rail,1016.0,121.92,True,False,,Production,Processing,90 days,2024-02-27,2024-03-28,30
+TRADE_000573,South Africa,Senegal,Honey,Intra-Africa,1000.0,10.68,10679.9,True,Fair Trade,B,1009.81,340.66,130.55,Road,579.6,69.55,False,True,TR_00000573,Processing,Wholesale,30 days,2024-01-27,2024-02-20,24
+TRADE_000574,Nigeria,France,Fish,Africa-Europe,3847.3,6.38,24531.8,False,None,A,3010.48,1011.96,569.33,Air,5800.1,696.01,False,True,TR_00000574,Production,Retail,30 days,2024-10-17,2024-11-02,16
+TRADE_000575,Senegal,Ghana,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,B,55.6,16.96,5.61,River,1353.3,162.39,True,True,TR_00000575,Processing,Retail,Cash,2024-03-02,2024-03-07,5
+TRADE_000576,Burkina Faso,Nigeria,Groundnut,Intra-Africa,1352.6,1.4,1893.58,False,None,B,279.61,71.62,49.28,River,1161.5,139.38,False,True,TR_00000576,Processing,Export,60 days,2024-09-15,2024-10-13,28
+TRADE_000577,Senegal,Ghana,Groundnut,Intra-Africa,10706.3,1.4,14988.8,False,None,C,1918.73,605.99,315.55,Road,1908.9,229.07,True,True,TR_00000577,Processing,Export,30 days,2024-12-20,2025-01-08,19
+TRADE_000578,Kenya,Senegal,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,C,184.1,39.34,23.88,Rail,2679.1,321.49,False,False,,Processing,Processing,Cash,2024-04-06,2024-04-15,9
+TRADE_000579,Ghana,Belgium,Palm Oil,Africa-Europe,7404.5,2.04,15128.69,True,Fair Trade,A,,,406.23,Sea,10638.5,1276.62,False,False,,Wholesale,Processing,Cash,2024-11-28,2024-12-17,19
+TRADE_000580,Nigeria,Netherlands,Fish,Africa-Europe,1000.0,8.12,8120.92,True,Organic,A,,,223.52,Air,11186.4,1342.37,False,False,,Production,Processing,90 days,2024-12-05,2025-01-04,30
+TRADE_000581,South Africa,Germany,Honey,Africa-Europe,2113.4,18.54,39190.65,True,Fair Trade,B,4995.24,1262.62,412.33,Sea,8957.7,1074.92,True,True,TR_00000581,Production,Retail,60 days,2024-04-11,2024-04-17,6
+TRADE_000582,Nigeria,Ghana,Fish,Intra-Africa,1000.0,4.52,4515.29,True,Rainforest Alliance,C,624.97,192.24,86.74,River,1573.0,188.76,True,False,,Wholesale,Export,60 days,2024-06-25,2024-07-02,7
+TRADE_000583,Senegal,Nigeria,Groundnut,Intra-Africa,1620.9,1.64,2665.76,True,Organic,C,388.52,118.03,70.41,Road,988.0,118.56,True,False,,Production,Wholesale,Cash,2024-12-24,2025-01-15,22
+TRADE_000584,Kenya,Tanzania,Maize,Africa-Europe,9361.4,0.57,5334.54,True,Organic,B,515.28,230.59,78.96,Air,10103.7,1212.45,False,True,TR_00000584,Processing,Processing,Cash,2024-01-18,2024-02-05,18
+TRADE_000585,Kenya,Burkina Faso,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,C,59.53,10.94,7.01,Road,1252.7,150.33,True,True,TR_00000585,Production,Processing,90 days,2024-07-14,2024-07-18,4
+TRADE_000586,Kenya,Senegal,Maize,Intra-Africa,1000.0,0.45,453.15,True,Rainforest Alliance,C,51.79,14.21,10.83,River,2544.0,305.28,True,True,TR_00000586,Wholesale,Retail,60 days,2024-09-09,2024-10-03,24
+TRADE_000587,South Africa,Kenya,Maize,Intra-Africa,1105.0,0.4,441.99,False,None,A,54.51,9.57,9.87,Rail,2212.6,265.51,True,True,TR_00000587,Production,Wholesale,30 days,2024-04-20,2024-05-15,25
+TRADE_000588,Burkina Faso,France,Maize,Africa-Europe,3274.3,0.53,1727.1,False,None,B,237.22,81.75,45.36,Sea,7135.8,856.29,True,True,TR_00000588,Processing,Retail,Cash,2024-04-01,2024-04-27,26
+TRADE_000589,Burkina Faso,Ghana,Groundnut,Intra-Africa,14654.8,1.4,20516.77,False,None,C,2101.87,915.07,209.06,Road,509.1,61.09,True,False,,Wholesale,Processing,Cash,2024-02-04,2024-03-05,30
+TRADE_000590,Senegal,Nigeria,Palm Oil,Intra-Africa,4157.3,1.2,4968.54,True,Fair Trade,B,,,142.1,River,794.8,95.37,False,True,TR_00000590,Wholesale,Export,30 days,2024-03-03,2024-03-26,23
+TRADE_000591,Senegal,Kenya,Maize,Intra-Africa,5375.8,0.46,2479.68,True,Fair Trade,A,316.79,89.06,28.92,River,1213.2,145.58,False,False,,Wholesale,Retail,60 days,2024-04-27,2024-05-18,21
+TRADE_000592,South Africa,Germany,Maize,Africa-Europe,2015.4,0.6,1219.07,False,None,B,170.26,50.26,27.35,Air,8472.2,1016.67,True,True,TR_00000592,Production,Export,Cash,2024-11-16,2024-12-10,24
+TRADE_000593,Senegal,Burkina Faso,Palm Oil,Intra-Africa,1000.0,0.9,900.0,False,None,B,97.77,18.77,12.8,Rail,1581.2,189.75,True,False,,Production,Retail,30 days,2024-10-18,2024-11-11,24
+TRADE_000594,Kenya,Nigeria,Groundnut,Intra-Africa,1447.8,1.72,2484.22,True,Fair Trade,A,206.44,93.58,52.15,Road,695.3,83.43,False,True,TR_00000594,Production,Processing,Cash,2024-03-27,2024-04-12,16
+TRADE_000595,Senegal,Ghana,Palm Oil,Intra-Africa,1000.0,1.19,1189.32,True,Fair Trade,A,,,30.15,Road,678.1,81.38,False,True,TR_00000595,Processing,Retail,90 days,2024-11-13,2024-11-28,15
+TRADE_000596,Burkina Faso,Nigeria,Groundnut,Intra-Africa,39354.3,1.4,55096.06,False,None,B,7964.05,1186.18,1079.14,Rail,2307.6,276.91,True,True,TR_00000596,Production,Wholesale,90 days,2024-11-04,2024-12-01,27
+TRADE_000597,Senegal,South Africa,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,C,53.25,17.41,11.38,River,1440.4,172.85,False,False,,Wholesale,Wholesale,60 days,2024-05-01,2024-05-30,29
+TRADE_000598,Burkina Faso,Netherlands,Maize,Africa-Europe,1094.1,0.6,658.07,False,None,A,69.37,18.24,16.47,Air,7377.6,885.31,False,True,TR_00000598,Production,Wholesale,Cash,2024-04-03,2024-04-13,10
+TRADE_000599,Burkina Faso,Ghana,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,B,,,9.33,Rail,1679.0,201.47,False,False,,Processing,Export,90 days,2024-10-15,2024-11-07,23
+TRADE_000600,Ghana,Senegal,Cocoa,Intra-Africa,1000.0,3.0,3000.0,False,None,B,403.63,117.69,33.64,Rail,739.2,88.7,False,False,,Processing,Retail,90 days,2024-09-11,2024-09-26,15
+TRADE_000601,Ghana,USA,Maize,Africa-Europe,2693.0,0.68,1826.38,False,None,C,186.14,57.58,51.48,Air,10858.3,1303.0,False,True,TR_00000601,Production,Retail,30 days,2024-06-18,2024-06-22,4
+TRADE_000602,Senegal,Ghana,Maize,Intra-Africa,1005.1,0.4,402.04,False,None,C,50.88,11.26,4.96,Rail,540.1,64.82,True,False,,Production,Processing,60 days,2024-08-25,2024-09-11,17
+TRADE_000603,Senegal,Nigeria,Palm Oil,Intra-Africa,1569.9,1.14,1788.06,True,Rainforest Alliance,C,151.06,43.07,24.36,Rail,2080.0,249.59,True,False,,Processing,Processing,30 days,2024-04-01,2024-04-15,14
+TRADE_000604,Kenya,Germany,Groundnut,Africa-Europe,1000.0,2.2,2197.26,False,None,A,260.49,60.46,38.28,Sea,5676.8,681.22,False,False,,Wholesale,Export,90 days,2024-09-25,2024-10-17,22
+TRADE_000605,South Africa,UK,Maize,Africa-Europe,5533.4,0.72,3957.07,False,None,B,495.96,187.98,90.44,Air,5232.4,627.89,True,False,,Processing,Processing,60 days,2024-06-06,2024-07-01,25
+TRADE_000606,Kenya,Tanzania,Maize,Africa-Europe,1948.0,0.72,1401.05,False,None,C,,,21.1,Air,7743.9,929.26,False,False,,Processing,Retail,60 days,2024-04-25,2024-05-16,21
+TRADE_000607,Senegal,Mali,Groundnut,Africa-Europe,1000.0,2.27,2269.18,True,Organic,C,235.79,110.69,58.94,Sea,8209.8,985.18,False,False,,Wholesale,Retail,30 days,2024-03-06,2024-03-28,22
+TRADE_000608,Senegal,India,Groundnut,Africa-Europe,150864.4,2.48,374479.43,True,Organic,A,34078.67,9854.0,6486.08,Sea,11162.4,1339.49,False,True,TR_00000608,Wholesale,Wholesale,Cash,2024-03-07,2024-03-11,4
+TRADE_000609,Ghana,Senegal,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,B,,,7.48,Road,779.9,93.59,False,False,,Wholesale,Wholesale,30 days,2024-06-21,2024-07-09,18
+TRADE_000610,Ghana,Senegal,Cocoa,Intra-Africa,2706.4,3.0,8119.09,False,None,B,729.69,362.37,225.04,Rail,1086.7,130.41,True,True,TR_00000610,Wholesale,Processing,Cash,2024-11-08,2024-11-18,10
+TRADE_000611,Senegal,Ghana,Palm Oil,Intra-Africa,63097.2,1.09,68817.53,True,Rainforest Alliance,B,8779.55,2848.27,1975.53,Rail,662.2,79.46,False,False,,Wholesale,Retail,30 days,2024-09-27,2024-10-22,25
+TRADE_000612,South Africa,France,Maize,Africa-Europe,13835.8,0.59,8157.36,True,Rainforest Alliance,A,1148.23,357.11,175.32,Sea,5585.6,670.28,False,False,,Production,Export,60 days,2024-10-09,2024-10-21,12
+TRADE_000613,Nigeria,Senegal,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,A,,,16.04,Road,2326.9,279.23,True,False,,Processing,Wholesale,30 days,2024-04-07,2024-05-06,29
+TRADE_000614,Nigeria,Kenya,Maize,Intra-Africa,1000.0,0.48,475.89,True,Fair Trade,A,53.14,11.34,12.4,Rail,1913.8,229.66,True,True,TR_00000614,Wholesale,Retail,90 days,2024-06-03,2024-06-13,10
+TRADE_000615,Senegal,Netherlands,Groundnut,Africa-Europe,2918.7,3.38,9862.12,True,Organic,C,1186.93,473.55,162.35,Air,7559.5,907.14,False,True,TR_00000615,Wholesale,Processing,30 days,2024-07-14,2024-08-10,27
+TRADE_000616,Senegal,Netherlands,Maize,Africa-Europe,19386.0,0.49,9516.88,False,None,A,,,242.4,Air,6048.7,725.85,False,False,,Processing,Wholesale,60 days,2024-04-06,2024-04-10,4
+TRADE_000617,Nigeria,Netherlands,Palm Oil,Africa-Europe,1000.0,1.65,1649.42,True,Rainforest Alliance,B,236.35,44.4,26.11,Air,10956.3,1314.76,False,False,,Processing,Wholesale,30 days,2024-04-02,2024-04-19,17
+TRADE_000618,Burkina Faso,Ghana,Maize,Africa-Europe,1915.3,0.65,1251.22,True,Organic,A,143.42,28.2,37.17,Sea,9116.8,1094.01,False,False,,Production,Wholesale,Cash,2024-10-20,2024-10-26,6
+TRADE_000619,Nigeria,Burkina Faso,Maize,Intra-Africa,6898.8,0.4,2759.51,False,None,C,235.61,121.41,78.66,Road,2686.1,322.33,False,True,TR_00000619,Production,Retail,90 days,2024-08-21,2024-09-04,14
+TRADE_000620,Kenya,Netherlands,Groundnut,Africa-Europe,1000.0,2.36,2356.03,True,Rainforest Alliance,A,194.27,93.16,48.77,Sea,8215.4,985.85,False,False,,Production,Wholesale,30 days,2024-04-17,2024-04-21,4
+TRADE_000621,Burkina Faso,Ghana,Groundnut,Africa-Europe,1000.0,2.43,2426.92,True,Organic,B,228.89,98.6,41.22,Sea,8582.8,1029.94,True,True,TR_00000621,Processing,Retail,Cash,2024-03-06,2024-03-26,20
+TRADE_000622,Burkina Faso,Nigeria,Maize,Intra-Africa,3168.0,0.55,1748.92,True,Rainforest Alliance,B,144.49,61.23,47.38,Road,1969.9,236.39,False,True,TR_00000622,Wholesale,Retail,60 days,2024-01-30,2024-02-16,17
+TRADE_000623,Burkina Faso,Côte d'Ivoire,Groundnut,Africa-Europe,1000.0,2.25,2251.42,False,None,B,,,25.74,Air,7275.4,873.04,False,False,,Wholesale,Wholesale,60 days,2024-02-24,2024-03-17,22
+TRADE_000624,South Africa,Burkina Faso,Honey,Intra-Africa,1000.0,10.53,10528.51,True,Rainforest Alliance,C,1037.53,280.46,146.52,Rail,826.6,99.19,False,True,TR_00000624,Production,Wholesale,30 days,2024-09-15,2024-10-15,30
+TRADE_000625,Ghana,Belgium,Palm Oil,Africa-Europe,1000.0,1.58,1583.83,False,None,C,210.49,69.2,19.16,Air,10854.2,1302.5,False,False,,Wholesale,Wholesale,30 days,2024-09-16,2024-10-12,26
+TRADE_000626,Senegal,Ghana,Maize,Intra-Africa,1000.0,0.49,488.98,True,Organic,A,48.11,18.23,12.93,Road,2446.6,293.6,True,True,TR_00000626,Processing,Processing,30 days,2024-03-02,2024-03-21,19
+TRADE_000627,Senegal,Burkina Faso,Groundnut,Intra-Africa,1249.5,1.55,1931.97,True,Rainforest Alliance,B,273.47,47.6,52.61,Road,1323.5,158.82,False,True,TR_00000627,Production,Wholesale,30 days,2024-05-29,2024-06-23,25
+TRADE_000628,Burkina Faso,Ghana,Groundnut,Africa-Europe,1000.0,1.99,1989.23,False,None,B,164.59,59.29,55.24,Sea,5178.8,621.46,True,True,TR_00000628,Processing,Retail,60 days,2024-03-30,2024-04-06,7
+TRADE_000629,Burkina Faso,Ghana,Groundnut,Intra-Africa,1294.0,1.4,1811.56,False,None,A,191.96,45.61,27.25,Rail,2694.0,323.28,True,True,TR_00000629,Processing,Export,60 days,2024-07-11,2024-07-19,8
+TRADE_000630,Senegal,Mali,Palm Oil,Africa-Europe,2522.9,1.56,3923.33,True,Rainforest Alliance,C,475.72,95.19,59.59,Sea,8823.7,1058.85,True,True,TR_00000630,Processing,Retail,Cash,2024-05-28,2024-06-09,12
+TRADE_000631,Burkina Faso,Senegal,Groundnut,Intra-Africa,13602.7,1.4,19043.82,False,None,B,,,551.6,Road,789.5,94.74,True,False,,Processing,Retail,60 days,2024-03-26,2024-03-29,3
+TRADE_000632,South Africa,France,Honey,Africa-Europe,1000.0,12.61,12607.19,False,None,C,1290.58,309.32,330.38,Air,10319.2,1238.3,False,True,TR_00000632,Wholesale,Wholesale,30 days,2024-08-06,2024-08-29,23
+TRADE_000633,Burkina Faso,South Africa,Groundnut,Intra-Africa,1037489.8,1.57,1623680.36,True,Fair Trade,B,193032.08,71020.18,34871.05,Rail,1163.3,139.59,True,False,,Wholesale,Wholesale,Cash,2024-03-22,2024-04-05,14
+TRADE_000634,Kenya,Nigeria,Groundnut,Intra-Africa,1000.0,1.82,1820.37,True,Organic,B,191.69,66.16,35.95,River,1452.9,174.35,True,True,TR_00000634,Production,Processing,60 days,2024-10-30,2024-11-11,12
+TRADE_000635,Kenya,Senegal,Maize,Intra-Africa,10110.8,0.4,4044.32,False,None,C,325.02,194.16,81.82,Rail,2251.8,270.22,True,False,,Processing,Wholesale,90 days,2024-08-11,2024-08-21,10
+TRADE_000636,Burkina Faso,Ghana,Groundnut,Africa-Europe,5981.3,2.97,17792.78,True,Fair Trade,A,2463.38,450.67,234.57,Air,9602.3,1152.28,False,False,,Production,Export,Cash,2024-11-15,2024-12-04,19
+TRADE_000637,Senegal,Burkina Faso,Maize,Intra-Africa,6470.0,0.48,3104.1,True,Organic,C,461.27,91.85,77.24,Rail,1830.0,219.59,True,True,TR_00000637,Wholesale,Processing,30 days,2024-02-02,2024-03-02,29
+TRADE_000638,Ghana,Belgium,Cocoa,Africa-Europe,235638.4,4.7,1106398.38,False,None,C,118986.11,54152.33,23714.15,Sea,11564.5,1387.74,True,False,,Processing,Retail,90 days,2024-08-10,2024-08-30,20
+TRADE_000639,Ghana,Netherlands,Cocoa,Africa-Europe,3100.4,4.89,15163.9,False,None,C,2003.99,714.97,152.97,Air,5002.3,600.28,False,True,TR_00000639,Production,Processing,Cash,2024-06-07,2024-06-19,12
+TRADE_000640,Nigeria,Senegal,Fish,Intra-Africa,2284.2,4.0,9136.9,False,None,B,1033.0,190.77,269.45,Road,1055.2,126.62,False,False,,Processing,Retail,60 days,2024-11-22,2024-12-07,15
+TRADE_000641,Ghana,South Africa,Palm Oil,Intra-Africa,1000.0,1.13,1130.95,True,Fair Trade,A,120.56,24.13,18.89,River,1478.6,177.43,True,True,TR_00000641,Production,Wholesale,Cash,2024-08-11,2024-09-08,28
+TRADE_000642,Ghana,Netherlands,Maize,Africa-Europe,2726.8,0.72,1956.67,False,None,C,185.01,71.11,58.2,Sea,10544.1,1265.3,True,False,,Wholesale,Retail,Cash,2024-02-27,2024-03-10,12
+TRADE_000643,Burkina Faso,Kenya,Groundnut,Intra-Africa,141285.8,1.4,197800.11,False,None,C,,,5178.48,River,1763.3,211.6,True,True,TR_00000643,Production,Processing,Cash,2024-09-20,2024-10-15,25
+TRADE_000644,Kenya,Nigeria,Groundnut,Intra-Africa,2427.1,1.84,4454.11,True,Organic,B,588.84,122.95,122.55,Road,1649.6,197.95,True,True,TR_00000644,Production,Retail,30 days,2024-10-03,2024-10-16,13
+TRADE_000645,Ghana,Belgium,Maize,Africa-Europe,6813.7,0.77,5239.21,True,Fair Trade,C,620.12,164.81,137.25,Sea,9091.3,1090.95,True,True,TR_00000645,Wholesale,Wholesale,90 days,2024-06-30,2024-07-20,20
+TRADE_000646,Burkina Faso,Côte d'Ivoire,Maize,Africa-Europe,1547.4,0.65,1005.78,True,Fair Trade,C,143.51,21.19,27.42,Air,7519.7,902.37,True,False,,Processing,Wholesale,30 days,2024-08-22,2024-09-18,27
+TRADE_000647,Burkina Faso,Netherlands,Maize,Africa-Europe,10956.6,0.66,7186.28,True,Organic,B,959.44,307.05,147.41,Air,9373.2,1124.78,False,True,TR_00000647,Wholesale,Retail,30 days,2024-11-21,2024-11-27,6
+TRADE_000648,Ghana,Kenya,Cocoa,Intra-Africa,4580.7,3.98,18239.2,True,Organic,A,2532.91,-27446.053145925947,311.53,Road,2991.8,359.02,True,True,TR_00000648,Wholesale,Wholesale,Cash,2024-04-12,2024-04-22,10
+TRADE_000649,Burkina Faso,Nigeria,Maize,Intra-Africa,1339.3,0.4,535.71,False,None,C,56.45,12.77,6.66,River,1203.8,144.46,False,True,TR_00000649,Wholesale,Processing,90 days,2024-06-15,2024-07-10,25
+TRADE_000650,Kenya,Ghana,Groundnut,Intra-Africa,2669.9,1.4,3737.86,False,None,C,312.99,151.96,42.91,River,1008.2,120.99,True,False,,Wholesale,Processing,60 days,2024-01-04,2024-01-27,23
+TRADE_000651,Ghana,Senegal,Palm Oil,Intra-Africa,8139.4,0.9,7325.44,False,None,A,1080.71,338.92,201.59,Rail,940.2,112.82,True,False,,Processing,Wholesale,60 days,2024-06-29,2024-07-20,21
+TRADE_000652,Kenya,Uganda,Maize,Africa-Europe,1000.0,0.61,610.39,True,Rainforest Alliance,B,82.09,13.49,12.9,Air,6735.1,808.22,False,False,,Production,Export,Cash,2024-09-30,2024-10-15,15
+TRADE_000653,Kenya,Senegal,Maize,Intra-Africa,10885.8,0.51,5536.92,True,Fair Trade,A,780.54,217.96,160.15,Rail,1203.3,144.4,False,False,,Production,Retail,60 days,2024-11-17,2024-12-10,23
+TRADE_000654,Burkina Faso,Kenya,Maize,Intra-Africa,7999.0,0.51,4091.01,True,Rainforest Alliance,B,,,112.89,Rail,2949.5,353.94,True,False,,Wholesale,Retail,90 days,2024-08-12,2024-09-02,21
+TRADE_000655,Ghana,USA,Palm Oil,Africa-Europe,1000.0,1.33,1334.85,False,None,B,186.47,52.54,14.54,Air,8795.2,1055.42,False,False,,Production,Wholesale,60 days,2024-07-26,2024-08-06,11
+TRADE_000656,Kenya,Burkina Faso,Maize,Intra-Africa,2252.2,0.4,900.86,False,None,B,73.16,39.06,14.92,Road,1680.0,201.6,False,True,TR_00000656,Wholesale,Processing,60 days,2024-05-29,2024-06-25,27
+TRADE_000657,Ghana,Senegal,Palm Oil,Intra-Africa,1530.8,0.9,1377.72,False,None,B,,,41.28,Road,2563.5,307.62,True,True,TR_00000657,Processing,Wholesale,90 days,2024-01-17,2024-01-25,8
+TRADE_000658,Kenya,Ghana,Groundnut,Intra-Africa,1000.0,1.91,1911.24,True,Rainforest Alliance,B,278.26,57.77,30.47,Road,1085.2,130.22,False,False,,Production,Processing,30 days,2024-09-23,2024-09-29,6
+TRADE_000659,Ghana,Senegal,Maize,Intra-Africa,8278.0,0.47,3876.91,True,Rainforest Alliance,C,,,79.72,River,2721.8,326.62,False,False,,Processing,Retail,30 days,2024-02-24,2024-03-15,20
+TRADE_000660,Kenya,Uganda,Groundnut,Africa-Europe,19493.1,2.74,53502.21,True,Organic,C,,,1530.44,Sea,11353.0,1362.36,False,False,,Production,Export,30 days,2024-12-13,2024-12-28,15
+TRADE_000661,South Africa,Senegal,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,A,49.94,19.34,4.9,River,1629.6,195.56,False,False,,Wholesale,Processing,90 days,2024-08-09,2024-08-26,17
+TRADE_000662,Ghana,Burkina Faso,Palm Oil,Intra-Africa,1000.0,1.04,1041.95,True,Fair Trade,A,148.57,50.99,20.4,River,760.0,91.2,True,True,TR_00000662,Production,Retail,60 days,2024-11-19,2024-12-16,27
+TRADE_000663,Ghana,Kenya,Cocoa,Intra-Africa,11796.1,3.0,35388.42,False,None,A,3709.66,1649.89,1044.55,Rail,1894.6,227.36,False,True,TR_00000663,Wholesale,Export,90 days,2024-09-04,2024-09-15,11
+TRADE_000664,Kenya,Ghana,Groundnut,Intra-Africa,21820.5,1.4,30548.72,False,None,A,3653.66,883.63,662.61,Road,1599.1,191.89,False,True,TR_00000664,Wholesale,Retail,90 days,2024-06-25,2024-07-17,22
+TRADE_000665,Kenya,Nigeria,Maize,Intra-Africa,1327.4,0.47,624.3,True,Rainforest Alliance,B,58.59,22.64,13.76,Road,2021.4,242.57,True,True,TR_00000665,Wholesale,Export,90 days,2024-11-21,2024-12-14,23
+TRADE_000666,South Africa,Burkina Faso,Maize,Intra-Africa,2059.6,0.4,823.83,False,None,B,88.29,26.89,21.98,River,1690.6,202.87,False,False,,Wholesale,Retail,60 days,2024-11-01,2024-11-11,10
+TRADE_000667,Nigeria,Burkina Faso,Maize,Intra-Africa,2795.1,0.52,1447.74,True,Organic,B,120.92,57.33,39.13,Rail,2856.1,342.74,True,False,,Wholesale,Processing,Cash,2024-02-22,2024-03-01,8
+TRADE_000668,Kenya,Uganda,Maize,Africa-Europe,5013.6,0.85,4272.54,True,Rainforest Alliance,A,513.88,143.22,90.9,Air,6102.2,732.26,False,True,TR_00000668,Processing,Export,30 days,2024-09-10,2024-09-18,8
+TRADE_000669,Burkina Faso,France,Groundnut,Africa-Europe,1000.0,1.8,1798.3,False,None,A,229.94,52.81,50.7,Sea,9697.1,1163.65,True,False,,Processing,Wholesale,60 days,2024-12-14,2025-01-12,29
+TRADE_000670,Ghana,Kenya,Palm Oil,Intra-Africa,1341.9,1.16,1562.45,True,Fair Trade,A,186.18,33.39,44.75,Road,2069.8,248.38,True,False,,Wholesale,Processing,60 days,2024-09-27,2024-10-27,30
+TRADE_000671,Ghana,Kenya,Maize,Intra-Africa,3067.9,0.4,1227.18,False,None,A,159.17,26.61,27.78,Rail,2411.6,289.39,True,False,,Production,Export,90 days,2024-07-01,2024-07-28,27
+TRADE_000672,Senegal,India,Groundnut,Africa-Europe,4360.8,3.11,13547.27,True,Fair Trade,B,1298.37,667.37,405.11,Sea,5529.2,663.5,False,False,,Processing,Wholesale,Cash,2024-04-12,2024-04-23,11
+TRADE_000673,Kenya,Ghana,Maize,Intra-Africa,2191.6,0.52,1145.57,True,Fair Trade,A,118.76,56.17,13.78,Road,1744.4,209.32,True,True,TR_00000673,Wholesale,Wholesale,90 days,2024-11-25,2024-12-14,19
+TRADE_000674,Burkina Faso,Nigeria,Groundnut,Intra-Africa,5640.1,1.72,9699.7,True,Fair Trade,B,997.34,381.84,122.42,Road,2291.7,275.0,True,False,,Wholesale,Retail,30 days,2024-01-05,2024-01-17,12
+TRADE_000675,Ghana,Burkina Faso,Maize,Intra-Africa,1425.7,0.4,570.27,False,None,B,58.59,20.25,6.22,Rail,2863.4,343.61,False,True,TR_00000675,Wholesale,Processing,Cash,2024-04-25,2024-05-13,18
+TRADE_000676,Ghana,Burkina Faso,Maize,Intra-Africa,19769.2,0.46,9039.56,True,Fair Trade,B,1294.56,203.46,239.12,Rail,879.9,105.59,True,False,,Wholesale,Retail,30 days,2024-09-02,2024-09-19,17
+TRADE_000677,Kenya,Tanzania,Maize,Africa-Europe,20971.9,0.69,14566.26,True,Fair Trade,C,,,359.63,Sea,8507.1,1020.86,False,False,,Processing,Export,60 days,2024-11-18,2024-12-16,28
+TRADE_000678,Burkina Faso,Côte d'Ivoire,Maize,Africa-Europe,1000.0,0.74,744.33,True,Rainforest Alliance,B,69.99,27.0,14.0,Air,7730.8,927.7,True,True,TR_00000678,Wholesale,Export,30 days,2024-09-29,2024-10-09,10
+TRADE_000679,Ghana,Senegal,Palm Oil,Intra-Africa,33462.3,0.9,30116.09,False,None,A,2506.09,908.37,549.18,Rail,742.2,89.07,False,False,,Wholesale,Export,90 days,2024-05-21,2024-06-16,26
+TRADE_000680,Kenya,South Africa,Maize,Intra-Africa,26647.8,0.4,10659.13,False,None,C,1028.75,229.7,318.97,Rail,2341.4,280.97,True,False,,Production,Processing,30 days,2024-09-22,2024-10-18,26
+TRADE_000681,Kenya,Uganda,Groundnut,Africa-Europe,1154.8,3.22,3722.51,True,Fair Trade,C,453.96,95.35,95.46,Sea,11690.7,1402.88,True,False,,Processing,Export,60 days,2024-08-24,2024-08-27,3
+TRADE_000682,Ghana,Germany,Maize,Africa-Europe,91115.6,0.62,56423.83,False,None,A,7207.57,1699.72,994.78,Air,10142.6,1217.11,True,False,,Wholesale,Wholesale,Cash,2024-02-12,2024-02-20,8
+TRADE_000683,Burkina Faso,Côte d'Ivoire,Groundnut,Africa-Europe,4391.1,2.7,11849.38,True,Rainforest Alliance,C,1123.76,426.12,160.33,Sea,9445.0,1133.4,True,False,,Wholesale,Processing,Cash,2024-05-20,2024-06-02,13
+TRADE_000684,Burkina Faso,Netherlands,Maize,Africa-Europe,10770.4,0.55,5923.68,False,None,B,802.11,262.08,114.18,Sea,6265.7,751.88,True,False,,Processing,Retail,30 days,2024-10-13,2024-11-12,30
+TRADE_000685,South Africa,Netherlands,Honey,Africa-Europe,1368.4,13.03,17829.65,True,Rainforest Alliance,C,1670.73,791.49,479.55,Air,6810.3,817.24,False,True,TR_00000685,Wholesale,Retail,Cash,2024-04-09,2024-04-16,7
+TRADE_000686,Ghana,Senegal,Cocoa,Intra-Africa,3661.4,3.59,13155.86,True,Organic,C,1270.03,621.63,263.81,Road,2140.3,256.84,False,True,TR_00000686,Wholesale,Export,60 days,2024-06-06,2024-06-13,7
+TRADE_000687,Senegal,Ghana,Palm Oil,Intra-Africa,112252.5,0.9,101027.21,False,None,A,10810.91,3050.05,2292.27,River,1977.7,237.32,True,True,TR_00000687,Production,Wholesale,60 days,2024-05-25,2024-06-07,13
+TRADE_000688,Kenya,South Africa,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,B,40.22,9.79,6.95,Road,1538.0,184.56,True,False,,Production,Export,90 days,2024-08-13,2024-08-18,5
+TRADE_000689,Nigeria,Senegal,Palm Oil,Intra-Africa,12541.8,1.0,12538.93,True,Rainforest Alliance,C,1216.98,323.65,251.35,Road,1574.3,188.91,False,False,,Processing,Export,90 days,2024-08-08,2024-08-13,5
+TRADE_000690,Ghana,Burkina Faso,Palm Oil,Intra-Africa,4656.6,0.9,4190.94,False,None,C,549.15,114.3,91.74,Road,2709.6,325.16,True,False,,Production,Processing,90 days,2024-07-01,2024-07-15,14
+TRADE_000691,Kenya,Tanzania,Maize,Africa-Europe,4846.9,0.54,2599.33,False,None,A,243.9,52.49,18532.821730625958,Air,11562.3,1387.47,True,False,,Wholesale,Retail,90 days,2024-03-22,2024-04-11,20
+TRADE_000692,South Africa,Senegal,Honey,Intra-Africa,4134.7,10.4,43020.77,True,Fair Trade,B,5359.79,1823.81,1228.34,Rail,2117.2,254.06,False,True,TR_00000692,Production,Retail,60 days,2024-02-09,2024-02-13,4
+TRADE_000693,Nigeria,Kenya,Palm Oil,Intra-Africa,2638.1,0.9,2374.33,False,None,A,248.11,86.17,41.95,Rail,503.6,60.43,True,False,,Wholesale,Processing,30 days,2024-01-20,2024-01-29,9
+TRADE_000694,Nigeria,Burkina Faso,Groundnut,Intra-Africa,4315.2,1.4,6041.25,False,None,B,792.76,257.06,150.67,Road,1362.6,163.51,True,True,TR_00000694,Processing,Export,90 days,2024-05-14,2024-06-06,23
+TRADE_000695,Burkina Faso,Nigeria,Maize,Intra-Africa,1000.0,0.44,441.92,True,Rainforest Alliance,C,52.75,10.48,5.13,Rail,2388.7,286.65,False,True,TR_00000695,Processing,Processing,30 days,2024-09-10,2024-09-25,15
+TRADE_000696,Burkina Faso,Netherlands,Groundnut,Africa-Europe,6038.5,1.69,10192.85,False,None,B,1499.68,361.41,302.32,Air,5406.0,648.72,True,True,TR_00000696,Wholesale,Retail,30 days,2024-06-17,2024-07-07,20
+TRADE_000697,Ghana,South Africa,Maize,Intra-Africa,1000.0,0.54,541.22,True,Rainforest Alliance,C,56.98,15.05,14.69,Rail,1436.6,172.4,True,True,TR_00000697,Processing,Processing,30 days,2024-07-15,2024-08-13,29
+TRADE_000698,Nigeria,South Africa,Groundnut,Intra-Africa,22069.0,1.4,30896.6,False,None,C,2508.13,979.69,713.42,Rail,1135.9,136.31,True,False,,Processing,Export,90 days,2024-04-29,2024-05-08,9
+TRADE_000699,South Africa,Ghana,Honey,Intra-Africa,1000.0,11.49,11487.85,True,Rainforest Alliance,B,1527.2,372.2,211.43,Road,720.7,86.48,False,True,TR_00000699,Wholesale,Wholesale,90 days,2024-01-12,2024-01-20,8
+TRADE_000700,South Africa,Netherlands,Honey,Africa-Europe,2440.5,13.63,33266.67,True,Rainforest Alliance,A,,,964.03,Sea,5512.6,661.51,True,True,TR_00000700,Processing,Retail,30 days,2024-11-30,2024-12-14,14
+TRADE_000701,South Africa,Burkina Faso,Honey,Intra-Africa,10809.0,9.0,97281.26,False,None,C,11297.89,4493.89,1372.71,Road,601.9,72.23,True,True,TR_00000701,Production,Processing,Cash,2024-05-18,2024-06-01,14
+TRADE_000702,Senegal,Nigeria,Groundnut,Intra-Africa,382600.5,1.82,697233.65,True,Fair Trade,B,72624.57,14312.6,10477.66,River,1273.3,152.8,False,True,TR_00000702,Processing,Export,90 days,2024-03-18,2024-04-13,26
+TRADE_000703,Nigeria,Burkina Faso,Palm Oil,Intra-Africa,1000.0,0.9,900.0,False,None,A,98.02,31.03,17.27,Road,2934.9,352.18,True,False,,Wholesale,Wholesale,30 days,2024-05-15,2024-06-13,29
+TRADE_000704,Ghana,Netherlands,Palm Oil,Africa-Europe,6704.1,1.53,10258.36,True,Organic,B,,,190.89,Air,8176.9,981.22,True,False,,Production,Processing,90 days,2024-12-18,2025-01-02,15
+TRADE_000705,Burkina Faso,Nigeria,Groundnut,Intra-Africa,1000.0,1.75,1748.42,True,Organic,A,250.06,51.88,40.28,Road,2270.4,272.45,True,False,,Processing,Wholesale,Cash,2024-07-19,2024-08-16,28
+TRADE_000706,Nigeria,Spain,Fish,Africa-Europe,1000.0,8.46,8463.91,True,Fair Trade,B,915.56,414.82,188.12,Air,10100.0,1211.99,True,False,,Processing,Wholesale,30 days,2024-01-31,2024-02-06,6
+TRADE_000707,Burkina Faso,Kenya,Maize,Intra-Africa,40295.9,0.47,18976.8,True,Rainforest Alliance,A,1843.72,786.43,387.66,Rail,2208.2,264.98,True,True,TR_00000707,Production,Wholesale,Cash,2024-12-01,2024-12-18,17
+TRADE_000708,Burkina Faso,Senegal,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,C,138.4,53.15,26.43,Road,1992.4,239.09,False,False,,Production,Processing,60 days,2024-03-13,2024-03-21,8
+TRADE_000709,Senegal,France,Palm Oil,Africa-Europe,23150.5,1.52,35077.72,False,None,C,3444.43,1017.91,814.61,Sea,9869.1,1184.29,True,True,TR_00000709,Production,Retail,60 days,2024-08-30,2024-09-28,29
+TRADE_000710,Kenya,Tanzania,Maize,Africa-Europe,1000.0,0.85,846.8,True,Fair Trade,A,91.03,26.97,12.78,Air,6097.8,731.74,False,True,TR_00000710,Wholesale,Retail,Cash,2024-03-14,2024-03-19,5
+TRADE_000711,Nigeria,France,Maize,Africa-Europe,1000.0,0.95,950.44,True,Organic,C,133.09,44.86,17.27,Sea,10926.9,1311.23,False,False,,Processing,Wholesale,90 days,2024-08-16,2024-09-13,28
+TRADE_000712,Nigeria,Kenya,Maize,Intra-Africa,5192.6,0.4,2077.05,False,None,A,189.15,42.89,53.38,Road,687.0,82.44,False,True,TR_00000712,Wholesale,Retail,60 days,2024-07-28,2024-08-02,5
+TRADE_000713,Ghana,Kenya,Palm Oil,Intra-Africa,1000.0,0.9,900.0,False,None,C,114.45,19.17,24.08,River,924.1,110.89,True,False,,Production,Processing,Cash,2024-07-14,2024-07-18,4
+TRADE_000714,Ghana,Netherlands,Maize,Africa-Europe,15151.4,0.76,11449.87,True,Fair Trade,C,970.85,394.39,153.26,Air,10106.1,1212.73,False,False,,Wholesale,Retail,90 days,2024-05-10,2024-05-28,18
+TRADE_000715,Kenya,Uganda,Groundnut,Africa-Europe,1000.0,2.16,2156.65,False,None,B,215.55,67.59,56.75,Air,6254.5,750.54,True,False,,Production,Retail,Cash,2024-09-18,2024-10-14,26
+TRADE_000716,Ghana,Kenya,Palm Oil,Intra-Africa,1000.0,1.01,1012.19,True,Organic,B,104.24,33.13,21.11,Rail,1431.1,171.73,True,True,TR_00000716,Wholesale,Wholesale,90 days,2024-07-25,2024-08-15,21
+TRADE_000717,Senegal,Nigeria,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,B,175.46,68.58,28.29,Road,2967.2,356.06,False,False,,Production,Wholesale,Cash,2024-05-18,2024-06-04,17
+TRADE_000718,Burkina Faso,Kenya,Groundnut,Intra-Africa,1000.0,1.67,1666.94,True,Organic,A,136.96,41.62,29.84,River,1290.8,154.9,True,True,TR_00000718,Wholesale,Retail,30 days,2024-03-26,2024-04-04,9
+TRADE_000719,South Africa,Nigeria,Maize,Intra-Africa,2216.4,0.48,1065.15,True,Organic,A,94.35,30.77,29.54,Road,1255.1,150.61,False,True,TR_00000719,Processing,Retail,90 days,2024-05-07,2024-06-04,28
+TRADE_000720,Ghana,Senegal,Palm Oil,Intra-Africa,1000.0,1.18,1182.77,True,Organic,A,145.3,38.81,17.48,Rail,1422.5,170.7,True,False,,Production,Retail,30 days,2024-01-12,2024-02-02,21
+TRADE_000721,Nigeria,Burkina Faso,Fish,Intra-Africa,1000.0,4.0,4000.0,False,None,C,380.17,93.98,110.38,River,1600.8,192.09,False,True,TR_00000721,Wholesale,Export,60 days,2024-01-05,2024-01-25,20
+TRADE_000722,Ghana,Kenya,Palm Oil,Intra-Africa,25596.4,0.9,23036.76,False,None,A,2851.13,799.66,632.39,Road,1867.3,224.08,True,True,TR_00000722,Wholesale,Export,30 days,2024-11-01,2024-11-30,29
+TRADE_000723,Ghana,Germany,Cocoa,Africa-Europe,14920.3,4.9,73041.58,False,None,A,6413.67,1850.23,1880.27,Sea,10851.0,1302.12,False,True,TR_00000723,Wholesale,Export,60 days,2024-02-17,2024-03-12,24
+TRADE_000724,Nigeria,Ghana,Palm Oil,Intra-Africa,2771.4,1.14,3151.63,True,Rainforest Alliance,C,374.45,122.78,59.19,Rail,2200.5,264.06,True,True,TR_00000724,Processing,Wholesale,60 days,2024-07-04,2024-07-13,9
+TRADE_000725,Ghana,Senegal,Maize,Intra-Africa,12134.0,0.4,4853.59,False,None,C,,,88.27,Rail,2153.9,258.47,False,False,,Production,Processing,Cash,2024-08-09,2024-08-26,17
+TRADE_000726,Nigeria,Spain,Palm Oil,Africa-Europe,43349.0,1.73,74893.28,True,Rainforest Alliance,C,9206.63,3326.19,788.3,Sea,8154.3,978.52,True,True,TR_00000726,Wholesale,Retail,60 days,2024-11-30,2024-12-10,10
+TRADE_000727,Nigeria,Senegal,Fish,Intra-Africa,5239.1,4.0,20956.25,False,None,A,2632.17,743.95,625.28,River,636.6,76.39,False,False,,Production,Retail,30 days,2024-12-18,2024-12-31,13
+TRADE_000728,South Africa,Nigeria,Honey,Intra-Africa,70235.8,11.23,788454.9,True,Fair Trade,A,68121.84,19548.61,13924.72,Rail,888.9,106.66,False,True,TR_00000728,Wholesale,Processing,30 days,2024-02-14,2024-02-22,8
+TRADE_000729,South Africa,Burkina Faso,Honey,Intra-Africa,32266.3,11.34,365935.86,True,Rainforest Alliance,C,50166.55,14206.86,3661.21,Road,2407.9,288.95,False,False,,Processing,Retail,Cash,2024-10-16,2024-10-19,3
+TRADE_000730,Ghana,Germany,Maize,Africa-Europe,1000.0,0.83,825.98,True,Fair Trade,B,118.28,39.03,16.91,Air,9255.9,1110.71,True,True,TR_00000730,Wholesale,Wholesale,30 days,2024-02-13,2024-02-20,7
+TRADE_000731,Ghana,Germany,Cocoa,Africa-Europe,1000.0,6.9,6898.02,True,Organic,A,,,169.82,Air,10953.7,1314.44,True,False,,Wholesale,Export,60 days,2024-03-05,2024-03-08,3
+TRADE_000732,Senegal,South Africa,Palm Oil,Intra-Africa,1000.0,1.0,1003.0,True,Rainforest Alliance,B,115.69,41.08,20.92,Rail,2166.6,259.99,True,False,,Production,Wholesale,90 days,2024-06-05,2024-06-28,23
+TRADE_000733,Nigeria,Ghana,Palm Oil,Intra-Africa,1203.6,1.22,1467.36,True,Rainforest Alliance,B,134.12,41.27,15.95,Road,1411.1,169.33,True,True,TR_00000733,Wholesale,Wholesale,60 days,2024-07-06,2024-07-24,18
+TRADE_000734,Nigeria,Senegal,Palm Oil,Intra-Africa,29558.8,0.9,26602.93,False,None,B,2835.7,1174.74,613.53,Road,1591.8,191.02,True,False,,Production,Wholesale,90 days,2024-03-24,2024-04-06,13
+TRADE_000735,Nigeria,Ghana,Fish,Intra-Africa,1208.6,4.0,4834.55,False,None,C,447.77,187.62,110.36,Rail,2435.3,292.24,False,False,,Processing,Wholesale,30 days,2024-12-23,2025-01-20,28
+TRADE_000736,Ghana,USA,Palm Oil,Africa-Europe,4052.4,1.3,5258.43,False,None,C,686.64,213.07,153.9,Air,6505.9,780.71,False,False,,Production,Wholesale,Cash,2024-08-27,2024-09-25,29
+TRADE_000737,South Africa,Ghana,Honey,Intra-Africa,227458.0,9.0,2047121.74,False,None,C,306874.5,53297.89,41893.04,River,1365.5,163.86,False,False,,Production,Export,60 days,2024-03-15,2024-03-22,7
+TRADE_000738,South Africa,Burkina Faso,Honey,Intra-Africa,26938.8,9.0,242449.39,False,None,A,28321.12,6537.37,2655.37,River,1931.4,231.77,True,True,TR_00000738,Wholesale,Retail,60 days,2024-02-14,2024-02-27,13
+TRADE_000739,South Africa,Senegal,Honey,Intra-Africa,1000.0,10.77,10774.63,True,Organic,C,899.14,522.71,232.98,Rail,2536.9,304.43,False,False,,Production,Processing,Cash,2024-11-25,2024-12-24,29
+TRADE_000740,Burkina Faso,Côte d'Ivoire,Groundnut,Africa-Europe,1032.1,2.79,2880.08,True,Fair Trade,A,327.85,107.19,57.13,Sea,10132.9,1215.95,True,False,,Processing,Export,30 days,2024-06-06,2024-06-16,10
+TRADE_000741,Burkina Faso,Kenya,Groundnut,Intra-Africa,1000.0,1.6,1601.13,True,Fair Trade,B,196.02,55.52,19.08,Rail,1489.0,178.69,False,True,TR_00000741,Production,Processing,30 days,2024-02-20,2024-03-20,29
+TRADE_000742,South Africa,Kenya,Maize,Intra-Africa,7829.8,0.5,3928.8,True,Rainforest Alliance,A,,,66.67,Road,2556.6,306.8,True,True,TR_00000742,Production,Export,90 days,2024-12-28,2025-01-12,15
+TRADE_000743,Nigeria,Senegal,Fish,Intra-Africa,1000.0,4.0,4000.0,False,None,A,556.69,139.2,79.87,Road,2941.5,352.98,True,True,TR_00000743,Production,Processing,90 days,2024-02-01,2024-02-26,25
+TRADE_000744,Burkina Faso,South Africa,Maize,Intra-Africa,19577.4,0.55,10839.13,True,Organic,B,1139.16,262.5,178.99,Road,576.2,69.14,True,False,,Wholesale,Retail,Cash,2024-05-03,2024-05-09,6
+TRADE_000745,Kenya,Ghana,Groundnut,Intra-Africa,2649.0,1.4,3708.54,False,None,B,540.97,171.11,75.02,Road,1913.1,229.57,False,True,TR_00000745,Wholesale,Export,90 days,2024-02-20,2024-03-12,21
+TRADE_000746,South Africa,Germany,Maize,Africa-Europe,1734.3,0.56,972.42,True,Organic,B,79.48,41.46,12.56,Air,11083.3,1330.0,False,True,TR_00000746,Wholesale,Processing,Cash,2024-09-28,2024-10-06,8
+TRADE_000747,Nigeria,Ghana,Fish,Intra-Africa,1000.0,4.0,4000.0,False,None,B,,,112.07,Road,2295.9,275.51,True,True,TR_00000747,Processing,Processing,90 days,2024-08-27,2024-09-02,6
+TRADE_000748,Senegal,Burkina Faso,Groundnut,Intra-Africa,11060.5,1.4,15484.69,False,None,A,1616.57,582.56,251.09,Road,2997.9,359.74,False,True,TR_00000748,Processing,Processing,30 days,2024-05-08,2024-05-26,18
+TRADE_000749,Nigeria,Burkina Faso,Groundnut,Intra-Africa,10896.1,1.72,18716.9,True,Organic,B,2307.24,566.16,197.97,Road,1487.7,178.53,False,True,TR_00000749,Wholesale,Processing,Cash,2024-06-29,2024-07-16,17
+TRADE_000750,South Africa,Nigeria,Maize,Intra-Africa,50001.6,0.55,27583.74,True,Fair Trade,A,3416.0,621.15,764.07,Road,1172.2,140.66,False,True,TR_00000750,Processing,Retail,60 days,2024-10-26,2024-10-30,4
+TRADE_000751,South Africa,Germany,Maize,Africa-Europe,1000.0,0.62,618.53,False,None,C,73.07,21.49,15.06,Air,7215.8,865.89,True,False,,Wholesale,Processing,30 days,2024-08-11,2024-09-02,22
+TRADE_000752,South Africa,Ghana,Honey,Intra-Africa,1000.0,12.01,12011.57,True,Fair Trade,A,1108.34,522.25,279.58,Rail,2208.0,264.96,True,False,,Production,Wholesale,30 days,2024-01-03,2024-01-21,18
+TRADE_000753,Senegal,Mali,Groundnut,Africa-Europe,189455.3,1.75,330983.95,False,None,C,46208.2,7171.24,4294.46,Sea,9037.5,1084.5,True,True,TR_00000753,Processing,Export,Cash,2024-10-22,2024-10-29,7
+TRADE_000754,Ghana,USA,Maize,Africa-Europe,1884.4,0.74,1391.18,True,Organic,A,200.96,68.46,30.77,Air,8368.7,1004.24,True,True,TR_00000754,Production,Retail,90 days,2024-02-21,2024-03-06,14
+TRADE_000755,Senegal,India,Groundnut,Africa-Europe,1000.0,2.09,2094.34,False,None,A,301.86,101.93,59.78,Sea,6837.1,820.46,True,False,,Production,Processing,Cash,2024-06-07,2024-06-27,20
+TRADE_000756,Ghana,USA,Maize,Africa-Europe,31534.9,0.54,16896.14,False,None,B,1703.75,561.62,275.13,Sea,7619.5,914.34,True,False,,Production,Export,60 days,2024-06-12,2024-06-30,18
+TRADE_000757,Ghana,Nigeria,Cocoa,Intra-Africa,43991.4,3.0,131974.27,False,None,B,17353.18,5863.97,1404.69,Rail,619.3,74.32,True,True,TR_00000757,Processing,Retail,Cash,2024-04-29,2024-05-20,21
+TRADE_000758,South Africa,Ghana,Honey,Intra-Africa,10269.4,9.0,92424.68,False,None,A,12501.07,3326.58,1992.94,Road,631.5,75.78,True,False,,Processing,Retail,60 days,2024-03-19,2024-03-31,12
+TRADE_000759,Kenya,Ghana,Groundnut,Intra-Africa,13281.4,1.4,18593.92,False,None,B,2605.8,883.39,372.03,Road,1863.7,223.64,True,True,TR_00000759,Production,Retail,Cash,2024-08-23,2024-09-01,9
+TRADE_000760,South Africa,Nigeria,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,C,55.33,14.45,8.13,River,2762.7,331.53,True,True,TR_00000760,Processing,Export,30 days,2024-02-20,2024-03-09,18
+TRADE_000761,Nigeria,Ghana,Fish,Intra-Africa,3867.1,4.0,15468.38,False,None,B,2149.69,360.95,400.53,River,957.4,114.89,True,False,,Production,Wholesale,60 days,2024-07-15,2024-07-19,4
+TRADE_000762,Kenya,Germany,Groundnut,Africa-Europe,1000.0,3.03,3027.78,True,Rainforest Alliance,A,283.18,103.55,71.57,Air,9437.0,1132.44,False,False,,Production,Processing,90 days,2024-08-07,2024-08-18,11
+TRADE_000763,Kenya,Ghana,Maize,Intra-Africa,17970.5,0.5,9026.81,True,Fair Trade,C,1041.79,197.39,256.74,Road,942.8,113.13,False,False,,Production,Export,30 days,2024-08-01,2024-08-26,25
+TRADE_000764,Burkina Faso,Netherlands,Groundnut,Africa-Europe,2148.9,2.85,6120.58,True,Fair Trade,B,581.96,219.25,90.67,Sea,10317.9,1238.14,True,False,,Wholesale,Export,60 days,2024-03-31,2024-04-04,4
+TRADE_000765,South Africa,Ghana,Honey,Intra-Africa,27984.4,12.32,344635.88,True,Fair Trade,C,43221.25,14392.59,7231.98,Road,1461.1,175.33,True,False,,Processing,Retail,60 days,2024-06-16,2024-07-08,22
+TRADE_000766,South Africa,Netherlands,Honey,Africa-Europe,4468.3,14.3,63895.91,False,None,A,9174.19,2076.64,1040.75,Air,7719.1,926.29,False,False,,Processing,Export,60 days,2024-09-12,2024-10-07,25
+TRADE_000767,Ghana,Netherlands,Palm Oil,Africa-Europe,1000.0,1.68,1684.15,True,Rainforest Alliance,A,204.1,52.01,37.49,Air,11147.5,1337.7,False,True,TR_00000767,Processing,Wholesale,90 days,2024-04-17,2024-05-17,30
+TRADE_000768,Nigeria,Netherlands,Groundnut,Africa-Europe,2367.7,3.17,7494.96,True,Fair Trade,A,621.94,367.83,180.76,Sea,7351.7,882.21,False,True,TR_00000768,Processing,Retail,Cash,2024-07-08,2024-07-31,23
+TRADE_000769,Ghana,Kenya,Maize,Intra-Africa,3590.5,0.52,1881.4,True,Rainforest Alliance,B,,,52.02,River,2918.1,350.18,False,True,TR_00000769,Wholesale,Retail,30 days,2024-05-17,2024-06-15,29
+TRADE_000770,Nigeria,Spain,Groundnut,Africa-Europe,18679.8,2.84,53009.96,True,Rainforest Alliance,A,6924.71,1172.58,1252.93,Sea,9807.0,1176.84,True,True,TR_00000770,Wholesale,Processing,Cash,2024-07-30,2024-08-20,21
+TRADE_000771,South Africa,Netherlands,Honey,Africa-Europe,1843.1,13.96,25726.92,False,None,A,2080.1,770.84,289.3,Sea,8653.1,1038.37,True,False,,Processing,Processing,30 days,2024-02-06,2024-02-23,17
+TRADE_000772,Ghana,USA,Maize,Africa-Europe,13845.1,0.79,10877.89,True,Fair Trade,A,1271.85,284.13,135.04,Sea,8577.0,1029.24,True,False,,Processing,Retail,30 days,2024-04-16,2024-04-24,8
+TRADE_000773,South Africa,Ghana,Maize,Intra-Africa,4089.4,0.4,1635.75,False,None,C,134.45,37.95,34.35,Road,1978.5,237.42,False,False,,Wholesale,Processing,30 days,2024-08-09,2024-08-19,10
+TRADE_000774,Ghana,Kenya,Palm Oil,Intra-Africa,1000.0,0.9,900.0,False,None,A,73.83,33.48,24.09,Road,2305.8,276.69,False,False,,Wholesale,Wholesale,30 days,2024-02-25,2024-03-21,25
+TRADE_000775,Senegal,Netherlands,Maize,Africa-Europe,4959.5,0.71,3534.35,True,Rainforest Alliance,A,494.36,166.78,95.46,Sea,10772.4,1292.69,False,True,TR_00000775,Wholesale,Processing,60 days,2024-04-23,2024-05-07,14
+TRADE_000776,Burkina Faso,Kenya,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,B,185.01,54.6,33.0,Rail,2516.0,301.92,True,False,,Production,Export,60 days,2024-08-20,2024-09-19,30
+TRADE_000777,Burkina Faso,Senegal,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,B,148.84,65.68,14.48,Road,2247.1,269.65,False,True,TR_00000777,Production,Retail,90 days,2024-06-03,2024-07-02,29
+TRADE_000778,Kenya,Senegal,Maize,Intra-Africa,31974.3,0.55,17732.07,True,Rainforest Alliance,A,2295.17,883.36,421.15,River,585.9,70.31,True,True,TR_00000778,Production,Export,60 days,2024-03-25,2024-04-02,8
+TRADE_000779,Nigeria,Senegal,Groundnut,Intra-Africa,1004.4,1.73,1735.0,True,Rainforest Alliance,A,176.7,48.68,32.32,Road,1446.9,173.63,False,True,TR_00000779,Production,Wholesale,Cash,2024-04-08,2024-04-18,10
+TRADE_000780,Nigeria,South Africa,Palm Oil,Intra-Africa,15548.3,0.9,13993.45,False,None,B,1739.86,621.23,223.08,River,1034.3,124.12,True,False,,Wholesale,Wholesale,60 days,2024-02-28,2024-03-21,22
+TRADE_000781,Senegal,Mali,Groundnut,Africa-Europe,34834.6,2.44,84890.26,False,None,C,6885.97,3870.25,1733.46,Air,9349.1,1121.89,True,True,TR_00000781,Production,Export,30 days,2024-05-05,2024-05-14,9
+TRADE_000782,Nigeria,Senegal,Fish,Intra-Africa,33154.5,4.51,149515.15,True,Fair Trade,C,16488.99,4009.86,2255.36,River,1760.2,211.23,True,True,TR_00000782,Processing,Export,Cash,2024-03-05,2024-04-03,29
+TRADE_000783,Burkina Faso,South Africa,Maize,Intra-Africa,9761.8,0.4,3904.72,False,None,C,473.92,141.28,72.42,Rail,2931.8,351.81,True,True,TR_00000783,Production,Retail,90 days,2024-03-01,2024-03-08,7
+TRADE_000784,Kenya,South Africa,Groundnut,Intra-Africa,13635.1,1.4,19089.15,False,None,A,2275.68,527.22,278.74,Road,2028.4,243.41,False,True,TR_00000784,Processing,Processing,30 days,2024-04-03,2024-04-25,22
+TRADE_000785,South Africa,Nigeria,Honey,Intra-Africa,1844.2,9.0,16598.21,False,None,A,2292.29,682.58,385.69,Rail,672.0,80.63,True,True,TR_00000785,Production,Retail,30 days,2024-09-03,2024-09-17,14
+TRADE_000786,South Africa,Senegal,Maize,Intra-Africa,3048.1,0.4,1219.23,False,None,B,128.44,58.6,33.23,Rail,1213.9,145.66,True,True,TR_00000786,Wholesale,Retail,Cash,2024-12-25,2024-12-28,3
+TRADE_000787,Nigeria,Senegal,Groundnut,Intra-Africa,2089.3,1.69,3529.71,True,Rainforest Alliance,C,450.94,172.93,60.92,River,655.6,78.67,False,False,,Production,Wholesale,30 days,2024-03-11,2024-03-22,11
+TRADE_000788,Ghana,Belgium,Maize,Africa-Europe,1000.0,0.7,695.43,False,None,B,57.48,33.79,16.2,Sea,11591.8,1391.02,False,True,TR_00000788,Production,Processing,Cash,2024-04-17,2024-05-13,26
+TRADE_000789,Senegal,Kenya,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,B,41.28,19.49,10.58,River,2154.0,258.47,False,True,TR_00000789,Production,Export,60 days,2024-08-26,2024-09-17,22
+TRADE_000790,Nigeria,South Africa,Groundnut,Intra-Africa,1000.0,1.4,1400.0,False,None,C,127.96,58.84,34.36,River,1562.7,187.52,True,False,,Wholesale,Processing,60 days,2024-10-29,2024-11-06,8
+TRADE_000791,Kenya,Burkina Faso,Groundnut,Intra-Africa,2083.5,1.4,2916.83,False,None,A,395.76,112.74,47.54,River,909.5,109.14,True,True,TR_00000791,Wholesale,Retail,60 days,2024-03-28,2024-04-18,21
+TRADE_000792,Burkina Faso,Kenya,Maize,Intra-Africa,2463.1,0.4,985.25,False,None,B,81.59,24.63,18.78,Rail,1117.9,134.15,False,True,TR_00000792,Processing,Wholesale,30 days,2024-11-21,2024-12-10,19
+TRADE_000793,South Africa,France,Maize,Africa-Europe,9276.0,0.8,7384.23,True,Fair Trade,A,609.2,228.58,144.61,Sea,6304.9,756.59,False,False,,Wholesale,Wholesale,60 days,2024-09-03,2024-09-10,7
+TRADE_000794,Nigeria,Spain,Palm Oil,Africa-Europe,1438.7,1.14,1647.21,False,None,C,232.13,79.37,19.07,Sea,7443.1,893.18,True,True,TR_00000794,Processing,Processing,Cash,2024-04-03,2024-05-03,30
+TRADE_000795,South Africa,Kenya,Maize,Intra-Africa,4604.9,0.4,1841.96,False,None,C,273.49,62.88,24.42,Road,1005.2,120.63,True,False,,Processing,Wholesale,Cash,2024-10-28,2024-11-24,27
+TRADE_000796,Nigeria,Kenya,Maize,Intra-Africa,3402.6,0.55,1860.35,True,Fair Trade,C,267.55,71.13,47.11,River,2349.8,281.98,True,True,TR_00000796,Wholesale,Retail,90 days,2024-01-07,2024-01-29,22
+TRADE_000797,Senegal,Kenya,Palm Oil,Intra-Africa,22262.3,0.9,20036.11,False,None,B,,,295.31,Road,2359.7,283.17,True,False,,Processing,Wholesale,30 days,2024-10-24,2024-11-07,14
+TRADE_000798,South Africa,Nigeria,Honey,Intra-Africa,8055.9,11.18,90051.47,True,Organic,A,9062.37,-26488.779468916317,2155.32,River,2843.3,341.2,True,True,TR_00000798,Production,Wholesale,30 days,2024-07-08,2024-08-04,27
+TRADE_000799,Kenya,Senegal,Maize,Intra-Africa,7395.8,0.47,3470.9,True,Fair Trade,C,497.21,79.78,80.26,Road,2477.7,297.33,False,True,TR_00000799,Production,Retail,90 days,2024-01-11,2024-01-30,19
+TRADE_000800,South Africa,Ghana,Maize,Intra-Africa,1000.0,0.4,400.0,False,None,B,,,10.81,Road,1236.5,148.39,True,False,,Production,Export,Cash,2024-07-19,2024-07-31,12

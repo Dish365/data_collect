@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session
 from typing import Dict, Any, List, Optional
 import pandas as pd
 
-from ....core.database import get_db
-from ....analytics.inferential.hypothesis_testing import (
+from core.database import get_db
+from app.analytics.inferential.hypothesis_testing import (
     perform_t_test,
     perform_anova,
     perform_chi_square_test,

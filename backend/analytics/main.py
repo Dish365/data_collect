@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from app.api.v1.router import api_router
+from app.api.v1.api import api_router
 from core.config import settings
 from core.database import init_db
 

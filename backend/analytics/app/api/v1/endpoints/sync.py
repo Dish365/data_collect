@@ -5,7 +5,7 @@ Data synchronization endpoints.
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Dict, Any
-from ....core.database import get_db
+from core.database import get_db
 from ....sync.manager import SyncManager
 from ....sync.conflict_resolver import ConflictResolver
 
