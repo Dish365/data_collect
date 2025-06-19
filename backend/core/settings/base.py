@@ -5,6 +5,7 @@ Contains common settings used across all environments.
 
 import os
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -23,16 +24,21 @@ INSTALLED_APPS = [
     
     # Third party apps
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
     'django_filters',
+    'rest_framework_nested',
+    'django_extensions',
+    'drf_yasg',
     
     # Local apps
     'authentication',
     'projects',
     'forms',
     'responses',
-    'sync',
     'api',
+    'sync',
+    'analytics_results',
 ]
 
 MIDDLEWARE = [
@@ -99,19 +105,52 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Custom user model
+AUTH_USER_MODEL = 'authentication.User'
+
 # REST Framework settings
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
-    ),
-    'DEFAULT_FILTER_BACKENDS': (
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
-    ),
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10
+    'PAGE_SIZE': 20,
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
+    ],
+}
+
+# Swagger/OpenAPI settings
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Token': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    },
+    'USE_SESSION_AUTH': False,
+    'JSON_EDITOR': True,
+    'OPERATIONS_SORTER': 'alpha',
+    'TAGS_SORTER': 'alpha',
+    'DOC_EXPANSION': 'none',
+    'DEFAULT_MODEL_RENDERING': 'example',
 }
 
 # CORS settings
@@ -119,4 +158,42 @@ CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-] 
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# API Version
+API_VERSION = 'v1'
+
+# Admin site configuration
+ADMIN_SITE_HEADER = "Research Data Collection Admin"
+ADMIN_SITE_TITLE = "Data Collection Admin Portal"
+ADMIN_INDEX_TITLE = "Welcome to Research Data Collection Administration"
+
+# App-specific settings
+ANALYTICS_SETTINGS = {
+    'MAX_RESULTS_PER_PROJECT': 100,
+    'DEFAULT_ANALYSIS_TYPES': ['descriptive_stats', 'frequency_analysis'],
+    'RESULT_CACHE_TIMEOUT': 3600,  # 1 hour
+}
+
+SYNC_SETTINGS = {
+    'MAX_RETRY_ATTEMPTS': 3,
+    'RETRY_DELAY': 300,  # 5 minutes
+    'BATCH_SIZE': 50,
+}
+
+PROJECT_SETTINGS = {
+    'MAX_QUESTIONS_PER_PROJECT': 100,
+    'MAX_RESPONSES_PER_QUESTION': 10000,
+} 

@@ -21,7 +21,5 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # CORS settings for development
 CORS_ALLOW_ALL_ORIGINS = True
 
-# Debug toolbar settings
-INSTALLED_APPS += ['debug_toolbar']
-MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
+# Internal IPs for development
 INTERNAL_IPS = ['127.0.0.1'] 
