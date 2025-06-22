@@ -27,6 +27,7 @@ class DashboardScreen(MDScreen):
     def on_enter(self):
         # Update stats when entering screen
         self.ids.top_bar.set_title("Dashboard")
+        self.ids.top_bar.update_user_info()
         # self.update_stats()
     
     def update_stats(self):

@@ -1,34 +1,138 @@
 from kivymd.uix.screen import MDScreen
 from kivy.lang import Builder
-
+from kivymd.toast import toast
+from kivymd.app import MDApp
+from kivy.properties import BooleanProperty
+import re
 
 Builder.load_file("kv/signup.kv")
 
 class SignUpScreen(MDScreen):
+    is_registering = BooleanProperty(False)
+    
     def signup(self):
-        first_name    = self.ids.first_name.text.strip()
-        last_name    = self.ids.last_name.text.strip()
+        """Handle signup with spinner and proper validation"""
+        # Get form data
+        username = self.ids.username.text.strip()
+        first_name = self.ids.first_name.text.strip()
+        last_name = self.ids.last_name.text.strip()
         email = self.ids.email.text.strip()
-        password   = self.ids.password.text
-        confirm_password  = self.ids.confirm_password.text
-        app   = self.manager.parent
-
-        # basic client-side checks
-        if not (first_name and last_name and email and password and confirm_password):
-            print("Please fill all fields")
+        password = self.ids.password.text
+        confirm_password = self.ids.confirm_password.text
+        
+        # Validate input
+        validation_result = self._validate_form(username, first_name, last_name, email, password, confirm_password)
+        if not validation_result['valid']:
+            toast(validation_result['message'])
             return
+        
+        # Start registration process
+        self.is_registering = True
+        
+        # Get auth service and register
+        app = MDApp.get_running_app()
+        app.auth_service.register(
+            username=username,
+            email=email,
+            password=password,
+            password2=confirm_password,
+            first_name=first_name,
+            last_name=last_name,
+            role="researcher",
+            callback=self._on_registration_complete
+        )
+    
+    def _validate_form(self, username, first_name, last_name, email, password, confirm_password):
+        """Validate form input"""
+        # Check if all required fields are filled
+        if not username:
+            return {'valid': False, 'message': 'Username is required'}
+        
+        if not email:
+            return {'valid': False, 'message': 'Email is required'}
+        
+        if not password:
+            return {'valid': False, 'message': 'Password is required'}
+        
+        if not confirm_password:
+            return {'valid': False, 'message': 'Please confirm your password'}
+        
+        # Validate username (alphanumeric and underscore only, 3-30 characters)
+        if not re.match(r'^[a-zA-Z0-9_]{3,30}$', username):
+            return {'valid': False, 'message': 'Username must be 3-30 characters and contain only letters, numbers, and underscores'}
+        
+        # Validate email format
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, email):
+            return {'valid': False, 'message': 'Please enter a valid email address'}
+        
+        # Validate password strength
+        if len(password) < 8:
+            return {'valid': False, 'message': 'Password must be at least 8 characters long'}
+        
+        # Check if password contains at least one letter and one number
+        if not re.search(r'[a-zA-Z]', password) or not re.search(r'\d', password):
+            return {'valid': False, 'message': 'Password must contain at least one letter and one number'}
+        
+        # Check if passwords match
         if password != confirm_password:
-            print("Passwords do not match")
-            return
-
-        # call your auth service (you’d need a register method)
-        if app.auth_service.register(first_name, last_name, email, password):
-            # on success, go to login or dashboard
-            self.manager.current = "login"
+            return {'valid': False, 'message': 'Passwords do not match'}
+        
+        return {'valid': True}
+    
+    def _on_registration_complete(self, result):
+        """Handle registration completion"""
+        # Stop spinner
+        self.is_registering = False
+        
+        if result.get('success'):
+            # Registration successful
+            toast("Registration successful! Welcome to Research Data Collector!")
+            self.manager.transition.direction = "left"
+            self.manager.current = "dashboard"
         else:
-            print("Registration failed")
-
+            # Registration failed
+            error_type = result.get('error')
+            message = result.get('message', 'Registration failed')
+            
+            # Show appropriate error message
+            if error_type == 'validation_error':
+                # Show field-specific errors if available
+                field_errors = result.get('field_errors', {})
+                if field_errors:
+                    # Show first field error
+                    for field, errors in field_errors.items():
+                        if isinstance(errors, list) and errors:
+                            toast(f"{field.title()}: {errors[0]}")
+                            break
+                else:
+                    toast(message)
+            elif error_type == 'user_exists':
+                toast("User with this username or email already exists")
+            elif error_type == 'network_unavailable':
+                toast("No network connection. Please check your internet connection.")
+            elif error_type == 'timeout':
+                toast("Request timed out. Please try again.")
+            elif error_type == 'connection_error':
+                toast("Connection failed. Please check your internet connection.")
+            elif error_type == 'server_error':
+                toast(f"Server error: {message}")
+            else:
+                toast(f"Registration failed: {message}")
+    
     def on_login(self):
-        print("Sign up logic goes here")
-        self.manager.transition.direction = "right"
-        self.manager.current = "login"
+        """Navigate to login screen"""
+        if not self.is_registering:
+            self.manager.transition.direction = "right"
+            self.manager.current = "login"
+    
+    def on_enter(self):
+        """Called when screen is entered"""
+        # Clear previous input and errors
+        self.ids.username.text = ""
+        self.ids.first_name.text = ""
+        self.ids.last_name.text = ""
+        self.ids.email.text = ""
+        self.ids.password.text = ""
+        self.ids.confirm_password.text = ""
+        self.is_registering = False
