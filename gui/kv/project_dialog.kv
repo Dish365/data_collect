@@ -1,0 +1,20 @@
+<ProjectDialog>:
+    orientation: 'vertical'
+    spacing: dp(12)
+    padding: dp(12)
+    size_hint_y: None
+    height: dp(140)
+
+    MDTextField:
+        id: name_field
+        hint_text: "Project Name"
+        required: True
+        size_hint_y: None
+        height: dp(48)
+
+    MDTextField:
+        id: desc_field
+        hint_text: "Description"
+        multiline: True
+        size_hint_y: None
+        height: dp(80)

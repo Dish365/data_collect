@@ -1,0 +1,73 @@
+# form_builder.kv
+
+<FormBuilderScreen>:
+    name: "form_builder"
+
+    MDBoxLayout:
+        orientation: "vertical"
+
+        TopBar:
+            id: top_bar
+
+        MDBoxLayout:
+            orientation: "horizontal"
+            padding: dp(16)
+            spacing: dp(10)
+            size_hint_y: None
+            height: dp(56)
+
+            MDBoxLayout:
+                orientation: "horizontal"
+                spacing: dp(8)
+                size_hint_x: 0.4
+                pos_hint: {"center_y": 0.5}
+
+                MDIconButton:
+                    icon: "arrow-left"
+                    on_release:
+                        root.manager.transition.direction = "right"
+                        root.manager.current = "dashboard"
+                    theme_icon_color: "Custom"
+                    icon_color: 0, 0, 0, 1
+                    pos_hint: {"center_y": 0.5}
+
+                MDLabel:
+                    text: "Form Builder"
+                    font_style: "H5"
+                    pos_hint: {"center_y": 0.5}
+                    size_hint_x: None
+                    width: dp(220)
+
+        ScrollView:
+            do_scroll_x: False
+
+            MDBoxLayout:
+                orientation: "vertical"
+                padding: dp(16)
+                spacing: dp(10)
+                size_hint_y: None
+                height: self.minimum_height
+
+                MDLabel:
+                    text: "Add Questions"
+                    font_style: "H6"
+                    halign: "left"
+
+                MDRaisedButton:
+                    text: "Add Question"
+                    on_release: root.add_question_block()
+                    size_hint_x: None
+                    width: dp(160)
+
+                MDRaisedButton:
+                    text: "Preview Questions"
+                    on_release: root.preview_questions()
+                    size_hint_x: None
+                    width: dp(180)
+
+                MDBoxLayout:
+                    id: question_blocks_container
+                    orientation: "vertical"
+                    spacing: dp(20)
+                    size_hint_y: None
+                    height: self.minimum_height

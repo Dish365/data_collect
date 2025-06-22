@@ -6,13 +6,27 @@ from kivy.uix.spinner import Spinner
 from kivy.uix.textinput import TextInput
 from kivy.uix.scrollview import ScrollView
 from kivy.metrics import dp
+from widgets.form_fields import ShortTextField, MultipleChoiceField ,LongTextField,LocationPickerField , PhotoUploadField, RatingScaleField
+from widgets.questionBlock import QuestionBlock
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.scrollview import MDScrollView
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.button import MDRaisedButton
+from kivy.clock import Clock
+
+
+from kivy.lang import Builder
+
 import uuid
 import json
+
+
+Builder.load_file("kv/form_builder.kv")
 
 class FormBuilderScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.setup_ui()
+        # self.setup_ui()
         self.current_project = None
         self.current_questions = []
     
@@ -125,10 +139,97 @@ class FormBuilderScreen(Screen):
         # Add layout to screen
         self.add_widget(layout)
     
-    def on_enter(self):
-        # Load projects when entering screen
-        self.load_projects()
+    # def on_enter(self):
+    #     # Load projects when entering screen
+    #     self.load_projects()
     
+    def preview_questions(self):
+        questions = []
+        preview_container = MDBoxLayout(
+            orientation="vertical",
+            spacing=dp(10),
+            padding=dp(10),
+            size_hint_y=None
+        )
+        preview_container.bind(minimum_height=preview_container.setter("height"))
+
+        for widget in self.ids.question_blocks_container.children[::-1]:
+            if hasattr(widget, "to_dict"):
+                q_dict = widget.to_dict()
+                questions.append(q_dict)
+                preview = widget.render_preview()
+                preview.size_hint_y = None
+                preview.height = preview.minimum_height
+                preview_container.add_widget(preview)
+
+        scroll = MDScrollView()
+        scroll.add_widget(preview_container)
+
+        def open_dialog(*args):
+            content_wrapper = MDBoxLayout(
+                orientation="vertical",
+                size_hint_y=None,
+                height=preview_container.height if preview_container.height < dp(500) else dp(500)
+            )
+            content_wrapper.add_widget(scroll)
+
+            dialog = MDDialog(
+                title="Preview Questions",
+                type="custom",
+                content_cls=content_wrapper,
+                size_hint=(0.9, None),
+                height=dp(600),
+                buttons=[
+                    MDRaisedButton(
+                        text="Export JSON",
+                        on_release=lambda x: self.export_to_json(questions)
+                    )
+                ]
+            )
+            dialog.open()
+
+        Clock.schedule_once(open_dialog, 0.1)
+
+
+    def add_text_field(self):
+        field = ShortTextField(question_text="Question 1: What is your name?")
+        self.ids.field_container.add_widget(field)
+
+    def add_multiple_choice_field(self):
+        field = MultipleChoiceField(
+            question_text="Question 2: Select your age group",
+            options=["Under 18", "18-25", "26-40", "Over 40"]
+        )
+        self.ids.field_container.add_widget(field)
+
+    def add_long_text_field(self):
+        field = LongTextField(question_text="Describe your experience")
+        self.ids.field_container.add_widget(field)
+
+    # def add_date_field(self):
+    #     field = DateField(question_text="Select your birth date")
+    #     self.ids.field_container.add_widget(field)
+
+    def add_location_field(self):
+        field = LocationPickerField(question_text="Where are you located?")
+        self.ids.field_container.add_widget(field)
+
+    def add_photo_field(self):
+        field = PhotoUploadField(question_text="Upload your photo")
+        self.ids.field_container.add_widget(field)
+
+    def add_rating_scale_field(self):
+        field = RatingScaleField(question_text="Rate your satisfaction")
+        self.ids.field_container.add_widget(field)
+    
+    def add_number_field(self):
+        field = ShortTextField(question_text="Question 3: Enter a number", input_type='number')
+        self.ids.field_container.add_widget(field)
+        
+    def add_question_block(self):
+        block = QuestionBlock()
+        self.ids.question_blocks_container.add_widget(block)
+
     def load_projects(self):
         # Get app instance
         app = self.manager.get_screen('form_builder').parent
