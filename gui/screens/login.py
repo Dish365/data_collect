@@ -37,6 +37,8 @@ class LoginScreen(MDScreen):
         if result.get('success'):
             # Authentication successful
             toast("Login successful!")
+            app = MDApp.get_running_app()
+            app.update_user_display_name()
             self.manager.transition.direction = "left"
             self.manager.current = "dashboard"
         else:

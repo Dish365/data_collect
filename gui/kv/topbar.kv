@@ -3,7 +3,7 @@
     height: dp(56)
     md_bg_color: app.theme_cls.primary_color
     orientation: 'horizontal'
-    padding: dp(8), 0
+    padding: dp(8)
     spacing: dp(8)
 
     MDIconButton:
@@ -11,38 +11,36 @@
         theme_icon_color: "Custom"
         icon_color: 1, 1, 1, 1
         pos_hint: {"center_y": 0.5}
+        on_release: app.root.current = 'dashboard'
 
     MDLabel:
         id: top_title
-        text: "Research Data Collector"
+        text: "Dashboard"
         font_style: "H6"
         theme_text_color: "Custom"
         text_color: 1, 1, 1, 1
-        halign: "left"
         size_hint_x: 1
         pos_hint: {"center_y": 0.5}
 
     MDBoxLayout:
-        orientation: "horizontal"
-        spacing: dp(4)
-        size_hint_x: None
-        width: self.minimum_width
+        orientation: 'horizontal'
+        adaptive_size: True
         pos_hint: {"center_y": 0.5}
+        spacing: dp(8)
 
         MDIconButton:
-            icon: "account-circle"
-            theme_icon_color: "Custom"
+            icon: "account-circle-outline"
+            theme_text_color: "Custom"
             icon_color: 1, 1, 1, 1
             pos_hint: {"center_y": 0.5}
 
         MDLabel:
             id: user_name
-            text: "User"
-            font_style: "Body1"
+            text: app.user_display_name
+            font_style: "Subtitle1"
             theme_text_color: "Custom"
             text_color: 1, 1, 1, 1
-            size_hint_x: None
-            width: dp(80)
+            adaptive_size: True
             pos_hint: {"center_y": 0.5}
 
         MDIconButton:

@@ -38,6 +38,7 @@ class ProjectsScreen(Screen):
         self.page_limit = 10
 
     def on_enter(self):
+        self.ids.top_bar.set_title("Projects")
         self.load_projects(clear_existing=True)
 
     def show_loader(self, show=True):

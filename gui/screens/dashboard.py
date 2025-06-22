@@ -1,3 +1,4 @@
+from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -9,6 +10,11 @@ from kivymd.uix.screen import MDScreen
 from kivy.lang import Builder
 from kivy.core.window import Window
 from widgets.top_bar import TopBar
+from services.dashboard_service import DashboardService
+import threading
+from kivy.clock import Clock
+from widgets.activity_item import ActivityItem
+from kivymd.uix.label import MDLabel
 
 
 Builder.load_file("kv/dashboard.kv")
@@ -17,55 +23,54 @@ Builder.load_file("kv/dashboard.kv")
 class DashboardScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-    
+        app = App.get_running_app()
+        self.dashboard_service = DashboardService(app.auth_service, app.db_service)
     
     def navigate_to(self, screen_name):
         self.manager.transition.direction = "left"  
         self.manager.current = screen_name
     
     def on_enter(self):
-        # Update stats when entering screen
         self.ids.top_bar.set_title("Dashboard")
-        self.ids.top_bar.update_user_info()
-        # self.update_stats()
+        self.update_stats()
     
+    def show_loader(self, show=True):
+        self.ids.spinner.active = show
+        self.ids.main_scroll_view.opacity = 0 if show else 1
+
     def update_stats(self):
-        # Get app instance
-        app = self.manager.get_screen('dashboard').parent
+        self.show_loader(True)
+        def _update_in_thread():
+            stats = self.dashboard_service.get_dashboard_stats()
+            Clock.schedule_once(lambda dt: self._update_ui(stats))
+
+        threading.Thread(target=_update_in_thread).start()
+
+    def _update_ui(self, stats):
+        self.ids.total_responses_card.value = stats.get('total_responses', 'N/A')
+        self.ids.active_projects_card.value = stats.get('active_projects', 'N/A')
+        self.ids.pending_sync_card.value = stats.get('pending_sync', 'N/A')
+        self.ids.team_members_card.value = stats.get('team_members', 'N/A')
+
+        # Update activity feed
+        activity_feed_layout = self.ids.activity_feed_layout
+        activity_feed_layout.clear_widgets()
+        activity_feed = stats.get('activity_feed', [])
         
-        # Update stats from database
-        cursor = app.db_service.conn.cursor()
-        
-        # Total projects
-        cursor.execute('SELECT COUNT(*) FROM projects')
-        total_projects = cursor.fetchone()[0]
-        
-        # Active forms
-        cursor.execute('SELECT COUNT(*) FROM questions WHERE sync_status = "pending"')
-        active_forms = cursor.fetchone()[0]
-        
-        # Responses today
-        cursor.execute('''
-            SELECT COUNT(*) FROM responses 
-            WHERE date(collected_at) = date('now')
-        ''')
-        responses_today = cursor.fetchone()[0]
-        
-        # Pending sync
-        cursor.execute('SELECT COUNT(*) FROM sync_queue WHERE status = "pending"')
-        pending_sync = cursor.fetchone()[0]
-        
-        # Update stat cards
-        for child in self.children[0].children:
-            if isinstance(child, GridLayout):
-                for stat_card in child.children:
-                    if isinstance(stat_card, StatCard):
-                        if stat_card.title == 'Total Projects':
-                            stat_card.value = str(total_projects)
-                        elif stat_card.title == 'Active Forms':
-                            stat_card.value = str(active_forms)
-                        elif stat_card.title == 'Responses Today':
-                            stat_card.value = str(responses_today)
-                        elif stat_card.title == 'Pending Sync':
-                            stat_card.value = str(pending_sync) 
+        if not activity_feed:
+            no_activity_label = MDLabel(
+                text="No recent activity.", 
+                halign="center", 
+                theme_text_color="Hint"
+            )
+            activity_feed_layout.add_widget(no_activity_label)
+        else:
+            for activity in activity_feed:
+                item = ActivityItem(
+                    activity_text=activity.get('text'),
+                    activity_time=activity.get('time'),
+                    activity_icon=activity.get('icon')
+                )
+                activity_feed_layout.add_widget(item)
+
+        self.show_loader(False) 

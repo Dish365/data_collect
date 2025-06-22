@@ -1,0 +1,31 @@
+<ActivityItem>:
+    orientation: "horizontal"
+    size_hint_y: None
+    height: dp(60)
+    padding: dp(8)
+    spacing: dp(12)
+    elevation: 0.5
+    radius: [8, 8, 8, 8]
+
+    MDIconButton:
+        icon: root.activity_icon
+        pos_hint: {"center_y": 0.5}
+        theme_icon_color: "Custom"
+        icon_color: app.theme_cls.primary_color
+
+    MDBoxLayout:
+        orientation: "vertical"
+        adaptive_height: True
+        pos_hint: {"center_y": 0.5}
+
+        MDLabel:
+            text: root.activity_text
+            font_style: "Body1"
+            markup: True
+            adaptive_height: True
+
+        MDLabel:
+            text: root.activity_time
+            font_style: "Caption"
+            theme_text_color: "Secondary"
+            adaptive_height: True 

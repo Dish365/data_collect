@@ -6,6 +6,7 @@ from kivy.uix.screenmanager import ScreenManager
 from kivy.core.window import Window
 from kivy.utils import platform
 from kivymd.app import MDApp
+from kivy.properties import StringProperty
 
 
 # Import screens
@@ -26,6 +27,8 @@ from services.sync_service import SyncService
 from services.auth_service import AuthService
 
 class ResearchCollectorApp(MDApp):
+    user_display_name = StringProperty("Guest")
+
     def build(self):
         self.theme_cls.primary_palette = "Blue"    
         self.theme_cls.primary_hue     = "500" 
@@ -62,12 +65,32 @@ class ResearchCollectorApp(MDApp):
         
         # Check if user is already authenticated
         if self.auth_service.is_authenticated():
+            self.update_user_display_name()
             # User is already logged in, go to dashboard
             self.root.current = "dashboard"
         else:
             # User needs to login
             self.root.current = "login"
         
+    def update_user_display_name(self):
+        """Fetches user data and updates the display name property."""
+        if self.auth_service.is_authenticated():
+            user_data = self.auth_service.get_user_data()
+            if user_data:
+                username = user_data.get('username')
+                first_name = user_data.get('first_name')
+
+                if username:
+                    self.user_display_name = username
+                elif first_name:
+                    self.user_display_name = first_name
+                else:
+                    self.user_display_name = "User"
+            else:
+                self.user_display_name = "User"
+        else:
+            self.user_display_name = "Guest"
+
     def on_pause(self):
         # Handle app pause (Android)
         return True
