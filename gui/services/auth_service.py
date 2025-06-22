@@ -4,7 +4,7 @@ from kivy.storage.jsonstore import JsonStore
 class AuthService:
     def __init__(self):
         self.store = JsonStore('auth.json')
-        self.base_url = 'http://localhost:8000/api/v1'  # Change this to your backend URL
+        self.base_url = 'http://localhost:8000/api'  # Fixed: auth endpoints are at /api/auth/
         self.token = None
     
     def authenticate(self, username, password):
@@ -28,6 +28,29 @@ class AuthService:
                 if auth_data.get('username') == username:
                     self.token = auth_data.get('token')
                     return True
+            return False
+    
+    def register(self, username, email, password, password2, role='field_worker'):
+        """Register new user with backend"""
+        try:
+            response = requests.post(
+                f'{self.base_url}/auth/register/',
+                json={
+                    'username': username,
+                    'email': email,
+                    'password': password,
+                    'password2': password2,
+                    'role': role
+                }
+            )
+            
+            if response.status_code == 201:
+                data = response.json()
+                self.token = data.get('token')
+                self.store.put('auth', token=self.token, username=username)
+                return True
+            return False
+        except requests.RequestException:
             return False
     
     def logout(self):
