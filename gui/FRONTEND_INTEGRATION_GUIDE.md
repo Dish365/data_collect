@@ -5,7 +5,121 @@ This guide provides comprehensive instructions for connecting the Kivy mobile ap
 
 ---
 
-## 📋 Table of Contents
+## 🛠️ Backend Setup Instructions
+
+### Prerequisites
+- Python 3.8 or higher
+- pip (Python package installer)
+- Git (for cloning the repository)
+
+### Step 1: Navigate to Backend Directory
+```bash
+cd backend
+```
+
+### Step 2: Create Virtual Environment
+```bash
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# On Windows:
+venv\Scripts\activate
+
+# On macOS/Linux:
+source venv/bin/activate
+```
+
+### Step 3: Install Dependencies
+```bash
+# Install all required packages
+pip install -r requirements.txt
+
+# If you encounter any issues, try upgrading pip first:
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### Step 4: Database Setup
+```bash
+# Run database migrations
+python manage.py makemigrations
+python manage.py migrate
+
+# Create a superuser for admin access
+python manage.py createsuperuser
+```
+
+### Step 5: Start Development Server
+```bash
+# Start the Django development server
+python manage.py runserver
+
+# The server will start at http://localhost:8000
+# Admin interface: http://localhost:8000/admin/
+# API documentation: http://localhost:8000/swagger/
+```
+
+### Step 6: Verify Installation
+1. Open your browser and go to `http://localhost:8000/admin/`
+2. Log in with your superuser credentials
+3. Check that all apps are properly installed
+4. Visit `http://localhost:8000/swagger/` to see the API documentation
+
+### Troubleshooting Common Issues
+
+#### Issue: Port 8000 already in use
+```bash
+# Kill the process using port 8000
+# On Windows:
+netstat -ano | findstr :8000
+taskkill /PID <PID> /F
+
+# On macOS/Linux:
+lsof -ti:8000 | xargs kill -9
+
+# Or use a different port:
+python manage.py runserver 8001
+```
+
+#### Issue: Database connection errors
+```bash
+# Reset database (WARNING: This will delete all data)
+python manage.py flush
+
+# Or recreate the database:
+rm db.sqlite3  # Delete existing database
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+#### Issue: Missing dependencies
+```bash
+# Update pip and try again
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# If specific packages fail, install them individually:
+pip install django
+pip install djangorestframework
+pip install django-cors-headers
+# ... add other packages as needed
+```
+
+### Environment Variables (Optional)
+Create a `.env` file in the backend directory for custom configurations:
+```bash
+# .env file
+DEBUG=True
+SECRET_KEY=your-secret-key-here
+DATABASE_URL=sqlite:///db.sqlite3
+ALLOWED_HOSTS=localhost,127.0.0.1
+```
+
+---
+
+## �� Table of Contents
 1. [Backend API Overview](#backend-api-overview)
 2. [Authentication System](#authentication-system)
 3. [API Endpoints Reference](#api-endpoints-reference)
