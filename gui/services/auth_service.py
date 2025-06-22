@@ -7,7 +7,7 @@ from requests.exceptions import RequestException, Timeout, ConnectionError
 class AuthService:
     def __init__(self):
         self.store = JsonStore('auth.json')
-        self.base_url = 'http://localhost:8000/api/v1'  # Change this to your backend URL
+        self.base_url = 'http://localhost:8000'  # Change this to your backend URL
         self.token = None
         self.user_data = None
     

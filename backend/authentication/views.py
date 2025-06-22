@@ -18,16 +18,29 @@ class LoginView(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
+        username = request.data.get('username')
         email = request.data.get('email')
         password = request.data.get('password')
 
-        if not email or not password:
+        # Support both username and email authentication
+        if not password:
             return Response(
-                {'error': 'Please provide both email and password'},
+                {'error': 'Please provide password'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not username and not email:
+            return Response(
+                {'error': 'Please provide either username or email'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        user = authenticate(email=email, password=password)
+        # Try to authenticate with username or email
+        user = None
+        if username:
+            user = authenticate(username=username, password=password)
+        elif email:
+            user = authenticate(email=email, password=password)
 
         if not user:
             return Response(
@@ -40,7 +53,7 @@ class LoginView(APIView):
 
         return Response({
             'token': token.key,
-            'user': serializer.data
+            'user_data': serializer.data
         })
 
 class LogoutView(APIView):

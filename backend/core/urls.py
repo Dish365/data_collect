@@ -19,6 +19,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
@@ -43,7 +44,26 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
+def api_root(request):
+    """Root API endpoint"""
+    return JsonResponse({
+        'message': 'Research Data Collection API',
+        'version': API_VERSION,
+        'endpoints': {
+            'authentication': '/api/auth/',
+            'projects': f'/api/{API_VERSION}/projects/',
+            'forms': '/api/forms/',
+            'responses': '/api/responses/',
+            'sync': '/api/sync/',
+            'analytics': '/api/analytics/',
+            'documentation': '/swagger/',
+        }
+    })
+
 urlpatterns = [
+    # Root URL
+    path('', api_root, name='api-root'),
+    
     # Admin URLs
     path("admin/", admin.site.urls),
     
@@ -52,7 +72,8 @@ urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     
-    # Authentication URLs
+    # Authentication URLs - support both /auth/ and /api/auth/ for frontend compatibility
+    path('auth/', include('authentication.urls')),
     path('api/auth/', include('authentication.urls')),
     
     # API v1 URLs
