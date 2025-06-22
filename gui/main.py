@@ -56,8 +56,17 @@ class ResearchCollectorApp(MDApp):
         return sm
     
     def on_start(self):
+        """Called when app starts"""
         # Initialize database
         self.db_service.init_database()
+        
+        # Check if user is already authenticated
+        if self.auth_service.is_authenticated():
+            # User is already logged in, go to dashboard
+            self.root.current = "dashboard"
+        else:
+            # User needs to login
+            self.root.current = "login"
         
     def on_pause(self):
         # Handle app pause (Android)

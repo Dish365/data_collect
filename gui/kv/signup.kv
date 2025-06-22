@@ -4,6 +4,7 @@
 #:import MDRaisedButton kivymd.uix.button.MDRaisedButton
 #:import MDTextField    kivymd.uix.textfield.MDTextField
 #:import MDLabel        kivymd.uix.label.MDLabel
+#:import MDSpinner kivymd.uix.spinner.MDSpinner
 
 <SignUpScreen>:
     name: "signup"
@@ -20,7 +21,7 @@
             # left, top, right, bottom padding
             padding: [dp(16), dp(8), dp(16), dp(24)]
             size_hint: None, None
-            size: dp(400), dp(550)
+            size: dp(400), dp(600)
 
             MDBoxLayout:
                 orientation: "vertical"
@@ -34,6 +35,7 @@
                     MDIconButton:
                         icon:"arrow-left"
                         user_font_size: "24sp"
+                        disabled: root.is_registering
                         on_release: root.on_login()
 
                 # Title
@@ -43,6 +45,15 @@
                     halign: "center"
                     size_hint_y: None
                     height: self.texture_size[1]
+
+                # Username
+                MDTextField:
+                    id: username
+                    hint_text: "Username"
+                    mode: "rectangle"
+                    size_hint_y: None
+                    height: dp(48)
+                    disabled: root.is_registering
 
                 # First & Last name side by side
                 MDBoxLayout:
@@ -55,11 +66,13 @@
                         id: first_name
                         hint_text: "First Name"
                         mode: "rectangle"
+                        disabled: root.is_registering
 
                     MDTextField:
                         id: last_name
                         hint_text: "Last Name"
                         mode: "rectangle"
+                        disabled: root.is_registering
 
                 # Email
                 MDTextField:
@@ -68,6 +81,7 @@
                     mode: "rectangle"
                     size_hint_y: None
                     height: dp(48)
+                    disabled: root.is_registering
 
                 # Password
                 MDTextField:
@@ -77,6 +91,7 @@
                     mode: "rectangle"
                     size_hint_y: None
                     height: dp(48)
+                    disabled: root.is_registering
 
                 # Confirm Password
                 MDTextField:
@@ -86,13 +101,38 @@
                     mode: "rectangle"
                     size_hint_y: None
                     height: dp(48)
+                    disabled: root.is_registering
 
                 # Sign-Up button
                 MDRaisedButton:
+                    id: signup_button
                     text: "Sign Up"
                     size_hint: 1, None
                     height: dp(50)
+                    disabled: root.is_registering
                     on_release: root.signup()
+
+                # Spinner container
+                MDBoxLayout:
+                    id: spinner_container
+                    orientation: "horizontal"
+                    adaptive_height: True
+                    size_hint_y: None
+                    height: dp(40) if root.is_registering else 0
+                    opacity: 1 if root.is_registering else 0
+                    spacing: dp(10)
+
+                    MDSpinner:
+                        id: signup_spinner
+                        size_hint: None, None
+                        size: dp(20), dp(20)
+                        active: root.is_registering
+
+                    MDLabel:
+                        text: "Creating account..."
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        font_size: dp(14)
 
                 # Link back to Login
                 MDLabel:
