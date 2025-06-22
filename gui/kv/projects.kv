@@ -7,66 +7,80 @@
         TopBar:
             id: top_bar
 
-        MDBoxLayout:
-            orientation: "horizontal"
-            padding: dp(16)
-            spacing: dp(12)
-            size_hint_y: None
-            height: dp(56)
-
-            # Left Section: Back arrow + Title
+        RelativeLayout:
+            # Main content layout
             MDBoxLayout:
-                orientation: "horizontal"
-                spacing: dp(8)
-                size_hint_x: 0.4
-                pos_hint: {"center_y": 0.5}
+                orientation: "vertical"
+                id: content_layout
 
-                MDIconButton:
-                    icon: "arrow-left"
-                    on_release:
-                        root.manager.transition.direction = "right"
-                        root.manager.current = "dashboard"
-                    theme_icon_color: "Custom"
-                    icon_color: 0, 0, 0, 1
-                    pos_hint: {"center_y": 0.5}
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    padding: dp(16)
+                    spacing: dp(12)
+                    size_hint_y: None
+                    height: dp(56)
 
-                MDLabel:
-                    text: "Projects"
-                    font_style: "H5"
-                    pos_hint: {"center_y": 0.5}
-                    size_hint_x: None
-                    width: dp(120)
+                    # Left Section: Back arrow + Title
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        spacing: dp(8)
+                        size_hint_x: 0.4
+                        pos_hint: {"center_y": 0.5}
 
-            # Right Section: Search bar + Button
-            MDBoxLayout:
-                orientation: "horizontal"
-                spacing: dp(8)
-                size_hint_x: 0.6
-                pos_hint: {"center_y": 0.5}
+                        MDIconButton:
+                            icon: "arrow-left"
+                            on_release:
+                                root.manager.transition.direction = "right"
+                                root.manager.current = "dashboard"
+                            theme_icon_color: "Custom"
+                            icon_color: 0, 0, 0, 1
+                            pos_hint: {"center_y": 0.5}
 
-                MDTextField:
-                    id: search_field
-                    hint_text: "Search by name..."
-                    size_hint_x: 0.75
-                    height: dp(48)
-                    pos_hint: {"center_y": 0.5}
-                    mode: "rectangle"
-                    on_text: root.search_projects(self.text)
+                        MDLabel:
+                            text: "Projects"
+                            font_style: "H5"
+                            pos_hint: {"center_y": 0.5}
+                            size_hint_x: None
+                            width: dp(120)
 
-                MDRaisedButton:
-                    text: "New Project"
-                    on_release: root.open_project_dialog()
-                    md_bg_color: app.theme_cls.primary_color
-                    text_color: 1, 1, 1, 1
-                    size_hint_x: None
-                    width: dp(130)
-                    height: dp(40)
-                    pos_hint: {"center_y": 0.5}
+                    # Right Section: Search bar + Button
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        spacing: dp(8)
+                        size_hint_x: 0.6
+                        pos_hint: {"center_y": 0.5}
 
-        MDScrollView:
-            MDGridLayout:
-                id: projects_grid
-                cols: 1
-                spacing: dp(10)
-                padding: dp(16)
-                adaptive_height: True
+                        MDTextField:
+                            id: search_field
+                            hint_text: "Search by name..."
+                            size_hint_x: 0.75
+                            height: dp(48)
+                            pos_hint: {"center_y": 0.5}
+                            mode: "rectangle"
+                            on_text: root.search_projects(self.text)
+
+                        MDRaisedButton:
+                            text: "New Project"
+                            on_release: root.open_project_dialog()
+                            md_bg_color: app.theme_cls.primary_color
+                            text_color: 1, 1, 1, 1
+                            size_hint_x: None
+                            width: dp(130)
+                            height: dp(40)
+                            pos_hint: {"center_y": 0.5}
+
+                MDScrollView:
+                    MDGridLayout:
+                        id: projects_grid
+                        cols: 1
+                        spacing: dp(10)
+                        padding: dp(16)
+                        adaptive_height: True
+
+            # Loading spinner
+            MDSpinner:
+                id: spinner
+                size_hint: None, None
+                size: dp(46), dp(46)
+                pos_hint: {'center_x': .5, 'center_y': .5}
+                active: False

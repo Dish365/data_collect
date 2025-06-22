@@ -12,19 +12,19 @@ class DatabaseService:
         else:
             self.db_path = Path.home() / 'research_data.db'
         
+        # The main connection is not established here for threading safety.
         self.conn = None
+
+    def get_db_connection(self):
+        """Creates and returns a new database connection for the calling thread."""
+        conn = sqlite3.connect(str(self.db_path))
+        conn.row_factory = sqlite3.Row
+        return conn
         
     def init_database(self):
-        """Initialize SQLite database with schema"""
-        self.conn = sqlite3.connect(str(self.db_path))
-        self.conn.row_factory = sqlite3.Row
-        
-        # Create tables
-        self._create_tables()
-        
-    def _create_tables(self):
-        """Create all necessary tables"""
-        cursor = self.conn.cursor()
+        """Initialize SQLite database with schema using a temporary connection."""
+        conn = self.get_db_connection()
+        cursor = conn.cursor()
         
         # Projects table
         cursor.execute('''
@@ -85,8 +85,9 @@ class DatabaseService:
             )
         ''')
         
-        self.conn.commit()
+        conn.commit()
+        conn.close()
     
     def close(self):
-        if self.conn:
-            self.conn.close() 
+        # This method is no longer necessary for a shared connection.
+        pass

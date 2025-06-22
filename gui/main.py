@@ -35,7 +35,7 @@ class ResearchCollectorApp(MDApp):
         
         # Initialize services
         self.db_service = DatabaseService()
-        self.sync_service = SyncService()
+        self.sync_service = SyncService(self.db_service)
         self.auth_service = AuthService()
         
         # Create screen manager

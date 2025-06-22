@@ -10,7 +10,7 @@ class ProjectDialog(MDBoxLayout):
             "description": self.ids.desc_field.text.strip()
         }
 
-    def set_data(self, name="", description=""):
+    def set_data(self, name="", description="", **kwargs):
         self.ids.name_field.text = name
         self.ids.desc_field.text = description
 

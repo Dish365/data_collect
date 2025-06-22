@@ -2,9 +2,18 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.metrics import dp
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, BooleanProperty
+from kivy.event import EventDispatcher
+from kivymd.uix.card import MDCard
+from kivymd.uix.button import MDRaisedButton, MDIconButton
+from kivymd.uix.label import MDLabel
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.menu import MDDropdownMenu
+from datetime import datetime
+from kivy.app import App
 
-class ProjectItem(BoxLayout):
+
+class ProjectItem(MDCard, EventDispatcher):
     project_id = StringProperty('')
     name = StringProperty('')
     description = StringProperty('')
@@ -13,94 +22,95 @@ class ProjectItem(BoxLayout):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.register_event_type('on_edit')
+        self.register_event_type('on_delete')
+        
         self.orientation = 'horizontal'
-        self.padding = dp(10)
-        self.spacing = dp(10)
+        self.padding = (dp(8), dp(8), dp(4), dp(8))
+        self.spacing = dp(12)
         self.size_hint_y = None
-        self.height = dp(100)
+        self.height = dp(72)
+        self.elevation = 0.8
         
-        # Project info
-        info_layout = BoxLayout(
-            orientation='vertical',
-            size_hint_x=0.7
+        # --- Date Circle ---
+        date_circle = MDCard(
+            size_hint=(None, None),
+            size=(dp(56), dp(56)),
+            radius=[dp(28)],
+            md_bg_color=App.get_running_app().theme_cls.primary_light,
+            ripple_behavior=False,
+            elevation=0
         )
+        date_circle.padding = dp(4)
         
-        name_label = Label(
-            text=self.name,
-            size_hint_y=None,
-            height=dp(30),
-            font_size=dp(18)
-        )
-        info_layout.add_widget(name_label)
+        date_layout = MDBoxLayout(orientation='vertical', adaptive_size=True, pos_hint={'center_x': 0.5, 'center_y': 0.5})
+        self.day_label = MDLabel(halign='center', font_style="H6", theme_text_color="Primary")
+        self.month_label = MDLabel(halign='center', font_style="Caption", theme_text_color="Primary")
+        date_layout.add_widget(self.day_label)
+        date_layout.add_widget(self.month_label)
+        date_circle.add_widget(date_layout)
+        self.add_widget(date_circle)
         
-        desc_label = Label(
-            text=self.description,
-            size_hint_y=None,
-            height=dp(20),
-            font_size=dp(14)
-        )
-        info_layout.add_widget(desc_label)
-        
-        date_label = Label(
-            text=f"Created: {self.created_at}",
-            size_hint_y=None,
-            height=dp(20),
-            font_size=dp(12)
-        )
-        info_layout.add_widget(date_label)
-        
+        # --- Project Info ---
+        info_layout = MDBoxLayout(orientation='vertical', adaptive_height=True, pos_hint={'center_y': 0.5})
+        self.name_label = MDLabel(text=self.name, font_style="Subtitle1", adaptive_height=True)
+        self.desc_label = MDLabel(text=self.description, font_style="Body2", theme_text_color="Secondary", adaptive_height=True)
+        info_layout.add_widget(self.name_label)
+        info_layout.add_widget(self.desc_label)
         self.add_widget(info_layout)
-        
-        # Action buttons
-        actions_layout = BoxLayout(
-            orientation='vertical',
-            size_hint_x=0.3,
-            spacing=dp(5)
+
+        # --- Options Menu ---
+        self.menu_button = MDIconButton(
+            icon='dots-vertical',
+            on_release=self.open_menu,
+            pos_hint={'center_y': 0.5}
         )
-        
-        edit_btn = Button(
-            text='Edit',
-            size_hint_y=None,
-            height=dp(40),
-            on_press=self.edit_project
+        self.add_widget(self.menu_button)
+
+        menu_items = [
+            {"text": "Edit", "viewclass": "OneLineListItem", "on_release": lambda: self.dispatch('on_edit')},
+            {"text": "Delete", "viewclass": "OneLineListItem", "on_release": lambda: self.dispatch('on_delete')},
+        ]
+        self.menu = MDDropdownMenu(
+            caller=self.menu_button,
+            items=menu_items,
+            width_mult=4,
         )
-        actions_layout.add_widget(edit_btn)
-        
-        delete_btn = Button(
-            text='Delete',
-            size_hint_y=None,
-            height=dp(40),
-            on_press=self.delete_project
-        )
-        actions_layout.add_widget(delete_btn)
-        
-        self.add_widget(actions_layout)
-        
-        # Bind properties
-        self.bind(name=name_label.setter('text'))
-        self.bind(description=desc_label.setter('text'))
-        self.bind(created_at=lambda x, v: date_label.setter('text')(x, f"Created: {v}"))
+
+        self.bind(name=self._update_name)
+        self.bind(description=self._update_description)
+        self.bind(created_at=self._update_date)
+
+    def open_menu(self, button):
+        self.menu.open()
+
+    def _update_name(self, instance, value):
+        self.name_label.text = value
     
-    def edit_project(self, instance):
-        # TODO: Implement project editing
-        pass
+    def _update_description(self, instance, value):
+        self.desc_label.text = value
     
-    def delete_project(self, instance):
-        # Get app instance
-        app = self.parent.parent.parent.parent.parent
-        
-        # Delete from database
-        cursor = app.db_service.conn.cursor()
-        cursor.execute('DELETE FROM projects WHERE id = ?', (self.project_id,))
-        app.db_service.conn.commit()
-        
-        # Queue for sync
-        app.sync_service.queue_sync(
-            'projects',
-            self.project_id,
-            'delete',
-            None
-        )
-        
-        # Remove from UI
-        self.parent.remove_widget(self) 
+    def _update_date(self, instance, value):
+        if not value:
+            self.day_label.text = "--"
+            self.month_label.text = "N/A"
+            return
+            
+        try:
+            # Handle different possible datetime formats
+            if '.' in value:
+                dt_object = datetime.fromisoformat(value.split('.')[0])
+            else:
+                dt_object = datetime.fromisoformat(value.replace('Z', ''))
+            
+            self.day_label.text = dt_object.strftime("%d")
+            self.month_label.text = dt_object.strftime("%b").upper()
+        except (ValueError, TypeError):
+            self.day_label.text = "!"
+            self.month_label.text = "Err"
+
+    def on_edit(self, *args):
+        self.menu.dismiss()
+    
+    def on_delete(self, *args):
+        self.menu.dismiss() 
