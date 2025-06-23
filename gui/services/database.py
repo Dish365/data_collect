@@ -88,6 +88,19 @@ class DatabaseService:
         conn.commit()
         conn.close()
     
+    def clear_sync_queue(self):
+        """Clears all entries from the sync_queue table."""
+        conn = self.get_db_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM sync_queue')
+            conn.commit()
+            print("Sync queue cleared.")
+        except Exception as e:
+            print(f"Error clearing sync queue: {e}")
+        finally:
+            conn.close()
+
     def close(self):
         # This method is no longer necessary for a shared connection.
         pass

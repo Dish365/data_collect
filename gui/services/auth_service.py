@@ -3,11 +3,12 @@ import json
 from kivy.storage.jsonstore import JsonStore
 from kivy.clock import Clock
 from requests.exceptions import RequestException, Timeout, ConnectionError
+from services.database import DatabaseService
 
 class AuthService:
     def __init__(self):
         self.store = JsonStore('auth.json')
-        self.base_url = 'http://localhost:8000'  # Change this to your backend URL
+        self.base_url = 'http://127.0.0.1:8000'  # Standardized backend URL
         self.token = None
         self.user_data = None
     
@@ -109,31 +110,51 @@ class AuthService:
             except:
                 return False
     
-    def register(self, username, email, password, password2, role='field_worker'):
-        """Register new user with backend"""
-        try:
-            response = requests.post(
-                f'{self.base_url}/auth/register/',
-                json={
-                    'username': username,
-                    'email': email,
-                    'password': password,
-                    'password2': password2,
-                    'role': role
+    def register(self, username, email, password, password2, first_name="", last_name="", role="researcher", callback=None):
+        """Register new user with backend asynchronously"""
+        def _register():
+            try:
+                if not self._check_network_connectivity():
+                    if callback:
+                        callback({'success': False, 'error': 'network_unavailable', 'message': 'No network connection.'})
+                    return
+
+                registration_data = {
+                    'username': username, 'email': email,
+                    'password': password, 'password2': password2, 'role': role
                 }
-            )
-            
-            if response.status_code == 201:
-                data = response.json()
-                self.token = data.get('token')
-                self.store.put('auth', token=self.token, username=username)
-                return True
-            return False
-        except requests.RequestException:
-            return False
+                if first_name: registration_data['first_name'] = first_name
+                if last_name: registration_data['last_name'] = last_name
+
+                response = requests.post(
+                    f'{self.base_url}/auth/register/',
+                    json=registration_data,
+                    timeout=30
+                )
+
+                if response.status_code == 201:
+                    data = response.json()
+                    self.token = data.get('token')
+                    self.user_data = data.get('user', {})
+                    self.store.put('auth', token=self.token, username=username, user_data=json.dumps(self.user_data))
+                    if callback:
+                        callback({'success': True, 'data': data})
+                else:
+                    error_data = response.json()
+                    if callback:
+                        callback({'success': False, 'error': 'registration_failed', 'message': error_data, 'status_code': response.status_code})
+
+            except (Timeout, ConnectionError) as e:
+                if callback:
+                    callback({'success': False, 'error': 'network_error', 'message': str(e)})
+            except Exception as e:
+                if callback:
+                    callback({'success': False, 'error': 'unknown', 'message': str(e)})
+
+        Clock.schedule_once(lambda dt: _register(), 0)
     
     def logout(self):
-        """Logout user and clear stored credentials"""
+        """Logout user, clear stored credentials, and clear the sync queue."""
         try:
             # Try to logout from server
             if self.token:
@@ -149,6 +170,10 @@ class AuthService:
         self.user_data = None
         if self.store.exists('auth'):
             self.store.delete('auth')
+
+        # Clear the sync queue
+        db_service = DatabaseService()
+        db_service.clear_sync_queue()
     
     def is_authenticated(self):
         """Check if user is authenticated"""
@@ -208,151 +233,36 @@ class AuthService:
                 response = requests.delete(url, headers=headers, timeout=timeout)
             
             response.raise_for_status()
+            
+            # Handle empty responses for methods like DELETE
+            if response.status_code == 204:
+                return {}
+
             return response.json()
             
         except ConnectionError:
             return {"error": "network_unavailable", "message": "Working in offline mode"}
         except Timeout:
             return {"error": "timeout", "message": "Request timed out"}
+        except requests.exceptions.HTTPError as e:
+            # Try to parse the JSON error response from the server
+            try:
+                error_body = e.response.json()
+            except json.JSONDecodeError:
+                error_body = e.response.text
+            return {"error": "http_error", "message": str(e), "status_code": e.response.status_code, "details": error_body}
         except RequestException as e:
             return {"error": "request_failed", "message": str(e)}
         except Exception as e:
             return {"error": "unknown", "message": str(e)}
     
-    def register(self, username, email, password, password2, first_name="", last_name="", role="researcher", callback=None):
-        """Register new user with backend asynchronously"""
-        def _register():
-            try:
-                # Check network connectivity first
-                if not self._check_network_connectivity():
-                    if callback:
-                        callback({
-                            'success': False,
-                            'error': 'network_unavailable',
-                            'message': 'No network connection. Please check your internet connection.'
-                        })
-                    return
-
-                # Prepare registration data
-                registration_data = {
-                    'username': username,
-                    'email': email,
-                    'password': password,
-                    'password2': password2,
-                    'role': role
-                }
-                
-                # Add optional fields if provided
-                if first_name:
-                    registration_data['first_name'] = first_name
-                if last_name:
-                    registration_data['last_name'] = last_name
-
-                response = requests.post(
-                    f'{self.base_url}/auth/register/',
-                    json=registration_data,
-                    timeout=30
-                )
-                
-                if response.status_code == 201:  # Created
-                    data = response.json()
-                    self.token = data.get('token')
-                    self.user_data = data.get('user_data', {})
-                    
-                    # Save to local storage
-                    self.store.put('auth', 
-                                 token=self.token, 
-                                 username=username,
-                                 user_data=json.dumps(self.user_data))
-                    
-                    if callback:
-                        callback({
-                            'success': True,
-                            'token': self.token,
-                            'user_data': self.user_data,
-                            'message': 'Registration successful!'
-                        })
-                elif response.status_code == 400:
-                    # Validation errors
-                    error_data = response.json()
-                    error_messages = []
-                    
-                    # Extract error messages from response
-                    for field, errors in error_data.items():
-                        if isinstance(errors, list):
-                            error_messages.extend(errors)
-                        else:
-                            error_messages.append(str(errors))
-                    
-                    error_message = '; '.join(error_messages) if error_messages else 'Registration failed'
-                    
-                    if callback:
-                        callback({
-                            'success': False,
-                            'error': 'validation_error',
-                            'message': error_message,
-                            'field_errors': error_data
-                        })
-                elif response.status_code == 409:
-                    # Conflict - user already exists
-                    if callback:
-                        callback({
-                            'success': False,
-                            'error': 'user_exists',
-                            'message': 'User with this username or email already exists'
-                        })
-                else:
-                    if callback:
-                        callback({
-                            'success': False,
-                            'error': 'server_error',
-                            'message': f'Server error: {response.status_code}'
-                        })
-                        
-            except Timeout:
-                if callback:
-                    callback({
-                        'success': False,
-                        'error': 'timeout',
-                        'message': 'Request timed out. Please try again.'
-                    })
-            except ConnectionError:
-                if callback:
-                    callback({
-                        'success': False,
-                        'error': 'connection_error',
-                        'message': 'Connection failed. Please check your internet connection.'
-                    })
-            except RequestException as e:
-                if callback:
-                    callback({
-                        'success': False,
-                        'error': 'request_failed',
-                        'message': f'Request failed: {str(e)}'
-                    })
-            except Exception as e:
-                if callback:
-                    callback({
-                        'success': False,
-                        'error': 'unknown',
-                        'message': f'An unexpected error occurred: {str(e)}'
-                    })
-        
-        # Run registration in a separate thread to avoid blocking UI
-        Clock.schedule_once(lambda dt: _register(), 0)
-    
     def forgot_password(self, username_or_email, callback=None):
-        """Request password reset"""
+        """Handles forgot password request asynchronously"""
         def _forgot_password():
             try:
-                # Check network connectivity first
                 if not self._check_network_connectivity():
                     if callback:
-                        callback({
-                            'success': False,
-                            'error': 'network_unavailable',
-                            'message': 'No network connection. Please check your internet connection.'
-                        })
+                        callback({'success': False, 'error': 'network_unavailable', 'message': 'No network connection.'})
                     return
 
                 response = requests.post(
@@ -363,62 +273,77 @@ class AuthService:
                 
                 if response.status_code == 200:
                     if callback:
-                        callback({
-                            'success': True,
-                            'message': 'Password reset instructions have been sent to your email.'
-                        })
-                elif response.status_code == 404:
-                    if callback:
-                        callback({
-                            'success': False,
-                            'error': 'user_not_found',
-                            'message': 'No user found with this username or email.'
-                        })
-                elif response.status_code == 400:
-                    error_data = response.json()
-                    error_message = error_data.get('message', 'Invalid request')
-                    if callback:
-                        callback({
-                            'success': False,
-                            'error': 'validation_error',
-                            'message': error_message
-                        })
+                        callback({'success': True, 'message': response.json().get('message')})
                 else:
                     if callback:
-                        callback({
-                            'success': False,
-                            'error': 'server_error',
-                            'message': f'Server error: {response.status_code}'
-                        })
-                        
-            except Timeout:
+                        callback({'success': False, 'error': 'request_failed', 'message': response.json().get('message', 'An error occurred.')})
+
+            except (Timeout, ConnectionError) as e:
                 if callback:
-                    callback({
-                        'success': False,
-                        'error': 'timeout',
-                        'message': 'Request timed out. Please try again.'
-                    })
-            except ConnectionError:
-                if callback:
-                    callback({
-                        'success': False,
-                        'error': 'connection_error',
-                        'message': 'Connection failed. Please check your internet connection.'
-                    })
-            except RequestException as e:
-                if callback:
-                    callback({
-                        'success': False,
-                        'error': 'request_failed',
-                        'message': f'Request failed: {str(e)}'
-                    })
+                    callback({'success': False, 'error': 'network_error', 'message': str(e)})
             except Exception as e:
                 if callback:
-                    callback({
-                        'success': False,
-                        'error': 'unknown',
-                        'message': f'An unexpected error occurred: {str(e)}'
-                    })
+                    callback({'success': False, 'error': 'unknown', 'message': str(e)})
+
+        Clock.schedule_once(lambda dt: _forgot_password(), 0)
+
+    def change_password(self, old_password, new_password, callback=None):
+        """Handles password change request asynchronously"""
+        def _change_password():
+            try:
+                token = self.get_token()
+                if not token:
+                    if callback:
+                        callback({'success': False, 'error': 'not_authenticated', 'message': 'User not authenticated.'})
+                    return
+
+                response = self.make_authenticated_request(
+                    'auth/change-password/',
+                    method='POST',
+                    data={'old_password': old_password, 'new_password': new_password}
+                )
+
+                if 'error' not in response:
+                    if callback:
+                        callback({'success': True, 'message': response.get('message', 'Password changed successfully.')})
+                else:
+                    if callback:
+                        callback({'success': False, 'error': 'change_failed', 'message': response.get('message', 'Failed to change password.')})
+            
+            except Exception as e:
+                 if callback:
+                    callback({'success': False, 'error': 'unknown', 'message': str(e)})
         
-        # Run forgot password request in a separate thread
-        Clock.schedule_once(lambda dt: _forgot_password(), 0) 
+        Clock.schedule_once(lambda dt: _change_password(), 0)
+
+    def update_profile(self, profile_data, callback=None):
+        """Handles user profile update request asynchronously"""
+        def _update_profile():
+            try:
+                token = self.get_token()
+                if not token:
+                    if callback:
+                        callback({'success': False, 'error': 'not_authenticated', 'message': 'User not authenticated.'})
+                    return
+
+                response = self.make_authenticated_request(
+                    'auth/profile/',
+                    method='PUT',
+                    data=profile_data
+                )
+
+                if 'error' not in response:
+                    # Update local user data
+                    self.user_data = response
+                    self.store.put('auth', token=self.get_token(), user_data=json.dumps(self.user_data))
+                    if callback:
+                        callback({'success': True, 'user_data': response})
+                else:
+                    if callback:
+                        callback({'success': False, 'error': 'update_failed', 'message': response.get('message', 'Failed to update profile.')})
+            
+            except Exception as e:
+                 if callback:
+                    callback({'success': False, 'error': 'unknown', 'message': str(e)})
+
+        Clock.schedule_once(lambda dt: _update_profile(), 0) 

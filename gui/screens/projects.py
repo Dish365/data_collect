@@ -14,6 +14,7 @@ from widgets.project_item import ProjectItem
 from widgets.project_dialog import ProjectDialog
 from services.auth_service import AuthService
 from services.project_service import ProjectService
+from services.sync_service import SyncService
 
 import threading
 import uuid
@@ -29,6 +30,7 @@ class ProjectsScreen(Screen):
         app = App.get_running_app()
         self.auth_service = app.auth_service
         self.project_service = ProjectService(app.auth_service, app.db_service, app.sync_service)
+        self.sync_service = app.sync_service
         self.projects_data = []
         self.is_loading = False
         self.dialog = None
@@ -39,7 +41,24 @@ class ProjectsScreen(Screen):
 
     def on_enter(self):
         self.ids.top_bar.set_title("Projects")
-        self.load_projects(clear_existing=True)
+        self.check_and_sync_projects()
+
+    def check_and_sync_projects(self):
+        """Check for network and sync projects if online."""
+        self.show_loader(True)
+        def _check_network_and_sync():
+            is_online = self.auth_service._check_network_connectivity()
+            if is_online:
+                Clock.schedule_once(lambda dt: toast("Network online. Syncing..."))
+                # Trigger a one-off sync
+                self.sync_service.sync() 
+                # After sync, reload projects to get updated statuses
+                Clock.schedule_once(lambda dt: self.load_projects(clear_existing=True), 2) # Delay to allow sync to complete
+            else:
+                Clock.schedule_once(lambda dt: toast("Network offline. Loading local data."))
+                self.load_projects(clear_existing=True)
+
+        threading.Thread(target=_check_network_and_sync).start()
 
     def show_loader(self, show=True):
         if self.ids.spinner:
@@ -50,34 +69,33 @@ class ProjectsScreen(Screen):
 
     def open_project_dialog(self, is_edit=False, existing_data=None):
         try:
-            self.dialog_content = ProjectDialog()
+            # Always create a new content widget to avoid state issues
+            content = ProjectDialog()
 
             if is_edit and existing_data:
-                self.dialog_content.set_data(**existing_data)
+                content.set_data(**existing_data)
                 self.current_project_id = existing_data.get('id')
             else:
+                # This is a new project
                 self.current_project_id = None
-
-            if not self.dialog:
-                self.dialog = MDDialog(
-                    title="Edit Project" if is_edit else "New Project",
-                    type="custom",
-                    content_cls=self.dialog_content,
-                    buttons=[
-                        MDRaisedButton(
-                            text="SAVE",
-                            on_release=self.save_project,
-                            md_bg_color=App.get_running_app().theme_cls.primary_color,
-                        ),
-                        MDRaisedButton(
-                            text="CANCEL",
-                            on_release=lambda x: self.dialog.dismiss(),
-                        ),
-                    ],
-                )
-
-            self.dialog.title = "Edit Project" if is_edit else "New Project"
-            self.dialog.content_cls = self.dialog_content
+            
+            # Create a new dialog each time to ensure it's fresh
+            self.dialog = MDDialog(
+                title="Edit Project" if is_edit else "New Project",
+                type="custom",
+                content_cls=content,
+                buttons=[
+                    MDRaisedButton(
+                        text="SAVE",
+                        on_release=self.save_project,
+                        md_bg_color=App.get_running_app().theme_cls.primary_color,
+                    ),
+                    MDRaisedButton(
+                        text="CANCEL",
+                        on_release=lambda x: self.dialog.dismiss(),
+                    ),
+                ],
+            )
             self.dialog.open()
 
         except Exception as e:
@@ -88,7 +106,8 @@ class ProjectsScreen(Screen):
     def save_project(self, instance):
         self.show_loader(True)
         try:
-            project_data = self.dialog_content.get_data()
+            # Get data from the dialog's content
+            project_data = self.dialog.content_cls.get_data()
             if not project_data['name'].strip():
                 Clock.schedule_once(lambda dt: toast("Project name is required"))
                 self.show_loader(False)
@@ -126,7 +145,7 @@ class ProjectsScreen(Screen):
         if result.get('message'):
             Clock.schedule_once(lambda dt: toast(result['message']))
         if result.get('reload', False):
-            self.load_projects()
+            self.load_projects(clear_existing=True)
 
     def search_projects(self, query):
         self.load_projects(search_query=query, clear_existing=True)

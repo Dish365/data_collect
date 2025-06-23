@@ -25,52 +25,56 @@ class DashboardScreen(MDScreen):
         super().__init__(**kwargs)
         app = App.get_running_app()
         self.dashboard_service = DashboardService(app.auth_service, app.db_service)
+
+    def on_enter(self, *args):
+        """Called when the screen is entered."""
+        self.ids.top_bar.set_title("Dashboard")
+        self.update_stats()
     
     def navigate_to(self, screen_name):
         self.manager.transition.direction = "left"  
         self.manager.current = screen_name
-    
-    def on_enter(self):
-        self.ids.top_bar.set_title("Dashboard")
-        self.update_stats()
     
     def show_loader(self, show=True):
         self.ids.spinner.active = show
         self.ids.main_scroll_view.opacity = 0 if show else 1
 
     def update_stats(self):
+        """Fetches dashboard statistics in a background thread."""
         self.show_loader(True)
-        def _update_in_thread():
+        threading.Thread(target=self._update_in_thread, daemon=True).start()
+
+    def _update_in_thread(self):
+        """Background task to get stats."""
+        try:
             stats = self.dashboard_service.get_dashboard_stats()
             Clock.schedule_once(lambda dt: self._update_ui(stats))
-
-        threading.Thread(target=_update_in_thread).start()
+        except Exception as e:
+            print(f"Error fetching dashboard stats: {e}")
+            Clock.schedule_once(lambda dt: self.show_loader(False))
 
     def _update_ui(self, stats):
+        """Updates the UI with new stats."""
         self.ids.total_responses_card.value = stats.get('total_responses', 'N/A')
         self.ids.active_projects_card.value = stats.get('active_projects', 'N/A')
         self.ids.pending_sync_card.value = stats.get('pending_sync', 'N/A')
         self.ids.team_members_card.value = stats.get('team_members', 'N/A')
 
-        # Update activity feed
         activity_feed_layout = self.ids.activity_feed_layout
         activity_feed_layout.clear_widgets()
         activity_feed = stats.get('activity_feed', [])
         
         if not activity_feed:
-            no_activity_label = MDLabel(
+            activity_feed_layout.add_widget(MDLabel(
                 text="No recent activity.", 
                 halign="center", 
                 theme_text_color="Hint"
-            )
-            activity_feed_layout.add_widget(no_activity_label)
+            ))
         else:
             for activity in activity_feed:
-                item = ActivityItem(
+                activity_feed_layout.add_widget(ActivityItem(
                     activity_text=activity.get('text'),
                     activity_time=activity.get('time'),
                     activity_icon=activity.get('icon')
-                )
-                activity_feed_layout.add_widget(item)
-
+                ))
         self.show_loader(False) 

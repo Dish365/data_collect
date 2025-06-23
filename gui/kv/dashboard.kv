@@ -41,11 +41,13 @@
                             id: active_projects_card
                             title: "Active Projects"
                             icon: "folder"
+                            on_press: root.navigate_to("projects")
 
                         StatCard:
                             id: pending_sync_card
                             title: "Pending Sync"
                             icon: "sync"
+                            on_press: root.navigate_to("sync")
 
                         StatCard:
                             id: team_members_card

@@ -69,6 +69,11 @@
                             height: dp(40)
                             pos_hint: {"center_y": 0.5}
 
+                        MDIconButton:
+                            icon: "refresh"
+                            on_release: root.check_and_sync_projects()
+                            pos_hint: {"center_y": 0.5}
+
                 MDScrollView:
                     MDGridLayout:
                         id: projects_grid
