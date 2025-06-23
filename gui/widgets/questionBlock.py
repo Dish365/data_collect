@@ -177,7 +177,7 @@ class QuestionBlock(MDCard):
             "question": self.question_input.text.strip(),
             "type": self.answer_type,
             "options": [w.text.strip() for w in self.options_widgets] if self.answer_type == "Multiple Choice" else [],
-            "allow_multiple": self.allow_multiple
+            "allow_multiple": bool(self.allow_multiple)
         }
 
     def render_preview(self):

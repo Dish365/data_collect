@@ -80,22 +80,28 @@ class ProjectsScreen(Screen):
                 self.current_project_id = None
             
             # Create a new dialog each time to ensure it's fresh
+            save_button = MDRaisedButton(
+                text="SAVE",
+                on_release=self.save_project,
+                md_bg_color=App.get_running_app().theme_cls.primary_color,
+                disabled=True
+            )
+            cancel_button = MDRaisedButton(
+                text="CANCEL",
+                on_release=lambda x: self.dialog.dismiss(),
+            )
             self.dialog = MDDialog(
                 title="Edit Project" if is_edit else "New Project",
                 type="custom",
                 content_cls=content,
-                buttons=[
-                    MDRaisedButton(
-                        text="SAVE",
-                        on_release=self.save_project,
-                        md_bg_color=App.get_running_app().theme_cls.primary_color,
-                    ),
-                    MDRaisedButton(
-                        text="CANCEL",
-                        on_release=lambda x: self.dialog.dismiss(),
-                    ),
-                ],
+                buttons=[save_button, cancel_button],
             )
+            # Enable/disable save button based on name field
+            def on_name_change(instance, value):
+                save_button.disabled = not bool(value.strip())
+            content.ids.name_field.bind(text=on_name_change)
+            # Set initial state
+            save_button.disabled = not bool(content.ids.name_field.text.strip())
             self.dialog.open()
 
         except Exception as e:
@@ -206,7 +212,7 @@ class ProjectsScreen(Screen):
             project_item = ProjectItem(
                 project_id=str(project.get('id', '')),
                 name=project.get('name', 'No Name'),
-                description=project.get('description', ''),
+                description=project.get('description') or 'No description',
                 created_at=project.get('created_at', ''),
                 sync_status=project.get('sync_status', 'unknown')
             )

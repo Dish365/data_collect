@@ -12,6 +12,7 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.label import MDLabel
 from kivy.clock import Clock
 from kivy.properties import StringProperty, ListProperty
 from kivy.app import App
@@ -29,7 +30,7 @@ from services.form_service import FormService
 Builder.load_file("kv/form_builder.kv")
 
 class FormBuilderScreen(Screen):
-    project_id = StringProperty(None)
+    project_id = StringProperty(None, allownone=True)
     project_list = ListProperty([])
     project_map = {}  # Maps project name to id
     project_menu = None
@@ -128,10 +129,19 @@ class FormBuilderScreen(Screen):
                 block.set_answer_type("Multiple Choice")
                 block.options_box.clear_widgets()
                 block.options_widgets = []
-                for opt in (q_data.get('options') or []):
+                options = q_data.get('options') or []
+                if isinstance(options, str):
+                    try:
+                        options = json.loads(options)
+                    except Exception:
+                        options = []
+                for opt in options:
                     block.add_option()
                     block.options_widgets[-1].text = opt
-                block.toggle_switch.active = q_data.get('allow_multiple', False)
+                val = q_data.get('allow_multiple', False)
+                if isinstance(val, str):
+                    val = val.lower() in ('true', '1')
+                block.toggle_switch.active = bool(val)
             block.bind(minimum_height=block.setter("height"))
             self.ids.form_canvas.add_widget(block)
 
@@ -166,7 +176,7 @@ class FormBuilderScreen(Screen):
                     'question_text': q.get('question', ''),
                     'question_type': self._map_type_to_backend(q.get('type', 'Short Answer')),
                     'options': q.get('options', []),
-                    'allow_multiple': q.get('allow_multiple', False)
+                    'allow_multiple': bool(q.get('allow_multiple', False))
                 })
         
         # The widgets are added in reverse order, so we reverse the list back
@@ -188,83 +198,48 @@ class FormBuilderScreen(Screen):
         self.ids.form_canvas.disabled = show
 
     def preview_questions(self):
+        """Show a dialog previewing the current form questions."""
         questions = []
-        preview_container = MDBoxLayout(
-            orientation="vertical",
-            spacing=dp(10),
-            padding=dp(10),
-            size_hint_y=None
+        for widget in self.ids.form_canvas.children:
+            if isinstance(widget, QuestionBlock):
+                q = widget.to_dict()
+                questions.append(q)
+        questions.reverse()  # To match display order
+
+        preview_layout = MDBoxLayout(orientation="vertical", spacing=dp(12), padding=dp(16), adaptive_height=True)
+        if not questions:
+            preview_layout.add_widget(MDLabel(text="No questions to preview.", font_style="Subtitle1"))
+        else:
+            for idx, q in enumerate(questions, 1):
+                q_text = q.get('question', '')
+                q_type = q.get('type', '')
+                options = q.get('options', [])
+                allow_multiple = q.get('allow_multiple', False)
+                label = f"{idx}. {q_text}"
+                preview_layout.add_widget(MDLabel(text=label, font_style="Subtitle1"))
+                preview_layout.add_widget(MDLabel(text=f"Type: {q_type}", font_style="Caption"))
+                if q_type == "Multiple Choice" and options:
+                    for opt in options:
+                        preview_layout.add_widget(MDLabel(text=f"- {opt}", font_style="Body2"))
+                    if allow_multiple:
+                        preview_layout.add_widget(MDLabel(text="(Multiple answers allowed)", font_style="Caption"))
+                elif q_type == "Long Answer":
+                    preview_layout.add_widget(MDLabel(text="[Long answer field]", font_style="Body2"))
+                elif q_type == "Short Answer":
+                    preview_layout.add_widget(MDLabel(text="[Short answer field]", font_style="Body2"))
+                preview_layout.add_widget(MDLabel(text="", font_style="Body2"))  # Spacer
+
+        dialog = MDDialog(
+            title="Preview Questions",
+            type="custom",
+            content_cls=preview_layout,
+            buttons=[
+                MDRaisedButton(text="Close", on_release=lambda x: dialog.dismiss())
+            ],
+            auto_dismiss=True,
         )
-        preview_container.bind(minimum_height=preview_container.setter("height"))
+        dialog.open()
 
-        for widget in self.ids.question_blocks_container.children[::-1]:
-            if hasattr(widget, "to_dict"):
-                q_dict = widget.to_dict()
-                questions.append(q_dict)
-                preview = widget.render_preview()
-                preview.size_hint_y = None
-                preview.height = preview.minimum_height
-                preview_container.add_widget(preview)
-
-        scroll = MDScrollView()
-        scroll.add_widget(preview_container)
-
-        def open_dialog(*args):
-            content_wrapper = MDBoxLayout(
-                orientation="vertical",
-                size_hint_y=None,
-                height=preview_container.height if preview_container.height < dp(500) else dp(500)
-            )
-            content_wrapper.add_widget(scroll)
-
-            dialog = MDDialog(
-                title="Preview Questions",
-                type="custom",
-                content_cls=content_wrapper,
-                size_hint=(0.9, None),
-                height=dp(600),
-                buttons=[
-                    MDRaisedButton(
-                        text="Export JSON",
-                        on_release=lambda x: self.export_to_json(questions)
-                    )
-                ]
-            )
-            dialog.open()
-
-        Clock.schedule_once(open_dialog, 0.1)
-
-    def add_text_field(self):
-        field = ShortTextField(question_text="Question 1: What is your name?")
-        self.ids.field_container.add_widget(field)
-
-    def add_multiple_choice_field(self):
-        field = MultipleChoiceField(
-            question_text="Question 2: Select your age group",
-            options=["Under 18", "18-25", "26-40", "Over 40"]
-        )
-        self.ids.field_container.add_widget(field)
-
-    def add_long_text_field(self):
-        field = LongTextField(question_text="Describe your experience")
-        self.ids.field_container.add_widget(field)
-
-    def add_location_field(self):
-        field = LocationPickerField(question_text="Where are you located?")
-        self.ids.field_container.add_widget(field)
-
-    def add_photo_field(self):
-        field = PhotoUploadField(question_text="Upload your photo")
-        self.ids.field_container.add_widget(field)
-
-    def add_rating_scale_field(self):
-        field = RatingScaleField(question_text="Rate your satisfaction")
-        self.ids.field_container.add_widget(field)
-    
-    def add_number_field(self):
-        field = ShortTextField(question_text="Question 3: Enter a number", input_type='number')
-        self.ids.field_container.add_widget(field)
-        
     def add_question_block(self):
         block = QuestionBlock()
         self.ids.question_blocks_container.add_widget(block)
