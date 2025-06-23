@@ -1,73 +1,135 @@
-# form_builder.kv
-
 <FormBuilderScreen>:
-    name: "form_builder"
-
     MDBoxLayout:
-        orientation: "vertical"
+        orientation: 'vertical'
 
         TopBar:
             id: top_bar
+            left_action_items: [["arrow-left", lambda x: root.manager.change_screen('projects', 'right')]]
+            right_action_items: [["content-save", lambda x: root.save_form()]]
 
         MDBoxLayout:
-            orientation: "horizontal"
-            padding: dp(16)
+            orientation: 'vertical'
+            padding: dp(10)
             spacing: dp(10)
-            size_hint_y: None
-            height: dp(56)
 
+            # Project Selector
             MDBoxLayout:
-                orientation: "horizontal"
-                spacing: dp(8)
-                size_hint_x: 0.4
-                pos_hint: {"center_y": 0.5}
-
-                MDIconButton:
-                    icon: "arrow-left"
-                    on_release:
-                        root.manager.transition.direction = "right"
-                        root.manager.current = "dashboard"
-                    theme_icon_color: "Custom"
-                    icon_color: 0, 0, 0, 1
-                    pos_hint: {"center_y": 0.5}
-
-                MDLabel:
-                    text: "Form Builder"
-                    font_style: "H5"
-                    pos_hint: {"center_y": 0.5}
-                    size_hint_x: None
-                    width: dp(220)
-
-        ScrollView:
-            do_scroll_x: False
-
-            MDBoxLayout:
-                orientation: "vertical"
-                padding: dp(16)
-                spacing: dp(10)
+                orientation: 'horizontal'
                 size_hint_y: None
-                height: self.minimum_height
+                height: dp(56)
+                spacing: dp(10)
 
                 MDLabel:
-                    text: "Add Questions"
-                    font_style: "H6"
-                    halign: "left"
-
-                MDRaisedButton:
-                    text: "Add Question"
-                    on_release: root.add_question_block()
+                    text: "Select Project:"
                     size_hint_x: None
-                    width: dp(160)
+                    width: dp(120)
+                    font_style: "Subtitle1"
+                    valign: 'middle'
 
-                MDRaisedButton:
-                    text: "Preview Questions"
-                    on_release: root.preview_questions()
-                    size_hint_x: None
-                    width: dp(180)
+                MDDropDownItem:
+                    id: project_spinner
+                    text: 'Select Project'
+                    on_release: root.open_project_menu()
+                    pos_hint: {'center_y': 0.5}
+                    md_bg_color: app.theme_cls.primary_light
+                    radius: [12, 12, 12, 12]
+                    font_size: '18sp'
 
+            # Main content layout: Left and Right Panel
+            MDBoxLayout:
+                orientation: 'horizontal'
+                spacing: dp(16)
+
+                # Left Panel - Question Types (centered vertically)
                 MDBoxLayout:
-                    id: question_blocks_container
-                    orientation: "vertical"
-                    spacing: dp(20)
-                    size_hint_y: None
-                    height: self.minimum_height
+                    orientation: 'vertical'
+                    size_hint_x: 0.3
+                    padding: 0
+                    spacing: 0
+
+                    MDCard:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: dp(16)
+                        spacing: dp(12)
+                        radius: [16, 16, 16, 16]
+                        elevation: 1
+                        md_bg_color: app.theme_cls.bg_light
+
+                        MDLabel:
+                            text: "Question Types"
+                            font_style: "H6"
+                            size_hint_y: None
+                            height: self.texture_size[1]
+                            bold: True
+
+                        MDBoxLayout:
+                            orientation: 'vertical'
+                            spacing: dp(10)
+                            size_hint_y: None
+                            height: self.minimum_height
+
+                            MDRaisedButton:
+                                text: "Short Text"
+                                on_release: root.add_question('text')
+                                size_hint_y: None
+                                height: dp(40)
+                                md_bg_color: app.theme_cls.primary_color
+                                text_color: 1, 1, 1, 1
+
+                            MDRaisedButton:
+                                text: "Multiple Choice"
+                                on_release: root.add_question('choice')
+                                size_hint_y: None
+                                height: dp(40)
+                                md_bg_color: app.theme_cls.primary_color
+                                text_color: 1, 1, 1, 1
+
+                            MDRaisedButton:
+                                text: "Long Text"
+                                on_release: root.add_question('long_text')
+                                size_hint_y: None
+                                height: dp(40)
+                                md_bg_color: app.theme_cls.primary_color
+                                text_color: 1, 1, 1, 1
+
+                    Widget:  # Bottom Spacer
+
+                # Right Panel - Form Canvas
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    size_hint_x: 0.7
+                    spacing: dp(10)
+
+                    MDScrollView:
+                        MDBoxLayout:
+                            id: form_canvas
+                            orientation: 'vertical'
+                            spacing: dp(12)
+                            adaptive_height: True
+                            padding: dp(10)
+
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_y: None
+                        height: dp(56)
+                        spacing: dp(16)
+                        padding: [dp(10), 0, dp(10), dp(10)]
+                        MDRaisedButton:
+                            text: "Save"
+                            md_bg_color: app.theme_cls.primary_color
+                            text_color: 1, 1, 1, 1
+                            on_release: root.save_form()
+                        MDRaisedButton:
+                            text: "Preview Questions"
+                            md_bg_color: app.theme_cls.primary_color
+                            text_color: 1, 1, 1, 1
+                            on_release: root.preview_questions()
+
+                    MDSpinner:
+                        id: spinner
+                        size_hint: None, None
+                        size: dp(46), dp(46)
+                        pos_hint: {'center_x': .5, 'center_y': .5}
+                        active: False

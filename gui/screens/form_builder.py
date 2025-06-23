@@ -13,136 +13,180 @@ from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDRaisedButton
 from kivy.clock import Clock
-
+from kivy.properties import StringProperty, ListProperty
+from kivy.app import App
+from kivymd.toast import toast
+import threading
+from kivymd.uix.menu import MDDropdownMenu
 
 from kivy.lang import Builder
 
 import uuid
 import json
 
+from services.form_service import FormService
 
 Builder.load_file("kv/form_builder.kv")
 
 class FormBuilderScreen(Screen):
+    project_id = StringProperty(None)
+    project_list = ListProperty([])
+    project_map = {}  # Maps project name to id
+    project_menu = None
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # self.setup_ui()
-        self.current_project = None
-        self.current_questions = []
+        app = App.get_running_app()
+        self.form_service = FormService(app.auth_service, app.db_service, app.sync_service)
+        self.questions_data = []
     
-    def setup_ui(self):
-        # Main layout
-        layout = BoxLayout(orientation='vertical', padding=dp(20), spacing=dp(10))
-        
-        # Header with project selector
-        header = BoxLayout(
-            orientation='horizontal',
-            size_hint_y=None,
-            height=dp(50)
+    def on_enter(self):
+        self.load_projects()
+
+    def load_projects(self):
+        """Loads all projects from the local DB and populates the spinner."""
+        app = App.get_running_app()
+        conn = app.db_service.get_db_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, name FROM projects ORDER BY name")
+            projects = cursor.fetchall()
+            if not projects:
+                toast("No projects found. Redirecting to Projects page.")
+                Clock.schedule_once(lambda dt: self.manager.change_screen('projects', 'right'), 1)
+                return
+            self.project_list = [p['name'] for p in projects]
+            self.project_map = {p['name']: p['id'] for p in projects}
+            self.ids.project_spinner.values = self.project_list
+            self.ids.project_spinner.text = 'Select Project'
+            self.project_id = None
+            self.ids.form_canvas.clear_widgets()
+        finally:
+            conn.close()
+
+    def open_project_menu(self):
+        if self.project_menu:
+            self.project_menu.dismiss()
+        menu_items = [
+            {
+                "text": name,
+                "viewclass": "OneLineListItem",
+                "on_release": lambda x=name: self.on_project_selected(None, x)
+            }
+            for name in self.project_list
+        ]
+        self.project_menu = MDDropdownMenu(
+            caller=self.ids.project_spinner,
+            items=menu_items,
+            width_mult=4
         )
+        self.project_menu.open()
+
+    def on_project_selected(self, spinner, text):
+        if self.project_menu:
+            self.project_menu.dismiss()
+        if text == 'Select Project' or text not in self.project_map:
+            self.project_id = None
+            self.ids.project_spinner.text = 'Select Project'
+            self.ids.form_canvas.clear_widgets()
+            return
+        self.project_id = self.project_map[text]
+        self.ids.project_spinner.text = text
+        self.ids.top_bar.set_title(f"Form for {text}")
+        self.load_form()
+
+    def load_form(self):
+        """Loads the questions for the current project."""
+        self.show_loader(True)
+        self.ids.form_canvas.clear_widgets()
+
+        def _load_in_thread():
+            try:
+                questions, error = self.form_service.load_questions(self.project_id)
+                if error:
+                    raise Exception(error)
+                self.questions_data = questions
+                Clock.schedule_once(lambda dt: self._update_ui_with_questions())
+            except Exception as e:
+                Clock.schedule_once(lambda dt: toast(f"Error: {e}"))
+            finally:
+                Clock.schedule_once(lambda dt: self.show_loader(False))
+
+        threading.Thread(target=_load_in_thread).start()
+
+    def _update_ui_with_questions(self):
+        """Populates the UI with question widgets."""
+        for q_data in self.questions_data:
+            # Map backend/local fields to QuestionBlock fields
+            answer_type = self._map_type_to_block(q_data.get('question_type', 'text'))
+            block = QuestionBlock()
+            block.question_input.text = q_data.get('question_text', '')
+            block.set_answer_type(answer_type)
+            if answer_type == "Multiple Choice":
+                # Remove default options and add from data
+                block.answer_area.clear_widgets()
+                block.set_answer_type("Multiple Choice")
+                block.options_box.clear_widgets()
+                block.options_widgets = []
+                for opt in (q_data.get('options') or []):
+                    block.add_option()
+                    block.options_widgets[-1].text = opt
+                block.toggle_switch.active = q_data.get('allow_multiple', False)
+            block.bind(minimum_height=block.setter("height"))
+            self.ids.form_canvas.add_widget(block)
+
+    def add_question(self, question_type):
+        """Adds a new question widget to the form canvas."""
+        if not self.project_id:
+            toast("Select a project first.")
+            return
+        block = QuestionBlock()
+        block.set_answer_type(self._map_type_to_block(question_type))
+        block.bind(minimum_height=block.setter("height"))
+        self.ids.form_canvas.add_widget(block)
+        toast(f"Added {question_type} question")
+
+    def remove_question_widget(self, widget_instance):
+        """Removes a question widget from the UI."""
+        self.ids.form_canvas.remove_widget(widget_instance)
+
+    def save_form(self):
+        """Collects data from all question widgets and saves the form."""
+        if not self.project_id:
+            toast("Select a project first.")
+            return
+        self.show_loader(True)
         
-        title = Label(
-            text='Form Builder',
-            size_hint_x=None,
-            width=dp(200),
-            font_size=dp(24)
-        )
-        header.add_widget(title)
+        questions_to_save = []
+        for widget in self.ids.form_canvas.children:
+            if isinstance(widget, QuestionBlock):
+                q = widget.to_dict()
+                # Map QuestionBlock fields to backend/local fields
+                questions_to_save.append({
+                    'question_text': q.get('question', ''),
+                    'question_type': self._map_type_to_backend(q.get('type', 'Short Answer')),
+                    'options': q.get('options', []),
+                    'allow_multiple': q.get('allow_multiple', False)
+                })
         
-        self.project_spinner = Spinner(
-            text='Select Project',
-            values=['Select Project'],
-            size_hint_x=None,
-            width=dp(200),
-            on_text=self.on_project_selected
-        )
-        header.add_widget(self.project_spinner)
-        
-        layout.add_widget(header)
-        
-        # Question builder
-        builder_layout = BoxLayout(
-            orientation='vertical',
-            size_hint_y=None,
-            height=dp(200),
-            spacing=dp(10)
-        )
-        
-        # Question type
-        type_layout = BoxLayout(
-            orientation='horizontal',
-            size_hint_y=None,
-            height=dp(40)
-        )
-        type_layout.add_widget(Label(text='Question Type:'))
-        self.type_spinner = Spinner(
-            text='Select Type',
-            values=['text', 'number', 'select', 'multiselect'],
-            size_hint_x=None,
-            width=dp(200)
-        )
-        type_layout.add_widget(self.type_spinner)
-        builder_layout.add_widget(type_layout)
-        
-        # Question text
-        text_layout = BoxLayout(
-            orientation='horizontal',
-            size_hint_y=None,
-            height=dp(40)
-        )
-        text_layout.add_widget(Label(text='Question Text:'))
-        self.question_text = TextInput(
-            multiline=False,
-            size_hint_x=None,
-            width=dp(400)
-        )
-        text_layout.add_widget(self.question_text)
-        builder_layout.add_widget(text_layout)
-        
-        # Options (for select/multiselect)
-        options_layout = BoxLayout(
-            orientation='horizontal',
-            size_hint_y=None,
-            height=dp(40)
-        )
-        options_layout.add_widget(Label(text='Options (comma-separated):'))
-        self.options_text = TextInput(
-            multiline=False,
-            size_hint_x=None,
-            width=dp(400)
-        )
-        options_layout.add_widget(self.options_text)
-        builder_layout.add_widget(options_layout)
-        
-        # Add question button
-        add_btn = Button(
-            text='Add Question',
-            size_hint_y=None,
-            height=dp(40),
-            on_press=self.add_question
-        )
-        builder_layout.add_widget(add_btn)
-        
-        layout.add_widget(builder_layout)
-        
-        # Questions list
-        self.questions_layout = BoxLayout(
-            orientation='vertical',
-            spacing=dp(10)
-        )
-        
-        # Scroll view for questions
-        scroll = ScrollView()
-        scroll.add_widget(self.questions_layout)
-        layout.add_widget(scroll)
-        
-        # Add layout to screen
-        self.add_widget(layout)
-    
-    # def on_enter(self):
-    #     # Load projects when entering screen
-    #     self.load_projects()
-    
+        # The widgets are added in reverse order, so we reverse the list back
+        questions_to_save.reverse()
+
+        def _save_in_thread():
+            try:
+                result = self.form_service.save_questions(self.project_id, questions_to_save)
+                Clock.schedule_once(lambda dt: toast(result.get('message', 'Form saved.')))
+            except Exception as e:
+                Clock.schedule_once(lambda dt: toast(f"Error saving: {e}"))
+            finally:
+                Clock.schedule_once(lambda dt: self.show_loader(False))
+
+        threading.Thread(target=_save_in_thread).start()
+
+    def show_loader(self, show=True):
+        self.ids.spinner.active = show
+        self.ids.form_canvas.disabled = show
+
     def preview_questions(self):
         questions = []
         preview_container = MDBoxLayout(
@@ -190,7 +234,6 @@ class FormBuilderScreen(Screen):
 
         Clock.schedule_once(open_dialog, 0.1)
 
-
     def add_text_field(self):
         field = ShortTextField(question_text="Question 1: What is your name?")
         self.ids.field_container.add_widget(field)
@@ -205,10 +248,6 @@ class FormBuilderScreen(Screen):
     def add_long_text_field(self):
         field = LongTextField(question_text="Describe your experience")
         self.ids.field_container.add_widget(field)
-
-    # def add_date_field(self):
-    #     field = DateField(question_text="Select your birth date")
-    #     self.ids.field_container.add_widget(field)
 
     def add_location_field(self):
         field = LocationPickerField(question_text="Where are you located?")
@@ -230,37 +269,6 @@ class FormBuilderScreen(Screen):
         block = QuestionBlock()
         self.ids.question_blocks_container.add_widget(block)
 
-    def load_projects(self):
-        # Get app instance
-        app = self.manager.get_screen('form_builder').parent
-        
-        # Load projects from database
-        cursor = app.db_service.conn.cursor()
-        cursor.execute('SELECT id, name FROM projects ORDER BY name')
-        projects = cursor.fetchall()
-        
-        # Update spinner values
-        self.project_spinner.values = ['Select Project'] + [p['name'] for p in projects]
-        self.project_spinner.text = 'Select Project'
-    
-    def on_project_selected(self, spinner, text):
-        if text == 'Select Project':
-            self.current_project = None
-            self.questions_layout.clear_widgets()
-            return
-        
-        # Get app instance
-        app = self.manager.get_screen('form_builder').parent
-        
-        # Get project ID
-        cursor = app.db_service.conn.cursor()
-        cursor.execute('SELECT id FROM projects WHERE name = ?', (text,))
-        project = cursor.fetchone()
-        
-        if project:
-            self.current_project = project['id']
-            self.load_questions()
-    
     def load_questions(self):
         if not self.current_project:
             return
@@ -284,69 +292,6 @@ class FormBuilderScreen(Screen):
         # Add question items
         for question in questions:
             self.add_question_item(question)
-    
-    def add_question(self, instance):
-        if not self.current_project:
-            return
-        
-        # Get values
-        question_type = self.type_spinner.text
-        question_text = self.question_text.text
-        options = self.options_text.text
-        
-        if not question_text:
-            return
-        
-        # Create question
-        question_id = str(uuid.uuid4())
-        options_json = json.dumps([opt.strip() for opt in options.split(',')]) if options else '[]'
-        
-        # Get app instance
-        app = self.manager.get_screen('form_builder').parent
-        
-        # Save to database
-        cursor = app.db_service.conn.cursor()
-        cursor.execute('''
-            INSERT INTO questions (
-                id, project_id, question_text, question_type,
-                options, order_index
-            )
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (
-            question_id,
-            self.current_project,
-            question_text,
-            question_type,
-            options_json,
-            len(self.current_questions)
-        ))
-        app.db_service.conn.commit()
-        
-        # Queue for sync
-        app.sync_service.queue_sync(
-            'questions',
-            question_id,
-            'create',
-            {
-                'project_id': self.current_project,
-                'question_text': question_text,
-                'question_type': question_type,
-                'options': options_json,
-                'order_index': len(self.current_questions)
-            }
-        )
-        
-        # Add to UI
-        self.add_question_item({
-            'id': question_id,
-            'question_text': question_text,
-            'question_type': question_type,
-            'options': options_json
-        })
-        
-        # Clear inputs
-        self.question_text.text = ''
-        self.options_text.text = ''
     
     def add_question_item(self, question):
         # Create question item
@@ -402,3 +347,27 @@ class FormBuilderScreen(Screen):
         
         # Reload questions
         self.load_questions() 
+
+    def _map_type_to_block(self, question_type):
+        # Map backend/local type to QuestionBlock type
+        if question_type == 'text':
+            return "Short Answer"
+        elif question_type == 'long_text':
+            return "Long Answer"
+        elif question_type == 'choice':
+            return "Multiple Choice"
+        elif question_type == 'numeric':
+            return "Short Answer"  # Could be improved
+        else:
+            return "Short Answer"
+
+    def _map_type_to_backend(self, block_type):
+        # Map QuestionBlock type to backend/local type
+        if block_type == "Short Answer":
+            return 'text'
+        elif block_type == "Long Answer":
+            return 'long_text'
+        elif block_type == "Multiple Choice":
+            return 'choice'
+        else:
+            return 'text' 

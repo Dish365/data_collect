@@ -23,6 +23,7 @@ class ProjectItem(MDCard, EventDispatcher):
         super().__init__(**kwargs)
         self.register_event_type('on_edit')
         self.register_event_type('on_delete')
+        self.register_event_type('on_build_form')
         
         self.orientation = 'horizontal'
         self.padding = (dp(8), dp(8), dp(4), dp(8))
@@ -95,6 +96,7 @@ class ProjectItem(MDCard, EventDispatcher):
 
         menu_items = [
             {"text": "Edit", "viewclass": "OneLineListItem", "on_release": lambda: self.dispatch('on_edit')},
+            {"text": "Build Form", "viewclass": "OneLineListItem", "on_release": lambda: self.dispatch('on_build_form')},
             {"text": "Delete", "viewclass": "OneLineListItem", "on_release": lambda: self.dispatch('on_delete')},
         ]
         self.menu = MDDropdownMenu(
@@ -157,4 +159,7 @@ class ProjectItem(MDCard, EventDispatcher):
         self.menu.dismiss()
     
     def on_delete(self, *args):
+        self.menu.dismiss()
+
+    def on_build_form(self, *args):
         self.menu.dismiss()

@@ -212,7 +212,8 @@ class ProjectsScreen(Screen):
             )
             project_item.bind(
                 on_edit=lambda instance, pid=project.get('id'): self.edit_project(pid),
-                on_delete=lambda instance, pid=project.get('id'): self.delete_project(pid)
+                on_delete=lambda instance, pid=project.get('id'): self.delete_project(pid),
+                on_build_form=lambda instance, pid=project.get('id'): self.go_to_form_builder(pid)
             )
             self.ids.projects_grid.add_widget(project_item)
 
@@ -253,6 +254,11 @@ class ProjectsScreen(Screen):
             ],
         )
         delete_dialog.open()
+
+    def go_to_form_builder(self, project_id):
+        self.manager.current = 'form_builder'
+        form_builder_screen = self.manager.get_screen('form_builder')
+        form_builder_screen.project_id = project_id
 
     def create_new_project(self, instance):
         self.open_project_dialog()

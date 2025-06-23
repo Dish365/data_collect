@@ -1,3 +1,6 @@
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivy.properties import ObjectProperty
+from kivy.event import EventDispatcher
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
@@ -8,7 +11,8 @@ from kivy.metrics import dp
 from kivy.properties import StringProperty
 import json
 
-class QuestionWidget(BoxLayout):
+class QuestionWidget(MDBoxLayout, EventDispatcher):
+    question_data = ObjectProperty()
     question_id = StringProperty('')
     question_text = StringProperty('')
     question_type = StringProperty('')
@@ -21,6 +25,7 @@ class QuestionWidget(BoxLayout):
         self.spacing = dp(5)
         self.size_hint_y = None
         self.height = dp(150)
+        self.register_event_type('on_delete')
         
         # Question text
         self.text_label = Label(
@@ -113,3 +118,11 @@ class QuestionWidget(BoxLayout):
         elif self.question_type == 'multiselect':
             for checkbox, _ in self.checkboxes:
                 checkbox.active = False 
+
+    def get_data(self):
+        # This will be implemented to return the question's data
+        return self.question_data
+
+    def on_delete(self, *args):
+        # This is the event that will be dispatched
+        pass 
