@@ -1,184 +1,207 @@
 from kivy.uix.screenmanager import Screen
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-from kivy.uix.spinner import Spinner
-from kivy.uix.scrollview import ScrollView
+from kivy.properties import StringProperty, ListProperty
+from kivy.app import App
+from kivy.clock import Clock
+from kivymd.toast import toast
+from kivymd.uix.menu import MDDropdownMenu
+from kivymd.uix.textfield import MDTextField
+from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.label import MDLabel
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.selectioncontrol import MDCheckbox
+from kivymd.uix.slider import MDSlider
+from kivy.lang import Builder
 from kivy.metrics import dp
-from widgets.question_widget import QuestionWidget
-import uuid
+import json
+import datetime
 
+Builder.load_file("kv/collect_data.kv")
 class DataCollectionScreen(Screen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.setup_ui()
-        self.current_project = None
-        self.current_questions = []
-    
-    def setup_ui(self):
-        # Main layout
-        layout = BoxLayout(orientation='vertical', padding=dp(20), spacing=dp(10))
-        
-        # Header with project selector
-        header = BoxLayout(
-            orientation='horizontal',
-            size_hint_y=None,
-            height=dp(50)
-        )
-        
-        title = Label(
-            text='Data Collection',
-            size_hint_x=None,
-            width=dp(200),
-            font_size=dp(24)
-        )
-        header.add_widget(title)
-        
-        self.project_spinner = Spinner(
-            text='Select Project',
-            values=['Select Project'],
-            size_hint_x=None,
-            width=dp(200),
-            on_text=self.on_project_selected
-        )
-        header.add_widget(self.project_spinner)
-        
-        layout.add_widget(header)
-        
-        # Questions container
-        self.questions_layout = BoxLayout(
-            orientation='vertical',
-            spacing=dp(10)
-        )
-        
-        # Scroll view for questions
-        scroll = ScrollView()
-        scroll.add_widget(self.questions_layout)
-        layout.add_widget(scroll)
-        
-        # Submit button
-        submit_btn = Button(
-            text='Submit Responses',
-            size_hint_y=None,
-            height=dp(50),
-            on_press=self.submit_responses
-        )
-        layout.add_widget(submit_btn)
-        
-        # Add layout to screen
-        self.add_widget(layout)
-    
+    project_id = StringProperty(None, allownone=True)
+    project_list = ListProperty([])
+    project_map = {}
+    project_menu = None
+    questions_data = []
+    response_widgets = []
+
     def on_enter(self):
-        # Load projects when entering screen
+        Clock.schedule_once(self._delayed_load, 0)
+
+    def _delayed_load(self, dt):
         self.load_projects()
-    
+
     def load_projects(self):
-        # Get app instance
-        app = self.manager.get_screen('data_collection').parent
-        
-        # Load projects from database
-        cursor = app.db_service.conn.cursor()
-        cursor.execute('SELECT id, name FROM projects ORDER BY name')
-        projects = cursor.fetchall()
-        
-        # Update spinner values
-        self.project_spinner.values = ['Select Project'] + [p['name'] for p in projects]
-        self.project_spinner.text = 'Select Project'
-    
+        app = App.get_running_app()
+        conn = app.db_service.get_db_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, name FROM projects ORDER BY name")
+            projects = cursor.fetchall()
+            if not projects:
+                toast("No projects found. Redirecting to Projects page.")
+                Clock.schedule_once(lambda dt: setattr(self.manager, 'current', 'projects'), 1)
+                return
+            self.project_list = [p['name'] for p in projects]
+            self.project_map = {p['name']: p['id'] for p in projects}
+            self.project_id = None
+            self.ids.project_spinner.text = 'Select Project'
+            self.ids.form_canvas.clear_widgets()
+        finally:
+            conn.close()
+
+    def open_project_menu(self):
+        if self.project_menu:
+            self.project_menu.dismiss()
+        menu_items = [
+            {
+                "text": name,
+                "viewclass": "OneLineListItem",
+                "on_release": lambda x=name: self.on_project_selected(None, x)
+            }
+            for name in self.project_list
+        ]
+        self.project_menu = MDDropdownMenu(
+            caller=self.ids.project_spinner,
+            items=menu_items,
+            width_mult=4
+        )
+        self.project_menu.open()
+
     def on_project_selected(self, spinner, text):
-        if text == 'Select Project':
-            self.current_project = None
-            self.questions_layout.clear_widgets()
+        if self.project_menu:
+            self.project_menu.dismiss()
+        if text == 'Select Project' or text not in self.project_map:
+            self.project_id = None
+            self.ids.project_spinner.text = 'Select Project'
+            self.ids.form_canvas.clear_widgets()
             return
-        
-        # Get app instance
-        app = self.manager.get_screen('data_collection').parent
-        
-        # Get project ID
-        cursor = app.db_service.conn.cursor()
-        cursor.execute('SELECT id FROM projects WHERE name = ?', (text,))
-        project = cursor.fetchone()
-        
-        if project:
-            self.current_project = project['id']
-            self.load_questions()
-    
-    def load_questions(self):
-        if not self.current_project:
+        self.project_id = self.project_map[text]
+        self.ids.project_spinner.text = text
+        self.load_form()
+
+    def load_form(self):
+        self.ids.form_canvas.clear_widgets()
+        self.response_widgets = []
+        app = App.get_running_app()
+        questions, error = app.form_service.load_questions(self.project_id)
+        if error:
+            toast(f"Error loading form: {error}")
             return
-        
-        # Clear existing questions
-        self.questions_layout.clear_widgets()
-        self.current_questions = []
-        
-        # Get app instance
-        app = self.manager.get_screen('data_collection').parent
-        
-        # Load questions from database
-        cursor = app.db_service.conn.cursor()
-        cursor.execute('''
-            SELECT * FROM questions 
-            WHERE project_id = ? 
-            ORDER BY order_index
-        ''', (self.current_project,))
-        questions = cursor.fetchall()
-        
-        # Add question widgets
-        for question in questions:
-            question_widget = QuestionWidget(
-                question_id=question['id'],
-                question_text=question['question_text'],
-                question_type=question['question_type'],
-                options=question['options']
-            )
-            self.questions_layout.add_widget(question_widget)
-            self.current_questions.append(question_widget)
-    
-    def submit_responses(self, instance):
-        if not self.current_project:
-            return
-        
-        # Get app instance
-        app = self.manager.get_screen('data_collection').parent
-        
-        # Generate respondent ID
-        respondent_id = str(uuid.uuid4())
-        
-        # Save responses
-        cursor = app.db_service.conn.cursor()
-        for question in self.current_questions:
-            response_id = str(uuid.uuid4())
-            cursor.execute('''
-                INSERT INTO responses (
-                    id, project_id, question_id, respondent_id,
-                    response_value, collected_by
+        self.questions_data = questions
+        for q in questions:
+            widget = self.create_question_widget(q)
+            self.ids.form_canvas.add_widget(widget)
+            self.response_widgets.append((q, widget))
+
+    def create_question_widget(self, q):
+        q_type = q.get('question_type', 'text')
+        q_text = q.get('question_text', '')
+        options = q.get('options') or []
+        if isinstance(options, str):
+            try:
+                options = json.loads(options)
+            except Exception:
+                options = []
+        allow_multiple = bool(q.get('allow_multiple', False))
+        box = MDBoxLayout(orientation='vertical', spacing=dp(6), padding=[0, dp(4)], adaptive_height=True)
+        box.add_widget(MDLabel(text=q_text, font_style="Subtitle1", size_hint_y=None, height=dp(28)))
+        if q_type == 'text':
+            field = MDTextField(hint_text="Your answer", mode="rectangle")
+            box.add_widget(field)
+            box.response_field = field
+        elif q_type == 'long_text':
+            field = MDTextField(hint_text="Your answer", mode="rectangle", multiline=True)
+            box.add_widget(field)
+            box.response_field = field
+        elif q_type == 'numeric':
+            field = MDTextField(hint_text="Enter a number", mode="rectangle", input_filter='int')
+            box.add_widget(field)
+            box.response_field = field
+        elif q_type == 'choice':
+            if allow_multiple:
+                checks = []
+                for opt in options:
+                    row = MDBoxLayout(orientation='horizontal', spacing=dp(8), size_hint_y=None, height=dp(36))
+                    cb = MDCheckbox()
+                    row.add_widget(cb)
+                    row.add_widget(MDLabel(text=opt))
+                    box.add_widget(row)
+                    checks.append((cb, opt))
+                box.response_field = checks
+            else:
+                checks = []
+                for opt in options:
+                    row = MDBoxLayout(orientation='horizontal', spacing=dp(8), size_hint_y=None, height=dp(36))
+                    cb = MDCheckbox(group=q_text)
+                    row.add_widget(cb)
+                    row.add_widget(MDLabel(text=opt))
+                    box.add_widget(row)
+                    checks.append((cb, opt))
+                box.response_field = checks
+        elif q_type == 'date':
+            field = MDTextField(hint_text="YYYY-MM-DD", mode="rectangle")
+            box.add_widget(field)
+            box.response_field = field
+        elif q_type == 'location':
+            field = MDTextField(hint_text="Location (lat,lon)", mode="rectangle")
+            box.add_widget(field)
+            box.response_field = field
+        elif q_type == 'photo':
+            field = MDLabel(text="[Photo upload not implemented]", font_style="Caption")
+            box.add_widget(field)
+            box.response_field = None
+        elif q_type == 'scale':
+            slider = MDSlider(min=1, max=5, value=3, step=1)
+            box.add_widget(slider)
+            box.response_field = slider
+        else:
+            field = MDTextField(hint_text="Your answer", mode="rectangle")
+            box.add_widget(field)
+            box.response_field = field
+        return box
+
+    def submit_response(self):
+        responses = []
+        app = App.get_running_app()
+        user_id = app.auth_service.get_user_data().get('id', 'anonymous')
+        for q, widget in self.response_widgets:
+            q_type = q.get('question_type', 'text')
+            answer = None
+            if q_type in ('text', 'long_text', 'numeric', 'date', 'location'):
+                answer = widget.response_field.text if widget.response_field else None
+            elif q_type == 'choice':
+                if bool(q.get('allow_multiple', False)):
+                    answer = [opt for cb, opt in widget.response_field if cb.active]
+                else:
+                    answer = None
+                    for cb, opt in widget.response_field:
+                        if cb.active:
+                            answer = opt
+                            break
+            elif q_type == 'scale':
+                answer = int(widget.response_field.value) if widget.response_field else None
+            elif q_type == 'photo':
+                answer = None  # Not implemented
+            responses.append({
+                'project': self.project_id,
+                'question': q.get('id'),
+                'respondent_id': user_id,
+                'response_value': answer,
+                'metadata': {},  # Add device/location info if available
+                'sync_status': 'pending'
+            })
+        for resp in responses:
+            # Try direct POST if online
+            if app.auth_service.is_authenticated():
+                result = app.auth_service.make_authenticated_request(
+                    'api/v1/responses/', method='POST', data=resp
                 )
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (
-                response_id,
-                self.current_project,
-                question.question_id,
-                respondent_id,
-                question.get_response(),
-                'user'
-            ))
-            
-            # Queue for sync
-            app.sync_service.queue_sync(
-                'responses',
-                response_id,
-                'create',
-                {
-                    'project_id': self.current_project,
-                    'question_id': question.question_id,
-                    'respondent_id': respondent_id,
-                    'response_value': question.get_response(),
-                    'collected_by': 'user'
-                }
-            )
-        
-        app.db_service.conn.commit()
-        
-        # Clear responses
-        for question in self.current_questions:
-            question.clear_response() 
+                if 'error' in result:
+                    # Fallback: queue for sync
+                    app.sync_service.queue_sync('responses', resp['question'], 'create', resp)
+            else:
+                # Offline: queue for sync
+                app.sync_service.queue_sync('responses', resp['question'], 'create', resp)
+        toast("Responses saved! (Will sync when online)")
+        self.ids.form_canvas.clear_widgets()
+        self.response_widgets = [] 

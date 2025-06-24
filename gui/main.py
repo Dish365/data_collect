@@ -25,6 +25,7 @@ from kivy.modules import inspector
 from services.database import DatabaseService
 from services.sync_service import SyncService
 from services.auth_service import AuthService
+from services.form_service import FormService
 
 class ResearchCollectorApp(MDApp):
     user_display_name = StringProperty("Guest")
@@ -40,6 +41,7 @@ class ResearchCollectorApp(MDApp):
         self.db_service = DatabaseService()
         self.sync_service = SyncService(self.db_service)
         self.auth_service = AuthService()
+        self.form_service = FormService(self.auth_service, self.db_service, self.sync_service)
         
         # Create screen manager
         sm = ScreenManager()

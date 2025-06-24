@@ -1,0 +1,58 @@
+<DataCollectionScreen>:
+    MDBoxLayout:
+        orientation: 'vertical'
+
+        # Top bar
+        TopBar:
+            id: top_bar
+            left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'dashboard')]]
+            right_action_items: []
+
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: dp(56)
+            padding: [dp(16), dp(10)]
+            spacing: dp(10)
+            MDLabel:
+                text: "Select Project"
+                size_hint_x: None
+                width: dp(120)
+                font_style: "Subtitle2"
+                halign: "right"
+            MDDropDownItem:
+                id: project_spinner
+                text: 'Select Project'
+                on_release: root.open_project_menu()
+                pos_hint: {'center_y': 0.5}
+                md_bg_color: app.theme_cls.primary_light
+                radius: [12, 12, 12, 12]
+                font_size: '16sp'
+                size_hint_x: None
+                width: dp(180)
+
+        MDScrollView:
+            MDBoxLayout:
+                id: form_canvas
+                orientation: 'vertical'
+                spacing: dp(16)
+                adaptive_height: True
+                padding: dp(16)
+
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: dp(64)
+            padding: [dp(24), dp(10)]
+            spacing: dp(16)
+            md_bg_color: 0.96, 0.96, 0.96, 1
+            Widget:
+            MDRaisedButton:
+                id: submit_button
+                text: 'Submit'
+                md_bg_color: app.theme_cls.primary_color
+                text_color: 1, 1, 1, 1
+                size_hint_x: None
+                width: dp(180)
+                on_release: root.submit_response()
+            Widget: 
