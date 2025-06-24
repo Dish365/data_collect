@@ -29,4 +29,7 @@ projects_router.register(r'analytics', AnalyticsResultViewSet, basename='project
 urlpatterns = [
     path('', include(router.urls)),
     path('', include(projects_router.urls)),
+    # Dashboard endpoints
+    path('dashboard-stats/', views.dashboard_stats, name='dashboard-stats'),
+    path('activity-stream/', views.activity_stream, name='activity-stream'),
 ] 

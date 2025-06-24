@@ -33,7 +33,7 @@ class DatabaseService:
                 name TEXT NOT NULL,
                 description TEXT,
                 created_by TEXT NOT NULL,
-                user_id TEXT,
+                user_id TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 sync_status TEXT DEFAULT 'pending',
@@ -51,7 +51,7 @@ class DatabaseService:
                 options TEXT,
                 validation_rules TEXT,
                 order_index INTEGER,
-                user_id TEXT,
+                user_id TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 sync_status TEXT DEFAULT 'pending'
             )
@@ -67,7 +67,7 @@ class DatabaseService:
                 response_value TEXT,
                 response_metadata TEXT,
                 collected_by TEXT,
-                user_id TEXT,
+                user_id TEXT NOT NULL,
                 collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 sync_status TEXT DEFAULT 'pending'
             )
@@ -81,7 +81,7 @@ class DatabaseService:
                 record_id TEXT NOT NULL,
                 operation TEXT NOT NULL,
                 data TEXT,
-                user_id TEXT,
+                user_id TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 attempts INTEGER DEFAULT 0,
                 last_attempt TIMESTAMP,
@@ -91,6 +91,24 @@ class DatabaseService:
         
         conn.commit()
         conn.close()
+        
+        # Run migration to ensure backward compatibility
+        self.migrate_existing_data()
+        
+        # Now create indexes after migration
+        conn = self.get_db_connection()
+        cursor = conn.cursor()
+        try:
+            # Add indexes for better performance with user filtering
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects(user_id)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_questions_user_id ON questions(user_id)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_responses_user_id ON responses(user_id)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_sync_queue_user_id ON sync_queue(user_id)')
+            conn.commit()
+        except Exception as e:
+            print(f"Warning: Could not create indexes: {e}")
+        finally:
+            conn.close()
     
     def clear_user_data(self, user_id):
         """Clears all data for a specific user from the database."""
@@ -127,57 +145,65 @@ class DatabaseService:
         pass
 
     def migrate_existing_data(self):
-        """Migrate existing data to include user_id fields for backward compatibility and create indexes."""
+        """Migrate existing data to include user_id fields for backward compatibility."""
         conn = self.get_db_connection()
         try:
             cursor = conn.cursor()
             
-            # Check if user_id column exists in projects table
-            cursor.execute("PRAGMA table_info(projects)")
-            columns = [col[1] for col in cursor.fetchall()]
+            # Check if projects table exists
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='projects'")
+            if cursor.fetchone():
+                # Check if user_id column exists in projects table
+                cursor.execute("PRAGMA table_info(projects)")
+                columns = [col[1] for col in cursor.fetchall()]
+                
+                if 'user_id' not in columns:
+                    print("Migrating projects table...")
+                    cursor.execute("ALTER TABLE projects ADD COLUMN user_id TEXT")
+                    # For existing projects, we'll set user_id to 'unknown' since we can't determine the original user
+                    cursor.execute("UPDATE projects SET user_id = 'unknown' WHERE user_id IS NULL")
             
-            if 'user_id' not in columns:
-                print("Migrating projects table...")
-                cursor.execute("ALTER TABLE projects ADD COLUMN user_id TEXT")
-                cursor.execute("UPDATE projects SET user_id = 'unknown' WHERE user_id IS NULL")
+            # Check if questions table exists
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='questions'")
+            if cursor.fetchone():
+                # Check if user_id column exists in questions table
+                cursor.execute("PRAGMA table_info(questions)")
+                columns = [col[1] for col in cursor.fetchall()]
+                
+                if 'user_id' not in columns:
+                    print("Migrating questions table...")
+                    cursor.execute("ALTER TABLE questions ADD COLUMN user_id TEXT")
+                    cursor.execute("UPDATE questions SET user_id = 'unknown' WHERE user_id IS NULL")
             
-            # Check if user_id column exists in questions table
-            cursor.execute("PRAGMA table_info(questions)")
-            columns = [col[1] for col in cursor.fetchall()]
+            # Check if responses table exists
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='responses'")
+            if cursor.fetchone():
+                # Check if user_id column exists in responses table
+                cursor.execute("PRAGMA table_info(responses)")
+                columns = [col[1] for col in cursor.fetchall()]
+                
+                if 'user_id' not in columns:
+                    print("Migrating responses table...")
+                    cursor.execute("ALTER TABLE responses ADD COLUMN user_id TEXT")
+                    cursor.execute("UPDATE responses SET user_id = 'unknown' WHERE user_id IS NULL")
             
-            if 'user_id' not in columns:
-                print("Migrating questions table...")
-                cursor.execute("ALTER TABLE questions ADD COLUMN user_id TEXT")
-                cursor.execute("UPDATE questions SET user_id = 'unknown' WHERE user_id IS NULL")
-            
-            # Check if user_id column exists in responses table
-            cursor.execute("PRAGMA table_info(responses)")
-            columns = [col[1] for col in cursor.fetchall()]
-            
-            if 'user_id' not in columns:
-                print("Migrating responses table...")
-                cursor.execute("ALTER TABLE responses ADD COLUMN user_id TEXT")
-                cursor.execute("UPDATE responses SET user_id = 'unknown' WHERE user_id IS NULL")
-            
-            # Check if user_id column exists in sync_queue table
-            cursor.execute("PRAGMA table_info(sync_queue)")
-            columns = [col[1] for col in cursor.fetchall()]
-            
-            if 'user_id' not in columns:
-                print("Migrating sync_queue table...")
-                cursor.execute("ALTER TABLE sync_queue ADD COLUMN user_id TEXT")
-                cursor.execute("UPDATE sync_queue SET user_id = 'unknown' WHERE user_id IS NULL")
-            
-            # Create indexes if they don't exist (now that columns exist)
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects(user_id)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_questions_user_id ON questions(user_id)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_responses_user_id ON responses(user_id)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_sync_queue_user_id ON sync_queue(user_id)")
+            # Check if sync_queue table exists
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='sync_queue'")
+            if cursor.fetchone():
+                # Check if user_id column exists in sync_queue table
+                cursor.execute("PRAGMA table_info(sync_queue)")
+                columns = [col[1] for col in cursor.fetchall()]
+                
+                if 'user_id' not in columns:
+                    print("Migrating sync_queue table...")
+                    cursor.execute("ALTER TABLE sync_queue ADD COLUMN user_id TEXT")
+                    cursor.execute("UPDATE sync_queue SET user_id = 'unknown' WHERE user_id IS NULL")
             
             conn.commit()
             print("Database migration completed successfully!")
             
         except Exception as e:
             print(f"Error during migration: {e}")
+            # If migration fails, we'll continue anyway
         finally:
             conn.close()

@@ -25,7 +25,7 @@ class FormService:
     def load_questions(self, project_id):
         """Loads questions for a project, from API if online, otherwise from local DB."""
         # Try fetching from API first - use the correct endpoint
-        response = self.auth_service.make_authenticated_request(f'api/v1/questions/?project_id={project_id}')
+        response = self.auth_service.make_authenticated_request(f'api/forms/questions/?project_id={project_id}')
 
         conn = self.db_service.get_db_connection()
         try:
@@ -86,14 +86,17 @@ class FormService:
                     'question_text': q_data['question_text'],
                     'question_type': q_data['question_type'],
                     'options': q_data.get('options'),
+                    'allow_multiple': q_data.get('allow_multiple', False),
                     'validation_rules': q_data.get('validation_rules'),
                     'order_index': index
                 })
+            
             response = self.auth_service.make_authenticated_request(
-                'api/v1/questions/',
+                'api/forms/questions/bulk_create/',
                 method='POST',
                 data=payload
             )
+            
             if 'error' not in response:
                 # Save returned questions to local DB as synced
                 def db_write():
@@ -106,9 +109,9 @@ class FormService:
                         else:
                             cursor.execute("DELETE FROM questions WHERE project_id = ?", (project_id,))
                         conn.commit()
-                        # The response may be a list or dict with 'results'
-                        questions = response if isinstance(response, list) else response.get('results', [])
-                        for q in questions:
+                        
+                        # The response is a list of created questions
+                        for q in response:
                             cursor.execute("""
                                 INSERT OR REPLACE INTO questions 
                                 (id, project_id, question_text, question_type, options, validation_rules, order_index, user_id, sync_status) 
@@ -124,6 +127,7 @@ class FormService:
                             conn.close()
                 return self._safe_db_write(db_write)
             # If error, fall through to offline logic
+        
         # Offline or failed online save: fallback to local save and queue for sync
         def db_write():
             conn = self.db_service.get_db_connection()
@@ -154,6 +158,7 @@ class FormService:
             'question_text': q_data['question_text'],
             'question_type': q_data['question_type'],
             'options': q_data.get('options'),
+            'allow_multiple': q_data.get('allow_multiple', False),
             'validation_rules': q_data.get('validation_rules'),
             'order_index': q_data['order_index']
         }

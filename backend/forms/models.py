@@ -8,6 +8,7 @@ class Question(models.Model):
     QUESTION_TYPES = [
         ('numeric', 'Numeric'),
         ('text', 'Text'),
+        ('long_text', 'Long Text'),  # Added to support frontend
         ('choice', 'Multiple Choice'),
         ('scale', 'Scale'),
         ('date', 'Date'),
@@ -19,6 +20,7 @@ class Question(models.Model):
     question_text = models.TextField()
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
     is_required = models.BooleanField(default=True)
+    allow_multiple = models.BooleanField(default=False)  # Added to support frontend
     options = models.JSONField(null=True, blank=True)  # For multiple choice questions
     validation_rules = models.JSONField(null=True, blank=True)
     order_index = models.IntegerField(default=0)
