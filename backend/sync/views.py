@@ -9,21 +9,36 @@ from .serializers import SyncQueueSerializer
 # Create your views here.
 
 class SyncQueueViewSet(viewsets.ModelViewSet):
-    queryset = SyncQueue.objects.all()
     serializer_class = SyncQueueSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        queryset = SyncQueue.objects.all()
-        status = self.request.query_params.get('status', None)
-        if status:
-            queryset = queryset.filter(status=status)
+        """
+        Filter sync queue items by the authenticated user's projects.
+        Superusers can see all items, regular users only see items from their projects.
+        """
+        user = self.request.user
+        if user.is_superuser:
+            queryset = SyncQueue.objects.all()
+        else:
+            # Filter by projects that belong to the user
+            queryset = SyncQueue.objects.filter(
+                table_name__in=['projects', 'questions', 'responses', 'analytics_results']
+            )
+        
+        status_filter = self.request.query_params.get('status', None)
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
         return queryset.order_by('-created_at')
+
+    def perform_create(self, serializer):
+        """Automatically set the created_by field to the authenticated user"""
+        serializer.save(created_by=self.request.user)
 
     @action(detail=False, methods=['post'])
     def process_pending(self, request):
         """Process all pending sync queue items"""
-        pending_items = SyncQueue.objects.filter(status='pending')
+        pending_items = self.get_queryset().filter(status='pending')
         processed_count = 0
         
         for item in pending_items:
@@ -63,4 +78,22 @@ class SyncQueueViewSet(viewsets.ModelViewSet):
         return Response({
             'message': 'Item queued for retry',
             'id': sync_item.id
+        })
+
+    @action(detail=False, methods=['get'])
+    def pending_count(self, request):
+        """Get count of pending sync items"""
+        count = self.get_queryset().filter(status='pending').count()
+        return Response({'pending_count': count})
+
+    @action(detail=False, methods=['post'])
+    def clear_completed(self, request):
+        """Clear completed sync items"""
+        completed_items = self.get_queryset().filter(status='completed')
+        count = completed_items.count()
+        completed_items.delete()
+        
+        return Response({
+            'message': f'Cleared {count} completed items',
+            'cleared_count': count
         })
