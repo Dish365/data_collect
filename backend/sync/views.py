@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
@@ -11,6 +11,7 @@ from .serializers import SyncQueueSerializer
 class SyncQueueViewSet(viewsets.ModelViewSet):
     queryset = SyncQueue.objects.all()
     serializer_class = SyncQueueSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         queryset = SyncQueue.objects.all()
