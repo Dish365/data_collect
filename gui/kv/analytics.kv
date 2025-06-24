@@ -1,0 +1,104 @@
+<AnalyticsScreen>:
+    name: 'analytics'
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(20)
+        spacing: dp(10)
+
+        # Top Bar
+        TopBar:
+            id: top_bar
+            title: 'Analytics'
+
+        # Summary Cards
+        MDBoxLayout:
+            id: summary_cards
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: dp(80)
+            spacing: dp(20)
+
+        # Project and Question Selectors
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: dp(50)
+            spacing: dp(20)
+            MDLabel:
+                text: 'Analytics'
+                font_style: 'H5'
+                size_hint_x: None
+                width: dp(200)
+            MDSpinner:
+                id: project_spinner
+                text: 'Select Project'
+                size_hint_x: None
+                width: dp(200)
+                on_text: root.on_project_selected(self, self.text)
+            MDSpinner:
+                id: question_spinner
+                text: 'Select Question'
+                size_hint_x: None
+                width: dp(300)
+                on_text: root.on_question_selected(self, self.text)
+
+        # Chart/Analytics Area
+        MDBoxLayout:
+            id: chart_container
+            orientation: 'vertical'
+            spacing: dp(10)
+            padding: [0, dp(10), 0, 0]
+
+        # Descriptive Analytics
+        MDBoxLayout:
+            id: descriptive_analytics
+            orientation: 'vertical'
+            size_hint_y: None
+            height: dp(120)
+            padding: [0, dp(10), 0, 0]
+
+        # Inferential Analytics
+        MDBoxLayout:
+            id: inferential_analytics
+            orientation: 'vertical'
+            size_hint_y: None
+            height: dp(120)
+            padding: [0, dp(10), 0, 0]
+
+        # Qualitative Analytics
+        MDBoxLayout:
+            id: qualitative_analytics
+            orientation: 'vertical'
+            size_hint_y: None
+            height: dp(120)
+            padding: [0, dp(10), 0, 0]
+
+        # Export/Reporting
+        MDBoxLayout:
+            id: export_area
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: dp(60)
+            padding: [0, dp(10), 0, 0]
+            MDRaisedButton:
+                text: 'Export as PDF'
+                on_release: root.export_report('pdf')
+            MDRaisedButton:
+                text: 'Export as CSV'
+                on_release: root.export_report('csv')
+
+        # Actionable Insights
+        MDBoxLayout:
+            id: insights_area
+            orientation: 'vertical'
+            size_hint_y: None
+            height: dp(80)
+            padding: [0, dp(10), 0, 0]
+
+        # Collaboration/Comments
+        MDBoxLayout:
+            id: collaboration_area
+            orientation: 'vertical'
+            size_hint_y: None
+            height: dp(80)
+            padding: [0, dp(10), 0, 0] 

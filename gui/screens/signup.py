@@ -4,6 +4,7 @@ from kivymd.toast import toast
 from kivymd.app import MDApp
 from kivy.properties import BooleanProperty
 import re
+import json
 
 Builder.load_file("kv/signup.kv")
 
@@ -86,10 +87,19 @@ class SignUpScreen(MDScreen):
         self.is_registering = False
         
         if result.get('success'):
-            # Registration successful
+            app = MDApp.get_running_app()
+            data = result.get('data', {})
+            token = data.get('token')
+            user = data.get('user')
+            if token and user:
+                app.auth_service.token = token
+                app.auth_service.user_data = user
+                app.auth_service.store.put('auth', token=token, username=user.get('username', ''), user_data=json.dumps(user))
+                app.update_user_display_name()  # Ensure display name is updated
             toast("Registration successful! Welcome to Research Data Collector!")
             self.manager.transition.direction = "left"
             self.manager.current = "dashboard"
+            app.handle_successful_login()
         else:
             # Registration failed
             error_type = result.get('error')

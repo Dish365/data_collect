@@ -14,6 +14,17 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = (permissions.AllowAny,)
     serializer_class = UserRegistrationSerializer
 
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        token, _ = Token.objects.get_or_create(user=user)
+        user_data = UserSerializer(user).data
+        return Response({
+            'token': token.key,
+            'user': user_data
+        }, status=status.HTTP_201_CREATED)
+
 class LoginView(APIView):
     permission_classes = (permissions.AllowAny,)
 
