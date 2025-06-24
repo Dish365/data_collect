@@ -33,7 +33,7 @@ class DatabaseService:
                 name TEXT NOT NULL,
                 description TEXT,
                 created_by TEXT NOT NULL,
-                user_id TEXT NOT NULL,
+                user_id TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 sync_status TEXT DEFAULT 'pending',
@@ -51,7 +51,7 @@ class DatabaseService:
                 options TEXT,
                 validation_rules TEXT,
                 order_index INTEGER,
-                user_id TEXT NOT NULL,
+                user_id TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 sync_status TEXT DEFAULT 'pending'
             )
@@ -67,7 +67,7 @@ class DatabaseService:
                 response_value TEXT,
                 response_metadata TEXT,
                 collected_by TEXT,
-                user_id TEXT NOT NULL,
+                user_id TEXT,
                 collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 sync_status TEXT DEFAULT 'pending'
             )
@@ -81,19 +81,13 @@ class DatabaseService:
                 record_id TEXT NOT NULL,
                 operation TEXT NOT NULL,
                 data TEXT,
-                user_id TEXT NOT NULL,
+                user_id TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 attempts INTEGER DEFAULT 0,
                 last_attempt TIMESTAMP,
                 status TEXT DEFAULT 'pending'
             )
         ''')
-        
-        # Add indexes for better performance with user filtering
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects(user_id)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_questions_user_id ON questions(user_id)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_responses_user_id ON responses(user_id)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_sync_queue_user_id ON sync_queue(user_id)')
         
         conn.commit()
         conn.close()
@@ -133,7 +127,7 @@ class DatabaseService:
         pass
 
     def migrate_existing_data(self):
-        """Migrate existing data to include user_id fields for backward compatibility."""
+        """Migrate existing data to include user_id fields for backward compatibility and create indexes."""
         conn = self.get_db_connection()
         try:
             cursor = conn.cursor()
@@ -145,7 +139,6 @@ class DatabaseService:
             if 'user_id' not in columns:
                 print("Migrating projects table...")
                 cursor.execute("ALTER TABLE projects ADD COLUMN user_id TEXT")
-                # For existing projects, we'll set user_id to 'unknown' since we can't determine the original user
                 cursor.execute("UPDATE projects SET user_id = 'unknown' WHERE user_id IS NULL")
             
             # Check if user_id column exists in questions table
@@ -175,7 +168,7 @@ class DatabaseService:
                 cursor.execute("ALTER TABLE sync_queue ADD COLUMN user_id TEXT")
                 cursor.execute("UPDATE sync_queue SET user_id = 'unknown' WHERE user_id IS NULL")
             
-            # Create indexes if they don't exist
+            # Create indexes if they don't exist (now that columns exist)
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects(user_id)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_questions_user_id ON questions(user_id)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_responses_user_id ON responses(user_id)")

@@ -2,6 +2,9 @@ from kivy.uix.screenmanager import Screen
 from kivy.properties import StringProperty, ListProperty
 from kivy.app import App
 from kivy.clock import Clock
+from kivy.lang import Builder
+from kivy.metrics import dp
+
 from kivymd.toast import toast
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.textfield import MDTextField
@@ -10,12 +13,11 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.selectioncontrol import MDCheckbox
 from kivymd.uix.slider import MDSlider
-from kivy.lang import Builder
-from kivy.metrics import dp
+
 import json
-import datetime
 
 Builder.load_file("kv/collect_data.kv")
+
 class DataCollectionScreen(Screen):
     project_id = StringProperty(None, allownone=True)
     project_list = ListProperty([])
@@ -109,59 +111,71 @@ class DataCollectionScreen(Screen):
         allow_multiple = bool(q.get('allow_multiple', False))
         box = MDBoxLayout(orientation='vertical', spacing=dp(6), padding=[0, dp(4)], adaptive_height=True)
         box.add_widget(MDLabel(text=q_text, font_style="Subtitle1", size_hint_y=None, height=dp(28)))
-        if q_type == 'text':
-            field = MDTextField(hint_text="Your answer", mode="rectangle")
+
+        if q_type in ['text', 'long_text', 'numeric', 'date', 'location']:
+            hint = {
+                'text': "Your answer",
+                'long_text': "Your answer",
+                'numeric': "Enter a number",
+                'date': "YYYY-MM-DD",
+                'location': "Location (lat,lon)"
+            }.get(q_type, "Your answer")
+
+            field = MDTextField(
+                hint_text=hint,
+                mode="rectangle",
+                multiline=q_type == 'long_text',
+                input_filter='int' if q_type == 'numeric' else None
+            )
             box.add_widget(field)
             box.response_field = field
-        elif q_type == 'long_text':
-            field = MDTextField(hint_text="Your answer", mode="rectangle", multiline=True)
-            box.add_widget(field)
-            box.response_field = field
-        elif q_type == 'numeric':
-            field = MDTextField(hint_text="Enter a number", mode="rectangle", input_filter='int')
-            box.add_widget(field)
-            box.response_field = field
+
         elif q_type == 'choice':
-            if allow_multiple:
-                checks = []
-                for opt in options:
-                    row = MDBoxLayout(orientation='horizontal', spacing=dp(8), size_hint_y=None, height=dp(36))
-                    cb = MDCheckbox()
-                    row.add_widget(cb)
-                    row.add_widget(MDLabel(text=opt))
-                    box.add_widget(row)
-                    checks.append((cb, opt))
-                box.response_field = checks
-            else:
-                checks = []
-                for opt in options:
-                    row = MDBoxLayout(orientation='horizontal', spacing=dp(8), size_hint_y=None, height=dp(36))
-                    cb = MDCheckbox(group=q_text)
-                    row.add_widget(cb)
-                    row.add_widget(MDLabel(text=opt))
-                    box.add_widget(row)
-                    checks.append((cb, opt))
-                box.response_field = checks
-        elif q_type == 'date':
-            field = MDTextField(hint_text="YYYY-MM-DD", mode="rectangle")
-            box.add_widget(field)
-            box.response_field = field
-        elif q_type == 'location':
-            field = MDTextField(hint_text="Location (lat,lon)", mode="rectangle")
-            box.add_widget(field)
-            box.response_field = field
-        elif q_type == 'photo':
-            field = MDLabel(text="[Photo upload not implemented]", font_style="Caption")
-            box.add_widget(field)
-            box.response_field = None
+            checks = []
+            for opt in options:
+                row = MDBoxLayout(
+                    orientation='horizontal',
+                    spacing=dp(10),
+                    size_hint_y=None,
+                    height=dp(40),
+                    padding=[dp(8), dp(4), 0, dp(4)],
+                )
+
+                cb = MDCheckbox(
+                    group=q_text if not allow_multiple else None,
+                    size_hint=(None, None),
+                    size=(dp(36), dp(36))
+                )
+
+                label = MDLabel(
+                    text=opt,
+                    halign='left',
+                    valign='middle',
+                    size_hint_x=1
+                )
+                label.bind(size=label.setter('text_size'))
+
+                row.add_widget(cb)
+                row.add_widget(label)
+                box.add_widget(row)
+                checks.append((cb, opt))
+            box.response_field = checks
+
         elif q_type == 'scale':
             slider = MDSlider(min=1, max=5, value=3, step=1)
             box.add_widget(slider)
             box.response_field = slider
+
+        elif q_type == 'photo':
+            field = MDLabel(text="[Photo upload not implemented]", font_style="Caption")
+            box.add_widget(field)
+            box.response_field = None
+
         else:
             field = MDTextField(hint_text="Your answer", mode="rectangle")
             box.add_widget(field)
             box.response_field = field
+
         return box
 
     def submit_response(self):
@@ -177,7 +191,6 @@ class DataCollectionScreen(Screen):
                 if bool(q.get('allow_multiple', False)):
                     answer = [opt for cb, opt in widget.response_field if cb.active]
                 else:
-                    answer = None
                     for cb, opt in widget.response_field:
                         if cb.active:
                             answer = opt
@@ -185,28 +198,28 @@ class DataCollectionScreen(Screen):
             elif q_type == 'scale':
                 answer = int(widget.response_field.value) if widget.response_field else None
             elif q_type == 'photo':
-                answer = None  # Not implemented
+                answer = None
+
             responses.append({
                 'project': self.project_id,
                 'question': q.get('id'),
                 'respondent_id': user_id,
                 'response_value': answer,
-                'metadata': {},  # Add device/location info if available
+                'metadata': {},
                 'sync_status': 'pending',
                 'user_id': user_id
             })
+
         for resp in responses:
-            # Try direct POST if online
             if app.auth_service.is_authenticated():
                 result = app.auth_service.make_authenticated_request(
                     'api/v1/responses/', method='POST', data=resp
                 )
                 if 'error' in result:
-                    # Fallback: queue for sync
                     app.sync_service.queue_sync('responses', resp['question'], 'create', resp)
             else:
-                # Offline: queue for sync
                 app.sync_service.queue_sync('responses', resp['question'], 'create', resp)
+
         toast("Responses saved! (Will sync when online)")
         self.ids.form_canvas.clear_widgets()
-        self.response_widgets = [] 
+        self.response_widgets = []
