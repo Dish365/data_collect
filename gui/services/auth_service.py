@@ -166,14 +166,24 @@ class AuthService:
         except:
             pass  # Ignore logout errors
         
+        # Get user ID before clearing token
+        user_id = None
+        if self.user_data:
+            user_id = self.user_data.get('id')
+        
         self.token = None
         self.user_data = None
         if self.store.exists('auth'):
             self.store.delete('auth')
 
-        # Clear the sync queue
-        db_service = DatabaseService()
-        db_service.clear_sync_queue()
+        # Clear user-specific data from database
+        if user_id:
+            db_service = DatabaseService()
+            db_service.clear_user_data(user_id)
+        else:
+            # Fallback: clear the sync queue if we can't identify the user
+            db_service = DatabaseService()
+            db_service.clear_sync_queue()
     
     def is_authenticated(self):
         """Check if user is authenticated"""

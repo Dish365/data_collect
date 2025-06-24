@@ -50,7 +50,11 @@ class FormBuilderScreen(Screen):
         conn = app.db_service.get_db_connection()
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT id, name FROM projects ORDER BY name")
+            user_id = app.auth_service.get_user_data().get('id')
+            if user_id:
+                cursor.execute("SELECT id, name FROM projects WHERE user_id = ? ORDER BY name", (user_id,))
+            else:
+                cursor.execute("SELECT id, name FROM projects ORDER BY name")
             projects = cursor.fetchall()
             if not projects:
                 toast("No projects found. Redirecting to Projects page.")

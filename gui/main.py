@@ -65,6 +65,9 @@ class ResearchCollectorApp(MDApp):
         # Initialize database
         self.db_service.init_database()
         
+        # Migrate existing data to include user_id fields
+        self.db_service.migrate_existing_data()
+        
         # Check if user is already authenticated
         if self.auth_service.is_authenticated():
             self.update_user_display_name()

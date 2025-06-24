@@ -35,7 +35,11 @@ class DataCollectionScreen(Screen):
         conn = app.db_service.get_db_connection()
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT id, name FROM projects ORDER BY name")
+            user_id = app.auth_service.get_user_data().get('id')
+            if user_id:
+                cursor.execute("SELECT id, name FROM projects WHERE user_id = ? ORDER BY name", (user_id,))
+            else:
+                cursor.execute("SELECT id, name FROM projects ORDER BY name")
             projects = cursor.fetchall()
             if not projects:
                 toast("No projects found. Redirecting to Projects page.")
@@ -188,7 +192,8 @@ class DataCollectionScreen(Screen):
                 'respondent_id': user_id,
                 'response_value': answer,
                 'metadata': {},  # Add device/location info if available
-                'sync_status': 'pending'
+                'sync_status': 'pending',
+                'user_id': user_id
             })
         for resp in responses:
             # Try direct POST if online

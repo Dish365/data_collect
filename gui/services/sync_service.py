@@ -28,11 +28,19 @@ class SyncService:
         try:
             conn = self.db_service.get_db_connection()
             cursor = conn.cursor()
-            cursor.execute('''
-                SELECT * FROM sync_queue 
-                WHERE status = 'pending' 
-                ORDER BY created_at ASC
-            ''')
+            user_id = self.auth_service.get_user_data().get('id')
+            if user_id:
+                cursor.execute('''
+                    SELECT * FROM sync_queue 
+                    WHERE status = 'pending' AND user_id = ?
+                    ORDER BY created_at ASC
+                ''', (user_id,))
+            else:
+                cursor.execute('''
+                    SELECT * FROM sync_queue 
+                    WHERE status = 'pending' 
+                    ORDER BY created_at ASC
+                ''')
             pending_items = cursor.fetchall()
             
             for item in pending_items:
@@ -123,10 +131,11 @@ class SyncService:
         conn = self.db_service.get_db_connection()
         try:
             cursor = conn.cursor()
+            user_id = self.auth_service.get_user_data().get('id')
             cursor.execute('''
-                INSERT INTO sync_queue (table_name, record_id, operation, data)
-                VALUES (?, ?, ?, ?)
-            ''', (table_name, record_id, operation, json.dumps(data) if data else None))
+                INSERT INTO sync_queue (table_name, record_id, operation, data, user_id)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (table_name, record_id, operation, json.dumps(data) if data else None, user_id))
             conn.commit()
         finally:
             conn.close() 

@@ -24,8 +24,8 @@ class FormService:
 
     def load_questions(self, project_id):
         """Loads questions for a project, from API if online, otherwise from local DB."""
-        # Try fetching from API first
-        response = self.auth_service.make_authenticated_request(f'api/forms/questions/?project_id={project_id}')
+        # Try fetching from API first - use the correct endpoint
+        response = self.auth_service.make_authenticated_request(f'api/v1/questions/?project_id={project_id}')
 
         conn = self.db_service.get_db_connection()
         try:
@@ -35,8 +35,13 @@ class FormService:
                 self._sync_local_questions(conn, project_id, api_questions)
 
             # Always return from local DB to have a single source of truth for the UI
+            # Add user filtering to ensure only user-specific data
+            user_id = self.auth_service.get_user_data().get('id')
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM questions WHERE project_id = ? ORDER BY order_index", (project_id,))
+            if user_id:
+                cursor.execute("SELECT * FROM questions WHERE project_id = ? AND user_id = ? ORDER BY order_index", (project_id, user_id))
+            else:
+                cursor.execute("SELECT * FROM questions WHERE project_id = ? ORDER BY order_index", (project_id,))
             questions_data = [dict(row) for row in cursor.fetchall()]
             return questions_data, None
         except Exception as e:
@@ -49,17 +54,21 @@ class FormService:
         """Syncs local questions for a project with data from the API."""
         def db_write():
             cursor = conn.cursor()
-            # Clear existing non-pending questions for this project
-            cursor.execute("DELETE FROM questions WHERE project_id = ? AND sync_status != 'pending'", (project_id,))
+            user_id = self.auth_service.get_user_data().get('id')
+            # Clear existing non-pending questions for this project and user
+            if user_id:
+                cursor.execute("DELETE FROM questions WHERE project_id = ? AND user_id = ? AND sync_status != 'pending'", (project_id, user_id))
+            else:
+                cursor.execute("DELETE FROM questions WHERE project_id = ? AND sync_status != 'pending'", (project_id,))
             
             for q in api_questions:
                 cursor.execute("""
                     INSERT OR REPLACE INTO questions 
-                    (id, project_id, question_text, question_type, options, validation_rules, order_index, sync_status) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    (id, project_id, question_text, question_type, options, validation_rules, order_index, user_id, sync_status) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (q.get('id'), project_id, q.get('question_text'), q.get('question_type'),
                       json.dumps(q.get('options')), json.dumps(q.get('validation_rules')),
-                      q.get('order_index'), 'synced'))
+                      q.get('order_index'), user_id, 'synced'))
             conn.commit()
         
         self._safe_db_write(db_write)
@@ -81,7 +90,7 @@ class FormService:
                     'order_index': index
                 })
             response = self.auth_service.make_authenticated_request(
-                'api/forms/questions/',
+                'api/v1/questions/',
                 method='POST',
                 data=payload
             )
@@ -91,19 +100,23 @@ class FormService:
                     conn = self.db_service.get_db_connection()
                     try:
                         cursor = conn.cursor()
-                        cursor.execute("DELETE FROM questions WHERE project_id = ?", (project_id,))
+                        user_id = self.auth_service.get_user_data().get('id')
+                        if user_id:
+                            cursor.execute("DELETE FROM questions WHERE project_id = ? AND user_id = ?", (project_id, user_id))
+                        else:
+                            cursor.execute("DELETE FROM questions WHERE project_id = ?", (project_id,))
                         conn.commit()
                         # The response may be a list or dict with 'results'
                         questions = response if isinstance(response, list) else response.get('results', [])
                         for q in questions:
                             cursor.execute("""
                                 INSERT OR REPLACE INTO questions 
-                                (id, project_id, question_text, question_type, options, validation_rules, order_index, sync_status) 
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                                (id, project_id, question_text, question_type, options, validation_rules, order_index, user_id, sync_status) 
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                             """, (
                                 q.get('id'), project_id, q.get('question_text'), q.get('question_type'),
                                 json.dumps(q.get('options')), json.dumps(q.get('validation_rules')),
-                                q.get('order_index'), 'synced'))
+                                q.get('order_index'), user_id, 'synced'))
                         conn.commit()
                         return {'message': 'Form saved to backend!', 'reload': True}
                     finally:
@@ -116,8 +129,12 @@ class FormService:
             conn = self.db_service.get_db_connection()
             try:
                 cursor = conn.cursor()
+                user_id = self.auth_service.get_user_data().get('id')
                 # First, clear all existing questions for this project from the local DB
-                cursor.execute("DELETE FROM questions WHERE project_id = ?", (project_id,))
+                if user_id:
+                    cursor.execute("DELETE FROM questions WHERE project_id = ? AND user_id = ?", (project_id, user_id))
+                else:
+                    cursor.execute("DELETE FROM questions WHERE project_id = ?", (project_id,))
                 conn.commit()
 
                 # Now, insert the new set of questions
@@ -146,13 +163,14 @@ class FormService:
         # and queue them for creation. A more complex sync would be needed for updates/deletes here.
         
         question_id = str(uuid.uuid4())
+        user_id = self.auth_service.get_user_data().get('id')
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO questions (id, project_id, question_text, question_type, options, validation_rules, order_index, sync_status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO questions (id, project_id, question_text, question_type, options, validation_rules, order_index, user_id, sync_status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (question_id, project_id, q_data['question_text'], q_data['question_type'],
               json.dumps(q_data.get('options')), json.dumps(q_data.get('validation_rules')),
-              q_data['order_index'], 'pending'))
+              q_data['order_index'], user_id, 'pending'))
         conn.commit()
         
         # Queue for sync

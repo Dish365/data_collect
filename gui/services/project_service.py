@@ -34,21 +34,31 @@ class ProjectService:
                 if 'error' not in response:
                     # Sync with local DB
                     api_projects = response if isinstance(response, list) else response.get('results', [])
+                    user_id = self.auth_service.get_user_data().get('id')
                     cursor = conn.cursor()
-                    cursor.execute('DELETE FROM projects WHERE sync_status != ?', ('pending',))
+                    if user_id:
+                        cursor.execute('DELETE FROM projects WHERE user_id = ? AND sync_status != ?', (user_id, 'pending'))
+                    else:
+                        cursor.execute('DELETE FROM projects WHERE sync_status != ?', ('pending',))
                     for project in api_projects:
                          cursor.execute("""
                             INSERT OR REPLACE INTO projects 
-                            (id, name, description, created_by, created_at, cloud_id, sync_status) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                            (id, name, description, created_by, user_id, created_at, cloud_id, sync_status) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                          """, (project.get('id'), project.get('name'), project.get('description', ''), 
-                               project.get('created_by', 'unknown'), project.get('created_at', datetime.now().isoformat()), 
+                               project.get('created_by', 'unknown'), user_id, project.get('created_at', datetime.now().isoformat()), 
                                project.get('id'), 'synced'))
                     conn.commit()
 
             # Fetch from local DB with search and pagination
-            query = "SELECT * FROM projects WHERE sync_status != 'pending_delete'"
-            params = []
+            user_id = self.auth_service.get_user_data().get('id')
+            if user_id:
+                query = "SELECT * FROM projects WHERE user_id = ? AND sync_status != 'pending_delete'"
+                params = [user_id]
+            else:
+                query = "SELECT * FROM projects WHERE sync_status != 'pending_delete'"
+                params = []
+            
             if search_query:
                 query += " AND name LIKE ?"
                 params.append(f"%{search_query}%")
@@ -77,14 +87,14 @@ class ProjectService:
                 cursor = conn.cursor()
                 if 'error' in response:
                     project_id = str(uuid.uuid4())
-                    cursor.execute("INSERT INTO projects (id, name, description, created_by, sync_status) VALUES (?, ?, ?, ?, ?)",
-                                   (project_id, project_data['name'], project_data['description'], api_data['created_by'], 'pending'))
+                    cursor.execute("INSERT INTO projects (id, name, description, created_by, user_id, sync_status) VALUES (?, ?, ?, ?, ?, ?)",
+                                   (project_id, project_data['name'], project_data['description'], api_data['created_by'], user_id, 'pending'))
                     self.sync_service.queue_sync('projects', project_id, 'create', api_data)
                     message = "Project created (will sync when online)"
                 else:
                     project_id = response.get('id', str(uuid.uuid4()))
-                    cursor.execute("INSERT INTO projects (id, name, description, created_by, cloud_id, sync_status) VALUES (?, ?, ?, ?, ?, ?)",
-                                   (project_id, project_data['name'], project_data['description'], api_data['created_by'], project_id, 'synced'))
+                    cursor.execute("INSERT INTO projects (id, name, description, created_by, user_id, cloud_id, sync_status) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                                   (project_id, project_data['name'], project_data['description'], api_data['created_by'], user_id, project_id, 'synced'))
                     message = "Project created successfully!"
                 conn.commit()
                 return {'message': message, 'reload': True}
