@@ -110,6 +110,69 @@ class DatabaseService:
         finally:
             conn.close()
     
+    def set_current_user(self, user_id):
+        """Set the current user for this database session"""
+        try:
+            conn = self.get_db_connection()
+            cursor = conn.cursor()
+            
+            # Create a simple user session table if it doesn't exist
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS user_session (
+                    id INTEGER PRIMARY KEY,
+                    current_user_id TEXT,
+                    session_start TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Clear previous session data
+            cursor.execute('DELETE FROM user_session')
+            
+            # Set current user
+            if user_id:
+                cursor.execute(
+                    'INSERT INTO user_session (current_user_id) VALUES (?)',
+                    (user_id,)
+                )
+                print(f"Database session set for user: {user_id}")
+            
+            conn.commit()
+            conn.close()
+            
+        except Exception as e:
+            print(f"Error setting current user in database: {e}")
+
+    def get_current_user(self):
+        """Get the current user from database session"""
+        try:
+            conn = self.get_db_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute('SELECT current_user_id FROM user_session ORDER BY session_start DESC LIMIT 1')
+            result = cursor.fetchone()
+            conn.close()
+            
+            if result:
+                return result[0]
+            return None
+            
+        except Exception as e:
+            print(f"Error getting current user from database: {e}")
+            return None
+
+    def ensure_user_context(self, expected_user_id):
+        """Ensure the database context matches the expected user"""
+        try:
+            current_user = self.get_current_user()
+            if current_user != expected_user_id:
+                print(f"Database user context mismatch. Expected: {expected_user_id}, Found: {current_user}")
+                self.set_current_user(expected_user_id)
+                return False
+            return True
+        except Exception as e:
+            print(f"Error ensuring user context: {e}")
+            return False
+
     def clear_user_data(self, user_id):
         """Clears all data for a specific user from the database."""
         conn = self.get_db_connection()
@@ -120,13 +183,17 @@ class DatabaseService:
             cursor.execute('DELETE FROM questions WHERE user_id = ?', (user_id,))
             cursor.execute('DELETE FROM projects WHERE user_id = ?', (user_id,))
             cursor.execute('DELETE FROM sync_queue WHERE user_id = ?', (user_id,))
+            
+            # Also clear user session if it matches
+            cursor.execute('DELETE FROM user_session WHERE current_user_id = ?', (user_id,))
+            
             conn.commit()
             print(f"Cleared all data for user {user_id}")
         except Exception as e:
             print(f"Error clearing user data: {e}")
         finally:
             conn.close()
-    
+
     def clear_sync_queue(self):
         """Clears all entries from the sync_queue table."""
         conn = self.get_db_connection()
@@ -207,3 +274,122 @@ class DatabaseService:
             # If migration fails, we'll continue anyway
         finally:
             conn.close()
+
+    def clear_all_sessions(self):
+        """Clear all user sessions - useful for complete logout"""
+        try:
+            conn = self.get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM user_session')
+            conn.commit()
+            conn.close()
+            print("All user sessions cleared")
+        except Exception as e:
+            print(f"Error clearing sessions: {e}")
+
+    def get_user_specific_stats(self, user_id):
+        """Get user-specific statistics from local database"""
+        try:
+            conn = self.get_db_connection()
+            cursor = conn.cursor()
+            
+            # Projects count
+            cursor.execute(
+                "SELECT COUNT(*) FROM projects WHERE user_id = ? AND sync_status != 'pending_delete'", 
+                (user_id,)
+            )
+            projects = cursor.fetchone()[0]
+            
+            # Responses count
+            cursor.execute(
+                "SELECT COUNT(*) FROM responses WHERE user_id = ?", 
+                (user_id,)
+            )
+            responses = cursor.fetchone()[0]
+            
+            # Sync queue stats
+            cursor.execute(
+                "SELECT COUNT(*) FROM sync_queue WHERE user_id = ? AND status = 'pending'", 
+                (user_id,)
+            )
+            pending_sync = cursor.fetchone()[0]
+            
+            cursor.execute(
+                "SELECT COUNT(*) FROM sync_queue WHERE user_id = ? AND status = 'failed'", 
+                (user_id,)
+            )
+            failed_sync = cursor.fetchone()[0]
+            
+            conn.close()
+            
+            return {
+                'projects': projects,
+                'responses': responses,
+                'pending_sync': pending_sync,
+                'failed_sync': failed_sync
+            }
+            
+        except Exception as e:
+            print(f"Error getting user-specific stats: {e}")
+            return {
+                'projects': 0,
+                'responses': 0,
+                'pending_sync': 0,
+                'failed_sync': 0
+            }
+
+    def cleanup_stale_sync_data(self):
+        """Clean up sync queue items with unknown or null user_id"""
+        try:
+            conn = self.get_db_connection()
+            cursor = conn.cursor()
+            
+            # Count items to be cleaned
+            cursor.execute("SELECT COUNT(*) FROM sync_queue WHERE user_id IS NULL OR user_id = 'unknown'")
+            stale_count = cursor.fetchone()[0]
+            
+            if stale_count > 0:
+                print(f"Cleaning up {stale_count} stale sync queue items")
+                # Remove items with unknown or null user_id
+                cursor.execute("DELETE FROM sync_queue WHERE user_id IS NULL OR user_id = 'unknown'")
+                conn.commit()
+                print(f"Cleaned up {stale_count} stale sync queue items")
+            else:
+                print("No stale sync queue items to clean up")
+            
+            conn.close()
+            
+        except Exception as e:
+            print(f"Error cleaning up stale sync data: {e}")
+
+    def ensure_user_data_integrity(self, user_id):
+        """Ensure data integrity for a specific user"""
+        try:
+            conn = self.get_db_connection()
+            cursor = conn.cursor()
+            
+            # Check for any data that might not be properly associated with the user
+            cursor.execute("SELECT COUNT(*) FROM projects WHERE user_id != ? AND user_id != 'unknown'", (user_id,))
+            other_projects = cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM sync_queue WHERE user_id != ? AND user_id != 'unknown'", (user_id,))
+            other_sync = cursor.fetchone()[0]
+            
+            if other_projects > 0 or other_sync > 0:
+                print(f"Warning: Found data belonging to other users (Projects: {other_projects}, Sync: {other_sync})")
+            
+            # Get user-specific counts
+            cursor.execute("SELECT COUNT(*) FROM projects WHERE user_id = ?", (user_id,))
+            user_projects = cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM sync_queue WHERE user_id = ?", (user_id,))
+            user_sync = cursor.fetchone()[0]
+            
+            print(f"User {user_id} data integrity check: Projects={user_projects}, Sync={user_sync}")
+            
+            conn.close()
+            return True
+            
+        except Exception as e:
+            print(f"Error checking user data integrity: {e}")
+            return False

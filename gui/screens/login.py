@@ -38,9 +38,9 @@ class LoginScreen(MDScreen):
             # Authentication successful
             toast("Login successful!")
             app = MDApp.get_running_app()
-            app.update_user_display_name()
-            self.manager.transition.direction = "left"
-            self.manager.current = "dashboard"
+            
+            # Use the new login handler that properly sets up user context
+            app.handle_successful_login()
         else:
             # Authentication failed
             error_type = result.get('error')

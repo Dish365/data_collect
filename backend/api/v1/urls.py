@@ -32,4 +32,5 @@ urlpatterns = [
     # Dashboard endpoints
     path('dashboard-stats/', views.dashboard_stats, name='dashboard-stats'),
     path('activity-stream/', views.activity_stream, name='activity-stream'),
+    path('dashboard/', views.dashboard_combined, name='dashboard-combined'),
 ] 

@@ -6,94 +6,310 @@ class DashboardService:
     def __init__(self, auth_service, db_service):
         self.auth_service = auth_service
         self.db_service = db_service
+        self.use_combined_endpoint = True  # Flag to use combined endpoint by default
+
+    def get_current_user_id(self):
+        """Get the current user ID from auth service"""
+        try:
+            user_data = self.auth_service.get_user_data()
+            if user_data and 'id' in user_data:
+                return user_data['id']
+            return None
+        except Exception as e:
+            print(f"Error getting user ID: {e}")
+            return None
 
     def get_dashboard_stats(self):
+        """Main method to get dashboard statistics with multiple fallback strategies"""
+        # Ensure we have user context
+        user_id = self.get_current_user_id()
+        if not user_id:
+            print("Warning: No user ID available for dashboard stats")
+            # Still try to get stats, but they may not be user-specific
+        
+        if self.use_combined_endpoint:
+            return self._get_dashboard_stats_combined()
+        else:
+            return self._get_dashboard_stats_separate()
+
+    def _get_dashboard_stats_combined(self):
+        """Fetch dashboard data using the combined endpoint for better performance"""
+        try:
+            # Try combined endpoint first
+            response = self.auth_service.make_authenticated_request('api/v1/dashboard/')
+            
+            if 'error' in response:
+                print(f"Combined endpoint error: {response.get('message', 'Unknown error')}")
+                # Fallback to separate endpoints
+                self.use_combined_endpoint = False
+                return self._get_dashboard_stats_separate()
+            
+            # Extract stats and activity feed from combined response
+            stats = response.get('stats', {})
+            activity_feed = response.get('activity_feed', [])
+            
+            # Process activity feed
+            processed_activity = self._process_activity_feed(activity_feed)
+            
+            # Use API data as the primary source - don't mix with local DB
+            # Local DB data might be stale or have incorrect user associations
+            combined_stats = {
+                'total_responses': str(stats.get('total_responses', 'N/A')),
+                'team_members': str(stats.get('team_members', 'N/A')),
+                'active_projects': str(stats.get('active_projects', 'N/A')),  # Use API data
+                'pending_sync': str(stats.get('pending_sync', 'N/A')),  # Use API data
+                'failed_sync': str(stats.get('failed_sync', '0')),  # Use API data
+                'recent_responses': str(stats.get('recent_responses', '0')),
+                'user_permissions': stats.get('user_permissions', {}),
+                'activity_feed': processed_activity,
+                'last_updated': response.get('timestamp', datetime.now().isoformat())
+            }
+            
+            print(f"Combined dashboard stats from API: {combined_stats}")
+            return combined_stats
+            
+        except Exception as e:
+            print(f"Error with combined endpoint: {e}")
+            # Fallback to separate endpoints
+            self.use_combined_endpoint = False
+            return self._get_dashboard_stats_separate()
+
+    def _get_dashboard_stats_separate(self):
+        """Original method using separate endpoints with concurrent execution"""
         with concurrent.futures.ThreadPoolExecutor() as executor:
             # Submit all tasks to the executor
             future_api_stats = executor.submit(self._fetch_api_stats)
-            future_db_stats = executor.submit(self._fetch_db_stats)
             future_activity = executor.submit(self._fetch_activity_feed)
+            # Don't fetch local DB stats if we have API data
+            
+            # Get results with timeout
+            try:
+                api_stats = future_api_stats.result(timeout=10)
+                activity_feed = future_activity.result(timeout=10)
+                
+                # Only use local DB as fallback if API fails
+                if 'Offline' in str(api_stats.get('active_projects', '')):
+                    print("API is offline, falling back to local database")
+                    future_db_stats = executor.submit(self._fetch_db_stats)
+                    db_stats = future_db_stats.result(timeout=5)
+                    # Merge with API data taking precedence
+                    stats = {**db_stats, **api_stats, "activity_feed": activity_feed}
+                else:
+                    # Use API data only
+                    stats = {**api_stats, "activity_feed": activity_feed}
+                    
+            except concurrent.futures.TimeoutError:
+                print("Timeout occurred while fetching dashboard data")
+                api_stats = self._get_fallback_api_stats()
+                db_stats = self._get_fallback_db_stats()
+                activity_feed = []
+                stats = {**db_stats, **api_stats, "activity_feed": activity_feed}
 
-            # Get results
-            api_stats = future_api_stats.result()
-            db_stats = future_db_stats.result()
-            activity_feed = future_activity.result()
-
-            # Merge results
-            stats = {**api_stats, **db_stats, "activity_feed": activity_feed}
             return stats
 
     def _fetch_api_stats(self):
         """Fetches stats from the backend API."""
-        response = self.auth_service.make_authenticated_request('api/v1/dashboard-stats/')
-        if 'error' in response:
+        try:
+            response = self.auth_service.make_authenticated_request('api/v1/dashboard-stats/')
+            if 'error' in response:
+                print(f"API stats error: {response.get('message', 'Unknown error')}")
+                return self._get_fallback_api_stats()
+                
             return {
-                "total_responses": "No data available",
-                "team_members": "No data available"
+                "total_responses": str(response.get("total_responses", "N/A")),
+                "team_members": str(response.get("team_members", "N/A")),
+                "active_projects": str(response.get("active_projects", "N/A")),  # Add this
+                "pending_sync": str(response.get("pending_sync", "N/A")),  # Add this
+                "failed_sync": str(response.get("failed_sync", "0")),
+                "recent_responses": str(response.get("recent_responses", "0")),
+                "user_permissions": response.get("user_permissions", {}),
+                "completion_rate": str(response.get("completion_rate", "N/A"))
             }
-        return {
-            "total_responses": str(response.get("total_responses", "N/A")),
-            "team_members": str(response.get("team_members", "N/A"))
-        }
+        except Exception as e:
+            print(f"Exception in _fetch_api_stats: {e}")
+            return self._get_fallback_api_stats()
 
     def _fetch_activity_feed(self):
         """Fetches recent activity from the backend."""
-        response = self.auth_service.make_authenticated_request('api/v1/activity-stream/')
-        if 'error' in response or not isinstance(response, list):
+        try:
+            response = self.auth_service.make_authenticated_request('api/v1/activity-stream/')
+            if 'error' in response or not isinstance(response, list):
+                print(f"Activity feed error: {response.get('message', 'Invalid response format') if isinstance(response, dict) else 'Invalid response'}")
+                return []
+            
+            return self._process_activity_feed(response)
+            
+        except Exception as e:
+            print(f"Exception in _fetch_activity_feed: {e}")
             return []
-        
-        # Process activities
+
+    def _process_activity_feed(self, activity_data):
+        """Process activity data from backend into frontend format"""
         processed_feed = []
-        for item in response:
+        
+        for item in activity_data:
             try:
-                # Example: "2 hours ago"
-                timestamp = datetime.fromisoformat(item.get('timestamp').replace('Z', ''))
-                time_ago = humanize.naturaltime(datetime.now() - timestamp)
+                # Handle different timestamp formats
+                timestamp_str = item.get('timestamp', '')
+                if timestamp_str:
+                    # Remove Z suffix if present and parse
+                    timestamp_str = timestamp_str.replace('Z', '')
+                    if '+' in timestamp_str:
+                        timestamp_str = timestamp_str.split('+')[0]
+                    
+                    timestamp = datetime.fromisoformat(timestamp_str)
+                    time_ago = humanize.naturaltime(datetime.now() - timestamp)
+                else:
+                    time_ago = "Unknown time"
 
                 processed_feed.append({
                     "text": item.get('text', 'No activity text.'),
                     "time": time_ago,
-                    "icon": self._get_icon_for_activity(item.get('verb'))
+                    "icon": self._get_icon_for_activity(item.get('verb')),
+                    "type": item.get('type', 'unknown')
                 })
-            except (ValueError, TypeError):
+            except (ValueError, TypeError) as e:
+                print(f"Error processing activity item: {e}")
                 continue # Skip items with bad timestamps
         
         return processed_feed
 
     def _get_icon_for_activity(self, verb):
+        """Map activity verbs to appropriate icons"""
         verb_to_icon = {
             "created": "plus-circle",
             "updated": "pencil-circle",
             "deleted": "delete-circle",
             "submitted": "check-circle",
-            "joined": "account-plus"
+            "joined": "account-plus",
+            "synced": "sync",
+            "sync_failed": "sync-alert"
         }
         return verb_to_icon.get(verb, "information")
 
     def _fetch_db_stats(self):
-        """Fetches stats from the local database."""
-        conn = self.db_service.get_db_connection()
+        """Fetches user-specific stats from the local database."""
         try:
+            user_id = self.get_current_user_id()
+            if not user_id:
+                print("Warning: No user ID for local DB stats - using fallback")
+                return self._get_fallback_db_stats()
+                
+            conn = self.db_service.get_db_connection()
             cursor = conn.cursor()
             
-            # Active projects
-            cursor.execute("SELECT COUNT(*) FROM projects WHERE sync_status != 'pending_delete'")
+            # Active projects - user-specific
+            cursor.execute(
+                "SELECT COUNT(*) FROM projects WHERE user_id = ? AND sync_status != 'pending_delete'", 
+                (user_id,)
+            )
             active_projects = cursor.fetchone()[0]
 
-            # Pending sync
-            cursor.execute("SELECT COUNT(*) FROM sync_queue WHERE status = 'pending'")
+            # Pending sync - user-specific
+            cursor.execute(
+                "SELECT COUNT(*) FROM sync_queue WHERE user_id = ? AND status = 'pending'", 
+                (user_id,)
+            )
             pending_sync = cursor.fetchone()[0]
 
+            # Failed sync - user-specific
+            cursor.execute(
+                "SELECT COUNT(*) FROM sync_queue WHERE user_id = ? AND status = 'failed'", 
+                (user_id,)
+            )
+            failed_sync = cursor.fetchone()[0]
+
+            print(f"Local DB stats for user {user_id}: Projects={active_projects}, Pending={pending_sync}, Failed={failed_sync}")
+            
             return {
                 "active_projects": str(active_projects),
-                "pending_sync": str(pending_sync)
+                "pending_sync": str(pending_sync),
+                "failed_sync": str(failed_sync)
             }
         except Exception as e:
             print(f"Error fetching DB stats: {e}")
-            return {
-                "active_projects": "N/A",
-                "pending_sync": "N/A"
-            }
+            return self._get_fallback_db_stats()
         finally:
             if conn:
-                conn.close() 
+                conn.close()
+
+    def _get_fallback_api_stats(self):
+        """Fallback stats when API is unavailable"""
+        return {
+            "total_responses": "Offline",
+            "team_members": "Offline",
+            "active_projects": "Offline",
+            "pending_sync": "Offline",
+            "failed_sync": "0",
+            "recent_responses": "0",
+            "user_permissions": {},
+            "completion_rate": "N/A"
+        }
+
+    def _get_fallback_db_stats(self):
+        """Fallback stats when local DB is unavailable"""
+        return {
+            "active_projects": "N/A",
+            "pending_sync": "N/A",
+            "failed_sync": "N/A"
+        }
+
+    def refresh_stats(self):
+        """Force refresh of dashboard statistics"""
+        self.use_combined_endpoint = True  # Reset to try combined endpoint again
+        return self.get_dashboard_stats()
+
+    def get_user_permissions(self):
+        """Get user permissions from the last fetched stats"""
+        try:
+            stats = self.get_dashboard_stats()
+            return stats.get('user_permissions', {})
+        except Exception as e:
+            print(f"Error getting user permissions: {e}")
+            return {}
+
+    def initialize_for_user(self):
+        """Initialize dashboard service for the current user"""
+        try:
+            # Step 1: Verify auth service has user data
+            user_id = self.get_current_user_id()
+            if not user_id:
+                print("Warning: Could not initialize dashboard service - no user ID from auth service")
+                return False
+            
+            print(f"Initializing dashboard for user: {user_id}")
+            
+            # Step 2: Ensure database session is set for this user
+            db_user = self.db_service.get_current_user()
+            if db_user != user_id:
+                print(f"Database user context mismatch. Auth: {user_id}, DB: {db_user}")
+                self.db_service.set_current_user(user_id)
+                
+                # Verify the context was set correctly
+                db_user_after = self.db_service.get_current_user()
+                if db_user_after != user_id:
+                    print(f"Failed to set database user context. Expected: {user_id}, Got: {db_user_after}")
+                    return False
+                print(f"Database user context updated to: {db_user_after}")
+            
+            # Step 3: Test API connectivity
+            try:
+                test_response = self.auth_service.make_authenticated_request('api/v1/dashboard-stats/')
+                if 'error' in test_response:
+                    print(f"API test failed: {test_response.get('message', 'Unknown error')}")
+                    print("Dashboard will use local data only")
+                else:
+                    print("API connectivity confirmed")
+            except Exception as e:
+                print(f"API test failed with exception: {e}")
+                print("Dashboard will use local data only")
+            
+            # Step 4: Force a refresh to get user-specific data
+            self.use_combined_endpoint = True
+            
+            print(f"Dashboard service successfully initialized for user: {user_id}")
+            return True
+            
+        except Exception as e:
+            print(f"Error initializing dashboard service: {e}")
+            return False 

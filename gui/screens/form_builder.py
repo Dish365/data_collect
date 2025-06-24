@@ -42,30 +42,103 @@ class FormBuilderScreen(Screen):
         self.questions_data = []
     
     def on_enter(self):
-        self.load_projects()
+        """Called when the screen is entered."""
+        try:
+            # Set the title
+            if hasattr(self.ids, 'top_bar'):
+                self.ids.top_bar.set_title("Form Builder")
+            
+            # Check if user is authenticated
+            app = App.get_running_app()
+            if not app.auth_service.is_authenticated():
+                toast("Please log in to access Form Builder")
+                Clock.schedule_once(lambda dt: setattr(self.manager, 'current', 'login'), 0.5)
+                return
+            
+            # Load projects
+            self.load_projects()
+        except Exception as e:
+            print(f"Error in form builder on_enter: {e}")
+            toast(f"Error initializing Form Builder: {str(e)}")
+            Clock.schedule_once(lambda dt: setattr(self.manager, 'current', 'dashboard'), 1)
 
     def load_projects(self):
         """Loads all projects from the local DB and populates the spinner."""
         app = App.get_running_app()
+        
+        # Ensure user is authenticated and has valid user data
+        if not app.auth_service.is_authenticated():
+            toast("Authentication required. Redirecting to login.")
+            Clock.schedule_once(lambda dt: setattr(self.manager, 'current', 'login'), 0.5)
+            return
+        
+        user_data = app.auth_service.get_user_data()
+        if not user_data or not user_data.get('id'):
+            toast("Invalid user session. Please log in again.")
+            Clock.schedule_once(lambda dt: setattr(self.manager, 'current', 'login'), 0.5)
+            return
+        
         conn = app.db_service.get_db_connection()
         try:
             cursor = conn.cursor()
-            user_id = app.auth_service.get_user_data().get('id')
-            if user_id:
-                cursor.execute("SELECT id, name FROM projects WHERE user_id = ? ORDER BY name", (user_id,))
-            else:
-                cursor.execute("SELECT id, name FROM projects ORDER BY name")
+            user_id = user_data.get('id')
+            cursor.execute("SELECT id, name FROM projects WHERE user_id = ? ORDER BY name", (user_id,))
             projects = cursor.fetchall()
+            
             if not projects:
-                toast("No projects found. Redirecting to Projects page.")
-                Clock.schedule_once(lambda dt: self.manager.change_screen('projects', 'right'), 1)
+                # Instead of redirecting, show a helpful message and allow user to create projects
+                toast("No projects found. Create a project first to build forms.")
+                self.project_list = []
+                self.project_map = {}
+                if hasattr(self.ids, 'project_spinner'):
+                    self.ids.project_spinner.text = 'No Projects Available'
+                self.project_id = None
+                self.ids.form_canvas.clear_widgets()
+                
+                # Add a helpful widget to the form canvas
+                help_layout = MDBoxLayout(
+                    orientation='vertical',
+                    spacing=dp(16),
+                    adaptive_height=True,
+                    size_hint_y=None,
+                    height=dp(200)
+                )
+                
+                help_label = MDLabel(
+                    text="No projects found!\n\nTo create forms, you need to have at least one project.\nGo to the Projects page to create a new project first.",
+                    halign="center",
+                    theme_text_color="Secondary",
+                    size_hint_y=None,
+                    height=dp(120)
+                )
+                
+                go_to_projects_btn = MDRaisedButton(
+                    text="Go to Projects",
+                    size_hint=(None, None),
+                    size=(dp(150), dp(40)),
+                    pos_hint={'center_x': 0.5},
+                    on_release=lambda x: setattr(self.manager, 'current', 'projects')
+                )
+                
+                help_layout.add_widget(help_label)
+                help_layout.add_widget(go_to_projects_btn)
+                self.ids.form_canvas.add_widget(help_layout)
+                
+                print(f"No projects found for user {user_id}")
                 return
+                
             self.project_list = [p['name'] for p in projects]
             self.project_map = {p['name']: p['id'] for p in projects}
-            self.ids.project_spinner.values = self.project_list
-            self.ids.project_spinner.text = 'Select Project'
+            if hasattr(self.ids, 'project_spinner'):
+                self.ids.project_spinner.text = 'Select Project'
             self.project_id = None
             self.ids.form_canvas.clear_widgets()
+            
+            print(f"Loaded {len(projects)} projects for user {user_id}")
+            
+        except Exception as e:
+            print(f"Error loading projects: {e}")
+            toast(f"Error loading projects: {str(e)}")
         finally:
             conn.close()
 
@@ -88,17 +161,29 @@ class FormBuilderScreen(Screen):
         self.project_menu.open()
 
     def on_project_selected(self, spinner, text):
-        if self.project_menu:
-            self.project_menu.dismiss()
-        if text == 'Select Project' or text not in self.project_map:
-            self.project_id = None
-            self.ids.project_spinner.text = 'Select Project'
-            self.ids.form_canvas.clear_widgets()
-            return
-        self.project_id = self.project_map[text]
-        self.ids.project_spinner.text = text
-        self.ids.top_bar.set_title(f"Form for {text}")
-        self.load_form()
+        """Handle project selection from dropdown menu."""
+        try:
+            if self.project_menu:
+                self.project_menu.dismiss()
+            
+            if text == 'Select Project' or text not in self.project_map:
+                self.project_id = None
+                if hasattr(self.ids, 'project_spinner'):
+                    self.ids.project_spinner.text = 'Select Project'
+                self.ids.form_canvas.clear_widgets()
+                return
+            
+            self.project_id = self.project_map[text]
+            if hasattr(self.ids, 'project_spinner'):
+                self.ids.project_spinner.text = text
+            
+            if hasattr(self.ids, 'top_bar'):
+                self.ids.top_bar.set_title(f"Form for {text}")
+            
+            self.load_form()
+        except Exception as e:
+            print(f"Error selecting project: {e}")
+            toast(f"Error selecting project: {str(e)}")
 
     def load_form(self):
         """Loads the questions for the current project."""

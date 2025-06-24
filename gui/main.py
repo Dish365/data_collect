@@ -7,6 +7,7 @@ from kivy.core.window import Window
 from kivy.utils import platform
 from kivymd.app import MDApp
 from kivy.properties import StringProperty
+from kivy.clock import Clock
 
 
 # Import screens
@@ -70,13 +71,121 @@ class ResearchCollectorApp(MDApp):
         
         # Check if user is already authenticated
         if self.auth_service.is_authenticated():
-            self.update_user_display_name()
-            # User is already logged in, go to dashboard
-            self.root.current = "dashboard"
+            self.handle_successful_login()
         else:
             # User needs to login
             self.root.current = "login"
         
+    def handle_successful_login(self):
+        """Handle successful login - set up user context and navigate to dashboard"""
+        try:
+            print("=== Handling successful login ===")
+            self.update_user_display_name()
+            
+            # Get user data and set database context
+            user_data = self.auth_service.get_user_data()
+            if user_data and 'id' in user_data:
+                user_id = user_data['id']
+                print(f"Setting up session for user: {user_id}")
+                
+                # Set database user context
+                self.db_service.set_current_user(user_id)
+                
+                # Clean up stale sync data to prevent incorrect counts
+                self.db_service.cleanup_stale_sync_data()
+                
+                # Verify user data integrity
+                self.db_service.ensure_user_data_integrity(user_id)
+                
+                # Verify database context was set correctly
+                db_user = self.db_service.get_current_user()
+                if db_user != user_id:
+                    print(f"Warning: Database context mismatch after login. Expected: {user_id}, Got: {db_user}")
+                    # Try setting it again
+                    self.db_service.set_current_user(user_id)
+                    db_user = self.db_service.get_current_user()
+                    if db_user != user_id:
+                        print(f"Error: Failed to establish database context for user {user_id}")
+                
+                # Reset dashboard for new user
+                dashboard_screen = self.get_dashboard_screen()
+                if dashboard_screen:
+                    print("Resetting dashboard for new user")
+                    dashboard_screen.reset_for_new_user()
+                
+                print(f"User session initialized successfully for: {user_id}")
+                print(f"Database context verified: {db_user}")
+                
+                # Add a longer delay to ensure everything is set up
+                def navigate_to_dashboard(dt):
+                    print("Navigating to dashboard after initialization delay")
+                    self.root.current = 'dashboard'
+                
+                Clock.schedule_once(navigate_to_dashboard, 0.3)  # Increased delay
+                
+            else:
+                print("Warning: No user ID found in user data")
+                # Still navigate to dashboard but with error handling
+                self.root.current = "dashboard"
+            
+        except Exception as e:
+            print(f"Error handling successful login: {e}")
+            # Still navigate to dashboard, but there might be issues
+            self.root.current = "dashboard"
+
+    def handle_logout(self):
+        """Handle user logout - clean up user context"""
+        try:
+            print("Handling user logout")
+            
+            # Get current user ID before clearing auth
+            user_data = self.auth_service.get_user_data()
+            current_user_id = user_data.get('id') if user_data else None
+            
+            # Logout from auth service (this clears user data)
+            self.auth_service.logout()
+            
+            # Clear database sessions
+            self.db_service.clear_all_sessions()
+            
+            # Reset dashboard
+            dashboard_screen = self.get_dashboard_screen()
+            if dashboard_screen:
+                dashboard_screen.reset_for_new_user()
+            
+            # Update display name
+            self.update_user_display_name()
+            
+            # Navigate to login
+            self.root.current = "login"
+            
+            print("User logout handled successfully")
+            
+        except Exception as e:
+            print(f"Error handling logout: {e}")
+            # Still navigate to login
+            self.root.current = "login"
+
+    def get_dashboard_screen(self):
+        """Get reference to dashboard screen"""
+        try:
+            for screen in self.root.screens:
+                if screen.name == 'dashboard':
+                    return screen
+            return None
+        except Exception as e:
+            print(f"Error getting dashboard screen: {e}")
+            return None
+
+    def on_user_context_change(self):
+        """Called when user context changes (login/logout)"""
+        try:
+            dashboard_screen = self.get_dashboard_screen()
+            if dashboard_screen:
+                dashboard_screen.force_refresh_for_user_change()
+        except Exception as e:
+            print(f"Error handling user context change: {e}")
+
     def update_user_display_name(self):
         """Fetches user data and updates the display name property."""
         if self.auth_service.is_authenticated():

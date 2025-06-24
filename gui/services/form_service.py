@@ -36,7 +36,8 @@ class FormService:
 
             # Always return from local DB to have a single source of truth for the UI
             # Add user filtering to ensure only user-specific data
-            user_id = self.auth_service.get_user_data().get('id')
+            user_data = self.auth_service.get_user_data()
+            user_id = user_data.get('id') if user_data else None
             cursor = conn.cursor()
             if user_id:
                 cursor.execute("SELECT * FROM questions WHERE project_id = ? AND user_id = ? ORDER BY order_index", (project_id, user_id))
@@ -45,6 +46,7 @@ class FormService:
             questions_data = [dict(row) for row in cursor.fetchall()]
             return questions_data, None
         except Exception as e:
+            print(f"Error loading questions: {e}")
             return [], str(e)
         finally:
             if conn:
@@ -54,7 +56,8 @@ class FormService:
         """Syncs local questions for a project with data from the API."""
         def db_write():
             cursor = conn.cursor()
-            user_id = self.auth_service.get_user_data().get('id')
+            user_data = self.auth_service.get_user_data()
+            user_id = user_data.get('id') if user_data else None
             # Clear existing non-pending questions for this project and user
             if user_id:
                 cursor.execute("DELETE FROM questions WHERE project_id = ? AND user_id = ? AND sync_status != 'pending'", (project_id, user_id))
@@ -103,7 +106,8 @@ class FormService:
                     conn = self.db_service.get_db_connection()
                     try:
                         cursor = conn.cursor()
-                        user_id = self.auth_service.get_user_data().get('id')
+                        user_data = self.auth_service.get_user_data()
+                        user_id = user_data.get('id') if user_data else None
                         if user_id:
                             cursor.execute("DELETE FROM questions WHERE project_id = ? AND user_id = ?", (project_id, user_id))
                         else:
@@ -133,8 +137,8 @@ class FormService:
             conn = self.db_service.get_db_connection()
             try:
                 cursor = conn.cursor()
-                user_id = self.auth_service.get_user_data().get('id')
-                # First, clear all existing questions for this project from the local DB
+                user_data = self.auth_service.get_user_data()
+                user_id = user_data.get('id') if user_data else None
                 if user_id:
                     cursor.execute("DELETE FROM questions WHERE project_id = ? AND user_id = ?", (project_id, user_id))
                 else:
@@ -168,7 +172,8 @@ class FormService:
         # and queue them for creation. A more complex sync would be needed for updates/deletes here.
         
         question_id = str(uuid.uuid4())
-        user_id = self.auth_service.get_user_data().get('id')
+        user_data = self.auth_service.get_user_data()
+        user_id = user_data.get('id') if user_data else None
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO questions (id, project_id, question_text, question_type, options, validation_rules, order_index, user_id, sync_status) 

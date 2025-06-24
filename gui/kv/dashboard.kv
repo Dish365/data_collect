@@ -4,9 +4,21 @@
     MDBoxLayout:
         orientation: 'vertical'
 
-        # Responsive Top Bar
-        TopBar:
-            id: top_bar
+        # Responsive Top Bar with refresh button
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: dp(56)
+            
+            TopBar:
+                id: top_bar
+                
+            MDIconButton:
+                icon: "refresh"
+                theme_icon_color: "Primary"
+                size_hint_x: None
+                width: dp(48)
+                on_press: root.refresh_dashboard()
 
         RelativeLayout:
             # Main content area
