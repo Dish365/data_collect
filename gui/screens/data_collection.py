@@ -45,8 +45,12 @@ class DataCollectionScreen(Screen):
             projects = cursor.fetchall()
             if not projects:
                 toast("No projects found. Redirecting to Projects page.")
-                Clock.schedule_once(lambda dt: setattr(self.manager, 'current', 'projects'), 1)
-                return
+                try:
+                    if self.manager and hasattr(self.manager, 'screen_names') and 'projects' in self.manager.screen_names:
+                        Clock.schedule_once(lambda dt: setattr(self.manager, 'current', 'projects'), 0.5)
+                except Exception as e:
+                    print(f"Screen transition error: {e}")
+                return  # Prevent further code execution
             self.project_list = [p['name'] for p in projects]
             self.project_map = {p['name']: p['id'] for p in projects}
             self.project_id = None
