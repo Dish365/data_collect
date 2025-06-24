@@ -66,6 +66,52 @@ class FormService:
 
     def save_questions(self, project_id, questions_to_save):
         """Saves the full list of questions for a project, handling online/offline sync."""
+        # Try online save first
+        is_online = self.auth_service.is_authenticated()
+        if is_online:
+            # Prepare payload for bulk create
+            payload = []
+            for index, q_data in enumerate(questions_to_save):
+                payload.append({
+                    'project': project_id,
+                    'question_text': q_data['question_text'],
+                    'question_type': q_data['question_type'],
+                    'options': q_data.get('options'),
+                    'validation_rules': q_data.get('validation_rules'),
+                    'order_index': index
+                })
+            response = self.auth_service.make_authenticated_request(
+                'api/forms/questions/',
+                method='POST',
+                data=payload
+            )
+            if 'error' not in response:
+                # Save returned questions to local DB as synced
+                def db_write():
+                    conn = self.db_service.get_db_connection()
+                    try:
+                        cursor = conn.cursor()
+                        cursor.execute("DELETE FROM questions WHERE project_id = ?", (project_id,))
+                        conn.commit()
+                        # The response may be a list or dict with 'results'
+                        questions = response if isinstance(response, list) else response.get('results', [])
+                        for q in questions:
+                            cursor.execute("""
+                                INSERT OR REPLACE INTO questions 
+                                (id, project_id, question_text, question_type, options, validation_rules, order_index, sync_status) 
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                            """, (
+                                q.get('id'), project_id, q.get('question_text'), q.get('question_type'),
+                                json.dumps(q.get('options')), json.dumps(q.get('validation_rules')),
+                                q.get('order_index'), 'synced'))
+                        conn.commit()
+                        return {'message': 'Form saved to backend!', 'reload': True}
+                    finally:
+                        if conn:
+                            conn.close()
+                return self._safe_db_write(db_write)
+            # If error, fall through to offline logic
+        # Offline or failed online save: fallback to local save and queue for sync
         def db_write():
             conn = self.db_service.get_db_connection()
             try:
@@ -78,12 +124,10 @@ class FormService:
                 for index, q_data in enumerate(questions_to_save):
                     q_data['order_index'] = index
                     self._save_single_question(conn, project_id, q_data)
-                
-                return {'message': 'Form saved successfully!', 'reload': True}
+                return {'message': 'Form saved locally (offline mode)', 'reload': True}
             finally:
                 if conn:
                     conn.close()
-
         return self._safe_db_write(db_write)
 
     def _save_single_question(self, conn, project_id, q_data):
