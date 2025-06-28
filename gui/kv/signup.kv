@@ -5,6 +5,8 @@
 #:import MDTextField    kivymd.uix.textfield.MDTextField
 #:import MDLabel        kivymd.uix.label.MDLabel
 #:import MDSpinner kivymd.uix.spinner.MDSpinner
+#:import MDIconButton kivymd.uix.button.MDIconButton
+#:import FloatLayout kivy.uix.floatlayout.FloatLayout
 
 <SignUpScreen>:
     name: "signup"
@@ -21,7 +23,7 @@
             # left, top, right, bottom padding
             padding: [dp(16), dp(8), dp(16), dp(24)]
             size_hint: None, None
-            size: dp(400), dp(600)
+            size: dp(400), dp(680)
 
             MDBoxLayout:
                 orientation: "vertical"
@@ -83,25 +85,64 @@
                     height: dp(48)
                     disabled: root.is_registering
 
-                # Password
+                # Institution
                 MDTextField:
-                    id: password
-                    hint_text: "Password"
-                    password: True
+                    id: institution
+                    hint_text: "Institution"
                     mode: "rectangle"
                     size_hint_y: None
                     height: dp(48)
                     disabled: root.is_registering
 
-                # Confirm Password
-                MDTextField:
-                    id: confirm_password
-                    hint_text: "Confirm Password"
-                    password: True
-                    mode: "rectangle"
+                # Password with toggle
+                FloatLayout:
                     size_hint_y: None
                     height: dp(48)
-                    disabled: root.is_registering
+
+                    MDTextField:
+                        id: password
+                        hint_text: "Password"
+                        password: not root.password_visible
+                        mode: "rectangle"
+                        size_hint: 1, None
+                        height: dp(48)
+                        pos_hint: {"x": 0, "center_y": 0.5}
+                        disabled: root.is_registering
+
+                    MDIconButton:
+                        icon: "eye-off" if root.password_visible else "eye"
+                        on_release: root.toggle_password_visibility()
+                        pos_hint: {"right": 0.98, "center_y": 0.5}
+                        size_hint: None, None
+                        size: dp(32), dp(32)
+                        md_bg_color: 0, 0, 0, 0
+                        theme_icon_color: "Custom"
+                        icon_color: 0.5, 0.5, 0.5, 1
+
+                # Confirm Password with toggle
+                FloatLayout:
+                    size_hint_y: None
+                    height: dp(48)
+
+                    MDTextField:
+                        id: confirm_password
+                        hint_text: "Confirm Password"
+                        password: not root.confirm_password_visible
+                        mode: "rectangle"
+                        size_hint: 1, None
+                        height: dp(48)
+                        pos_hint: {"x": 0, "center_y": 0.5}
+                        disabled: root.is_registering
+
+                    MDIconButton:
+                        icon: "eye-off" if root.confirm_password_visible else "eye"
+                        on_release: root.toggle_confirm_password_visibility()
+                        pos_hint: {"right": 0.98, "center_y": 0.5}
+                        size_hint: None, None
+                        size: dp(32), dp(32)
+                        md_bg_color: 0, 0, 0, 0
+                        theme_icon_color: "Custom"
+                        icon_color: 0.5, 0.5, 0.5, 1
 
                 # Sign-Up button
                 MDRaisedButton:

@@ -10,6 +10,28 @@ Builder.load_file("kv/signup.kv")
 
 class SignUpScreen(MDScreen):
     is_registering = BooleanProperty(False)
+    password_visible = BooleanProperty(False)
+    confirm_password_visible = BooleanProperty(False)
+    
+    def toggle_password_visibility(self):
+        print("Toggling password visibility (signup)")
+        self.password_visible = not self.password_visible
+        try:
+            print("Current password field:", self.ids.password)
+            self.ids.password.password = not self.password_visible
+            print("Password field updated:", self.ids.password.password)
+        except Exception as e:
+            print("Error updating password field:", e)
+    
+    def toggle_confirm_password_visibility(self):
+        print("Toggling confirm password visibility (signup)")
+        self.confirm_password_visible = not self.confirm_password_visible
+        try:
+            print("Current confirm password field:", self.ids.confirm_password)
+            self.ids.confirm_password.password = not self.confirm_password_visible
+            print("Confirm password field updated:", self.ids.confirm_password.password)
+        except Exception as e:
+            print("Error updating confirm password field:", e)
     
     def signup(self):
         """Handle signup with spinner and proper validation"""
@@ -18,11 +40,12 @@ class SignUpScreen(MDScreen):
         first_name = self.ids.first_name.text.strip()
         last_name = self.ids.last_name.text.strip()
         email = self.ids.email.text.strip()
+        institution = self.ids.institution.text.strip()
         password = self.ids.password.text
         confirm_password = self.ids.confirm_password.text
         
         # Validate input
-        validation_result = self._validate_form(username, first_name, last_name, email, password, confirm_password)
+        validation_result = self._validate_form(username, first_name, last_name, email, institution, password, confirm_password)
         if not validation_result['valid']:
             toast(validation_result['message'])
             return
@@ -39,18 +62,28 @@ class SignUpScreen(MDScreen):
             password2=confirm_password,
             first_name=first_name,
             last_name=last_name,
+            institution=institution,
             role="researcher",
             callback=self._on_registration_complete
         )
     
-    def _validate_form(self, username, first_name, last_name, email, password, confirm_password):
+    def _validate_form(self, username, first_name, last_name, email, institution, password, confirm_password):
         """Validate form input"""
         # Check if all required fields are filled
         if not username:
             return {'valid': False, 'message': 'Username is required'}
         
+        if not first_name:
+            return {'valid': False, 'message': 'First name is required'}
+        
+        if not last_name:
+            return {'valid': False, 'message': 'Last name is required'}
+        
         if not email:
             return {'valid': False, 'message': 'Email is required'}
+        
+        if not institution:
+            return {'valid': False, 'message': 'Institution is required'}
         
         if not password:
             return {'valid': False, 'message': 'Password is required'}
@@ -143,6 +176,9 @@ class SignUpScreen(MDScreen):
         self.ids.first_name.text = ""
         self.ids.last_name.text = ""
         self.ids.email.text = ""
+        self.ids.institution.text = ""
         self.ids.password.text = ""
         self.ids.confirm_password.text = ""
         self.is_registering = False
+        self.password_visible = False
+        self.confirm_password_visible = False

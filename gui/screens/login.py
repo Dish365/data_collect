@@ -11,6 +11,18 @@ Builder.load_file("kv/login.kv")
 
 class LoginScreen(MDScreen):
     is_authenticating = BooleanProperty(False)
+    password_visible = BooleanProperty(False)
+    
+    def toggle_password_visibility(self):
+        """Toggle password field visibility"""
+        print("Toggling password visibility")
+        self.password_visible = not self.password_visible
+        try:
+            print("Current password field:", self.ids.password)
+            self.ids.password.password = not self.password_visible
+            print("Password field updated:", self.ids.password.password)
+        except Exception as e:
+            print("Error updating password field:", e)
     
     def login(self):
         """Handle login with spinner and proper error handling"""
@@ -78,3 +90,4 @@ class LoginScreen(MDScreen):
         self.ids.username.text = ""
         self.ids.password.text = ""
         self.is_authenticating = False
+        self.password_visible = False

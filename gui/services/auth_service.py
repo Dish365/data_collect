@@ -110,7 +110,7 @@ class AuthService:
             except:
                 return False
     
-    def register(self, username, email, password, password2, first_name="", last_name="", role="researcher", callback=None):
+    def register(self, username, email, password, password2, first_name="", last_name="", institution="", role="researcher", callback=None):
         """Register new user with backend asynchronously"""
         def _register():
             try:
@@ -125,6 +125,7 @@ class AuthService:
                 }
                 if first_name: registration_data['first_name'] = first_name
                 if last_name: registration_data['last_name'] = last_name
+                if institution: registration_data['institution'] = institution
 
                 response = requests.post(
                     f'{self.base_url}/auth/register/',
