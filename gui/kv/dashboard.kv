@@ -3,6 +3,7 @@
 
     MDBoxLayout:
         orientation: 'vertical'
+        size_hint: 1, 1
 
         # Responsive Top Bar with refresh button
         MDBoxLayout:
@@ -21,15 +22,21 @@
                 on_press: root.refresh_dashboard()
 
         RelativeLayout:
+            size_hint: 1, 1
+            
             # Main content area
             ScrollView:
                 id: main_scroll_view
+                size_hint: 1, 1
+                
                 MDBoxLayout:
                     id: content_layout
                     orientation: 'vertical'
                     padding: dp(16)
                     spacing: dp(16)
                     adaptive_height: True
+                    size_hint_y: None
+                    height: self.minimum_height
 
                     MDLabel:
                         text: "Research Dashboard"
@@ -38,34 +45,57 @@
                         height: self.texture_size[1] + dp(10)
                         halign: "left"
 
-                    MDGridLayout:
-                        id: stats_grid
-                        cols: 2
+                    # Responsive Stats Grid
+                    MDBoxLayout:
+                        id: stats_container
+                        orientation: 'vertical'
                         adaptive_height: True
+                        size_hint_y: None
+                        height: self.minimum_height
                         spacing: dp(12)
+                        
+                        # First row of stat cards
+                        MDBoxLayout:
+                            orientation: 'horizontal'
+                            adaptive_height: True
+                            size_hint_y: None
+                            height: dp(120)
+                            spacing: dp(12)
 
-                        StatCard:
-                            id: total_responses_card
-                            title: "Total Respondents"
-                            icon: "database"
-                            on_press: root.navigate_to("responses")
+                            StatCard:
+                                id: total_responses_card
+                                title: "Total Respondents"
+                                value: "Loading..."
+                                icon: "database"
+                                on_press: root.navigate_to("responses")
 
-                        StatCard:
-                            id: active_projects_card
-                            title: "Active Projects"
-                            icon: "folder"
-                            on_press: root.navigate_to("projects")
+                            StatCard:
+                                id: active_projects_card
+                                title: "Active Projects"
+                                value: "Loading..."
+                                icon: "folder"
+                                on_press: root.navigate_to("projects")
+                                
+                        # Second row of stat cards
+                        MDBoxLayout:
+                            orientation: 'horizontal'
+                            adaptive_height: True
+                            size_hint_y: None
+                            height: dp(120)
+                            spacing: dp(12)
 
-                        StatCard:
-                            id: pending_sync_card
-                            title: "Pending Sync"
-                            icon: "sync"
-                            on_press: root.navigate_to("sync")
+                            StatCard:
+                                id: pending_sync_card
+                                title: "Pending Sync"
+                                value: "Loading..."
+                                icon: "sync"
+                                on_press: root.navigate_to("sync")
 
-                        StatCard:
-                            id: team_members_card
-                            title: "Team Members"
-                            icon: "account-group"
+                            StatCard:
+                                id: team_members_card
+                                title: "Team Members"
+                                value: "Loading..."
+                                icon: "account-group"
 
                     MDLabel:
                         text: "Quick Actions"
@@ -74,26 +104,47 @@
                         size_hint_y: None
                         height: self.texture_size[1] + dp(10)
 
-                    MDGridLayout:
-                        cols: 2
-                        spacing: dp(10)
+                    # Responsive Quick Actions Grid
+                    MDBoxLayout:
+                        orientation: 'vertical'
                         adaptive_height: True
+                        size_hint_y: None
+                        height: self.minimum_height
+                        spacing: dp(10)
+                        
+                        # First row of action buttons
+                        MDBoxLayout:
+                            orientation: 'horizontal'
+                            size_hint_y: None
+                            height: dp(40)
+                            spacing: dp(10)
 
-                        MDRaisedButton:
-                            text: "Projects"
-                            on_press: root.navigate_to("projects")
+                            MDRaisedButton:
+                                text: "Projects"
+                                size_hint_x: 1
+                                on_press: root.navigate_to("projects")
 
-                        MDRaisedButton:
-                            text: "Collect Data"
-                            on_press: root.navigate_to("data_collection")
+                            MDRaisedButton:
+                                text: "Collect Data"
+                                size_hint_x: 1
+                                on_press: root.navigate_to("data_collection")
+                                
+                        # Second row of action buttons
+                        MDBoxLayout:
+                            orientation: 'horizontal'
+                            size_hint_y: None
+                            height: dp(40)
+                            spacing: dp(10)
 
-                        MDRaisedButton:
-                            text: "Analytics"
-                            on_press: root.navigate_to("analytics")
+                            MDRaisedButton:
+                                text: "Analytics"
+                                size_hint_x: 1
+                                on_press: root.navigate_to("analytics")
 
-                        MDRaisedButton:
-                            text: "Form Builder"
-                            on_press: root.navigate_to("form_builder")
+                            MDRaisedButton:
+                                text: "Form Builder"
+                                size_hint_x: 1
+                                on_press: root.navigate_to("form_builder")
 
                     MDLabel:
                         text: "Recent Activity"
@@ -107,6 +158,8 @@
                         orientation: "vertical"
                         spacing: dp(8)
                         adaptive_height: True
+                        size_hint_y: None
+                        height: self.minimum_height
 
             # Loading spinner
             MDSpinner:

@@ -260,9 +260,22 @@ class DashboardScreen(MDScreen):
             
             # Log summary for debugging
             print(f"Dashboard updated - Projects: {stats.get('active_projects', 'N/A')}, "
-                  f"Responses: {stats.get('total_responses', 'N/A')}, "
+                  f"Responses: {stats.get('total_respondents', 'N/A')}, "
                   f"Pending Sync: {stats.get('pending_sync', 'N/A')}, "
                   f"Team: {stats.get('team_members', 'N/A')}")
+            
+            # Debug the actual values being set
+            print(f"Debug - Setting card values:")
+            print(f"  total_responses_card.value = '{stats.get('total_respondents', 'N/A')}'")
+            print(f"  active_projects_card.value = '{stats.get('active_projects', 'N/A')}'")
+            print(f"  pending_sync_card.value = '{stats.get('pending_sync', 'N/A')}'")
+            print(f"  team_members_card.value = '{stats.get('team_members', 'N/A')}'")
+            
+            # Force update the card display methods
+            self.ids.total_responses_card.update_value(stats.get('total_respondents', 'N/A'))
+            self.ids.active_projects_card.update_value(stats.get('active_projects', 'N/A'))
+            self.ids.pending_sync_card.update_value(stats.get('pending_sync', 'N/A'))
+            self.ids.team_members_card.update_value(stats.get('team_members', 'N/A'))
             
         except Exception as e:
             print(f"Error updating UI: {e}")

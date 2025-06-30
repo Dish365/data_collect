@@ -2,43 +2,60 @@
     ripple_behavior: True
     size_hint_y: None
     height: dp(120)
+    size_hint_x: 1  # Make it responsive to fill available width
     radius: [12, 12, 12, 12]
-    elevation: 0.5
-    padding: dp(15)
+    elevation: 2
+    padding: dp(16)
     md_bg_color: (0.98, 0.98, 0.98, 1)
 
     MDBoxLayout:
         orientation: "horizontal"
         spacing: dp(15)
+        size_hint: 1, 1
 
+        # Icon section
         MDIconButton:
             icon: root.icon
             theme_icon_color: "Custom"
             icon_color: app.theme_cls.primary_color
             user_font_size: "32sp"
+            size_hint_x: None
+            width: dp(48)
             pos_hint: {"center_y": 0.5}
 
+        # Content section
         MDBoxLayout:
             orientation: "vertical"
             spacing: dp(2)
+            size_hint_x: 1
             pos_hint: {"center_y": 0.5}
             adaptive_height: True
 
+            # Value label (main number)
             MDLabel:
                 text: root.value
                 font_style: "H6"
                 bold: True
                 adaptive_height: True
+                size_hint_y: None
+                height: self.texture_size[1]
                 theme_text_color: "Primary"
+                
+            # Title label
             MDLabel:
                 text: root.title
                 font_style: "Body2"
                 adaptive_height: True
+                size_hint_y: None
+                height: self.texture_size[1]
                 theme_text_color: "Secondary"
+                
+            # Note label (additional info)
             MDLabel:
                 text: root.note
                 font_style: "Caption"
                 adaptive_height: True
+                size_hint_y: None
+                height: self.texture_size[1] if self.text else 0
                 theme_text_color: "Hint"
-                opacity: 1 if self.text else 0
-                height: self.texture_size[1] if self.text else 0 
+                opacity: 1 if self.text else 0 

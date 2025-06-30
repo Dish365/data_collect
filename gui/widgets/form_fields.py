@@ -19,16 +19,149 @@ import datetime
 class BaseFormField(MDCard):
     question_text = StringProperty("")
     response_type = StringProperty("text_short")
-    
+    question_number = StringProperty("1")
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        
+        # Clean card design with proper spacing
         self.orientation = "vertical"
-        self.padding = dp(16)
-        self.spacing = dp(10)
-        self.radius = [12, 12, 12, 12]
+        self.padding = dp(20)
+        self.spacing = dp(16)
         self.size_hint_y = None
-        self.height = dp(120)
-        self.md_bg_color = (0.98, 0.98, 0.98, 1)
+        self.height = dp(200)  # Increased height for better spacing
+        self.md_bg_color = (1, 1, 1, 1)  # Pure white background
+        self.elevation = 1  # Subtle shadow
+        
+        # Header section with question number and type
+        header_card = MDCard(
+            orientation='horizontal',
+            size_hint_y=None,
+            height=dp(36),
+            padding=dp(12),
+            spacing=dp(12),
+            md_bg_color=(0.95, 0.95, 0.95, 1),  # Light gray background
+            elevation=0
+        )
+        
+        self.question_number_label = MDLabel(
+            text=f"Question {self.question_number}",
+            font_style="Subtitle1",
+            theme_text_color="Primary",
+            bold=True,
+            size_hint_x=None,
+            width=dp(100),
+            font_size="18sp"
+        )
+        
+        self.response_type_label = MDLabel(
+            text=self.get_response_type_display(),
+            font_style="Caption",
+            theme_text_color="Secondary",
+            halign="right",
+            font_size="14sp"
+        )
+        
+        header_card.add_widget(self.question_number_label)
+        header_card.add_widget(self.response_type_label)
+        self.add_widget(header_card)
+        
+        # Question text section with clean styling
+        question_section = MDBoxLayout(
+            orientation='vertical',
+            spacing=dp(8),
+            size_hint_y=None,
+            height=dp(80)
+        )
+        
+        self.question_label = MDLabel(
+            text="Question Text",
+            font_style="Body1",
+            theme_text_color="Primary",
+            bold=True,
+            size_hint_y=None,
+            height=dp(24),
+            font_size="16sp"
+        )
+        question_section.add_widget(self.question_label)
+        
+        # Clean text input with consistent styling
+        self.question_input = MDTextField(
+            text=self.question_text,
+            hint_text="Enter your question here...",
+            mode="rectangle",
+            multiline=False,
+            size_hint_y=None,
+            height=dp(48),
+            font_size="16sp"
+        )
+        question_section.add_widget(self.question_input)
+        self.add_widget(question_section)
+        
+        # Response section with visual separator
+        response_section = MDBoxLayout(
+            orientation='vertical',
+            spacing=dp(8),
+            size_hint_y=None,
+            height=dp(32)
+        )
+        
+        # Visual separator line
+        separator = MDBoxLayout(
+            size_hint_y=None,
+            height=dp(1),
+            md_bg_color=(0.9, 0.9, 0.9, 1)
+        )
+        response_section.add_widget(separator)
+        
+        self.response_label = MDLabel(
+            text="Response Input",
+            font_style="Body1",
+            theme_text_color="Secondary",
+            bold=True,
+            size_hint_y=None,
+            height=dp(24),
+            font_size="16sp"
+        )
+        response_section.add_widget(self.response_label)
+        self.add_widget(response_section)
+        
+        # Bind properties for updates
+        self.bind(question_text=self.on_question_text_change)
+        self.bind(question_number=self.on_question_number_change)
+        
+    def get_response_type_display(self):
+        """Get display name for response type"""
+        type_display = {
+            'text_short': 'Short Text',
+            'text_long': 'Long Text',
+            'numeric_integer': 'Number (Integer)',
+            'numeric_decimal': 'Number (Decimal)',
+            'choice_single': 'Single Choice',
+            'choice_multiple': 'Multiple Choice',
+            'scale_rating': 'Rating Scale',
+            'date': 'Date',
+            'datetime': 'Date & Time',
+            'geopoint': 'GPS Location',
+            'image': 'Photo/Image',
+            'audio': 'Audio Recording',
+            'barcode': 'Barcode/QR Code',
+        }
+        return type_display.get(self.response_type, self.response_type)
+        
+    def on_question_text_change(self, instance, value):
+        """Update the question input field when question_text property changes"""
+        if hasattr(self, 'question_input'):
+            self.question_input.text = value
+    
+    def on_question_number_change(self, instance, value):
+        """Update the question number label when question_number property changes"""
+        if hasattr(self, 'question_number_label'):
+            self.question_number_label.text = f"Question {value}"
+        
+    def get_question_text(self):
+        """Get the current question text from the input field"""
+        return self.question_input.text.strip() if hasattr(self, 'question_input') else ""
         
     def get_value(self):
         """Override in subclasses to return the field value"""
@@ -40,20 +173,23 @@ class BaseFormField(MDCard):
     
     def validate(self):
         """Override in subclasses to validate the field"""
-        return True, []
+        errors = []
+        
+        # Validate question text
+        question_text = self.get_question_text()
+        if not question_text:
+            errors.append("Question text is required")
+        elif len(question_text) < 3:
+            errors.append("Question text must be at least 3 characters long")
+        elif question_text.lower().startswith("new "):
+            errors.append("Please enter a meaningful question (remove 'New' prefix)")
+            
+        return len(errors) == 0, errors
 
 class ShortTextField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "text_short"
-        
-        self.label = MDLabel(
-            text=self.question_text,
-            theme_text_color="Primary",
-            font_style="Subtitle1",
-            size_hint_y=None,
-            height=dp(30)
-        )
 
         self.text_input = MDTextField(
             hint_text="Short text answer",
@@ -62,7 +198,6 @@ class ShortTextField(BaseFormField):
             height=dp(48)
         )
 
-        self.add_widget(self.label)
         self.add_widget(self.text_input)
     
     def get_value(self):
@@ -75,15 +210,7 @@ class LongTextField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "text_long"
-        self.height = dp(180)
-        
-        self.label = MDLabel(
-            text=self.question_text,
-            theme_text_color="Primary",
-            font_style="Subtitle1",
-            size_hint_y=None,
-            height=dp(30)
-        )
+        self.height = dp(220)  # Increased for question input + long text
 
         self.text_input = MDTextField(
             hint_text="Long text answer",
@@ -93,7 +220,6 @@ class LongTextField(BaseFormField):
             size_hint_y=None
         )
 
-        self.add_widget(self.label)
         self.add_widget(self.text_input)
     
     def get_value(self):
@@ -106,14 +232,6 @@ class NumericIntegerField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "numeric_integer"
-        
-        self.label = MDLabel(
-            text=self.question_text,
-            theme_text_color="Primary",
-            font_style="Subtitle1",
-            size_hint_y=None,
-            height=dp(30)
-        )
 
         self.text_input = MDTextField(
             hint_text="Enter a whole number",
@@ -123,7 +241,6 @@ class NumericIntegerField(BaseFormField):
             height=dp(48)
         )
 
-        self.add_widget(self.label)
         self.add_widget(self.text_input)
     
     def get_value(self):
@@ -136,22 +253,16 @@ class NumericIntegerField(BaseFormField):
         self.text_input.text = str(value) if value is not None else ""
     
     def validate(self):
+        is_valid, errors = super().validate()
         if self.text_input.text and not self.text_input.text.isdigit():
-            return False, ["Please enter a valid whole number"]
-        return True, []
+            errors.append("Please enter a valid whole number")
+            is_valid = False
+        return is_valid, errors
 
 class NumericDecimalField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "numeric_decimal"
-        
-        self.label = MDLabel(
-            text=self.question_text,
-            theme_text_color="Primary",
-            font_style="Subtitle1",
-            size_hint_y=None,
-            height=dp(30)
-        )
 
         self.text_input = MDTextField(
             hint_text="Enter a number (decimals allowed)",
@@ -161,9 +272,8 @@ class NumericDecimalField(BaseFormField):
             height=dp(48)
         )
 
-        self.add_widget(self.label)
         self.add_widget(self.text_input)
-    
+
     def get_value(self):
         try:
             return float(self.text_input.text) if self.text_input.text else None
@@ -174,12 +284,14 @@ class NumericDecimalField(BaseFormField):
         self.text_input.text = str(value) if value is not None else ""
     
     def validate(self):
+        is_valid, errors = super().validate()
         if self.text_input.text:
             try:
                 float(self.text_input.text)
             except ValueError:
-                return False, ["Please enter a valid number"]
-        return True, []
+                errors.append("Please enter a valid number")
+                is_valid = False
+        return is_valid, errors
 
 class SingleChoiceField(BaseFormField):
     options = ListProperty([])
@@ -190,14 +302,43 @@ class SingleChoiceField(BaseFormField):
         self.selected_option = None
         self.checkboxes = []
         
-        self.label = MDLabel(
-            text=self.question_text,
-            theme_text_color="Primary",
-            font_style="Subtitle1",
+        # Add options management section
+        self.options_header = MDBoxLayout(
+            orientation='horizontal',
+            spacing=dp(10),
             size_hint_y=None,
-            height=dp(30)
+            height=dp(40)
         )
-        self.add_widget(self.label)
+        
+        self.options_label = MDLabel(
+            text="Options:",
+            size_hint_x=0.3,
+            font_style="Subtitle2",
+            theme_text_color="Primary"
+        )
+        
+        self.add_option_btn = MDRaisedButton(
+            text="Add Option",
+            size_hint_x=0.35,
+            size_hint_y=None,
+            height=dp(32),
+            font_size="12sp",
+            on_release=self.add_option
+        )
+        
+        self.remove_option_btn = MDRaisedButton(
+            text="Remove Last",
+            size_hint_x=0.35,
+            size_hint_y=None,
+            height=dp(32),
+            font_size="12sp",
+            on_release=self.remove_last_option
+        )
+        
+        self.options_header.add_widget(self.options_label)
+        self.options_header.add_widget(self.add_option_btn)
+        self.options_header.add_widget(self.remove_option_btn)
+        self.add_widget(self.options_header)
         
         self.options_container = MDBoxLayout(
             orientation='vertical',
@@ -207,14 +348,32 @@ class SingleChoiceField(BaseFormField):
         )
         self.add_widget(self.options_container)
         
+        # Initialize with default options if none provided
+        if not self.options:
+            self.options = ['Option 1', 'Option 2']
+        
         # Update height based on options
-        self.height = dp(80 + len(self.options) * 40)
+        self.height = dp(160 + len(self.options) * 40)
+    
+    def add_option(self, instance):
+        """Add a new option to the choice field"""
+        new_option = f"Option {len(self.options) + 1}"
+        self.options = self.options + [new_option]
+        toast("Option added. You can edit the option text directly.")
+    
+    def remove_last_option(self, instance):
+        """Remove the last option from the choice field"""
+        if len(self.options) > 2:  # Keep at least 2 options
+            self.options = self.options[:-1]
+            toast("Option removed.")
+        else:
+            toast("Single choice questions need at least 2 options.")
     
     def on_options(self, instance, options):
         self.options_container.clear_widgets()
         self.checkboxes = []
         
-        for option in options:
+        for i, option in enumerate(options):
             row = MDBoxLayout(
                 orientation='horizontal',
                 spacing=dp(10),
@@ -229,20 +388,32 @@ class SingleChoiceField(BaseFormField):
                 on_active=lambda x, active, opt=option: self.on_option_selected(opt, active)
             )
             
-            label = MDLabel(
+            # Make option text editable
+            option_input = MDTextField(
                 text=option,
-                halign="left",
-                theme_text_color="Primary",
-                size_hint_x=0.8
+                size_hint_x=0.8,
+                font_size="14sp",
+                height=dp(32),
+                size_hint_y=None,
+                mode="rectangle",
+                on_text_validate=lambda instance, idx=i: self.update_option(idx, instance.text)
             )
+            option_input.bind(on_text_validate=lambda instance, idx=i: self.update_option(idx, instance.text))
             
             row.add_widget(checkbox)
-            row.add_widget(label)
+            row.add_widget(option_input)
             self.options_container.add_widget(row)
             self.checkboxes.append(checkbox)
         
         # Update height
-        self.height = dp(80 + len(options) * 40)
+        self.height = dp(160 + len(options) * 40)
+    
+    def update_option(self, index, new_text):
+        """Update an option text"""
+        if 0 <= index < len(self.options) and new_text.strip():
+            options_list = list(self.options)
+            options_list[index] = new_text.strip()
+            self.options = options_list
     
     def on_option_selected(self, option, active):
         if active:
@@ -257,6 +428,20 @@ class SingleChoiceField(BaseFormField):
         for i, option in enumerate(self.options):
             if option == value and i < len(self.checkboxes):
                 self.checkboxes[i].active = True
+    
+    def validate(self):
+        is_valid, errors = super().validate()
+        if len(self.options) < 2:
+            errors.append("Single choice questions need at least 2 options")
+            is_valid = False
+        
+        # Check for empty options
+        empty_options = [i for i, opt in enumerate(self.options) if not opt.strip()]
+        if empty_options:
+            errors.append("Please fill in all option texts")
+            is_valid = False
+            
+        return is_valid, errors
 
 class MultipleChoiceField(BaseFormField):
     options = ListProperty([])
@@ -267,14 +452,43 @@ class MultipleChoiceField(BaseFormField):
         self.selected_options = []
         self.checkboxes = []
         
-        self.label = MDLabel(
-            text=self.question_text,
-            theme_text_color="Primary",
-            font_style="Subtitle1",
+        # Add options management section
+        self.options_header = MDBoxLayout(
+            orientation='horizontal',
+            spacing=dp(10),
             size_hint_y=None,
-            height=dp(30)
+            height=dp(40)
         )
-        self.add_widget(self.label)
+        
+        self.options_label = MDLabel(
+            text="Options:",
+            size_hint_x=0.3,
+            font_style="Subtitle2",
+            theme_text_color="Primary"
+        )
+        
+        self.add_option_btn = MDRaisedButton(
+            text="Add Option",
+            size_hint_x=0.35,
+            size_hint_y=None,
+            height=dp(32),
+            font_size="12sp",
+            on_release=self.add_option
+        )
+        
+        self.remove_option_btn = MDRaisedButton(
+            text="Remove Last",
+            size_hint_x=0.35,
+            size_hint_y=None,
+            height=dp(32),
+            font_size="12sp",
+            on_release=self.remove_last_option
+        )
+        
+        self.options_header.add_widget(self.options_label)
+        self.options_header.add_widget(self.add_option_btn)
+        self.options_header.add_widget(self.remove_option_btn)
+        self.add_widget(self.options_header)
         
         self.options_container = MDBoxLayout(
             orientation='vertical',
@@ -284,14 +498,32 @@ class MultipleChoiceField(BaseFormField):
         )
         self.add_widget(self.options_container)
         
+        # Initialize with default options if none provided
+        if not self.options:
+            self.options = ['Option 1', 'Option 2']
+        
         # Update height based on options
-        self.height = dp(80 + len(self.options) * 40)
+        self.height = dp(160 + len(self.options) * 40)
+    
+    def add_option(self, instance):
+        """Add a new option to the choice field"""
+        new_option = f"Option {len(self.options) + 1}"
+        self.options = self.options + [new_option]
+        toast("Option added. You can edit the option text directly.")
+    
+    def remove_last_option(self, instance):
+        """Remove the last option from the choice field"""
+        if len(self.options) > 2:  # Keep at least 2 options
+            self.options = self.options[:-1]
+            toast("Option removed.")
+        else:
+            toast("Multiple choice questions need at least 2 options.")
     
     def on_options(self, instance, options):
         self.options_container.clear_widgets()
         self.checkboxes = []
         
-        for option in options:
+        for i, option in enumerate(options):
             row = MDBoxLayout(
                 orientation='horizontal',
                 spacing=dp(10),
@@ -305,20 +537,32 @@ class MultipleChoiceField(BaseFormField):
                 on_active=lambda x, active, opt=option: self.on_option_selected(opt, active)
             )
             
-            label = MDLabel(
+            # Make option text editable
+            option_input = MDTextField(
                 text=option,
-                halign="left",
-                theme_text_color="Primary",
-                size_hint_x=0.8
+                size_hint_x=0.8,
+                font_size="14sp",
+                height=dp(32),
+                size_hint_y=None,
+                mode="rectangle",
+                on_text_validate=lambda instance, idx=i: self.update_option(idx, instance.text)
             )
+            option_input.bind(on_text_validate=lambda instance, idx=i: self.update_option(idx, instance.text))
             
             row.add_widget(checkbox)
-            row.add_widget(label)
+            row.add_widget(option_input)
             self.options_container.add_widget(row)
             self.checkboxes.append(checkbox)
         
         # Update height
-        self.height = dp(80 + len(options) * 40)
+        self.height = dp(160 + len(options) * 40)
+    
+    def update_option(self, index, new_text):
+        """Update an option text"""
+        if 0 <= index < len(self.options) and new_text.strip():
+            options_list = list(self.options)
+            options_list[index] = new_text.strip()
+            self.options = options_list
     
     def on_option_selected(self, option, active):
         if active and option not in self.selected_options:
@@ -335,23 +579,29 @@ class MultipleChoiceField(BaseFormField):
         for i, option in enumerate(self.options):
             if option in self.selected_options and i < len(self.checkboxes):
                 self.checkboxes[i].active = True
+    
+    def validate(self):
+        is_valid, errors = super().validate()
+        if len(self.options) < 2:
+            errors.append("Multiple choice questions need at least 2 options")
+            is_valid = False
+        
+        # Check for empty options
+        empty_options = [i for i, opt in enumerate(self.options) if not opt.strip()]
+        if empty_options:
+            errors.append("Please fill in all option texts")
+            is_valid = False
+            
+        return is_valid, errors
 
 class RatingScaleField(BaseFormField):
     min_value = NumericProperty(1)
     max_value = NumericProperty(5)
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "scale_rating"
         self.current_value = self.min_value
-        
-        self.label = MDLabel(
-            text=self.question_text,
-            theme_text_color="Primary",
-            font_style="Subtitle1",
-            size_hint_y=None,
-            height=dp(30)
-        )
         
         self.value_label = MDLabel(
             text=f"Rating: {self.current_value}",
@@ -371,7 +621,6 @@ class RatingScaleField(BaseFormField):
         )
         self.slider.bind(value=self.on_slider_value)
         
-        self.add_widget(self.label)
         self.add_widget(self.value_label)
         self.add_widget(self.slider)
     
@@ -393,14 +642,6 @@ class DateField(BaseFormField):
         super().__init__(**kwargs)
         self.response_type = "date"
         self.selected_date = None
-        
-        self.label = MDLabel(
-            text=self.question_text,
-            theme_text_color="Primary",
-            font_style="Subtitle1",
-            size_hint_y=None,
-            height=dp(30)
-        )
 
         self.date_input = MDTextField(
             hint_text="Tap to select date",
@@ -411,9 +652,8 @@ class DateField(BaseFormField):
             on_focus=self.show_date_picker
         )
 
-        self.add_widget(self.label)
         self.add_widget(self.date_input)
-    
+
     def show_date_picker(self, instance, focus):
         if focus:
             date_dialog = MDDatePicker()
@@ -442,15 +682,7 @@ class DateTimeField(BaseFormField):
         self.response_type = "datetime"
         self.selected_date = None
         self.selected_time = None
-        self.height = dp(140)
-        
-        self.label = MDLabel(
-            text=self.question_text,
-            theme_text_color="Primary",
-            font_style="Subtitle1",
-            size_hint_y=None,
-            height=dp(30)
-        )
+        self.height = dp(180)  # Increased for question input + two date fields
 
         self.date_input = MDTextField(
             hint_text="Tap to select date",
@@ -470,7 +702,6 @@ class DateTimeField(BaseFormField):
             on_focus=self.show_time_picker
         )
 
-        self.add_widget(self.label)
         self.add_widget(self.date_input)
         self.add_widget(self.time_input)
     
@@ -485,7 +716,7 @@ class DateTimeField(BaseFormField):
             time_dialog = MDTimePicker()
             time_dialog.bind(on_save=self.set_time)
             time_dialog.open()
-    
+
     def set_date(self, instance, date_obj, *_):
         self.selected_date = date_obj
         self.date_input.text = date_obj.strftime('%Y-%m-%d')
@@ -518,15 +749,7 @@ class LocationPickerField(BaseFormField):
         super().__init__(**kwargs)
         self.response_type = "geopoint"
         self.current_location = None
-        self.height = dp(140)
-        
-        self.label = MDLabel(
-            text=self.question_text,
-            theme_text_color="Primary",
-            font_style="Subtitle1",
-            size_hint_y=None,
-            height=dp(30)
-        )
+        self.height = dp(180)  # Increased for question input + location fields
 
         self.location_display = MDTextField(
             hint_text="No location selected",
@@ -558,7 +781,6 @@ class LocationPickerField(BaseFormField):
         self.button_container.add_widget(self.get_location_btn)
         self.button_container.add_widget(self.clear_btn)
 
-        self.add_widget(self.label)
         self.add_widget(self.location_display)
         self.add_widget(self.button_container)
     
@@ -593,15 +815,7 @@ class PhotoUploadField(BaseFormField):
         super().__init__(**kwargs)
         self.response_type = "image"
         self.photo_path = None
-        self.height = dp(140)
-        
-        self.label = MDLabel(
-            text=self.question_text,
-            theme_text_color="Primary",
-            font_style="Subtitle1",
-            size_hint_y=None,
-            height=dp(30)
-        )
+        self.height = dp(180)  # Increased for question input + photo fields
         
         self.photo_display = MDTextField(
             hint_text="No photo selected",
@@ -633,7 +847,6 @@ class PhotoUploadField(BaseFormField):
         self.button_container.add_widget(self.camera_btn)
         self.button_container.add_widget(self.gallery_btn)
 
-        self.add_widget(self.label)
         self.add_widget(self.photo_display)
         self.add_widget(self.button_container)
     
@@ -665,15 +878,7 @@ class AudioRecordingField(BaseFormField):
         self.response_type = "audio"
         self.audio_path = None
         self.is_recording = False
-        self.height = dp(140)
-        
-        self.label = MDLabel(
-            text=self.question_text,
-            theme_text_color="Primary",
-            font_style="Subtitle1",
-            size_hint_y=None,
-            height=dp(30)
-        )
+        self.height = dp(180)  # Increased for question input + audio fields
         
         self.audio_display = MDTextField(
             hint_text="No audio recorded",
@@ -705,7 +910,6 @@ class AudioRecordingField(BaseFormField):
         self.button_container.add_widget(self.record_btn)
         self.button_container.add_widget(self.clear_btn)
 
-        self.add_widget(self.label)
         self.add_widget(self.audio_display)
         self.add_widget(self.button_container)
     
@@ -749,14 +953,6 @@ class BarcodeField(BaseFormField):
         super().__init__(**kwargs)
         self.response_type = "barcode"
         self.barcode_value = None
-        
-        self.label = MDLabel(
-            text=self.question_text,
-            theme_text_color="Primary",
-            font_style="Subtitle1",
-            size_hint_y=None,
-            height=dp(30)
-        )
 
         self.barcode_input = MDTextField(
             hint_text="Scan or enter barcode",
@@ -772,7 +968,6 @@ class BarcodeField(BaseFormField):
             on_release=self.scan_barcode
         )
 
-        self.add_widget(self.label)
         self.add_widget(self.barcode_input)
         self.add_widget(self.scan_btn)
     

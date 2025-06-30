@@ -6,13 +6,43 @@ from projects.models import Project
 
 class Question(models.Model):
     RESPONSE_TYPES = [
-        ('numeric', 'Numeric'),
-        ('text', 'Text'),
-        ('long_text', 'Long Text'),  # Added to support frontend
-        ('choice', 'Multiple Choice'),
-        ('scale', 'Scale'),
+        # Text Response Types
+        ('text_short', 'Short Text'),
+        ('text_long', 'Long Text'),
+        
+        # Numeric Response Types
+        ('numeric_integer', 'Number (Integer)'),
+        ('numeric_decimal', 'Number (Decimal)'),
+        ('scale_rating', 'Rating Scale'),
+        
+        # Choice Response Types
+        ('choice_single', 'Single Choice'),
+        ('choice_multiple', 'Multiple Choice'),
+        
+        # Date & Time Response Types
         ('date', 'Date'),
-        ('location', 'Location'),
+        ('datetime', 'Date & Time'),
+        
+        # Location Response Types
+        ('geopoint', 'GPS Location'),
+        ('geoshape', 'Geographic Shape'),
+        
+        # Media Response Types
+        ('image', 'Photo/Image'),
+        ('audio', 'Audio Recording'),
+        ('video', 'Video Recording'),
+        ('file', 'File Upload'),
+        
+        # Special Response Types
+        ('signature', 'Digital Signature'),
+        ('barcode', 'Barcode/QR Code'),
+        
+        # Legacy types for backward compatibility
+        ('numeric', 'Numeric (Legacy)'),
+        ('text', 'Text (Legacy)'),
+        ('choice', 'Multiple Choice (Legacy)'),
+        ('scale', 'Scale (Legacy)'),
+        ('location', 'Location (Legacy)'),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

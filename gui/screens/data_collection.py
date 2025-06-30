@@ -13,6 +13,8 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.selectioncontrol import MDCheckbox
 from kivymd.uix.slider import MDSlider
+from kivymd.uix.widget import Widget
+from kivymd.uix.card import MDCard
 
 import json
 import threading
@@ -101,18 +103,31 @@ class DataCollectionScreen(Screen):
         """Load the form questions for the selected project"""
         self.ids.form_canvas.clear_widgets()
         self.response_widgets = []
+        
+        # Hide empty state if it exists
+        if hasattr(self.ids.form_canvas, 'children'):
+            for child in self.ids.form_canvas.children:
+                if hasattr(child, 'id') and child.id == 'empty_state':
+                    child.opacity = 0
+        
         app = App.get_running_app()
         questions, error = app.form_service.load_questions(self.project_id)
         if error:
             toast(f"Error loading form: {error}")
+            self._show_empty_state("Error loading form", error)
             return
+            
+        if not questions:
+            self._show_empty_state("No questions found", "This form doesn't have any questions yet")
+            return
+            
         self.questions_data = questions
-        for q in questions:
-            widget = self.create_question_widget(q)
+        for i, q in enumerate(questions):
+            widget = self.create_question_widget(q, i)
             self.ids.form_canvas.add_widget(widget)
             self.response_widgets.append((q, widget))
 
-    def create_question_widget(self, q):
+    def create_question_widget(self, q, index):
         """Create UI widget for a question"""
         q_type = q.get('question_type', 'text')
         q_text = q.get('question_text', '')
@@ -124,9 +139,63 @@ class DataCollectionScreen(Screen):
                 options = []
         allow_multiple = bool(q.get('allow_multiple', False))
         
-        # Create question container
-        box = MDBoxLayout(orientation='vertical', spacing=dp(6), padding=[0, dp(4)], adaptive_height=True)
-        box.add_widget(MDLabel(text=q_text, font_style="Subtitle1", size_hint_y=None, height=dp(28)))
+        # Create question container with card-like styling
+        container = MDCard(
+            orientation='vertical',
+            size_hint_y=None,
+            height=dp(100),
+            padding=dp(16),
+            spacing=dp(12),
+            elevation=1
+        )
+
+        # Question header with number
+        header = MDBoxLayout(
+            orientation='horizontal',
+            size_hint_y=None,
+            height=dp(32),
+            spacing=dp(12)
+        )
+
+        # Question number circle - simplified for KivyMD 1.2.0
+        number_box = MDBoxLayout(
+            size_hint=(None, None),
+            size=(dp(32), dp(32)),
+            padding=dp(0)
+        )
+        number_box.md_bg_color = App.get_running_app().theme_cls.primary_color
+        
+        number_label = MDLabel(
+            text=str(index + 1),
+            halign='center',
+            theme_text_color="Custom",
+            text_color=(1, 1, 1, 1),
+            bold=True
+        )
+        number_box.add_widget(number_label)
+
+        # Question text
+        question_label = MDLabel(
+            text=q_text,
+            font_style="Subtitle1",
+            theme_text_color="Primary",
+            size_hint_y=None,
+            height=dp(32)
+        )
+
+        header.add_widget(number_box)
+        header.add_widget(question_label)
+        container.add_widget(header)
+
+        # Answer section with light background
+        answer_box = MDBoxLayout(
+            orientation='vertical',
+            spacing=dp(8),
+            padding=[dp(8), dp(8), dp(8), dp(8)],
+            size_hint_y=None,
+            md_bg_color=[0.95, 0.95, 0.95, 1],
+            radius=[dp(4)]
+        )
 
         if q_type in ['text', 'long_text', 'numeric', 'date', 'location']:
             hint = {
@@ -141,58 +210,112 @@ class DataCollectionScreen(Screen):
                 hint_text=hint,
                 mode="rectangle",
                 multiline=q_type == 'long_text',
-                input_filter='int' if q_type == 'numeric' else None
+                input_filter='int' if q_type == 'numeric' else None,
+                size_hint_y=None,
+                height=dp(48) if not q_type == 'long_text' else dp(96),
+                font_size="16sp"
             )
-            box.add_widget(field)
-            box.response_field = field
+            answer_box.add_widget(field)
+            answer_box.height = field.height + dp(16)  # Add padding
+            container.response_field = field
 
         elif q_type == 'choice':
+            options_box = MDBoxLayout(
+                orientation='vertical',
+                spacing=dp(4),
+                size_hint_y=None,
+                height=len(options) * dp(40)
+            )
             checks = []
             for opt in options:
                 row = MDBoxLayout(
                     orientation='horizontal',
-                    spacing=dp(10),
+                    spacing=dp(12),
                     size_hint_y=None,
-                    height=dp(40),
-                    padding=[dp(8), dp(4), 0, dp(4)],
+                    height=dp(40)
                 )
 
                 cb = MDCheckbox(
                     group=q_text if not allow_multiple else None,
                     size_hint=(None, None),
-                    size=(dp(36), dp(36))
+                    size=(dp(32), dp(32)),
+                    pos_hint={'center_y': 0.5}
                 )
 
                 label = MDLabel(
                     text=opt,
-                    halign='left',
-                    valign='middle',
-                    size_hint_x=1
+                    theme_text_color="Primary",
+                    size_hint_x=1,
+                    pos_hint={'center_y': 0.5}
                 )
-                label.bind(size=label.setter('text_size'))
 
                 row.add_widget(cb)
                 row.add_widget(label)
-                box.add_widget(row)
+                options_box.add_widget(row)
                 checks.append((cb, opt))
-            box.response_field = checks
+            answer_box.add_widget(options_box)
+            answer_box.height = options_box.height + dp(16)  # Add padding
+            container.response_field = checks
 
         elif q_type == 'scale':
-            slider = MDSlider(min=1, max=5, value=3, step=1)
-            box.add_widget(slider)
-            box.response_field = slider
+            scale_box = MDBoxLayout(
+                orientation='vertical',
+                spacing=dp(4),
+                size_hint_y=None,
+                height=dp(60)
+            )
+            
+            slider = MDSlider(
+                min=1,
+                max=5,
+                value=3,
+                step=1,
+                size_hint_y=None,
+                height=dp(40),
+                hint=False
+            )
+            
+            value_label = MDLabel(
+                text="3",
+                halign='center',
+                theme_text_color="Secondary",
+                size_hint_y=None,
+                height=dp(20)
+            )
+            
+            def update_value(instance, value):
+                value_label.text = str(int(value))
+            
+            slider.bind(value=update_value)
+            
+            scale_box.add_widget(slider)
+            scale_box.add_widget(value_label)
+            answer_box.add_widget(scale_box)
+            answer_box.height = scale_box.height + dp(16)  # Add padding
+            container.response_field = slider
 
         elif q_type == 'photo':
-            field = MDLabel(text="[Photo upload not implemented]", font_style="Caption")
-            box.add_widget(field)
-            box.response_field = None
+            photo_box = MDBoxLayout(
+                orientation='vertical',
+                spacing=dp(8),
+                size_hint_y=None,
+                height=dp(80)
+            )
+            
+            field = MDLabel(
+                text="[Photo upload not implemented]",
+                font_style="Caption",
+                theme_text_color="Secondary",
+                halign='center'
+            )
+            photo_box.add_widget(field)
+            answer_box.add_widget(photo_box)
+            answer_box.height = photo_box.height + dp(16)  # Add padding
+            container.response_field = None
 
-        else:
-            field = MDTextField(hint_text="Your answer", mode="rectangle")
-            box.add_widget(field)
-            box.response_field = field
-
-        return box
+        container.add_widget(answer_box)
+        container.height = header.height + answer_box.height + dp(32)  # Total height plus padding
+        return container
 
     def _update_submit_button(self):
         """Update submit button text based on current state"""
@@ -250,7 +373,7 @@ class DataCollectionScreen(Screen):
                     answer = int(widget.response_field.value) if widget.response_field else None
                 elif q_type == 'photo':
                     answer = None
-                
+
                 # Only include questions that have been answered
                 if answer is not None and str(answer).strip():
                     has_responses = True
@@ -325,3 +448,61 @@ class DataCollectionScreen(Screen):
         """Reset submit button to normal state"""
         self.ids.submit_button.disabled = False
         self._update_submit_button()
+
+    def _show_empty_state(self, title="No form loaded", message="Select a project to load its form"):
+        """Show empty state with custom message"""
+        if hasattr(self.ids.form_canvas, 'children'):
+            for child in self.ids.form_canvas.children:
+                if hasattr(child, 'id') and child.id == 'empty_state':
+                    # Update existing empty state
+                    for widget in child.children:
+                        if isinstance(widget, MDLabel):
+                            if widget.font_style == "H6":
+                                widget.text = title
+                            elif widget.font_style == "Body2":
+                                widget.text = message
+                    child.opacity = 1
+                    return
+                    
+        # Create new empty state if not found
+        empty_state = MDBoxLayout(
+            orientation='vertical',
+            spacing=dp(16),
+            size_hint_y=None,
+            height=dp(200),
+            opacity=1
+        )
+        empty_state.id = 'empty_state'
+        
+        empty_state.add_widget(MDBoxLayout(size_hint_y=None, height=dp(40)))
+        
+        # Use MDLabel for icon in KivyMD 1.2.0
+        icon_label = MDLabel(
+            text="📋",  # Using emoji instead of icon
+            halign="center",
+            font_size="48sp",
+            size_hint_y=None,
+            height=dp(64),
+            theme_text_color="Hint"
+        )
+        empty_state.add_widget(icon_label)
+        
+        title_label = MDLabel(
+            text=title,
+            font_style="H6",
+            theme_text_color="Hint",
+            halign="center",
+            font_size="18sp"
+        )
+        empty_state.add_widget(title_label)
+        
+        message_label = MDLabel(
+            text=message,
+            font_style="Body2",
+            theme_text_color="Hint",
+            halign="center",
+            font_size="14sp"
+        )
+        empty_state.add_widget(message_label)
+        
+        self.ids.form_canvas.add_widget(empty_state)

@@ -193,6 +193,8 @@ class FormBuilderScreen(Screen):
                 if hasattr(self.ids, 'project_spinner'):
                     self.ids.project_spinner.text = 'Select Project'
                 self.ids.form_canvas.clear_widgets()
+                self.update_question_count()
+                self.update_empty_state()
                 return
             
             self.project_id = self.project_map[text]
@@ -229,6 +231,7 @@ class FormBuilderScreen(Screen):
 
     def _update_ui_with_questions(self):
         """Populates the UI with question widgets using the new form fields."""
+        question_number = 1
         for q_data in self.questions_data:
             # Get response type from the data
             response_type = q_data.get('question_type', 'text_short')
@@ -250,6 +253,13 @@ class FormBuilderScreen(Screen):
                     options=options
                 )
                 
+                # Set question number and other properties
+                field.question_number = str(question_number)
+                
+                # Set the question text in the editable field
+                if hasattr(field, 'question_input') and question_text:
+                    field.question_input.text = question_text
+                
                 # Set additional properties for choice fields
                 if hasattr(field, 'selected_option') and response_type == 'choice_single':
                     # For single choice, we might want to set a default if available
@@ -259,6 +269,7 @@ class FormBuilderScreen(Screen):
                     pass
                 
                 self.ids.form_canvas.add_widget(field)
+                question_number += 1
                 
             except Exception as e:
                 print(f"Error creating form field for question {question_text}: {e}")
@@ -267,7 +278,92 @@ class FormBuilderScreen(Screen):
                     response_type='text_short',
                     question_text=question_text
                 )
+                field.question_number = str(question_number)
+                if hasattr(field, 'question_input') and question_text:
+                    field.question_input.text = question_text
                 self.ids.form_canvas.add_widget(field)
+                question_number += 1
+        
+        # Update UI elements after loading questions
+        self.update_question_count()
+        self.update_empty_state()
+
+    def update_question_count(self):
+        """Updates the question count chip with current number of questions."""
+        question_count = len([w for w in self.ids.form_canvas.children if hasattr(w, 'response_type')])
+        if hasattr(self.ids, 'question_count_chip'):
+            if question_count == 0:
+                self.ids.question_count_chip.text = "0 Questions"
+            elif question_count == 1:
+                self.ids.question_count_chip.text = "1 Question"
+            else:
+                self.ids.question_count_chip.text = f"{question_count} Questions"
+    
+    def update_empty_state(self):
+        """Shows or hides the empty state based on whether there are questions."""
+        question_count = len([w for w in self.ids.form_canvas.children if hasattr(w, 'response_type')])
+        
+        # Find empty state widget
+        empty_state = None
+        for child in self.ids.form_canvas.children:
+            if hasattr(child, 'id') and getattr(child, 'id', None) == 'empty_state':
+                empty_state = child
+                break
+        
+        if question_count == 0:
+            # Show empty state if not already shown
+            if not empty_state:
+                # Create empty state widget
+                empty_state = MDBoxLayout(
+                    orientation='vertical',
+                    spacing=dp(16),
+                    size_hint_y=None,
+                    height=dp(200)
+                )
+                empty_state.id = 'empty_state'
+                
+                # Add spacing
+                empty_state.add_widget(MDBoxLayout(size_hint_y=None, height=dp(40)))
+                
+                # Add icon (using icon-like label since MDIcon might not be available)
+                icon_label = MDLabel(
+                    text="📋",
+                    font_size="48sp",
+                    halign="center",
+                    size_hint_y=None,
+                    height=dp(64)
+                )
+                empty_state.add_widget(icon_label)
+                
+                # Add title
+                title_label = MDLabel(
+                    text="No questions added yet",
+                    font_style="H6",
+                    theme_text_color="Hint",
+                    halign="center",
+                    font_size="18sp",
+                    size_hint_y=None,
+                    height=dp(32)
+                )
+                empty_state.add_widget(title_label)
+                
+                # Add description
+                desc_label = MDLabel(
+                    text="Select question types from the left panel to start building your form",
+                    font_style="Body2",
+                    theme_text_color="Hint",
+                    halign="center",
+                    font_size="14sp",
+                    size_hint_y=None,
+                    height=dp(40)
+                )
+                empty_state.add_widget(desc_label)
+                
+                self.ids.form_canvas.add_widget(empty_state)
+        else:
+            # Hide empty state if it exists
+            if empty_state:
+                self.ids.form_canvas.remove_widget(empty_state)
 
     def add_question(self, response_type):
         """Adds a new question widget to the form canvas."""
@@ -276,16 +372,32 @@ class FormBuilderScreen(Screen):
             return
         
         try:
-            # Create a new form field based on response type
+            # Calculate question number based on existing questions
+            question_number = len([w for w in self.ids.form_canvas.children if hasattr(w, 'response_type')]) + 1
+            
+            # Create a new form field based on response type with empty question text
             display_name = self.response_type_display.get(response_type, response_type)
             field = create_form_field(
                 response_type=response_type,
-                question_text=f"New {display_name} Question",
+                question_text="",  # Start with empty question text for user to fill
                 options=['Option 1', 'Option 2'] if 'choice' in response_type else None
             )
             
+            # Set question number
+            field.question_number = str(question_number)
+            
+            # Set placeholder text in the question input
+            if hasattr(field, 'question_input'):
+                display_name_lower = display_name.lower() if display_name else "question"
+                field.question_input.hint_text = f"Enter your {display_name_lower} question here..."
+            
             self.ids.form_canvas.add_widget(field)
-            toast(f"Added {display_name} question")
+            
+            # Update UI elements
+            self.update_question_count()
+            self.update_empty_state()
+            
+            toast(f"Added Question {question_number} ({display_name})")
             
         except Exception as e:
             print(f"Error adding question of type {response_type}: {e}")
@@ -303,45 +415,51 @@ class FormBuilderScreen(Screen):
         
         questions_to_save = []
         validation_errors = []
+        question_widgets = []
         
-        for i, widget in enumerate(self.ids.form_canvas.children):
-            # Check if widget is one of our form fields
+        # Collect only question widgets (not spacers)
+        for widget in self.ids.form_canvas.children:
             if hasattr(widget, 'response_type') and hasattr(widget, 'get_value'):
-                question_text = widget.question_text.strip()
-                response_type = widget.response_type
-                
-                # Validate question text
-                if not question_text or question_text.startswith("New "):
-                    validation_errors.append(f"Question {len(questions_to_save) + 1}: Please enter a proper question text")
+                question_widgets.append(widget)
+        
+        # Reverse to get correct order (since children are added in reverse)
+        question_widgets.reverse()
+        
+        for i, widget in enumerate(question_widgets, 1):
+            # Get question text from the editable field
+            question_text = widget.get_question_text()
+            response_type = widget.response_type
+            
+            # Update question number to maintain order
+            widget.question_number = str(i)
+            
+            # Validate the field (includes question text validation)
+            is_valid, field_errors = widget.validate()
+            if not is_valid:
+                validation_errors.extend([f"Question {i}: {error}" for error in field_errors])
+                continue
+            
+            # Get the value/options for choice fields
+            options = []
+            allow_multiple = False
+            
+            if hasattr(widget, 'options') and widget.options:
+                options = widget.options
+                if len(options) < 2 and 'choice' in response_type:
+                    validation_errors.append(f"Question {i}: Choice questions need at least 2 options")
                     continue
-                
-                # Get the value/options for choice fields
-                options = []
-                allow_multiple = False
-                
-                if hasattr(widget, 'options') and widget.options:
-                    options = widget.options
-                    if len(options) < 2 and 'choice' in response_type:
-                        validation_errors.append(f"Question {len(questions_to_save) + 1}: Choice questions need at least 2 options")
-                        continue
-                
-                if hasattr(widget, 'selected_options'):
-                    allow_multiple = True
-                
-                # Validate field-specific requirements
-                is_valid, field_errors = widget.validate()
-                if not is_valid:
-                    validation_errors.extend([f"Question {len(questions_to_save) + 1}: {error}" for error in field_errors])
-                    continue
-                
-                # Map to backend format
-                questions_to_save.append({
-                    'question_text': question_text,
-                    'response_type': response_type,  # Using the new response type format
-                    'options': options,
-                    'allow_multiple': allow_multiple,
-                    'order_index': len(questions_to_save)
-                })
+            
+            if hasattr(widget, 'selected_options'):
+                allow_multiple = True
+            
+            # Map to backend format
+            questions_to_save.append({
+                'question_text': question_text,
+                'response_type': response_type,  # Using the new response type format
+                'options': options,
+                'allow_multiple': allow_multiple,
+                'order_index': i - 1  # 0-based index for backend
+            })
         
         # Check for validation errors
         if validation_errors:
@@ -355,14 +473,11 @@ class FormBuilderScreen(Screen):
             return
             
         self.show_loader(True)
-        
-        # The widgets are added in reverse order, so we reverse the list back
-        questions_to_save.reverse()
 
         def _save_in_thread():
             try:
                 result = self.form_service.save_questions(self.project_id, questions_to_save)
-                Clock.schedule_once(lambda dt: toast(result.get('message', 'Form saved.')))
+                Clock.schedule_once(lambda dt: toast(result.get('message', 'Form saved successfully!')))
             except Exception as e:
                 error_message = str(e)  # Capture the error message
                 Clock.schedule_once(lambda dt: toast(f"Error saving: {error_message}"))
@@ -378,60 +493,87 @@ class FormBuilderScreen(Screen):
     def preview_questions(self):
         """Show a dialog previewing the current form questions."""
         questions = []
+        question_widgets = []
+        
+        # Collect only question widgets (not spacers)
         for widget in self.ids.form_canvas.children:
             if hasattr(widget, 'response_type') and hasattr(widget, 'get_value'):
-                response_type = widget.response_type
-                question_text = widget.question_text
-                display_name = self.response_type_display.get(response_type, response_type)
-                
-                q = {
-                    'question': question_text,
-                    'type': display_name
-                }
-                
-                # Add options for choice fields
-                if hasattr(widget, 'options') and widget.options:
-                    q['options'] = widget.options
-                    q['allow_multiple'] = hasattr(widget, 'selected_options')
-                
-                questions.append(q)
-                
-        questions.reverse()  # To match display order
+                question_widgets.append(widget)
+        
+        # Reverse to get correct order
+        question_widgets.reverse()
+        
+        for i, widget in enumerate(question_widgets, 1):
+            response_type = widget.response_type
+            question_text = widget.get_question_text()  # Get from editable field
+            display_name = self.response_type_display.get(response_type, response_type)
+            
+            if not question_text:
+                question_text = "[No question text entered]"
+            
+            q = {
+                'number': i,
+                'question': question_text,
+                'type': display_name
+            }
+            
+            # Add options for choice fields
+            if hasattr(widget, 'options') and widget.options:
+                q['options'] = widget.options
+                q['allow_multiple'] = hasattr(widget, 'selected_options')
+            
+            questions.append(q)
 
-        preview_layout = MDBoxLayout(orientation="vertical", spacing=dp(12), padding=dp(16), adaptive_height=True)
+        preview_layout = MDBoxLayout(orientation="vertical", spacing=dp(16), padding=dp(16), adaptive_height=True)
         if not questions:
             preview_layout.add_widget(MDLabel(text="No questions to preview.", font_style="Subtitle1"))
         else:
-            for idx, q in enumerate(questions, 1):
+            for q in questions:
+                # Question card
+                question_card = MDBoxLayout(
+                    orientation="vertical",
+                    padding=dp(12),
+                    spacing=dp(8),
+                    size_hint_y=None,
+                    height=dp(120) if not q.get('options') else dp(120 + len(q.get('options', [])) * 20),
+                    md_bg_color=(0.96, 0.96, 0.96, 1)
+                )
+                
+                q_number = q.get('number', 1)
                 q_text = q.get('question', '')
                 q_type = q.get('type', '')
                 options = q.get('options', [])
                 allow_multiple = q.get('allow_multiple', False)
                 
-                label = f"{idx}. {q_text}"
-                preview_layout.add_widget(MDLabel(text=label, font_style="Subtitle1"))
-                preview_layout.add_widget(MDLabel(text=f"Type: {q_type}", font_style="Caption"))
+                # Question header
+                header = MDLabel(text=f"Question {q_number}: {q_text}", font_style="Subtitle1", bold=True)
+                type_label = MDLabel(text=f"Type: {q_type}", font_style="Caption", theme_text_color="Secondary")
+                
+                question_card.add_widget(header)
+                question_card.add_widget(type_label)
                 
                 if options:
+                    options_label = MDLabel(text="Options:", font_style="Body2")
+                    question_card.add_widget(options_label)
                     for opt in options:
-                        preview_layout.add_widget(MDLabel(text=f"- {opt}", font_style="Body2"))
+                        question_card.add_widget(MDLabel(text=f"• {opt}", font_style="Body2"))
                     if allow_multiple:
-                        preview_layout.add_widget(MDLabel(text="(Multiple answers allowed)", font_style="Caption"))
+                        question_card.add_widget(MDLabel(text="(Multiple answers allowed)", font_style="Caption"))
                 elif q_type in ["GPS Location", "Photo/Image", "Audio Recording", "Barcode/QR Code"]:
-                    preview_layout.add_widget(MDLabel(text=f"[{q_type} input field]", font_style="Body2"))
+                    question_card.add_widget(MDLabel(text=f"[{q_type} input field]", font_style="Body2"))
                 elif "Number" in q_type:
-                    preview_layout.add_widget(MDLabel(text=f"[{q_type} input field]", font_style="Body2"))
+                    question_card.add_widget(MDLabel(text=f"[{q_type} input field]", font_style="Body2"))
                 elif "Date" in q_type:
-                    preview_layout.add_widget(MDLabel(text=f"[{q_type} picker]", font_style="Body2"))
+                    question_card.add_widget(MDLabel(text=f"[{q_type} picker]", font_style="Body2"))
                 elif "Rating" in q_type:
-                    preview_layout.add_widget(MDLabel(text="[Rating scale 1-5]", font_style="Body2"))
+                    question_card.add_widget(MDLabel(text="[Rating scale 1-5]", font_style="Body2"))
                 else:
-                    preview_layout.add_widget(MDLabel(text="[Text input field]", font_style="Body2"))
+                    question_card.add_widget(MDLabel(text="[Text input field]", font_style="Body2"))
                     
-                preview_layout.add_widget(MDLabel(text="", font_style="Body2"))  # Spacer
+                preview_layout.add_widget(question_card)
 
         dialog = MDDialog(
-            title="Preview Questions",
+            title="Form Preview",
             type="custom",
             content_cls=preview_layout,
             buttons=[
