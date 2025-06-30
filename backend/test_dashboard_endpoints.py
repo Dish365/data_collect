@@ -77,14 +77,14 @@ class DashboardEndpointTest:
         self.question1 = Question.objects.create(
             project=self.project1,
             question_text='What is your age?',
-            question_type='number',
+            response_type='numeric',
             order_index=1
         )
         
         self.question2 = Question.objects.create(
             project=self.project1,
             question_text='What is your name?',
-            question_type='text',
+            response_type='text',
             order_index=2
         )
         

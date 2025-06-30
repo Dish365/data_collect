@@ -5,7 +5,7 @@ from projects.models import Project
 # Create your models here.
 
 class Question(models.Model):
-    QUESTION_TYPES = [
+    RESPONSE_TYPES = [
         ('numeric', 'Numeric'),
         ('text', 'Text'),
         ('long_text', 'Long Text'),  # Added to support frontend
@@ -18,7 +18,7 @@ class Question(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='questions')
     question_text = models.TextField()
-    question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
+    response_type = models.CharField(max_length=20, choices=RESPONSE_TYPES)
     is_required = models.BooleanField(default=True)
     allow_multiple = models.BooleanField(default=False)  # Added to support frontend
     options = models.JSONField(null=True, blank=True)  # For multiple choice questions

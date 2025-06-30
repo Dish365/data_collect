@@ -3,22 +3,22 @@ from .models import Question
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
-    list_display = ['id', 'project', 'question_text', 'question_type', 'order_index', 'is_required', 'created_at', 'sync_status']
-    search_fields = ['question_text', 'project__name', 'id']
-    list_filter = ['question_type', 'sync_status', 'is_required', 'created_at', 'project']
+    list_display = ['id', 'project', 'question_text', 'response_type', 'order_index', 'is_required', 'created_at', 'sync_status']
+    search_fields = ['question_text', 'project__name']
+    list_filter = ['response_type', 'sync_status', 'is_required', 'created_at', 'project']
     readonly_fields = ['id', 'created_at']
     ordering = ['project', 'order_index']
     list_select_related = ['project']
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('id', 'project', 'question_text', 'question_type')
+            'fields': ('id', 'project', 'question_text', 'response_type')
         }),
-        ('Question Configuration', {
-            'fields': ('order_index', 'is_required', 'options', 'validation_rules')
+        ('Configuration', {
+            'fields': ('is_required', 'allow_multiple', 'options', 'validation_rules', 'order_index'),
         }),
-        ('Metadata', {
-            'fields': ('created_at', 'sync_status'),
+        ('Sync Information', {
+            'fields': ('sync_status',),
             'classes': ('collapse',),
         }),
     )

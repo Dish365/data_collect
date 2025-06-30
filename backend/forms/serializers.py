@@ -8,7 +8,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = [
-            'id', 'project', 'project_details', 'question_text', 'question_type', 
+            'id', 'project', 'project_details', 'question_text', 'response_type', 
             'is_required', 'allow_multiple', 'options', 'validation_rules', 'order_index', 
             'created_at', 'sync_status'
         ]
@@ -27,11 +27,11 @@ class QuestionSerializer(serializers.ModelSerializer):
         
         return value.strip()
     
-    def validate_question_type(self, value):
-        """Validate question type"""
-        valid_types = [choice[0] for choice in Question.QUESTION_TYPES]
+    def validate_response_type(self, value):
+        """Validate response type"""
+        valid_types = [choice[0] for choice in Question.RESPONSE_TYPES]
         if value not in valid_types:
-            raise serializers.ValidationError(f"Question type must be one of: {', '.join(valid_types)}")
+            raise serializers.ValidationError(f"Response type must be one of: {', '.join(valid_types)}")
         return value
     
     def validate_options(self, value):
@@ -75,19 +75,19 @@ class QuestionSerializer(serializers.ModelSerializer):
     
     def validate(self, data):
         """Cross-field validation"""
-        question_type = data.get('question_type')
+        response_type = data.get('response_type')
         options = data.get('options')
         
         # Check if options are provided for multiple choice questions
-        if question_type == 'choice' and (not options or options == []):
+        if response_type == 'choice' and (not options or options == []):
             raise serializers.ValidationError("Options are required for multiple choice questions.")
         
         # Check if options are provided for non-multiple choice questions
-        if question_type != 'choice' and options and options != []:
+        if response_type != 'choice' and options and options != []:
             raise serializers.ValidationError("Options should only be provided for multiple choice questions.")
         
         # Check if allow_multiple is set for non-choice questions
-        if data.get('allow_multiple', False) and question_type != 'choice':
+        if data.get('allow_multiple', False) and response_type != 'choice':
             raise serializers.ValidationError("Multiple answers can only be allowed for choice questions.")
         
         return data 
