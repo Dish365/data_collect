@@ -137,31 +137,46 @@ class SignUpScreen(MDScreen):
             # Registration failed
             error_type = result.get('error')
             message = result.get('message', 'Registration failed')
+            status_code = result.get('status_code')
             
-            # Show appropriate error message
-            if error_type == 'validation_error':
-                # Show field-specific errors if available
-                field_errors = result.get('field_errors', {})
-                if field_errors:
-                    # Show first field error
-                    for field, errors in field_errors.items():
-                        if isinstance(errors, list) and errors:
-                            toast(f"{field.title()}: {errors[0]}")
-                            break
-                else:
-                    toast(message)
-            elif error_type == 'user_exists':
-                toast("User with this username or email already exists")
-            elif error_type == 'network_unavailable':
+            print(f"Registration failed - Error: {error_type}, Message: {message}, Status: {status_code}")
+            
+            # Handle different error types
+            if error_type == 'network_unavailable' or error_type == 'network_error':
                 toast("No network connection. Please check your internet connection.")
             elif error_type == 'timeout':
                 toast("Request timed out. Please try again.")
             elif error_type == 'connection_error':
                 toast("Connection failed. Please check your internet connection.")
-            elif error_type == 'server_error':
-                toast(f"Server error: {message}")
+            elif status_code == 400:
+                # Handle validation errors from backend
+                if isinstance(message, dict):
+                    # Extract field-specific errors
+                    for field, errors in message.items():
+                        if isinstance(errors, list) and errors:
+                            field_name = field.replace('_', ' ').title()
+                            toast(f"{field_name}: {errors[0]}")
+                            return
+                        elif isinstance(errors, str):
+                            field_name = field.replace('_', ' ').title()
+                            toast(f"{field_name}: {errors}")
+                            return
+                    # If no specific field errors, show general message
+                    toast("Please check your input and try again.")
+                else:
+                    toast("Invalid registration data. Please check your input.")
+            elif status_code == 409 or 'already exists' in str(message).lower():
+                toast("User with this username or email already exists")
+            elif status_code == 500:
+                toast("Server error. Please try again later.")
             else:
-                toast(f"Registration failed: {message}")
+                # Generic error handling
+                if isinstance(message, dict):
+                    # Try to extract meaningful error message
+                    error_msg = str(message.get('detail', message.get('error', message)))
+                else:
+                    error_msg = str(message)
+                toast(f"Registration failed: {error_msg}")
     
     def on_login(self):
         """Navigate to login screen"""

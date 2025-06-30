@@ -4,7 +4,17 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
-from .serializers import UserRegistrationSerializer, UserSerializer, ChangePasswordSerializer
+from django.core.mail import send_mail
+from django.conf import settings
+from django.db.models import Q
+from .serializers import (
+    UserRegistrationSerializer, 
+    UserSerializer, 
+    ChangePasswordSerializer,
+    ForgotPasswordSerializer,
+    ResetPasswordSerializer
+)
+from .models import PasswordResetToken
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -109,4 +119,95 @@ class ChangePasswordView(generics.UpdateAPIView):
             user.save()
             return Response({'message': 'Password updated successfully'})
 
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ForgotPasswordView(APIView):
+    """Handle password reset requests"""
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            username_or_email = serializer.validated_data['username_or_email']
+            
+            # Find user by username or email
+            user = None
+            try:
+                user = User.objects.get(
+                    Q(username=username_or_email) | Q(email=username_or_email)
+                )
+            except User.DoesNotExist:
+                # For security, return success even if user doesn't exist
+                return Response({
+                    'message': 'If a user with that username or email exists, password reset instructions have been sent.'
+                }, status=status.HTTP_200_OK)
+            
+            # Clean up old tokens for this user
+            PasswordResetToken.objects.filter(user=user).delete()
+            
+            # Create new reset token
+            reset_token = PasswordResetToken.objects.create(user=user)
+            
+            # For mobile app: always return token directly in development mode
+            # In production, you would send email and not return the token
+            message = f'Password reset token: {reset_token.token} (Development mode)'
+            
+            # Also try to send email if configured (but don't let it block the response)
+            try:
+                if hasattr(settings, 'EMAIL_BACKEND') and settings.EMAIL_BACKEND and settings.EMAIL_BACKEND != 'django.core.mail.backends.console.EmailBackend':
+                    # Real email backend configured, send email
+                    reset_url = f"http://localhost:3000/reset-password?token={reset_token.token}"
+                    send_mail(
+                        'Password Reset Request',
+                        f'Click the following link to reset your password: {reset_url}',
+                        settings.DEFAULT_FROM_EMAIL,
+                        [user.email],
+                        fail_silently=True,  # Don't block on email failures
+                    )
+            except Exception as e:
+                # Email failed, but that's ok for mobile app
+                print(f"Email sending failed: {e}")
+                pass
+            
+            return Response({'message': message}, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResetPasswordView(APIView):
+    """Handle password reset with token"""
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            token = serializer.validated_data['token']
+            new_password = serializer.validated_data['new_password']
+            
+            try:
+                reset_token = PasswordResetToken.objects.get(token=token)
+                
+                if not reset_token.is_valid():
+                    return Response({
+                        'error': 'Invalid or expired token'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                # Reset password
+                user = reset_token.user
+                user.set_password(new_password)
+                user.save()
+                
+                # Mark token as used
+                reset_token.mark_used()
+                
+                return Response({
+                    'message': 'Password has been reset successfully'
+                }, status=status.HTTP_200_OK)
+                
+            except PasswordResetToken.DoesNotExist:
+                return Response({
+                    'error': 'Invalid token'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -1,6 +1,9 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 import uuid
+import secrets
+from datetime import timedelta
 
 class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -10,6 +13,7 @@ class User(AbstractUser):
         ('researcher', 'Researcher'),
         ('field_worker', 'Field Worker'),
     ], default='researcher')
+    institution = models.CharField(max_length=255, blank=True, help_text="Organization or institution the user belongs to")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -67,3 +71,35 @@ class User(AbstractUser):
             'can_create_projects': self.can_create_projects(),
             'can_collect_data': self.can_collect_data(),
         }
+
+
+class PasswordResetToken(models.Model):
+    """Model for secure password reset tokens"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_tokens')
+    token = models.CharField(max_length=100, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = secrets.token_urlsafe(32)
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(hours=24)  # 24 hour expiry
+        super().save(*args, **kwargs)
+    
+    def is_valid(self):
+        """Check if token is valid (not used and not expired)"""
+        return not self.used and timezone.now() < self.expires_at
+    
+    def mark_used(self):
+        """Mark token as used"""
+        self.used = True
+        self.save()
+    
+    def __str__(self):
+        return f"Reset token for {self.user.email} - {'Valid' if self.is_valid() else 'Invalid'}"

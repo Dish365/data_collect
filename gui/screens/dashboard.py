@@ -213,7 +213,7 @@ class DashboardScreen(MDScreen):
         """Updates the UI with new stats."""
         try:
             # Update stat cards with enhanced information
-            self.ids.total_responses_card.value = stats.get('total_responses', 'N/A')
+            self.ids.total_responses_card.value = stats.get('total_respondents', 'N/A')
             self.ids.active_projects_card.value = stats.get('active_projects', 'N/A')
             self.ids.pending_sync_card.value = stats.get('pending_sync', 'N/A')
             self.ids.team_members_card.value = stats.get('team_members', 'N/A')

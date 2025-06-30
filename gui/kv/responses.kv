@@ -1,0 +1,171 @@
+<ResponsesScreen>:
+    name: "responses"
+
+    MDBoxLayout:
+        orientation: "vertical"
+
+        TopBar:
+            id: top_bar
+
+        RelativeLayout:
+            # Main content layout
+            MDBoxLayout:
+                orientation: "vertical"
+                id: content_layout
+
+                # Header section with summary stats and controls
+                MDCard:
+                    padding: dp(16)
+                    spacing: dp(8)
+                    size_hint_y: None
+                    height: dp(120)
+                    elevation: 2
+                    
+                    MDBoxLayout:
+                        orientation: "vertical"
+                        spacing: dp(8)
+                        
+                        # Summary Statistics Row
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: dp(20)
+                            size_hint_y: None
+                            height: dp(30)
+                            
+                            MDLabel:
+                                id: total_respondents_label
+                                text: "Total Respondents: Loading..."
+                                font_style: "Subtitle1"
+                                size_hint_x: 0.33
+                                
+                            MDLabel:
+                                id: total_responses_label
+                                text: "Total Responses: Loading..."
+                                font_style: "Subtitle1"
+                                size_hint_x: 0.33
+                                
+                            MDLabel:
+                                id: avg_responses_label
+                                text: "Avg per Respondent: Loading..."
+                                font_style: "Subtitle1"
+                                size_hint_x: 0.34
+
+                        # Controls Row
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: dp(12)
+                            size_hint_y: None
+                            height: dp(48)
+
+                            # Left Section: Back arrow + Title
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                spacing: dp(8)
+                                size_hint_x: 0.4
+                                pos_hint: {"center_y": 0.5}
+
+                                MDIconButton:
+                                    icon: "arrow-left"
+                                    on_release: root.go_back_to_dashboard()
+                                    theme_icon_color: "Custom"
+                                    icon_color: 0, 0, 0, 1
+                                    pos_hint: {"center_y": 0.5}
+
+                                MDLabel:
+                                    text: "Survey Responses"
+                                    font_style: "H6"
+                                    pos_hint: {"center_y": 0.5}
+                                    size_hint_x: None
+                                    width: dp(180)
+
+                            # Right Section: Search bar + Refresh button
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                spacing: dp(8)
+                                size_hint_x: 0.6
+                                pos_hint: {"center_y": 0.5}
+
+                                MDTextField:
+                                    id: search_field
+                                    hint_text: "Search by ID, name, or project..."
+                                    size_hint_x: 0.8
+                                    height: dp(40)
+                                    pos_hint: {"center_y": 0.5}
+                                    mode: "rectangle"
+                                    on_text: root.search_respondents(self.text)
+
+                                MDIconButton:
+                                    icon: "refresh"
+                                    on_release: root.refresh_data()
+                                    pos_hint: {"center_y": 0.5}
+
+                # Table Header
+                MDCard:
+                    padding: dp(10)
+                    size_hint_y: None
+                    height: dp(50)
+                    elevation: 1
+                    md_bg_color: app.theme_cls.primary_color
+                    
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        spacing: dp(5)
+                        
+                        MDLabel:
+                            text: "Respondent ID"
+                            size_hint_x: 0.2
+                            font_style: "Subtitle2"
+                            halign: "left"
+                            theme_text_color: "Primary"
+                            
+                        MDLabel:
+                            text: "Name"
+                            size_hint_x: 0.2
+                            font_style: "Subtitle2"
+                            halign: "left"
+                            theme_text_color: "Primary"
+                            
+                        MDLabel:
+                            text: "Project"
+                            size_hint_x: 0.2
+                            font_style: "Subtitle2"
+                            halign: "left"
+                            theme_text_color: "Primary"
+                            
+                        MDLabel:
+                            text: "Responses"
+                            size_hint_x: 0.1
+                            font_style: "Subtitle2"
+                            halign: "center"
+                            theme_text_color: "Primary"
+                            
+                        MDLabel:
+                            text: "Last Response"
+                            size_hint_x: 0.15
+                            font_style: "Subtitle2"
+                            halign: "center"
+                            theme_text_color: "Primary"
+                            
+                        MDLabel:
+                            text: "Actions"
+                            size_hint_x: 0.15
+                            font_style: "Subtitle2"
+                            halign: "center"
+                            theme_text_color: "Primary"
+
+                # Scrollable content area
+                MDScrollView:
+                    MDBoxLayout:
+                        id: responses_grid
+                        orientation: "vertical"
+                        spacing: dp(2)
+                        padding: [0, dp(10), 0, dp(10)]
+                        adaptive_height: True
+
+            # Loading spinner
+            MDSpinner:
+                id: spinner
+                size_hint: None, None
+                size: dp(46), dp(46)
+                pos_hint: {'center_x': .5, 'center_y': .5}
+                active: False 

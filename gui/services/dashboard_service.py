@@ -54,7 +54,7 @@ class DashboardService:
             # Use API data as the primary source - don't mix with local DB
             # Local DB data might be stale or have incorrect user associations
             combined_stats = {
-                'total_responses': str(stats.get('total_responses', 'N/A')),
+                'total_respondents': str(stats.get('total_respondents', 'N/A')),
                 'team_members': str(stats.get('team_members', 'N/A')),
                 'active_projects': str(stats.get('active_projects', 'N/A')),  # Use API data
                 'pending_sync': str(stats.get('pending_sync', 'N/A')),  # Use API data
@@ -116,7 +116,7 @@ class DashboardService:
                 return self._get_fallback_api_stats()
                 
             return {
-                "total_responses": str(response.get("total_responses", "N/A")),
+                "total_respondents": str(response.get("total_respondents", "N/A")),
                 "team_members": str(response.get("team_members", "N/A")),
                 "active_projects": str(response.get("active_projects", "N/A")),  # Add this
                 "pending_sync": str(response.get("pending_sync", "N/A")),  # Add this
@@ -205,6 +205,13 @@ class DashboardService:
             )
             active_projects = cursor.fetchone()[0]
 
+            # Total completed forms (respondents) - user-specific
+            cursor.execute(
+                "SELECT COUNT(*) FROM respondents WHERE user_id = ?", 
+                (user_id,)
+            )
+            total_respondents = cursor.fetchone()[0]
+
             # Pending sync - user-specific
             cursor.execute(
                 "SELECT COUNT(*) FROM sync_queue WHERE user_id = ? AND status = 'pending'", 
@@ -219,10 +226,11 @@ class DashboardService:
             )
             failed_sync = cursor.fetchone()[0]
 
-            print(f"Local DB stats for user {user_id}: Projects={active_projects}, Pending={pending_sync}, Failed={failed_sync}")
+            print(f"Local DB stats for user {user_id}: Projects={active_projects}, Respondents={total_respondents}, Pending={pending_sync}, Failed={failed_sync}")
             
             return {
                 "active_projects": str(active_projects),
+                "total_respondents": str(total_respondents),
                 "pending_sync": str(pending_sync),
                 "failed_sync": str(failed_sync)
             }
@@ -236,7 +244,7 @@ class DashboardService:
     def _get_fallback_api_stats(self):
         """Fallback stats when API is unavailable"""
         return {
-            "total_responses": "Offline",
+            "total_respondents": "Offline",
             "team_members": "Offline",
             "active_projects": "Offline",
             "pending_sync": "Offline",
@@ -250,6 +258,7 @@ class DashboardService:
         """Fallback stats when local DB is unavailable"""
         return {
             "active_projects": "N/A",
+            "total_respondents": "N/A",
             "pending_sync": "N/A",
             "failed_sync": "N/A"
         }

@@ -57,19 +57,42 @@ class DatabaseService:
             )
         ''')
         
-        # Responses table - add user_id for isolation
+        # Respondents table - tracks individual survey participants
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS respondents (
+                id TEXT PRIMARY KEY,
+                respondent_id TEXT UNIQUE NOT NULL,
+                project_id TEXT REFERENCES projects(id),
+                name TEXT,
+                email TEXT,
+                phone TEXT,
+                demographics TEXT,
+                location_data TEXT,
+                is_anonymous INTEGER DEFAULT 1,
+                consent_given INTEGER DEFAULT 0,
+                created_by TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_response_at TIMESTAMP,
+                sync_status TEXT DEFAULT 'pending',
+                user_id TEXT NOT NULL
+            )
+        ''')
+        
+        # Responses table - add user_id for isolation and link to respondents
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS responses (
-                id TEXT PRIMARY KEY,
+                response_id TEXT PRIMARY KEY,
                 project_id TEXT REFERENCES projects(id),
                 question_id TEXT REFERENCES questions(id),
-                respondent_id TEXT,
+                respondent_id TEXT REFERENCES respondents(respondent_id),
                 response_value TEXT,
                 response_metadata TEXT,
+                location_data TEXT,
+                device_info TEXT,
                 collected_by TEXT,
-                user_id TEXT NOT NULL,
                 collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                sync_status TEXT DEFAULT 'pending'
+                sync_status TEXT DEFAULT 'pending',
+                user_id TEXT NOT NULL
             )
         ''')
         
@@ -102,7 +125,10 @@ class DatabaseService:
             # Add indexes for better performance with user filtering
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects(user_id)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_questions_user_id ON questions(user_id)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_respondents_user_id ON respondents(user_id)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_respondents_project_id ON respondents(project_id)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_responses_user_id ON responses(user_id)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_responses_respondent_id ON responses(respondent_id)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_sync_queue_user_id ON sync_queue(user_id)')
             conn.commit()
         except Exception as e:
@@ -242,17 +268,28 @@ class DatabaseService:
                     cursor.execute("ALTER TABLE questions ADD COLUMN user_id TEXT")
                     cursor.execute("UPDATE questions SET user_id = 'unknown' WHERE user_id IS NULL")
             
-            # Check if responses table exists
+            # Check if responses table exists and migrate its structure
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='responses'")
             if cursor.fetchone():
-                # Check if user_id column exists in responses table
+                # Check current responses table structure
                 cursor.execute("PRAGMA table_info(responses)")
-                columns = [col[1] for col in cursor.fetchall()]
+                columns = {col[1]: col for col in cursor.fetchall()}
                 
-                if 'user_id' not in columns:
-                    print("Migrating responses table...")
+                # Check if we need to migrate from old schema (id -> response_id)
+                if 'id' in columns and 'response_id' not in columns:
+                    print("Migrating responses table structure...")
+                    self._migrate_responses_table_structure(cursor, conn)
+                elif 'user_id' not in columns:
+                    print("Adding user_id to responses table...")
                     cursor.execute("ALTER TABLE responses ADD COLUMN user_id TEXT")
                     cursor.execute("UPDATE responses SET user_id = 'unknown' WHERE user_id IS NULL")
+                
+                # Add missing columns if needed
+                required_columns = ['location_data', 'device_info']
+                for col in required_columns:
+                    if col not in columns:
+                        print(f"Adding {col} column to responses table...")
+                        cursor.execute(f"ALTER TABLE responses ADD COLUMN {col} TEXT")
             
             # Check if sync_queue table exists
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='sync_queue'")
@@ -274,6 +311,59 @@ class DatabaseService:
             # If migration fails, we'll continue anyway
         finally:
             conn.close()
+
+    def _migrate_responses_table_structure(self, cursor, conn):
+        """Migrate responses table from old schema (id) to new schema (response_id)"""
+        try:
+            print("Migrating responses table to new structure...")
+            
+            # Create new responses table with correct schema
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS responses_new (
+                    response_id TEXT PRIMARY KEY,
+                    project_id TEXT REFERENCES projects(id),
+                    question_id TEXT REFERENCES questions(id),
+                    respondent_id TEXT,
+                    response_value TEXT,
+                    response_metadata TEXT,
+                    location_data TEXT,
+                    device_info TEXT,
+                    collected_by TEXT,
+                    collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    sync_status TEXT DEFAULT 'pending',
+                    user_id TEXT NOT NULL
+                )
+            ''')
+            
+            # Copy data from old table to new table, generating new response_ids
+            cursor.execute('''
+                INSERT INTO responses_new 
+                (response_id, project_id, question_id, respondent_id, response_value, 
+                 response_metadata, collected_by, collected_at, sync_status, user_id)
+                SELECT 
+                    COALESCE(id, hex(randomblob(16))) as response_id,
+                    project_id,
+                    question_id,
+                    respondent_id,
+                    response_value,
+                    COALESCE(response_metadata, '{}') as response_metadata,
+                    collected_by,
+                    COALESCE(collected_at, datetime('now')) as collected_at,
+                    COALESCE(sync_status, 'pending') as sync_status,
+                    COALESCE(user_id, 'unknown') as user_id
+                FROM responses
+            ''')
+            
+            # Drop old table and rename new one
+            cursor.execute('DROP TABLE responses')
+            cursor.execute('ALTER TABLE responses_new RENAME TO responses')
+            
+            conn.commit()
+            print("Successfully migrated responses table structure")
+            
+        except Exception as e:
+            print(f"Error migrating responses table structure: {e}")
+            # If this fails, the init_database will recreate the table with correct schema
 
     def clear_all_sessions(self):
         """Clear all user sessions - useful for complete logout"""

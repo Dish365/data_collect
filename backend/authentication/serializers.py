@@ -10,10 +10,11 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'username', 'password', 'password2', 'role', 'first_name', 'last_name')
+        fields = ('id', 'email', 'username', 'password', 'password2', 'role', 'first_name', 'last_name', 'institution')
         extra_kwargs = {
             'first_name': {'required': True},
-            'last_name': {'required': True}
+            'last_name': {'required': True},
+            'institution': {'required': False}
         }
 
     def validate(self, attrs):
@@ -29,11 +30,29 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'email', 'username', 'role', 'first_name', 'last_name', 'is_active')
+        fields = ('id', 'email', 'username', 'role', 'first_name', 'last_name', 'institution', 'is_active')
         read_only_fields = ('id', 'email', 'is_active')
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True, validators=[validate_password])
+    new_password2 = serializers.CharField(required=True)
+
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['new_password2']:
+            raise serializers.ValidationError({"new_password": "Password fields didn't match."})
+        return attrs
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    username_or_email = serializers.CharField(required=True)
+
+    def validate_username_or_email(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Username or email is required.")
+        return value.strip()
+
+class ResetPasswordSerializer(serializers.Serializer):
+    token = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True, validators=[validate_password])
     new_password2 = serializers.CharField(required=True)
 

@@ -297,6 +297,42 @@ class AuthService:
                     callback({'success': False, 'error': 'unknown', 'message': str(e)})
 
         Clock.schedule_once(lambda dt: _forgot_password(), 0)
+    
+    def reset_password_with_token(self, token, new_password, new_password2, callback=None):
+        """Reset password using reset token"""
+        def _reset_password():
+            try:
+                if not self._check_network_connectivity():
+                    if callback:
+                        callback({'success': False, 'error': 'network_unavailable', 'message': 'No network connection.'})
+                    return
+
+                response = requests.post(
+                    f'{self.base_url}/auth/reset-password/',
+                    json={
+                        'token': token,
+                        'new_password': new_password,
+                        'new_password2': new_password2
+                    },
+                    timeout=30
+                )
+                
+                if response.status_code == 200:
+                    if callback:
+                        callback({'success': True, 'message': response.json().get('message', 'Password reset successfully!')})
+                else:
+                    error_data = response.json()
+                    if callback:
+                        callback({'success': False, 'error': 'reset_failed', 'message': error_data.get('error', error_data.get('message', 'Password reset failed'))})
+
+            except (Timeout, ConnectionError) as e:
+                if callback:
+                    callback({'success': False, 'error': 'network_error', 'message': str(e)})
+            except Exception as e:
+                if callback:
+                    callback({'success': False, 'error': 'unknown', 'message': str(e)})
+
+        Clock.schedule_once(lambda dt: _reset_password(), 0)
 
     def change_password(self, old_password, new_password, callback=None):
         """Handles password change request asynchronously"""

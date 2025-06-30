@@ -81,17 +81,17 @@
                             size_hint_y: None
                             height: self.minimum_height
 
-                            MDRaisedButton:
-                                text: "Short Text"
-                                on_release: root.add_question('text')
+                            # Text Response Types
+                            MDLabel:
+                                text: "Text Responses"
+                                font_style: "Subtitle2"
+                                theme_text_color: "Primary"
                                 size_hint_y: None
-                                height: dp(40)
-                                md_bg_color: app.theme_cls.primary_color
-                                text_color: 1, 1, 1, 1
+                                height: dp(30)
 
                             MDRaisedButton:
-                                text: "Multiple Choice"
-                                on_release: root.add_question('choice')
+                                text: "Short Text"
+                                on_release: root.add_question('text_short')
                                 size_hint_y: None
                                 height: dp(40)
                                 md_bg_color: app.theme_cls.primary_color
@@ -99,13 +99,147 @@
 
                             MDRaisedButton:
                                 text: "Long Text"
-                                on_release: root.add_question('long_text')
+                                on_release: root.add_question('text_long')
                                 size_hint_y: None
                                 height: dp(40)
                                 md_bg_color: app.theme_cls.primary_color
                                 text_color: 1, 1, 1, 1
 
-                            # Add more buttons here as needed
+                            # Numeric Response Types
+                            MDLabel:
+                                text: "Numeric Responses"
+                                font_style: "Subtitle2"
+                                theme_text_color: "Primary"
+                                size_hint_y: None
+                                height: dp(30)
+
+                            MDRaisedButton:
+                                text: "Number (Integer)"
+                                on_release: root.add_question('numeric_integer')
+                                size_hint_y: None
+                                height: dp(40)
+                                md_bg_color: app.theme_cls.accent_color
+                                text_color: 1, 1, 1, 1
+
+                            MDRaisedButton:
+                                text: "Number (Decimal)"
+                                on_release: root.add_question('numeric_decimal')
+                                size_hint_y: None
+                                height: dp(40)
+                                md_bg_color: app.theme_cls.accent_color
+                                text_color: 1, 1, 1, 1
+
+                            MDRaisedButton:
+                                text: "Rating Scale"
+                                on_release: root.add_question('scale_rating')
+                                size_hint_y: None
+                                height: dp(40)
+                                md_bg_color: app.theme_cls.accent_color
+                                text_color: 1, 1, 1, 1
+
+                            # Choice Response Types
+                            MDLabel:
+                                text: "Choice Responses"
+                                font_style: "Subtitle2"
+                                theme_text_color: "Primary"
+                                size_hint_y: None
+                                height: dp(30)
+
+                            MDRaisedButton:
+                                text: "Single Choice"
+                                on_release: root.add_question('choice_single')
+                                size_hint_y: None
+                                height: dp(40)
+                                md_bg_color: 0.8, 0.4, 0.2, 1
+                                text_color: 1, 1, 1, 1
+
+                            MDRaisedButton:
+                                text: "Multiple Choice"
+                                on_release: root.add_question('choice_multiple')
+                                size_hint_y: None
+                                height: dp(40)
+                                md_bg_color: 0.8, 0.4, 0.2, 1
+                                text_color: 1, 1, 1, 1
+
+                            # Date & Time Response Types
+                            MDLabel:
+                                text: "Date & Time"
+                                font_style: "Subtitle2"
+                                theme_text_color: "Primary"
+                                size_hint_y: None
+                                height: dp(30)
+
+                            MDRaisedButton:
+                                text: "Date"
+                                on_release: root.add_question('date')
+                                size_hint_y: None
+                                height: dp(40)
+                                md_bg_color: 0.2, 0.6, 0.4, 1
+                                text_color: 1, 1, 1, 1
+
+                            MDRaisedButton:
+                                text: "Date & Time"
+                                on_release: root.add_question('datetime')
+                                size_hint_y: None
+                                height: dp(40)
+                                md_bg_color: 0.2, 0.6, 0.4, 1
+                                text_color: 1, 1, 1, 1
+
+                            # Location Response Types
+                            MDLabel:
+                                text: "Location"
+                                font_style: "Subtitle2"
+                                theme_text_color: "Primary"
+                                size_hint_y: None
+                                height: dp(30)
+
+                            MDRaisedButton:
+                                text: "GPS Location"
+                                on_release: root.add_question('geopoint')
+                                size_hint_y: None
+                                height: dp(40)
+                                md_bg_color: 0.6, 0.2, 0.6, 1
+                                text_color: 1, 1, 1, 1
+
+                            # Media Response Types
+                            MDLabel:
+                                text: "Media & Files"
+                                font_style: "Subtitle2"
+                                theme_text_color: "Primary"
+                                size_hint_y: None
+                                height: dp(30)
+
+                            MDRaisedButton:
+                                text: "Photo/Image"
+                                on_release: root.add_question('image')
+                                size_hint_y: None
+                                height: dp(40)
+                                md_bg_color: 0.4, 0.6, 0.8, 1
+                                text_color: 1, 1, 1, 1
+
+                            MDRaisedButton:
+                                text: "Audio Recording"
+                                on_release: root.add_question('audio')
+                                size_hint_y: None
+                                height: dp(40)
+                                md_bg_color: 0.4, 0.6, 0.8, 1
+                                text_color: 1, 1, 1, 1
+
+                            # Special Response Types
+                            MDLabel:
+                                text: "Special"
+                                font_style: "Subtitle2"
+                                theme_text_color: "Primary"
+                                size_hint_y: None
+                                height: dp(30)
+
+                            MDRaisedButton:
+                                text: "Barcode/QR Code"
+                                on_release: root.add_question('barcode')
+                                size_hint_y: None
+                                height: dp(40)
+                                md_bg_color: 0.3, 0.3, 0.3, 1
+                                text_color: 1, 1, 1, 1
 
             # Right panel - Form Canvas
             MDBoxLayout:

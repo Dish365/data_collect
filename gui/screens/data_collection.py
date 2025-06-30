@@ -15,6 +15,7 @@ from kivymd.uix.selectioncontrol import MDCheckbox
 from kivymd.uix.slider import MDSlider
 
 import json
+import threading
 
 Builder.load_file("kv/collect_data.kv")
 
@@ -25,6 +26,7 @@ class DataCollectionScreen(Screen):
     project_menu = None
     questions_data = []
     response_widgets = []
+    current_respondent_id = StringProperty(None, allownone=True)
 
     def on_enter(self):
         Clock.schedule_once(self._delayed_load, 0)
@@ -54,8 +56,10 @@ class DataCollectionScreen(Screen):
             self.project_list = [p['name'] for p in projects]
             self.project_map = {p['name']: p['id'] for p in projects}
             self.project_id = None
+            self.current_respondent_id = None
             self.ids.project_spinner.text = 'Select Project'
             self.ids.form_canvas.clear_widgets()
+            self._update_submit_button()
         finally:
             conn.close()
 
@@ -82,14 +86,19 @@ class DataCollectionScreen(Screen):
             self.project_menu.dismiss()
         if text == 'Select Project' or text not in self.project_map:
             self.project_id = None
+            self.current_respondent_id = None
             self.ids.project_spinner.text = 'Select Project'
             self.ids.form_canvas.clear_widgets()
+            self._update_submit_button()
             return
         self.project_id = self.project_map[text]
         self.ids.project_spinner.text = text
+        self.current_respondent_id = None
         self.load_form()
+        self._update_submit_button()
 
     def load_form(self):
+        """Load the form questions for the selected project"""
         self.ids.form_canvas.clear_widgets()
         self.response_widgets = []
         app = App.get_running_app()
@@ -104,6 +113,7 @@ class DataCollectionScreen(Screen):
             self.response_widgets.append((q, widget))
 
     def create_question_widget(self, q):
+        """Create UI widget for a question"""
         q_type = q.get('question_type', 'text')
         q_text = q.get('question_text', '')
         options = q.get('options') or []
@@ -113,6 +123,8 @@ class DataCollectionScreen(Screen):
             except Exception:
                 options = []
         allow_multiple = bool(q.get('allow_multiple', False))
+        
+        # Create question container
         box = MDBoxLayout(orientation='vertical', spacing=dp(6), padding=[0, dp(4)], adaptive_height=True)
         box.add_widget(MDLabel(text=q_text, font_style="Subtitle1", size_hint_y=None, height=dp(28)))
 
@@ -182,48 +194,134 @@ class DataCollectionScreen(Screen):
 
         return box
 
+    def _update_submit_button(self):
+        """Update submit button text based on current state"""
+        if self.project_id:
+            if self.current_respondent_id:
+                self.ids.submit_button.text = "Submit Additional Response"
+            else:
+                self.ids.submit_button.text = "Submit New Response"
+        else:
+            self.ids.submit_button.text = "Submit"
+
     def submit_response(self):
-        responses = []
-        app = App.get_running_app()
-        user_id = app.auth_service.get_user_data().get('id', 'anonymous')
+        """Submit the form response - creates respondent and responses"""
+        if not self.project_id:
+            toast("Please select a project first")
+            return
+        
+        if not self.response_widgets:
+            toast("No form questions loaded")
+            return
+        
+        # Show loading
+        self.ids.submit_button.text = "Submitting..."
+        self.ids.submit_button.disabled = True
+        
+        # Start submission in background thread
+        threading.Thread(target=self._submit_in_thread, daemon=True).start()
+
+    def _submit_in_thread(self):
+        """Background thread for form submission"""
+        try:
+            app = App.get_running_app()
+            
+            # Collect responses from UI
+            responses_data = []
+            has_responses = False
+            
+            for q, widget in self.response_widgets:
+                q_type = q.get('question_type', 'text')
+                answer = None
+                
+                if q_type in ('text', 'long_text', 'numeric', 'date', 'location'):
+                    answer = widget.response_field.text if widget.response_field else None
+                elif q_type == 'choice':
+                    if bool(q.get('allow_multiple', False)):
+                        answer = [opt for cb, opt in widget.response_field if cb.active]
+                        if answer:  # Only count if there's an actual selection
+                            answer = json.dumps(answer)
+                    else:
+                        for cb, opt in widget.response_field:
+                            if cb.active:
+                                answer = opt
+                                break
+                elif q_type == 'scale':
+                    answer = int(widget.response_field.value) if widget.response_field else None
+                elif q_type == 'photo':
+                    answer = None
+                
+                # Only include questions that have been answered
+                if answer is not None and str(answer).strip():
+                    has_responses = True
+                    responses_data.append({
+                        'question_id': q.get('id'),
+                        'response_value': str(answer),
+                        'metadata': {
+                            'question_type': q_type,
+                            'question_text': q.get('question_text', '')
+                        }
+                    })
+            
+            if not has_responses:
+                Clock.schedule_once(lambda dt: toast("Please answer at least one question"))
+                Clock.schedule_once(lambda dt: self._reset_submit_button())
+                return
+            
+            # Create respondent if this is a new form submission
+            if not self.current_respondent_id:
+                respondent_data = app.data_collection_service.create_respondent(
+                    project_id=self.project_id,
+                    is_anonymous=True,
+                    consent_given=True
+                )
+                self.current_respondent_id = respondent_data['respondent_id']
+            
+            # Submit responses
+            result = app.data_collection_service.submit_form_responses(
+                project_id=self.project_id,
+                respondent_id=self.current_respondent_id,
+                responses_data=responses_data,
+                location_data=None,  # Could add GPS location here
+                device_info=None     # Could add device info here
+            )
+            
+            # Update UI on main thread
+            Clock.schedule_once(lambda dt: self._handle_submission_success(result))
+            
+        except Exception as e:
+            error_message = str(e)  # Capture the error message
+            print(f"Error submitting form: {error_message}")
+            Clock.schedule_once(lambda dt: toast(f"Error submitting form: {error_message}"))
+            Clock.schedule_once(lambda dt: self._reset_submit_button())
+
+    def _handle_submission_success(self, result):
+        """Handle successful form submission"""
+        toast(result['message'])
+        
+        # Clear the form for next respondent
+        self.current_respondent_id = None
+        self._clear_form()
+        self._reset_submit_button()
+        
+        print(f"Form submitted successfully: {result}")
+
+    def _clear_form(self):
+        """Clear all form inputs"""
         for q, widget in self.response_widgets:
             q_type = q.get('question_type', 'text')
-            answer = None
+            
             if q_type in ('text', 'long_text', 'numeric', 'date', 'location'):
-                answer = widget.response_field.text if widget.response_field else None
+                if widget.response_field:
+                    widget.response_field.text = ""
             elif q_type == 'choice':
-                if bool(q.get('allow_multiple', False)):
-                    answer = [opt for cb, opt in widget.response_field if cb.active]
-                else:
-                    for cb, opt in widget.response_field:
-                        if cb.active:
-                            answer = opt
-                            break
+                for cb, opt in widget.response_field:
+                    cb.active = False
             elif q_type == 'scale':
-                answer = int(widget.response_field.value) if widget.response_field else None
-            elif q_type == 'photo':
-                answer = None
+                if widget.response_field:
+                    widget.response_field.value = 3
 
-            responses.append({
-                'project': self.project_id,
-                'question': q.get('id'),
-                'respondent_id': user_id,
-                'response_value': answer,
-                'metadata': {},
-                'sync_status': 'pending',
-                'user_id': user_id
-            })
-
-        for resp in responses:
-            if app.auth_service.is_authenticated():
-                result = app.auth_service.make_authenticated_request(
-                    'api/v1/responses/', method='POST', data=resp
-                )
-                if 'error' in result:
-                    app.sync_service.queue_sync('responses', resp['question'], 'create', resp)
-            else:
-                app.sync_service.queue_sync('responses', resp['question'], 'create', resp)
-
-        toast("Responses saved! (Will sync when online)")
-        self.ids.form_canvas.clear_widgets()
-        self.response_widgets = []
+    def _reset_submit_button(self):
+        """Reset submit button to normal state"""
+        self.ids.submit_button.disabled = False
+        self._update_submit_button()

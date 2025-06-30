@@ -19,6 +19,7 @@ from screens.analytics import AnalyticsScreen
 from screens.form_builder import FormBuilderScreen
 from screens.sync import SyncScreen
 from screens.signup import SignUpScreen
+from screens.responses import ResponsesScreen
 
 from kivy.modules import inspector
 
@@ -43,6 +44,8 @@ class ResearchCollectorApp(MDApp):
         self.sync_service = SyncService(self.db_service)
         self.auth_service = AuthService()
         self.form_service = FormService(self.auth_service, self.db_service, self.sync_service)
+        from services.data_collection_service import DataCollectionService
+        self.data_collection_service = DataCollectionService(self.auth_service, self.db_service, self.sync_service)
         
         # Create screen manager
         sm = ScreenManager()
@@ -56,6 +59,7 @@ class ResearchCollectorApp(MDApp):
         sm.add_widget(AnalyticsScreen(name='analytics'))
         sm.add_widget(FormBuilderScreen(name='form_builder'))
         sm.add_widget(SyncScreen(name='sync'))
+        sm.add_widget(ResponsesScreen(name='responses'))
 
         inspector.create_inspector(Window, sm)
         

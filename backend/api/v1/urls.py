@@ -10,7 +10,7 @@ from projects.views import ProjectViewSet
 from sync.views import SyncQueueViewSet
 from analytics_results.views import AnalyticsResultViewSet
 from forms.views import QuestionViewSet
-from responses.views import ResponseViewSet
+from responses.views import ResponseViewSet, RespondentViewSet
 
 # Create a router and register the ViewSets
 router = DefaultRouter()
@@ -19,6 +19,7 @@ router.register(r'sync-queue', SyncQueueViewSet, basename='sync-queue')
 router.register(r'analytics-results', AnalyticsResultViewSet, basename='analytics-results')
 router.register(r'questions', QuestionViewSet, basename='questions')
 router.register(r'responses', ResponseViewSet, basename='responses')
+router.register(r'respondents', RespondentViewSet, basename='respondents')
 
 # Create nested routers for project-related resources
 projects_router = routers.NestedDefaultRouter(router, r'projects', lookup='project')

@@ -12,7 +12,7 @@ from datetime import timedelta
 from forms.models import Question
 from forms.serializers import QuestionSerializer
 from projects.models import Project
-from responses.models import Response as ResponseModel
+from responses.models import Response as ResponseModel, Respondent
 from sync.models import SyncQueue
 from authentication.models import User
 import logging
@@ -39,7 +39,8 @@ def dashboard_stats(request):
             personal_projects = user_projects
     
         # Basic statistics - user-specific
-        total_responses = ResponseModel.objects.filter(
+        # Count completed forms (respondents)
+        total_respondents = Respondent.objects.filter(
             project__in=user_projects
         ).count()
     
@@ -103,7 +104,7 @@ def dashboard_stats(request):
         user_can_collect_data = user.can_collect_data()
         
         stats = {
-            'total_responses': total_responses,
+            'total_respondents': total_respondents,
             'active_projects': active_projects, 
             'team_members': team_members,
             'pending_sync': pending_sync,
@@ -118,7 +119,7 @@ def dashboard_stats(request):
             'summary': {
                 'projects_with_responses': user_projects.filter(responses__isnull=False).distinct().count(),
                 'total_questions': total_questions,
-                'avg_responses_per_project': round(total_responses / max(active_projects, 1), 1),
+                'avg_respondents_per_project': round(total_respondents / max(active_projects, 1), 1),
                 'personal_projects': personal_projects.count() if user.is_superuser else active_projects,
             }
         }
@@ -243,7 +244,7 @@ def dashboard_combined(request):
             user_projects = Project.objects.filter(created_by=user)
         
         # Calculate statistics - user-specific
-        total_responses = ResponseModel.objects.filter(
+        total_respondents = Respondent.objects.filter(
             project__in=user_projects
         ).count()
         
@@ -325,7 +326,7 @@ def dashboard_combined(request):
         # Combined response
         combined_data = {
             'stats': {
-                'total_responses': total_responses,
+                'total_respondents': total_respondents,
                 'active_projects': active_projects,
                 'team_members': team_members,
                 'pending_sync': pending_sync,

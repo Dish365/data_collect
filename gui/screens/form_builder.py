@@ -6,7 +6,12 @@ from kivy.uix.spinner import Spinner
 from kivy.uix.textinput import TextInput
 from kivy.uix.scrollview import ScrollView
 from kivy.metrics import dp
-from widgets.form_fields import ShortTextField, MultipleChoiceField ,LongTextField,LocationPickerField , PhotoUploadField, RatingScaleField
+from widgets.form_fields import (
+    ShortTextField, LongTextField, NumericIntegerField, NumericDecimalField,
+    SingleChoiceField, MultipleChoiceField, RatingScaleField, DateField, 
+    DateTimeField, LocationPickerField, PhotoUploadField, AudioRecordingField, 
+    BarcodeField, create_form_field
+)
 from widgets.questionBlock import QuestionBlock
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.scrollview import MDScrollView
@@ -40,6 +45,23 @@ class FormBuilderScreen(Screen):
         app = App.get_running_app()
         self.form_service = FormService(app.auth_service, app.db_service, app.sync_service)
         self.questions_data = []
+        
+        # Response type display mapping
+        self.response_type_display = {
+            'text_short': 'Short Text',
+            'text_long': 'Long Text',
+            'numeric_integer': 'Number (Integer)',
+            'numeric_decimal': 'Number (Decimal)',
+            'choice_single': 'Single Choice',
+            'choice_multiple': 'Multiple Choice',
+            'scale_rating': 'Rating Scale',
+            'date': 'Date',
+            'datetime': 'Date & Time',
+            'geopoint': 'GPS Location',
+            'image': 'Photo/Image',
+            'audio': 'Audio Recording',
+            'barcode': 'Barcode/QR Code',
+        }
     
     def on_enter(self):
         """Called when the screen is entered."""
@@ -198,75 +220,141 @@ class FormBuilderScreen(Screen):
                 self.questions_data = questions
                 Clock.schedule_once(lambda dt: self._update_ui_with_questions())
             except Exception as e:
-                Clock.schedule_once(lambda dt: toast(f"Error: {e}"))
+                error_message = str(e)  # Capture the error message
+                Clock.schedule_once(lambda dt: toast(f"Error: {error_message}"))
             finally:
                 Clock.schedule_once(lambda dt: self.show_loader(False))
 
         threading.Thread(target=_load_in_thread).start()
 
     def _update_ui_with_questions(self):
-        """Populates the UI with question widgets."""
+        """Populates the UI with question widgets using the new form fields."""
         for q_data in self.questions_data:
-            # Map backend/local fields to QuestionBlock fields
-            answer_type = self._map_type_to_block(q_data.get('question_type', 'text'))
-            block = QuestionBlock()
-            block.question_input.text = q_data.get('question_text', '')
-            block.set_answer_type(answer_type)
-            if answer_type == "Multiple Choice":
-                # Remove default options and add from data
-                block.answer_area.clear_widgets()
-                block.set_answer_type("Multiple Choice")
-                block.options_box.clear_widgets()
-                block.options_widgets = []
-                options = q_data.get('options') or []
-                if isinstance(options, str):
-                    try:
-                        options = json.loads(options)
-                    except Exception:
-                        options = []
-                for opt in options:
-                    block.add_option()
-                    block.options_widgets[-1].text = opt
-                val = q_data.get('allow_multiple', False)
-                if isinstance(val, str):
-                    val = val.lower() in ('true', '1')
-                block.toggle_switch.active = bool(val)
-            block.bind(minimum_height=block.setter("height"))
-            self.ids.form_canvas.add_widget(block)
+            # Get response type from the data
+            response_type = q_data.get('question_type', 'text_short')
+            question_text = q_data.get('question_text', '')
+            options = q_data.get('options') or []
+            
+            # Parse options if they're stored as JSON string
+            if isinstance(options, str):
+                try:
+                    options = json.loads(options)
+                except:
+                    options = []
+            
+            # Create the appropriate form field
+            try:
+                field = create_form_field(
+                    response_type=response_type,
+                    question_text=question_text,
+                    options=options
+                )
+                
+                # Set additional properties for choice fields
+                if hasattr(field, 'selected_option') and response_type == 'choice_single':
+                    # For single choice, we might want to set a default if available
+                    pass
+                elif hasattr(field, 'selected_options') and response_type == 'choice_multiple':
+                    # For multiple choice, we might want to set defaults if available
+                    pass
+                
+                self.ids.form_canvas.add_widget(field)
+                
+            except Exception as e:
+                print(f"Error creating form field for question {question_text}: {e}")
+                # Fallback to basic text field
+                field = create_form_field(
+                    response_type='text_short',
+                    question_text=question_text
+                )
+                self.ids.form_canvas.add_widget(field)
 
-    def add_question(self, question_type):
+    def add_question(self, response_type):
         """Adds a new question widget to the form canvas."""
         if not self.project_id:
             toast("Select a project first.")
             return
-        block = QuestionBlock()
-        block.set_answer_type(self._map_type_to_block(question_type))
-        block.bind(minimum_height=block.setter("height"))
-        self.ids.form_canvas.add_widget(block)
-        toast(f"Added {question_type} question")
+        
+        try:
+            # Create a new form field based on response type
+            display_name = self.response_type_display.get(response_type, response_type)
+            field = create_form_field(
+                response_type=response_type,
+                question_text=f"New {display_name} Question",
+                options=['Option 1', 'Option 2'] if 'choice' in response_type else None
+            )
+            
+            self.ids.form_canvas.add_widget(field)
+            toast(f"Added {display_name} question")
+            
+        except Exception as e:
+            print(f"Error adding question of type {response_type}: {e}")
+            toast(f"Error adding question: {str(e)}")
 
     def remove_question_widget(self, widget_instance):
         """Removes a question widget from the UI."""
         self.ids.form_canvas.remove_widget(widget_instance)
 
     def save_form(self):
-        """Collects data from all question widgets and saves the form."""
+        """Collects data from all form field widgets and saves the form."""
         if not self.project_id:
             toast("Select a project first.")
             return
-        self.show_loader(True)
         
         questions_to_save = []
-        for widget in self.ids.form_canvas.children:
-            if isinstance(widget, QuestionBlock):
-                q = widget.to_dict()
-                # Map QuestionBlock fields to backend/local fields
+        validation_errors = []
+        
+        for i, widget in enumerate(self.ids.form_canvas.children):
+            # Check if widget is one of our form fields
+            if hasattr(widget, 'response_type') and hasattr(widget, 'get_value'):
+                question_text = widget.question_text.strip()
+                response_type = widget.response_type
+                
+                # Validate question text
+                if not question_text or question_text.startswith("New "):
+                    validation_errors.append(f"Question {len(questions_to_save) + 1}: Please enter a proper question text")
+                    continue
+                
+                # Get the value/options for choice fields
+                options = []
+                allow_multiple = False
+                
+                if hasattr(widget, 'options') and widget.options:
+                    options = widget.options
+                    if len(options) < 2 and 'choice' in response_type:
+                        validation_errors.append(f"Question {len(questions_to_save) + 1}: Choice questions need at least 2 options")
+                        continue
+                
+                if hasattr(widget, 'selected_options'):
+                    allow_multiple = True
+                
+                # Validate field-specific requirements
+                is_valid, field_errors = widget.validate()
+                if not is_valid:
+                    validation_errors.extend([f"Question {len(questions_to_save) + 1}: {error}" for error in field_errors])
+                    continue
+                
+                # Map to backend format
                 questions_to_save.append({
-                    'question_text': q.get('question', ''),
-                    'question_type': self._map_type_to_backend(q.get('type', 'Short Answer')),
-                    'options': q.get('options', []),
-                    'allow_multiple': bool(q.get('allow_multiple', False))
+                    'question_text': question_text,
+                    'response_type': response_type,  # Using the new response type format
+                    'options': options,
+                    'allow_multiple': allow_multiple,
+                    'order_index': len(questions_to_save)
                 })
+        
+        # Check for validation errors
+        if validation_errors:
+            error_message = "Please fix the following issues:\n" + "\n".join(validation_errors)
+            toast(error_message)
+            return
+            
+        # Check if we have any questions to save
+        if not questions_to_save:
+            toast("Add at least one question before saving.")
+            return
+            
+        self.show_loader(True)
         
         # The widgets are added in reverse order, so we reverse the list back
         questions_to_save.reverse()
@@ -276,7 +364,8 @@ class FormBuilderScreen(Screen):
                 result = self.form_service.save_questions(self.project_id, questions_to_save)
                 Clock.schedule_once(lambda dt: toast(result.get('message', 'Form saved.')))
             except Exception as e:
-                Clock.schedule_once(lambda dt: toast(f"Error saving: {e}"))
+                error_message = str(e)  # Capture the error message
+                Clock.schedule_once(lambda dt: toast(f"Error saving: {error_message}"))
             finally:
                 Clock.schedule_once(lambda dt: self.show_loader(False))
 
@@ -290,9 +379,23 @@ class FormBuilderScreen(Screen):
         """Show a dialog previewing the current form questions."""
         questions = []
         for widget in self.ids.form_canvas.children:
-            if isinstance(widget, QuestionBlock):
-                q = widget.to_dict()
+            if hasattr(widget, 'response_type') and hasattr(widget, 'get_value'):
+                response_type = widget.response_type
+                question_text = widget.question_text
+                display_name = self.response_type_display.get(response_type, response_type)
+                
+                q = {
+                    'question': question_text,
+                    'type': display_name
+                }
+                
+                # Add options for choice fields
+                if hasattr(widget, 'options') and widget.options:
+                    q['options'] = widget.options
+                    q['allow_multiple'] = hasattr(widget, 'selected_options')
+                
                 questions.append(q)
+                
         questions.reverse()  # To match display order
 
         preview_layout = MDBoxLayout(orientation="vertical", spacing=dp(12), padding=dp(16), adaptive_height=True)
@@ -304,18 +407,27 @@ class FormBuilderScreen(Screen):
                 q_type = q.get('type', '')
                 options = q.get('options', [])
                 allow_multiple = q.get('allow_multiple', False)
+                
                 label = f"{idx}. {q_text}"
                 preview_layout.add_widget(MDLabel(text=label, font_style="Subtitle1"))
                 preview_layout.add_widget(MDLabel(text=f"Type: {q_type}", font_style="Caption"))
-                if q_type == "Multiple Choice" and options:
+                
+                if options:
                     for opt in options:
                         preview_layout.add_widget(MDLabel(text=f"- {opt}", font_style="Body2"))
                     if allow_multiple:
                         preview_layout.add_widget(MDLabel(text="(Multiple answers allowed)", font_style="Caption"))
-                elif q_type == "Long Answer":
-                    preview_layout.add_widget(MDLabel(text="[Long answer field]", font_style="Body2"))
-                elif q_type == "Short Answer":
-                    preview_layout.add_widget(MDLabel(text="[Short answer field]", font_style="Body2"))
+                elif q_type in ["GPS Location", "Photo/Image", "Audio Recording", "Barcode/QR Code"]:
+                    preview_layout.add_widget(MDLabel(text=f"[{q_type} input field]", font_style="Body2"))
+                elif "Number" in q_type:
+                    preview_layout.add_widget(MDLabel(text=f"[{q_type} input field]", font_style="Body2"))
+                elif "Date" in q_type:
+                    preview_layout.add_widget(MDLabel(text=f"[{q_type} picker]", font_style="Body2"))
+                elif "Rating" in q_type:
+                    preview_layout.add_widget(MDLabel(text="[Rating scale 1-5]", font_style="Body2"))
+                else:
+                    preview_layout.add_widget(MDLabel(text="[Text input field]", font_style="Body2"))
+                    
                 preview_layout.add_widget(MDLabel(text="", font_style="Body2"))  # Spacer
 
         dialog = MDDialog(
@@ -329,109 +441,34 @@ class FormBuilderScreen(Screen):
         )
         dialog.open()
 
+    # Legacy methods for backward compatibility
     def add_question_block(self):
-        block = QuestionBlock()
-        self.ids.question_blocks_container.add_widget(block)
+        """Legacy method - redirects to add_question with default type"""
+        self.add_question('text_short')
 
     def load_questions(self):
-        if not self.current_project:
-            return
-        
-        # Clear existing questions
-        self.questions_layout.clear_widgets()
-        self.current_questions = []
-        
-        # Get app instance
-        app = self.manager.get_screen('form_builder').parent
-        
-        # Load questions from database
-        cursor = app.db_service.conn.cursor()
-        cursor.execute('''
-            SELECT * FROM questions 
-            WHERE project_id = ? 
-            ORDER BY order_index
-        ''', (self.current_project,))
-        questions = cursor.fetchall()
-        
-        # Add question items
-        for question in questions:
-            self.add_question_item(question)
+        """Legacy method - redirects to load_form"""
+        self.load_form()
     
     def add_question_item(self, question):
-        # Create question item
-        item = BoxLayout(
-            orientation='horizontal',
-            size_hint_y=None,
-            height=dp(60),
-            padding=dp(10)
-        )
-        
-        # Question info
-        info = BoxLayout(orientation='vertical')
-        info.add_widget(Label(
-            text=question['question_text'],
-            size_hint_y=None,
-            height=dp(30)
-        ))
-        info.add_widget(Label(
-            text=f"Type: {question['question_type']}",
-            size_hint_y=None,
-            height=dp(20)
-        ))
-        item.add_widget(info)
-        
-        # Delete button
-        delete_btn = Button(
-            text='Delete',
-            size_hint_x=None,
-            width=dp(100),
-            on_press=lambda x: self.delete_question(question['id'])
-        )
-        item.add_widget(delete_btn)
-        
-        self.questions_layout.add_widget(item)
-        self.current_questions.append(item)
+        """Legacy method - now handled by _update_ui_with_questions"""
+        pass
     
     def delete_question(self, question_id):
-        # Get app instance
-        app = self.manager.get_screen('form_builder').parent
-        
-        # Delete from database
-        cursor = app.db_service.conn.cursor()
-        cursor.execute('DELETE FROM questions WHERE id = ?', (question_id,))
-        app.db_service.conn.commit()
-        
-        # Queue for sync
-        app.sync_service.queue_sync(
-            'questions',
-            question_id,
-            'delete',
-            None
-        )
-        
-        # Reload questions
-        self.load_questions() 
+        """Legacy method - questions are now managed through the UI"""
+        pass
 
     def _map_type_to_block(self, question_type):
-        # Map backend/local type to QuestionBlock type
-        if question_type == 'text':
-            return "Short Answer"
-        elif question_type == 'long_text':
-            return "Long Answer"
-        elif question_type == 'choice':
-            return "Multiple Choice"
-        elif question_type == 'numeric':
-            return "Short Answer"  # Could be improved
-        else:
-            return "Short Answer"
+        """Legacy mapping function for backward compatibility"""
+        type_map = {
+            'text': 'text_short',
+            'long_text': 'text_long', 
+            'choice': 'choice_single',
+            'numeric': 'numeric_integer'
+        }
+        return type_map.get(question_type, question_type)
 
     def _map_type_to_backend(self, block_type):
-        # Map QuestionBlock type to backend/local type
-        if block_type == "Short Answer":
-            return 'text'
-        elif block_type == "Long Answer":
-            return 'long_text'
-        elif block_type == "Multiple Choice":
-            return 'choice'
-        else:
-            return 'text' 
+        """Legacy mapping function for backward compatibility"""
+        # Now we use the response_type directly
+        return block_type 

@@ -1,0 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+@activate venv\Scripts\Activate at backend and gui directory before running any script in the directories
+
+Note this is windows powershell hence use those powershell commands with ";" NOT &&
