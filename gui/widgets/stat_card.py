@@ -6,6 +6,7 @@ from kivy.properties import StringProperty
 from kivy.metrics import dp
 from kivy.app import App
 from kivy.lang import Builder
+from kivy.core.window import Window
 
 # Load the StatCard KV template
 Builder.load_file("kv/stat_card.kv")
@@ -28,13 +29,48 @@ class StatCard(MDCard):
         super().__init__(**kwargs)
         
         # Configure card properties for responsive design
-        self.size_hint_x = 1  # Allow card to expand
-        self.size_hint_y = None
-        self.height = dp(120)
-        self.elevation = 2
-        self.radius = [dp(12)]
+        self.update_responsive_properties()
+        
+        # Bind to window resize for responsive updates
+        Window.bind(on_resize=self._on_window_resize)
         
         # The KV file will handle the layout, so we don't create it here
+    
+    def _on_window_resize(self, *args):
+        """Handle window resize for responsive updates"""
+        self.update_responsive_properties()
+    
+    def update_responsive_properties(self):
+        """Update card properties based on screen size"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            category = ResponsiveHelper.get_screen_size_category()
+            
+            # Responsive card sizing
+            height_map = {
+                "phone": dp(120),
+                "small_tablet": dp(140),
+                "tablet": dp(160),
+                "large_tablet": dp(180)
+            }
+            
+            self.size_hint_x = 1  # Allow card to expand
+            self.size_hint_y = None
+            self.height = height_map.get(category, dp(140))
+            self.elevation = 2
+            self.radius = [dp(12)]
+            
+            print(f"StatCard: Updated height to {self.height} for {category}")
+            
+        except Exception as e:
+            print(f"Error updating StatCard responsive properties: {e}")
+            # Fallback to default values
+            self.size_hint_x = 1
+            self.size_hint_y = None
+            self.height = dp(140)
+            self.elevation = 2
+            self.radius = [dp(12)]
     
     def update_value(self, new_value):
         """Update the displayed value"""
@@ -55,6 +91,15 @@ class StatCard(MDCard):
         """Update the displayed note"""
         print(f"StatCard.update_note called: {new_note}")
         self.note = new_note
+
+    def update_responsive_height(self, new_height):
+        """Update the card height for responsive layout"""
+        try:
+            self.size_hint_y = None
+            self.height = dp(new_height)
+            print(f"StatCard: Height updated to {new_height}dp")
+        except Exception as e:
+            print(f"Error updating StatCard height: {e}")
 
 
 class AnimatedStatCard(StatCard):

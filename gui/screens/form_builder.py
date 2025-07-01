@@ -66,7 +66,7 @@ class FormBuilderScreen(Screen):
     def on_enter(self):
         """Called when the screen is entered."""
         try:
-            # Set the title
+            # Set top bar title for consistency
             if hasattr(self.ids, 'top_bar'):
                 self.ids.top_bar.set_title("Form Builder")
             
@@ -79,6 +79,17 @@ class FormBuilderScreen(Screen):
             
             # Load projects
             self.load_projects()
+            
+            # Initialize responsive layout
+            self.update_responsive_layout()
+            
+            # Reset form state
+            self.ids.form_canvas.clear_widgets()
+            self.project_id = None
+            # Update the empty state and question count
+            self.update_question_count()
+            self.update_empty_state()
+            
         except Exception as e:
             print(f"Error in form builder on_enter: {e}")
             toast(f"Error initializing Form Builder: {str(e)}")
@@ -201,8 +212,9 @@ class FormBuilderScreen(Screen):
             if hasattr(self.ids, 'project_spinner'):
                 self.ids.project_spinner.text = text
             
+            # Update top bar title to show selected project
             if hasattr(self.ids, 'top_bar'):
-                self.ids.top_bar.set_title(f"Form for {text}")
+                self.ids.top_bar.set_title(f"Form Builder - {text}")
             
             self.load_form()
         except Exception as e:
@@ -289,15 +301,11 @@ class FormBuilderScreen(Screen):
         self.update_empty_state()
 
     def update_question_count(self):
-        """Updates the question count chip with current number of questions."""
+        """Updates the question count (for internal tracking only)."""
         question_count = len([w for w in self.ids.form_canvas.children if hasattr(w, 'response_type')])
-        if hasattr(self.ids, 'question_count_chip'):
-            if question_count == 0:
-                self.ids.question_count_chip.text = "0 Questions"
-            elif question_count == 1:
-                self.ids.question_count_chip.text = "1 Question"
-            else:
-                self.ids.question_count_chip.text = f"{question_count} Questions"
+        # Question count chip has been removed from UI for better space utilization
+        # Count is still tracked internally for functionality
+        print(f"FormBuilder: Current question count: {question_count}")
     
     def update_empty_state(self):
         """Shows or hides the empty state based on whether there are questions."""
@@ -614,3 +622,84 @@ class FormBuilderScreen(Screen):
         """Legacy mapping function for backward compatibility"""
         # Now we use the response_type directly
         return block_type 
+
+    def on_window_resize(self, width, height):
+        """Handle window resize for responsive layout adjustments"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            # Determine screen size category and orientation
+            category = ResponsiveHelper.get_screen_size_category()
+            is_landscape = ResponsiveHelper.is_landscape()
+            
+            print(f"FormBuilder: Window resized to {width}x{height} - {category} {'landscape' if is_landscape else 'portrait'}")
+            
+            # Update responsive properties
+            self.update_responsive_layout()
+            
+        except Exception as e:
+            print(f"Error handling window resize in form builder: {e}")
+    
+    def update_responsive_layout(self):
+        """Update layout based on current screen size"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            category = ResponsiveHelper.get_screen_size_category()
+            is_landscape = ResponsiveHelper.is_landscape()
+            
+            # Adjust sidebar width for different screen sizes
+            if category in ["tablet", "large_tablet"]:
+                if is_landscape:
+                    # Reduce sidebar width in landscape for more content space
+                    print("FormBuilder: Using tablet landscape layout (28% sidebar)")
+                    self.set_sidebar_width(0.28)  # 28% width for landscape tablets
+                else:
+                    # Use standard width in portrait
+                    print("FormBuilder: Using tablet portrait layout (32% sidebar)")
+                    self.set_sidebar_width(0.32)  # 32% width for portrait tablets
+            else:
+                # Use mobile layout with more sidebar space
+                print("FormBuilder: Using mobile layout (35% sidebar)")
+                self.set_sidebar_width(0.35)  # Wider sidebar for mobile
+            
+            # Update spacing throughout the form
+            spacing = ResponsiveHelper.get_responsive_spacing()
+            padding = ResponsiveHelper.get_responsive_padding()
+            
+            # Apply to main layout if it exists
+            # This will be enhanced when we implement the responsive layout
+            
+        except Exception as e:
+            print(f"Error updating responsive layout in form builder: {e}")
+    
+    def set_sidebar_width(self, width_ratio):
+        """Set the sidebar width ratio and adjust form canvas accordingly"""
+        try:
+            if hasattr(self.ids, 'sidebar_card'):
+                self.ids.sidebar_card.size_hint = (width_ratio, 1)
+                print(f"FormBuilder: Set sidebar width to {width_ratio*100}%")
+                
+                # Find and update the form canvas width to fill remaining space
+                # The form canvas should take the remaining width
+                form_canvas_width = 1.0 - width_ratio
+                
+                # Find the form canvas container (right panel)
+                main_layout = None
+                for child in self.children:
+                    if hasattr(child, 'orientation') and child.orientation == 'vertical':
+                        for subchild in child.children:
+                            if hasattr(subchild, 'orientation') and subchild.orientation == 'horizontal':
+                                main_layout = subchild
+                                break
+                        break
+                
+                if main_layout:
+                    for widget in main_layout.children:
+                        if hasattr(widget, 'size_hint') and widget != self.ids.sidebar_card:
+                            widget.size_hint = (form_canvas_width, 1)
+                            print(f"FormBuilder: Set form canvas width to {form_canvas_width*100}%")
+                            break
+                            
+        except Exception as e:
+            print(f"Error setting sidebar width: {e}") 

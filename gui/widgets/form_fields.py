@@ -13,6 +13,7 @@ from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.toast import toast
 from kivy.clock import Clock
+from kivy.core.window import Window
 import datetime
 
 # Base field class for all form fields
@@ -24,21 +25,157 @@ class BaseFormField(MDCard):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
-        # Clean card design with proper spacing
+        # Initialize responsive properties
+        self.init_responsive_properties()
+        
+        # Bind to window resize for responsive updates
+        Window.bind(on_resize=self._on_window_resize)
+        
+        # Clean card design with responsive spacing
         self.orientation = "vertical"
-        self.padding = dp(20)
-        self.spacing = dp(16)
+        self.update_responsive_layout()
+        
+        # Header section with question number and type
+        self.create_header_section()
+        
+        # Question text section with clean styling
+        self.create_question_section()
+        
+        # Response section with visual separator  
+        self.create_response_section()
+        
+        # Bind properties for updates
+        self.bind(question_text=self.on_question_text_change)
+        self.bind(question_number=self.on_question_number_change)
+    
+    def _on_window_resize(self, *args):
+        """Handle window resize for responsive updates"""
+        self.update_responsive_layout()
+    
+    def init_responsive_properties(self):
+        """Initialize responsive properties based on screen size"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            self.responsive_helper = ResponsiveHelper
+        except ImportError:
+            self.responsive_helper = None
+    
+    def get_responsive_values(self):
+        """Get responsive values based on screen size"""
+        if not self.responsive_helper:
+            # Fallback values for non-responsive mode
+            return {
+                'height': dp(240),
+                'padding': dp(24),
+                'spacing': dp(16),
+                'button_height': dp(48),
+                'input_height': dp(48),
+                'header_height': dp(40),
+                'font_size_main': "18sp",
+                'font_size_secondary': "16sp",
+                'font_size_small': "14sp"
+            }
+        
+        category = self.responsive_helper.get_screen_size_category()
+        
+        # Responsive sizing based on device category
+        if category == "large_tablet":
+            return {
+                'height': dp(300),
+                'padding': dp(32),
+                'spacing': dp(24),
+                'button_height': dp(56),
+                'input_height': dp(56),
+                'header_height': dp(48),
+                'font_size_main': "20sp",
+                'font_size_secondary': "18sp",
+                'font_size_small': "16sp"
+            }
+        elif category == "tablet":
+            return {
+                'height': dp(260),
+                'padding': dp(28),
+                'spacing': dp(20),
+                'button_height': dp(52),
+                'input_height': dp(52),
+                'header_height': dp(44),
+                'font_size_main': "19sp",
+                'font_size_secondary': "17sp",
+                'font_size_small': "15sp"
+            }
+        elif category == "small_tablet":
+            return {
+                'height': dp(240),
+                'padding': dp(24),
+                'spacing': dp(18),
+                'button_height': dp(48),
+                'input_height': dp(48),
+                'header_height': dp(40),
+                'font_size_main': "18sp",
+                'font_size_secondary': "16sp",
+                'font_size_small': "14sp"
+            }
+        else:  # phone
+            return {
+                'height': dp(220),
+                'padding': dp(20),
+                'spacing': dp(16),
+                'button_height': dp(44),
+                'input_height': dp(44),
+                'header_height': dp(36),
+                'font_size_main': "16sp",
+                'font_size_secondary': "15sp",
+                'font_size_small': "13sp"
+            }
+    
+    def update_responsive_layout(self):
+        """Update layout properties based on screen size"""
+        values = self.get_responsive_values()
+        
+        # Update card properties
+        self.padding = values['padding']
+        self.spacing = values['spacing']
         self.size_hint_y = None
-        self.height = dp(200)  # Increased height for better spacing
+        self.height = values['height']
         self.md_bg_color = (1, 1, 1, 1)  # Pure white background
         self.elevation = 1  # Subtle shadow
         
-        # Header section with question number and type
-        header_card = MDCard(
+        # Update existing children if they exist
+        self.update_existing_widgets(values)
+    
+    def update_existing_widgets(self, values):
+        """Update existing widgets with responsive values"""
+        # Update header components
+        if hasattr(self, 'header_card'):
+            self.header_card.height = values['header_height']
+        
+        if hasattr(self, 'question_number_label'):
+            self.question_number_label.font_size = values['font_size_main']
+        
+        if hasattr(self, 'response_type_label'):
+            self.response_type_label.font_size = values['font_size_small']
+        
+        # Update question input
+        if hasattr(self, 'question_input'):
+            self.question_input.height = values['input_height']
+            self.question_input.font_size = values['font_size_secondary']
+        
+        # Update labels
+        if hasattr(self, 'question_label'):
+            self.question_label.font_size = values['font_size_secondary']
+        
+        if hasattr(self, 'response_label'):
+            self.response_label.font_size = values['font_size_secondary']
+    
+    def create_header_section(self):
+        """Create responsive header section"""
+        values = self.get_responsive_values()
+        
+        self.header_card = MDCard(
             orientation='horizontal',
             size_hint_y=None,
-            height=dp(36),
-            padding=dp(12),
+            height=values['header_height'],
+            padding=values['padding'] * 0.6,  # Proportional padding
             spacing=dp(12),
             md_bg_color=(0.95, 0.95, 0.95, 1),  # Light gray background
             elevation=0
@@ -50,8 +187,8 @@ class BaseFormField(MDCard):
             theme_text_color="Primary",
             bold=True,
             size_hint_x=None,
-            width=dp(100),
-            font_size="18sp"
+            width=dp(120),  # Slightly wider for tablets
+            font_size=values['font_size_main']
         )
         
         self.response_type_label = MDLabel(
@@ -59,19 +196,22 @@ class BaseFormField(MDCard):
             font_style="Caption",
             theme_text_color="Secondary",
             halign="right",
-            font_size="14sp"
+            font_size=values['font_size_small']
         )
         
-        header_card.add_widget(self.question_number_label)
-        header_card.add_widget(self.response_type_label)
-        self.add_widget(header_card)
+        self.header_card.add_widget(self.question_number_label)
+        self.header_card.add_widget(self.response_type_label)
+        self.add_widget(self.header_card)
+    
+    def create_question_section(self):
+        """Create responsive question section"""
+        values = self.get_responsive_values()
         
-        # Question text section with clean styling
         question_section = MDBoxLayout(
             orientation='vertical',
             spacing=dp(8),
             size_hint_y=None,
-            height=dp(80)
+            height=dp(80 + (values['input_height'] - 44))  # Adjust for larger inputs
         )
         
         self.question_label = MDLabel(
@@ -80,30 +220,33 @@ class BaseFormField(MDCard):
             theme_text_color="Primary",
             bold=True,
             size_hint_y=None,
-            height=dp(24),
-            font_size="16sp"
+            height=dp(28),
+            font_size=values['font_size_secondary']
         )
         question_section.add_widget(self.question_label)
         
-        # Clean text input with consistent styling
+        # Responsive text input with larger touch targets
         self.question_input = MDTextField(
             text=self.question_text,
             hint_text="Enter your question here...",
             mode="rectangle",
             multiline=False,
             size_hint_y=None,
-            height=dp(48),
-            font_size="16sp"
+            height=values['input_height'],
+            font_size=values['font_size_secondary']
         )
         question_section.add_widget(self.question_input)
         self.add_widget(question_section)
+    
+    def create_response_section(self):
+        """Create responsive response section"""
+        values = self.get_responsive_values()
         
-        # Response section with visual separator
         response_section = MDBoxLayout(
             orientation='vertical',
             spacing=dp(8),
             size_hint_y=None,
-            height=dp(32)
+            height=dp(36)
         )
         
         # Visual separator line
@@ -120,15 +263,11 @@ class BaseFormField(MDCard):
             theme_text_color="Secondary",
             bold=True,
             size_hint_y=None,
-            height=dp(24),
-            font_size="16sp"
+            height=dp(28),
+            font_size=values['font_size_secondary']
         )
         response_section.add_widget(self.response_label)
         self.add_widget(response_section)
-        
-        # Bind properties for updates
-        self.bind(question_text=self.on_question_text_change)
-        self.bind(question_number=self.on_question_number_change)
         
     def get_response_type_display(self):
         """Get display name for response type"""
@@ -190,71 +329,128 @@ class ShortTextField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "text_short"
-
+        
+        # Create responsive text input
+        self.create_text_input()
+    
+    def create_text_input(self):
+        """Create responsive text input field"""
+        values = self.get_responsive_values()
+        
         self.text_input = MDTextField(
             hint_text="Short text answer",
             mode="rectangle",
             size_hint_y=None,
-            height=dp(48)
+            height=values['input_height'],
+            font_size=values['font_size_secondary']
         )
-
         self.add_widget(self.text_input)
     
+    def _on_window_resize(self, *args):
+        """Handle window resize"""
+        super()._on_window_resize(*args)
+        if hasattr(self, 'text_input'):
+            values = self.get_responsive_values()
+            self.text_input.height = values['input_height']
+            self.text_input.font_size = values['font_size_secondary']
+
     def get_value(self):
-        return self.text_input.text
-    
+        return self.text_input.text.strip() if hasattr(self, 'text_input') else ""
+
     def set_value(self, value):
-        self.text_input.text = str(value) if value else ""
+        if hasattr(self, 'text_input'):
+            self.text_input.text = str(value)
 
 class LongTextField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "text_long"
-        self.height = dp(220)  # Increased for question input + long text
-
+        
+        # Create responsive multiline text input
+        self.create_text_input()
+    
+    def create_text_input(self):
+        """Create responsive multiline text input field"""
+        values = self.get_responsive_values()
+        
+        # Larger height for long text on tablets
+        long_text_height = values['input_height'] * 2.5  # 2.5x taller for long text
+        
         self.text_input = MDTextField(
-            hint_text="Long text answer",
-            multiline=True,
+            hint_text="Long text answer (multiple lines)",
             mode="rectangle",
-            height=dp(120),
-            size_hint_y=None
+            multiline=True,
+            size_hint_y=None,
+            height=long_text_height,
+            font_size=values['font_size_secondary']
         )
-
         self.add_widget(self.text_input)
+        
+        # Adjust card height for long text field
+        self.height = values['height'] + (long_text_height - values['input_height'])
     
+    def _on_window_resize(self, *args):
+        """Handle window resize"""
+        super()._on_window_resize(*args)
+        if hasattr(self, 'text_input'):
+            values = self.get_responsive_values()
+            long_text_height = values['input_height'] * 2.5
+            self.text_input.height = long_text_height
+            self.text_input.font_size = values['font_size_secondary']
+            self.height = values['height'] + (long_text_height - values['input_height'])
+
     def get_value(self):
-        return self.text_input.text
-    
+        return self.text_input.text.strip() if hasattr(self, 'text_input') else ""
+
     def set_value(self, value):
-        self.text_input.text = str(value) if value else ""
+        if hasattr(self, 'text_input'):
+            self.text_input.text = str(value)
 
 class NumericIntegerField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "numeric_integer"
-
-        self.text_input = MDTextField(
-            hint_text="Enter a whole number",
-            mode="rectangle",
-            input_filter="int",
-            size_hint_y=None,
-            height=dp(48)
-        )
-
-        self.add_widget(self.text_input)
+        
+        # Create responsive numeric input
+        self.create_numeric_input()
     
+    def create_numeric_input(self):
+        """Create responsive numeric input field"""
+        values = self.get_responsive_values()
+        
+        self.number_input = MDTextField(
+            hint_text="Enter a whole number",
+            input_filter="int",  # Only allow integers
+            mode="rectangle",
+            size_hint_y=None,
+            height=values['input_height'],
+            font_size=values['font_size_secondary']
+        )
+        self.add_widget(self.number_input)
+    
+    def _on_window_resize(self, *args):
+        """Handle window resize"""
+        super()._on_window_resize(*args)
+        if hasattr(self, 'number_input'):
+            values = self.get_responsive_values()
+            self.number_input.height = values['input_height']
+            self.number_input.font_size = values['font_size_secondary']
+
     def get_value(self):
         try:
-            return int(self.text_input.text) if self.text_input.text else None
-        except ValueError:
+            value = self.number_input.text.strip()
+            return int(value) if value else None
+        except (ValueError, AttributeError):
             return None
-    
+
     def set_value(self, value):
-        self.text_input.text = str(value) if value is not None else ""
-    
+        if hasattr(self, 'number_input'):
+            self.number_input.text = str(value) if value is not None else ""
+
     def validate(self):
         is_valid, errors = super().validate()
-        if self.text_input.text and not self.text_input.text.isdigit():
+        value = self.get_value()
+        if self.number_input.text.strip() and value is None:
             errors.append("Please enter a valid whole number")
             is_valid = False
         return is_valid, errors
@@ -263,34 +459,49 @@ class NumericDecimalField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "numeric_decimal"
-
-        self.text_input = MDTextField(
-            hint_text="Enter a number (decimals allowed)",
+        
+        # Create responsive decimal input
+        self.create_decimal_input()
+    
+    def create_decimal_input(self):
+        """Create responsive decimal input field"""
+        values = self.get_responsive_values()
+        
+        self.number_input = MDTextField(
+            hint_text="Enter a decimal number",
+            input_filter="float",  # Allow decimal numbers
             mode="rectangle",
-            input_filter="float",
             size_hint_y=None,
-            height=dp(48)
+            height=values['input_height'],
+            font_size=values['font_size_secondary']
         )
-
-        self.add_widget(self.text_input)
+        self.add_widget(self.number_input)
+    
+    def _on_window_resize(self, *args):
+        """Handle window resize"""
+        super()._on_window_resize(*args)
+        if hasattr(self, 'number_input'):
+            values = self.get_responsive_values()
+            self.number_input.height = values['input_height']
+            self.number_input.font_size = values['font_size_secondary']
 
     def get_value(self):
         try:
-            return float(self.text_input.text) if self.text_input.text else None
-        except ValueError:
+            value = self.number_input.text.strip()
+            return float(value) if value else None
+        except (ValueError, AttributeError):
             return None
-    
+
     def set_value(self, value):
-        self.text_input.text = str(value) if value is not None else ""
-    
+        if hasattr(self, 'number_input'):
+            self.number_input.text = str(value) if value is not None else ""
+
     def validate(self):
         is_valid, errors = super().validate()
-        if self.text_input.text:
-            try:
-                float(self.text_input.text)
-            except ValueError:
-                errors.append("Please enter a valid number")
-                is_valid = False
+        value = self.get_value()
+        if self.number_input.text.strip() and value is None:
+            errors.append("Please enter a valid decimal number")
+            is_valid = False
         return is_valid, errors
 
 class SingleChoiceField(BaseFormField):
@@ -302,27 +513,43 @@ class SingleChoiceField(BaseFormField):
         self.selected_option = None
         self.checkboxes = []
         
-        # Add options management section
+        # Create responsive options management
+        self.create_options_header()
+        self.create_options_container()
+        
+        # Initialize with default options if none provided
+        if not self.options:
+            self.options = ['Option 1', 'Option 2']
+        
+        # Update height based on options and screen size
+        self.update_field_height()
+    
+    def create_options_header(self):
+        """Create responsive options management header"""
+        values = self.get_responsive_values()
+        
         self.options_header = MDBoxLayout(
             orientation='horizontal',
-            spacing=dp(10),
+            spacing=dp(12),  # Increased spacing for tablets
             size_hint_y=None,
-            height=dp(40)
+            height=values['button_height']
         )
         
         self.options_label = MDLabel(
             text="Options:",
             size_hint_x=0.3,
             font_style="Subtitle2",
-            theme_text_color="Primary"
+            theme_text_color="Primary",
+            font_size=values['font_size_secondary']
         )
         
+        # Tablet-optimized buttons with larger touch targets
         self.add_option_btn = MDRaisedButton(
             text="Add Option",
             size_hint_x=0.35,
             size_hint_y=None,
-            height=dp(32),
-            font_size="12sp",
+            height=values['button_height'],
+            font_size=values['font_size_small'],
             on_release=self.add_option
         )
         
@@ -330,8 +557,8 @@ class SingleChoiceField(BaseFormField):
             text="Remove Last",
             size_hint_x=0.35,
             size_hint_y=None,
-            height=dp(32),
-            font_size="12sp",
+            height=values['button_height'],
+            font_size=values['font_size_small'],
             on_release=self.remove_last_option
         )
         
@@ -339,21 +566,77 @@ class SingleChoiceField(BaseFormField):
         self.options_header.add_widget(self.add_option_btn)
         self.options_header.add_widget(self.remove_option_btn)
         self.add_widget(self.options_header)
-        
+    
+    def create_options_container(self):
+        """Create responsive options container with multi-column support"""
         self.options_container = MDBoxLayout(
             orientation='vertical',
-            spacing=dp(8),
+            spacing=dp(12),  # Increased spacing for tablets
             size_hint_y=None,
             adaptive_height=True
         )
         self.add_widget(self.options_container)
+    
+    def get_optimal_columns(self):
+        """Get optimal number of columns based on screen size and option count"""
+        if not self.responsive_helper:
+            return 1  # Fallback to single column
         
-        # Initialize with default options if none provided
-        if not self.options:
-            self.options = ['Option 1', 'Option 2']
+        category = self.responsive_helper.get_screen_size_category()
+        is_landscape = self.responsive_helper.is_landscape()
+        option_count = len(self.options)
         
-        # Update height based on options
-        self.height = dp(160 + len(self.options) * 40)
+        # Column calculation based on screen size
+        if category == "large_tablet":
+            max_cols = 3 if is_landscape else 2
+        elif category == "tablet":
+            max_cols = 2 if is_landscape else 2
+        elif category == "small_tablet":
+            max_cols = 2 if is_landscape else 1
+        else:  # phone
+            max_cols = 1
+        
+        # Don't use more columns than we have options
+        return min(max_cols, option_count, 3)  # Cap at 3 columns max
+    
+    def _on_window_resize(self, *args):
+        """Handle window resize"""
+        super()._on_window_resize(*args)
+        self.update_options_layout()
+        self.update_button_sizes()
+    
+    def update_button_sizes(self):
+        """Update button sizes for responsive design"""
+        if not hasattr(self, 'options_header'):
+            return
+        
+        values = self.get_responsive_values()
+        
+        # Update header buttons
+        if hasattr(self, 'add_option_btn'):
+            self.add_option_btn.height = values['button_height']
+            self.add_option_btn.font_size = values['font_size_small']
+        
+        if hasattr(self, 'remove_option_btn'):
+            self.remove_option_btn.height = values['button_height']
+            self.remove_option_btn.font_size = values['font_size_small']
+        
+        if hasattr(self, 'options_label'):
+            self.options_label.font_size = values['font_size_secondary']
+    
+    def update_field_height(self):
+        """Update field height based on options and screen size"""
+        values = self.get_responsive_values()
+        cols = self.get_optimal_columns()
+        
+        # Calculate rows needed
+        rows = (len(self.options) + cols - 1) // cols  # Ceiling division
+        
+        # Base height + option rows
+        option_height = values['button_height'] + dp(12)  # Button height + spacing
+        total_option_height = rows * option_height
+        
+        self.height = values['height'] + total_option_height
     
     def add_option(self, instance):
         """Add a new option to the choice field"""
@@ -370,43 +653,114 @@ class SingleChoiceField(BaseFormField):
             toast("Single choice questions need at least 2 options.")
     
     def on_options(self, instance, options):
+        """Handle options list changes with responsive layout"""
         self.options_container.clear_widgets()
         self.checkboxes = []
         
-        for i, option in enumerate(options):
-            row = MDBoxLayout(
-                orientation='horizontal',
-                spacing=dp(10),
-                size_hint_y=None,
-                height=dp(40)
-            )
-            
-            checkbox = MDCheckbox(
-                group="single_choice",
-                size_hint=(None, None),
-                size=(dp(24), dp(24)),
-                on_active=lambda x, active, opt=option: self.on_option_selected(opt, active)
-            )
-            
-            # Make option text editable
-            option_input = MDTextField(
-                text=option,
-                size_hint_x=0.8,
-                font_size="14sp",
-                height=dp(32),
-                size_hint_y=None,
-                mode="rectangle",
-                on_text_validate=lambda instance, idx=i: self.update_option(idx, instance.text)
-            )
-            option_input.bind(on_text_validate=lambda instance, idx=i: self.update_option(idx, instance.text))
-            
-            row.add_widget(checkbox)
-            row.add_widget(option_input)
-            self.options_container.add_widget(row)
-            self.checkboxes.append(checkbox)
+        if not options:
+            return
         
-        # Update height
-        self.height = dp(160 + len(options) * 40)
+        self.update_options_layout()
+        self.update_field_height()
+    
+    def update_options_layout(self):
+        """Update options layout with responsive multi-column support"""
+        self.options_container.clear_widgets()
+        self.checkboxes = []
+        
+        if not self.options:
+            return
+        
+        values = self.get_responsive_values()
+        cols = self.get_optimal_columns()
+        
+        if cols == 1:
+            # Single column layout
+            self.create_single_column_options(values)
+        else:
+            # Multi-column layout for tablets
+            self.create_multi_column_options(values, cols)
+    
+    def create_single_column_options(self, values):
+        """Create single column options layout"""
+        for i, option in enumerate(self.options):
+            row = self.create_option_row(i, option, values)
+            self.options_container.add_widget(row)
+    
+    def create_multi_column_options(self, values, cols):
+        """Create multi-column options layout for tablets"""
+        # Group options into rows
+        for row_start in range(0, len(self.options), cols):
+            row_options = self.options[row_start:row_start + cols]
+            
+            # Create horizontal container for this row
+            row_container = MDBoxLayout(
+                orientation='horizontal',
+                spacing=dp(16),  # Space between columns
+                size_hint_y=None,
+                height=values['button_height'] + dp(8),
+                adaptive_width=True
+            )
+            
+            # Add options to this row
+            for i, option in enumerate(row_options):
+                option_index = row_start + i
+                option_widget = self.create_option_widget(option_index, option, values)
+                option_widget.size_hint_x = 1 / len(row_options)  # Equal width
+                row_container.add_widget(option_widget)
+            
+            self.options_container.add_widget(row_container)
+    
+    def create_option_row(self, index, option, values):
+        """Create a single option row"""
+        row = MDBoxLayout(
+            orientation='horizontal',
+            spacing=dp(12),
+            size_hint_y=None,
+            height=values['button_height'] + dp(8)
+        )
+        
+        option_widget = self.create_option_widget(index, option, values)
+        row.add_widget(option_widget)
+        return row
+    
+    def create_option_widget(self, index, option, values):
+        """Create an individual option widget"""
+        option_container = MDBoxLayout(
+            orientation='horizontal',
+            spacing=dp(12),
+            size_hint_y=None,
+            height=values['button_height']
+        )
+        
+        checkbox = MDCheckbox(
+            group="single_choice",
+            size_hint=(None, None),
+            size=(dp(32), dp(32)),  # Larger checkbox for tablets
+            on_active=lambda x, active, opt=option: self.on_option_selected(opt, active)
+        )
+        
+        # Make option text editable with responsive sizing
+        option_input = MDTextField(
+            text=option,
+            size_hint_x=0.8,
+            font_size=values['font_size_secondary'],
+            height=values['input_height'],
+            size_hint_y=None,
+            mode="rectangle",
+            on_text_validate=lambda instance, idx=index: self.update_option(idx, instance.text)
+        )
+        option_input.bind(on_text_validate=lambda instance, idx=index: self.update_option(idx, instance.text))
+        
+        option_container.add_widget(checkbox)
+        option_container.add_widget(option_input)
+        self.checkboxes.append(checkbox)
+        
+        return option_container
+    
+    def on_option_selected(self, option, active):
+        if active:
+            self.selected_option = option
     
     def update_option(self, index, new_text):
         """Update an option text"""
@@ -414,10 +768,6 @@ class SingleChoiceField(BaseFormField):
             options_list = list(self.options)
             options_list[index] = new_text.strip()
             self.options = options_list
-    
-    def on_option_selected(self, option, active):
-        if active:
-            self.selected_option = option
     
     def get_value(self):
         return self.selected_option

@@ -8,6 +8,7 @@ from kivy.utils import platform
 from kivymd.app import MDApp
 from kivy.properties import StringProperty
 from kivy.clock import Clock
+from kivy.metrics import dp
 
 
 # Import screens
@@ -35,9 +36,14 @@ class ResearchCollectorApp(MDApp):
     def build(self):
         self.theme_cls.primary_palette = "Blue"    
         self.theme_cls.primary_hue     = "500" 
-        # Set window size for development
+        
+        # Responsive window sizing for tablet optimization
         if platform != 'android':
-            Window.size = (768, 924)
+            # Detect screen size and set appropriate window dimensions
+            self.setup_responsive_window()
+        
+        # Bind to window size changes for orientation handling
+        Window.bind(on_resize=self.on_window_resize)
         
         # Initialize services
         self.db_service = DatabaseService()
@@ -64,6 +70,102 @@ class ResearchCollectorApp(MDApp):
         inspector.create_inspector(Window, sm)
         
         return sm
+    
+    def setup_responsive_window(self):
+        """Setup responsive window sizing for tablet optimization"""
+        try:
+            # Get screen dimensions
+            from tkinter import Tk
+            root = Tk()
+            screen_width = root.winfo_screenwidth()
+            screen_height = root.winfo_screenheight()
+            root.destroy()
+            
+            # Calculate optimal tablet window size (80% of screen for development)
+            tablet_width = min(int(screen_width * 0.8), 1200)  # Max 1200px width
+            tablet_height = min(int(screen_height * 0.8), 900)  # Max 900px height
+            
+            # Ensure minimum tablet-friendly dimensions
+            tablet_width = max(tablet_width, 800)   # Minimum 800px width
+            tablet_height = max(tablet_height, 600)  # Minimum 600px height
+            
+            Window.size = (tablet_width, tablet_height)
+            Window.minimum_width = 800
+            Window.minimum_height = 600
+            
+            print(f"Tablet window initialized: {tablet_width}x{tablet_height}")
+            
+        except Exception as e:
+            # Fallback to default tablet size
+            print(f"Could not detect screen size: {e}")
+            Window.size = (1024, 768)  # Standard tablet landscape
+            Window.minimum_width = 800
+            Window.minimum_height = 600
+    
+    def on_window_resize(self, window, width, height):
+        """Handle window resize events for responsive layout"""
+        print(f"Window resized to: {width}x{height}")
+        
+        # Update screen manager screens that support responsive layouts
+        if hasattr(self.root, 'screen_manager'):
+            sm = self.root.screen_manager
+            current_screen = sm.current_screen
+            
+            # Update responsive screens
+            responsive_screens = ['dashboard', 'analytics', 'form_builder', 'data_collection']
+            
+            if current_screen and hasattr(current_screen, 'name') and current_screen.name in responsive_screens:
+                if hasattr(current_screen, 'on_window_resize'):
+                    try:
+                        current_screen.on_window_resize(width, height)
+                    except Exception as e:
+                        print(f"Error updating {current_screen.name} screen layout: {e}")
+        
+        # Update window properties
+        self.update_window_properties(width, height)
+    
+    def update_window_properties(self, width, height):
+        """Update window properties based on screen size"""
+        # Prevent recursive resize loops by checking for reasonable bounds
+        max_width = 3840  # 4K width limit
+        max_height = 2160  # 4K height limit
+        min_width = 800   # Minimum usable width
+        min_height = 600  # Minimum usable height
+        
+        # Clamp dimensions to reasonable bounds
+        width = max(min_width, min(width, max_width))
+        height = max(min_height, min(height, max_height))
+        
+        # Determine if we're in landscape or portrait
+        is_landscape = width > height
+        
+        # Only update window size if it's significantly different to prevent loops
+        current_width = Window.width
+        current_height = Window.height
+        
+        # Check if resize is needed (with tolerance to prevent micro-adjustments)
+        resize_threshold = 50  # pixels
+        width_diff = abs(current_width - width)
+        height_diff = abs(current_height - height)
+        
+        if width_diff > resize_threshold or height_diff > resize_threshold:
+            # Update window size only if needed
+            Window.size = (width, height)
+            print(f"Window resized to {width}x{height} ({'landscape' if is_landscape else 'portrait'})")
+        
+        # Update responsive elements without triggering more resizes
+        self.update_global_responsive_elements(width, height)
+
+    def update_global_responsive_elements(self, width, height):
+        """Update global responsive elements based on screen size"""
+        # You can add global responsive logic here
+        # For example, updating theme spacing or global font sizes
+        
+        is_landscape = width > height
+        
+        # Update any global responsive elements based on screen size
+        # This is where you'd add global theme updates, font scaling, etc.
+        pass
     
     def on_start(self):
         """Called when app starts"""

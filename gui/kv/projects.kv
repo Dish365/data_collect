@@ -3,89 +3,191 @@
 
     MDBoxLayout:
         orientation: "vertical"
+        spacing: dp(12)  # Increased spacing for tablets
+        padding: dp(24)  # Increased padding for tablets
 
+        # Responsive TopBar - Larger for tablets
         TopBar:
             id: top_bar
+            size_hint_y: None
+            height: dp(64)  # Increased from default for tablets
 
-        RelativeLayout:
-            # Main content layout
-            MDBoxLayout:
-                orientation: "vertical"
-                id: content_layout
+        # Main content layout
+        MDBoxLayout:
+            orientation: "vertical"
+            id: content_layout
+            spacing: dp(16)  # Increased spacing
+
+            # Enhanced Header Section with Search and Actions
+            MDCard:
+                padding: dp(20)  # Increased padding for tablets
+                spacing: dp(16)  # Increased spacing
+                size_hint_y: None
+                height: dp(140)  # Increased height for tablets
+                elevation: 2
 
                 MDBoxLayout:
-                    orientation: "horizontal"
-                    padding: dp(16)
-                    spacing: dp(12)
-                    size_hint_y: None
-                    height: dp(56)
+                    orientation: "vertical"
+                    spacing: dp(16)
 
-                    # Left Section: Back arrow + Title
+                    # Title and Navigation Row
                     MDBoxLayout:
                         orientation: "horizontal"
-                        spacing: dp(8)
-                        size_hint_x: 0.4
-                        pos_hint: {"center_y": 0.5}
+                        spacing: dp(16)  # Increased spacing
+                        size_hint_y: None
+                        height: dp(48)  # Larger for tablets
 
-                        MDIconButton:
-                            icon: "arrow-left"
-                            on_release:
-                                root.manager.transition.direction = "right"
-                                root.manager.current = "dashboard"
-                            theme_icon_color: "Custom"
-                            icon_color: 0, 0, 0, 1
+                        # Left Section: Back arrow + Title
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: dp(12)  # Increased spacing
+                            size_hint_x: 0.4
                             pos_hint: {"center_y": 0.5}
+
+                            MDIconButton:
+                                icon: "arrow-left"
+                                size_hint_x: None
+                                width: dp(56)  # Larger touch target
+                                user_font_size: "28sp"  # Larger icon
+                                on_release:
+                                    root.manager.transition.direction = "right"
+                                    root.manager.current = "dashboard"
+                                theme_icon_color: "Custom"
+                                icon_color: 0, 0, 0, 1
+                                pos_hint: {"center_y": 0.5}
+
+                            MDLabel:
+                                text: "Projects"
+                                font_style: "H5"
+                                font_size: "24sp"  # Larger font for tablets
+                                pos_hint: {"center_y": 0.5}
+                                size_hint_x: None
+                                width: dp(140)  # Slightly wider
+
+                        # Right Section: Search bar + Buttons
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: dp(12)  # Increased spacing
+                            size_hint_x: 0.6
+                            pos_hint: {"center_y": 0.5}
+
+                            MDTextField:
+                                id: search_field
+                                hint_text: "Search projects by name..."
+                                size_hint_x: 0.65
+                                height: dp(52)  # Tablet-friendly height
+                                font_size: "16sp"  # Larger font
+                                pos_hint: {"center_y": 0.5}
+                                mode: "rectangle"
+                                on_text: root.search_projects(self.text)
+
+                            MDRaisedButton:
+                                text: "New Project"
+                                on_release: root.open_project_dialog()
+                                md_bg_color: app.theme_cls.primary_color
+                                text_color: 1, 1, 1, 1
+                                size_hint_x: None
+                                width: dp(140)  # Slightly wider
+                                height: dp(48)  # Tablet-friendly height
+                                font_size: "16sp"  # Larger font
+                                pos_hint: {"center_y": 0.5}
+
+                            MDIconButton:
+                                icon: "refresh"
+                                size_hint_x: None
+                                width: dp(56)  # Larger touch target
+                                user_font_size: "28sp"  # Larger icon
+                                on_release: root.check_and_sync_projects()
+                                pos_hint: {"center_y": 0.5}
+
+                    # Quick Filter Toolbar (new for tablets)
+                    MDBoxLayout:
+                        id: filter_toolbar
+                        orientation: "horizontal"
+                        spacing: dp(12)
+                        size_hint_y: None
+                        height: dp(52)  # Tablet-friendly height
 
                         MDLabel:
-                            text: "Projects"
-                            font_style: "H5"
-                            pos_hint: {"center_y": 0.5}
+                            text: "Filter:"
+                            font_size: "16sp"
                             size_hint_x: None
-                            width: dp(120)
-
-                    # Right Section: Search bar + Button
-                    MDBoxLayout:
-                        orientation: "horizontal"
-                        spacing: dp(8)
-                        size_hint_x: 0.6
-                        pos_hint: {"center_y": 0.5}
-
-                        MDTextField:
-                            id: search_field
-                            hint_text: "Search by name..."
-                            size_hint_x: 0.75
-                            height: dp(48)
+                            width: dp(60)
                             pos_hint: {"center_y": 0.5}
-                            mode: "rectangle"
-                            on_text: root.search_projects(self.text)
 
                         MDRaisedButton:
-                            text: "New Project"
-                            on_release: root.open_project_dialog()
-                            md_bg_color: app.theme_cls.primary_color
-                            text_color: 1, 1, 1, 1
+                            id: filter_all_btn
+                            text: "All Projects"
                             size_hint_x: None
-                            width: dp(130)
-                            height: dp(40)
-                            pos_hint: {"center_y": 0.5}
+                            width: dp(120)
+                            height: dp(44)  # Tablet touch target
+                            font_size: "14sp"
+                            md_bg_color: app.theme_cls.primary_color
+                            on_release: root.filter_projects("all")
 
+                        MDRaisedButton:
+                            id: filter_recent_btn
+                            text: "Recent"
+                            size_hint_x: None
+                            width: dp(100)
+                            height: dp(44)
+                            font_size: "14sp"
+                            on_release: root.filter_projects("recent")
+
+                        MDRaisedButton:
+                            id: filter_synced_btn
+                            text: "Synced"
+                            size_hint_x: None
+                            width: dp(100)
+                            height: dp(44)
+                            font_size: "14sp"
+                            on_release: root.filter_projects("synced")
+
+                        MDRaisedButton:
+                            id: filter_pending_btn
+                            text: "Pending"
+                            size_hint_x: None
+                            width: dp(100)
+                            height: dp(44)
+                            font_size: "14sp"
+                            on_release: root.filter_projects("pending")
+
+                        Widget:  # Spacer
+                            size_hint_x: 1
+
+                        # Sort dropdown
                         MDIconButton:
-                            icon: "refresh"
-                            on_release: root.check_and_sync_projects()
+                            icon: "sort"
+                            size_hint_x: None
+                            width: dp(56)
+                            user_font_size: "28sp"
+                            on_release: root.show_sort_menu()
                             pos_hint: {"center_y": 0.5}
 
-                MDScrollView:
-                    MDGridLayout:
-                        id: projects_grid
-                        cols: 1
-                        spacing: dp(10)
-                        padding: dp(16)
-                        adaptive_height: True
+                        # View toggle (grid/list)
+                        MDIconButton:
+                            id: view_toggle_btn
+                            icon: "view-grid"
+                            size_hint_x: None
+                            width: dp(56)
+                            user_font_size: "28sp"
+                            on_release: root.toggle_view_mode()
+                            pos_hint: {"center_y": 0.5}
 
-            # Loading spinner
-            MDSpinner:
-                id: spinner
-                size_hint: None, None
-                size: dp(46), dp(46)
-                pos_hint: {'center_x': .5, 'center_y': .5}
-                active: False
+            # Responsive Projects Grid Container
+            MDScrollView:
+                MDGridLayout:
+                    id: projects_grid
+                    cols: 1  # Will be dynamically adjusted for tablets
+                    spacing: dp(16)  # Increased spacing for tablets
+                    padding: dp(20)  # Increased padding for tablets
+                    adaptive_height: True
+                    row_default_height: dp(120)  # Increased default height for tablet cards
+                    
+        # Loading spinner - Larger for tablets
+        MDSpinner:
+            id: spinner
+            size_hint: None, None
+            size: dp(56), dp(56)  # Larger spinner for tablets
+            pos_hint: {'center_x': .5, 'center_y': .5}
+            active: False

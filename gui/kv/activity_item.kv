@@ -11,7 +11,7 @@
         icon: root.activity_icon
         pos_hint: {"center_y": 0.5}
         theme_icon_color: "Custom"
-        icon_color: app.theme_cls.primary_color
+        icon_color: app.theme_cls.accent_color if root.is_team_activity else app.theme_cls.primary_color
 
     MDBoxLayout:
         orientation: "vertical"

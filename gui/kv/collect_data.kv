@@ -1,131 +1,285 @@
 <DataCollectionScreen>:
     MDBoxLayout:
         orientation: 'vertical'
-        spacing: 0
+        spacing: dp(8)  # Increased spacing for tablets
         md_bg_color: 0.96, 0.96, 0.96, 1
 
-        # Simplified Header
-        MDBoxLayout:
-            orientation: 'horizontal'
+        # Enhanced Header Section - Tablet optimized
+        MDCard:
+            elevation: 2
+            padding: dp(20)  # Increased padding for tablets
+            spacing: dp(16)  # Increased spacing
             size_hint_y: None
-            height: dp(64)
-            padding: [dp(16), dp(8), dp(16), dp(8)]
-            spacing: dp(16)
+            height: dp(120)  # Increased height for tablets
             md_bg_color: 1, 1, 1, 1
-            elevation: 1
-
-            MDRaisedButton:
-                text: "←"
-                font_size: "24sp"
-                size_hint: None, None
-                size: dp(40), dp(40)
-                padding: [0, 0]
-                on_release: setattr(root.manager, 'current', 'dashboard')
-
-            MDLabel:
-                text: "Data Collection"
-                font_style: "H6"
-                bold: True
-                theme_text_color: "Primary"
-                size_hint_x: None
-                width: dp(200)
-
-            MDLabel:
-                text: "Select Project"
-                size_hint_x: None
-                width: dp(120)
-                font_style: "Subtitle1"
-                theme_text_color: "Secondary"
-                font_size: "16sp"
-
-            MDDropDownItem:
-                id: project_spinner
-                text: 'Select Project'
-                on_release: root.open_project_menu()
-                pos_hint: {'center_y': 0.5}
-                size_hint_x: None
-                width: dp(200)
-                font_size: '16sp'
-                md_bg_color: app.theme_cls.primary_light
-                radius: [8, 8, 8, 8]
-
-            Widget:
-                size_hint_x: 0.1
-
-        # Main Content Area
-        MDScrollView:
-            do_scroll_x: False
-            do_scroll_y: True
-            bar_width: dp(4)
-            bar_color: 0.8, 0.8, 0.8, 1
 
             MDBoxLayout:
-                id: form_canvas
                 orientation: 'vertical'
-                spacing: dp(16)
-                adaptive_height: True
-                padding: [dp(16), dp(16), dp(16), dp(80)]  # Added bottom padding for submit button
+                spacing: dp(12)
 
-                # Empty state when no project selected
+                # Top Header Row
                 MDBoxLayout:
-                    id: empty_state
-                    orientation: 'vertical'
+                    orientation: 'horizontal'
                     spacing: dp(16)
                     size_hint_y: None
-                    height: dp(200)
-                    opacity: 1
+                    height: dp(48)  # Tablet-friendly height
 
+                    # Back Button - Enhanced for tablets
+                    MDIconButton:
+                        icon: "arrow-left"
+                        size_hint: None, None
+                        size: dp(48), dp(48)  # Larger touch target
+                        user_font_size: "24sp"  # Larger icon
+                        on_release: setattr(root.manager, 'current', 'dashboard')
+                        theme_icon_color: "Custom"
+                        icon_color: 0, 0, 0, 1
+
+                    # Title Section
+                    MDLabel:
+                        text: "Data Collection"
+                        font_style: "H5"
+                        font_size: "24sp"  # Larger font for tablets
+                        bold: True
+                        theme_text_color: "Primary"
+                        pos_hint: {"center_y": 0.5}
+
+                    Widget:  # Spacer
+                        size_hint_x: 1
+
+                    # Project Selection Section
                     MDBoxLayout:
+                        orientation: 'horizontal'
+                        spacing: dp(12)
+                        size_hint_x: None
+                        width: dp(320)  # Fixed width for tablet layout
+
+                        MDLabel:
+                            text: "Project:"
+                            size_hint_x: None
+                            width: dp(80)
+                            font_style: "Subtitle1"
+                            font_size: "16sp"  # Larger font
+                            theme_text_color: "Secondary"
+                            pos_hint: {"center_y": 0.5}
+
+                        MDDropDownItem:
+                            id: project_spinner
+                            text: 'Select Project'
+                            on_release: root.open_project_menu()
+                            pos_hint: {'center_y': 0.5}
+                            size_hint_x: None
+                            width: dp(220)  # Wider for tablets
+                            height: dp(44)  # Tablet touch target
+                            font_size: '16sp'  # Larger font
+                            md_bg_color: app.theme_cls.primary_light
+                            radius: [8, 8, 8, 8]
+
+                # Progress and Stats Row
+                MDBoxLayout:
+                    id: progress_section
+                    orientation: 'horizontal'
+                    spacing: dp(20)
+                    size_hint_y: None
+                    height: dp(40)
+                    opacity: 0  # Hidden until form loads
+
+                    # Form Progress Bar
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        spacing: dp(12)
+                        size_hint_x: 0.6
+
+                        MDLabel:
+                            text: "Progress:"
+                            size_hint_x: None
+                            width: dp(80)
+                            font_size: "14sp"
+                            theme_text_color: "Secondary"
+                            pos_hint: {"center_y": 0.5}
+
+                        MDProgressBar:
+                            id: form_progress
+                            value: 0
+                            size_hint_y: None
+                            height: dp(8)
+                            pos_hint: {"center_y": 0.5}
+
+                        MDLabel:
+                            id: progress_text
+                            text: "0/0"
+                            size_hint_x: None
+                            width: dp(60)
+                            font_size: "14sp"
+                            theme_text_color: "Secondary"
+                            halign: "center"
+                            pos_hint: {"center_y": 0.5}
+
+                    # Form Stats
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        spacing: dp(16)
+                        size_hint_x: 0.4
+
+                        MDLabel:
+                            id: question_count_label
+                            text: "0 Questions"
+                            font_size: "14sp"
+                            theme_text_color: "Secondary"
+                            halign: "center"
+
+                        MDLabel:
+                            id: completion_status
+                            text: "Not Started"
+                            font_size: "14sp"
+                            theme_text_color: "Secondary"
+                            halign: "center"
+
+        # Main Form Area - Responsive Layout
+        MDScrollView:
+            id: form_scroll_view
+            do_scroll_x: False
+            do_scroll_y: True
+            bar_width: dp(8)  # Wider scrollbar for tablets
+            bar_color: 0.7, 0.7, 0.7, 1
+
+            # Form Container - Will be responsive
+            MDBoxLayout:
+                id: form_container
+                orientation: 'horizontal'  # Will switch to vertical on small screens
+                spacing: dp(20)  # Increased spacing for tablets
+                adaptive_height: True
+                padding: dp(24)  # Increased padding for tablets
+
+                # Main Form Canvas (left side on tablets, full width on phones)
+                MDBoxLayout:
+                    id: form_canvas
+                    orientation: 'vertical'
+                    spacing: dp(20)  # Increased spacing between questions
+                    adaptive_height: True
+                    size_hint_x: 0.7  # 70% width on tablets
+
+                    # Enhanced Empty State
+                    MDCard:
+                        id: empty_state
+                        orientation: 'vertical'
+                        spacing: dp(20)
                         size_hint_y: None
-                        height: dp(40)
+                        height: dp(300)  # Increased height for tablets
+                        opacity: 1
+                        elevation: 1
+                        padding: dp(32)  # Increased padding
+
+                        Widget:
+                            size_hint_y: None
+                            height: dp(20)
+
+                        MDLabel:
+                            text: "📋"
+                            halign: "center"
+                            font_size: "64sp"  # Larger emoji for tablets
+                            size_hint_y: None
+                            height: dp(80)
+                            theme_text_color: "Hint"
+
+                        MDLabel:
+                            text: "No form loaded"
+                            font_style: "H5"  # Larger heading
+                            theme_text_color: "Hint"
+                            halign: "center"
+                            font_size: "22sp"  # Larger font
+
+                        MDLabel:
+                            text: "Select a project above to load its data collection form"
+                            font_style: "Body1"  # Larger body text
+                            theme_text_color: "Hint"
+                            halign: "center"
+                            font_size: "16sp"  # Larger font
+                            text_size: self.width, None
+
+                        Widget:
+                            size_hint_y: None
+                            height: dp(20)
+
+                # Side Panel (right side on tablets, hidden on phones)
+                MDCard:
+                    id: side_panel
+                    orientation: 'vertical'
+                    spacing: dp(16)
+                    size_hint_x: 0.3  # 30% width on tablets
+                    size_hint_y: None
+                    height: dp(400)  # Fixed height
+                    elevation: 1
+                    padding: dp(20)
+                    opacity: 0  # Hidden until form loads
 
                     MDLabel:
-                        text: "📋"
-                        halign: "center"
-                        font_size: "48sp"
-                        size_hint_y: None
-                        height: dp(64)
-                        theme_text_color: "Hint"
-
-                    MDLabel:
-                        text: "No form loaded"
+                        text: "Form Overview"
                         font_style: "H6"
-                        theme_text_color: "Hint"
-                        halign: "center"
                         font_size: "18sp"
+                        theme_text_color: "Primary"
+                        size_hint_y: None
+                        height: dp(24)
 
-                    MDLabel:
-                        text: "Select a project to load its form"
-                        font_style: "Body2"
-                        theme_text_color: "Hint"
-                        halign: "center"
-                        font_size: "14sp"
+                    MDScrollView:
+                        MDBoxLayout:
+                            id: question_overview
+                            orientation: 'vertical'
+                            spacing: dp(8)
+                            adaptive_height: True
 
-        # Footer with Submit Button
+        # Enhanced Footer with Submit Button and Actions
         MDCard:
             orientation: 'horizontal'
             size_hint_y: None
-            height: dp(64)
-            padding: [dp(16), dp(8)]
-            spacing: dp(12)
-            elevation: 2
+            height: dp(80)  # Increased height for tablets
+            padding: dp(24)  # Increased padding
+            spacing: dp(16)  # Increased spacing
+            elevation: 3  # Higher elevation for prominence
             md_bg_color: 1, 1, 1, 1
             pos_hint: {'center_x': 0.5}
 
+            # Left side actions
+            MDBoxLayout:
+                orientation: 'horizontal'
+                spacing: dp(12)
+                size_hint_x: 0.3
+
+                MDRaisedButton:
+                    id: clear_button
+                    text: 'Clear Form'
+                    size_hint: None, None
+                    size: dp(120), dp(48)  # Tablet-friendly size
+                    font_size: "14sp"
+                    on_release: root.clear_current_form()
+                    opacity: 0  # Hidden until form loads
+
+            # Center spacer
             Widget:
                 size_hint_x: 0.4
 
-            MDRaisedButton:
-                id: submit_button
-                text: 'Submit New Response'
-                md_bg_color: app.theme_cls.primary_color
-                text_color: 1, 1, 1, 1
-                font_size: "14sp"
-                size_hint: None, None
-                size: dp(180), dp(36)
-                elevation: 1
-                on_release: root.submit_response()
-                pos_hint: {'center_y': 0.5}
+            # Right side main actions
+            MDBoxLayout:
+                orientation: 'horizontal'
+                spacing: dp(12)
+                size_hint_x: 0.3
 
-            Widget:
-                size_hint_x: 0.4 
+                MDRaisedButton:
+                    id: save_draft_button
+                    text: 'Save Draft'
+                    size_hint: None, None
+                    size: dp(120), dp(48)  # Tablet-friendly size
+                    font_size: "14sp"
+                    on_release: root.save_draft()
+                    opacity: 0  # Hidden until form loads
+
+                MDRaisedButton:
+                    id: submit_button
+                    text: 'Submit Response'
+                    md_bg_color: app.theme_cls.primary_color
+                    text_color: 1, 1, 1, 1
+                    font_size: "16sp"  # Larger font
+                    size_hint: None, None
+                    size: dp(160), dp(48)  # Larger for prominence
+                    elevation: 2
+                    on_release: root.submit_response()
+                    pos_hint: {'center_y': 0.5} 

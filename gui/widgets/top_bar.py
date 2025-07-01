@@ -13,7 +13,15 @@ class TopBar(MDBoxLayout):
         self.logout_dialog = None
     
     def set_title(self, text):
-        self.ids.top_title.text = text
+        """Set the title text for the top bar"""
+        if hasattr(self.ids, 'top_title'):
+            self.ids.top_title.text = text
+    
+    def update_user_display(self):
+        """Update the user display name in the top bar"""
+        app = MDApp.get_running_app()
+        if hasattr(self.ids, 'user_name'):
+            self.ids.user_name.text = app.user_display_name
     
     def logout(self):
         """Show logout confirmation dialog"""

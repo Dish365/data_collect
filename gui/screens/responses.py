@@ -10,6 +10,7 @@ from kivymd.uix.button import MDRaisedButton, MDFlatButton
 from kivymd.uix.label import MDLabel
 from kivymd.uix.card import MDCard
 from kivymd.uix.gridlayout import MDGridLayout
+from kivymd.uix.selectioncontrol import MDCheckbox
 from kivy.app import App
 
 import threading
@@ -107,18 +108,20 @@ class ResponseDetailDialog(MDBoxLayout):
 
 class ResponseItem(MDCard):
     """Widget for displaying a single respondent row in the table"""
-    def __init__(self, respondent_data, on_view_responses=None, on_edit_respondent=None, on_delete_respondent=None, **kwargs):
+    def __init__(self, respondent_data, on_view_responses=None, on_edit_respondent=None, on_delete_respondent=None, on_selection_changed=None, **kwargs):
         super().__init__(**kwargs)
         self.respondent_data = respondent_data
         self.on_view_responses = on_view_responses
         self.on_edit_respondent = on_edit_respondent
         self.on_delete_respondent = on_delete_respondent
+        self.on_selection_changed = on_selection_changed
         self.orientation = "horizontal"
-        self.padding = dp(10)
-        self.spacing = dp(5)
+        self.padding = dp(12)  # Increased padding for tablets
+        self.spacing = dp(8)  # Increased spacing
         self.size_hint_y = None
-        self.height = dp(60)
+        self.height = dp(72)  # Increased height for tablets
         self.elevation = 1
+        self.is_selected = False
         
         # Safe value extraction with defaults
         respondent_id = respondent_data.get('respondent_id') or 'Unknown'
@@ -127,12 +130,21 @@ class ResponseItem(MDCard):
         response_count = respondent_data.get('response_count') or 0
         last_response = respondent_data.get('last_response_formatted') or 'No responses'
         
+        # Selection checkbox
+        self.selection_checkbox = MDCheckbox(
+            size_hint_x=None,
+            width=dp(48),  # Tablet touch target
+            pos_hint={"center_y": 0.5},
+            on_active=self.on_checkbox_active
+        )
+        
         # Respondent ID
         respondent_id_text = respondent_id[-12:] if len(respondent_id) > 12 else respondent_id
         respondent_id_label = MDLabel(
             text=respondent_id_text,
-            size_hint_x = 0.2,
+            size_hint_x=0.18,
             font_style="Body2",
+            font_size="16sp",  # Larger font for tablets
             halign="left"
         )
         respondent_id_label.bind(size=respondent_id_label.setter('text_size'))
@@ -140,8 +152,9 @@ class ResponseItem(MDCard):
         # Display Name
         name_label = MDLabel(
             text=display_name,
-            size_hint_x = 0.2,
+            size_hint_x=0.18,
             font_style="Body2",
+            font_size="16sp",  # Larger font for tablets
             halign="left"
         )
         name_label.bind(size=name_label.setter('text_size'))
@@ -149,8 +162,9 @@ class ResponseItem(MDCard):
         # Project Name
         project_label = MDLabel(
             text=project_name,
-            size_hint_x = 0.2,
+            size_hint_x=0.18,
             font_style="Body2",
+            font_size="16sp",  # Larger font for tablets
             halign="left"
         )
         project_label.bind(size=project_label.setter('text_size'))
@@ -158,27 +172,100 @@ class ResponseItem(MDCard):
         # Response Count
         count_label = MDLabel(
             text=str(response_count),
-            size_hint_x = 0.1,
+            size_hint_x=0.1,
             font_style="Body2",
+            font_size="16sp",  # Larger font for tablets
             halign="center"
         )
         
         # Last Response Date
         date_label = MDLabel(
             text=last_response,
-            size_hint_x = 0.15,
+            size_hint_x=0.18,
             font_style="Body2",
+            font_size="16sp",  # Larger font for tablets
             halign="center"
         )
         date_label.bind(size=date_label.setter('text_size'))
         
-        # Actions (View, Edit, Delete)
+        # Actions (View, Edit, Delete) - Tablet optimized
         actions_layout = MDBoxLayout(
             orientation="horizontal",
-            size_hint_x=0.15,
-            spacing=dp(2)
+            size_hint_x=0.18,
+            spacing=dp(4)  # Increased spacing
         )
         
+        # Create tablet-optimized buttons
+        self.create_tablet_optimized_buttons(actions_layout)
+        
+        # Add all widgets
+        self.add_widget(self.selection_checkbox)
+        self.add_widget(respondent_id_label)
+        self.add_widget(name_label)
+        self.add_widget(project_label)
+        self.add_widget(count_label)
+        self.add_widget(date_label)
+        self.add_widget(actions_layout)
+    
+    def create_tablet_optimized_buttons(self, layout):
+        """Create tablet-optimized action buttons"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            category = ResponsiveHelper.get_screen_size_category()
+            
+            # Responsive button sizing
+            if category in ["tablet", "large_tablet"]:
+                button_width = dp(60)
+                button_height = dp(44)
+                font_size = "14sp"
+            else:
+                button_width = dp(50)
+                button_height = dp(36)
+                font_size = "12sp"
+            
+            # View Button
+            view_button = MDFlatButton(
+                text="View",
+                size_hint_x=None,
+                width=button_width,
+                height=button_height,
+                font_size=font_size,
+                on_release=self.view_responses
+            )
+            
+            # Edit Button
+            edit_button = MDFlatButton(
+                text="Edit",
+                size_hint_x=None,
+                width=button_width,
+                height=button_height,
+                font_size=font_size,
+                on_release=self.edit_respondent
+            )
+            
+            # Delete Button
+            delete_button = MDFlatButton(
+                text="Delete",
+                size_hint_x=None,
+                width=button_width,
+                height=button_height,
+                font_size=font_size,
+                theme_text_color="Error",
+                on_release=self.delete_respondent
+            )
+            
+            layout.add_widget(view_button)
+            layout.add_widget(edit_button)
+            layout.add_widget(delete_button)
+            
+        except Exception as e:
+            print(f"Error creating tablet buttons: {e}")
+            # Fallback to original buttons
+            self.create_original_buttons(layout)
+    
+    def create_original_buttons(self, layout):
+        """Create original action buttons as fallback"""
         # View Button
         view_button = MDFlatButton(
             text="View",
@@ -204,16 +291,20 @@ class ResponseItem(MDCard):
             on_release=self.delete_respondent
         )
         
-        actions_layout.add_widget(view_button)
-        actions_layout.add_widget(edit_button)
-        actions_layout.add_widget(delete_button)
-        
-        self.add_widget(respondent_id_label)
-        self.add_widget(name_label)
-        self.add_widget(project_label)
-        self.add_widget(count_label)
-        self.add_widget(date_label)
-        self.add_widget(actions_layout)
+        layout.add_widget(view_button)
+        layout.add_widget(edit_button)
+        layout.add_widget(delete_button)
+    
+    def on_checkbox_active(self, checkbox, value):
+        """Handle selection checkbox change"""
+        self.is_selected = value
+        if self.on_selection_changed:
+            self.on_selection_changed(self.respondent_data, value)
+    
+    def set_selected(self, selected):
+        """Set selection state programmatically"""
+        self.is_selected = selected
+        self.selection_checkbox.active = selected
     
     def view_responses(self, instance):
         """Handle view responses button click"""
@@ -248,12 +339,148 @@ class ResponsesScreen(Screen):
         self.current_offset = 0
         self.page_limit = 20
         self.detail_dialog = None
+        
+        # New attributes for tablet optimization
+        self.selected_respondents = set()
+        self.is_tablet_layout = False
+        self.current_detail_respondent = None
 
     def on_enter(self):
         """Called when screen is entered"""
         self.ids.top_bar.set_title("Responses")
+        
+        # Initialize responsive layout
+        self.update_responsive_layout()
+        
         self.load_summary_stats()
         self.load_respondents()
+
+    def on_window_resize(self, width, height):
+        """Handle window resize for responsive layout adjustments"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            # Determine screen size category and orientation
+            category = ResponsiveHelper.get_screen_size_category()
+            is_landscape = ResponsiveHelper.is_landscape()
+            
+            print(f"Responses: Window resized to {width}x{height} - {category} {'landscape' if is_landscape else 'portrait'}")
+            
+            # Update responsive properties
+            self.update_responsive_layout()
+            
+        except Exception as e:
+            print(f"Error handling window resize in responses: {e}")
+    
+    def update_responsive_layout(self):
+        """Update layout based on current screen size"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            category = ResponsiveHelper.get_screen_size_category()
+            is_landscape = ResponsiveHelper.is_landscape()
+            
+            print(f"Responses: Updating responsive layout for {category} {'landscape' if is_landscape else 'portrait'}")
+            
+            # Determine if we should use side-by-side layout
+            should_use_tablet_layout = self.should_use_tablet_layout(category, is_landscape)
+            
+            if should_use_tablet_layout != self.is_tablet_layout:
+                self.is_tablet_layout = should_use_tablet_layout
+                self.setup_layout_for_device()
+            
+            # Update TopBar height for tablets
+            if hasattr(self.ids, 'top_bar'):
+                if category in ["tablet", "large_tablet"]:
+                    self.ids.top_bar.height = dp(64)
+                else:
+                    self.ids.top_bar.height = dp(56)
+            
+        except Exception as e:
+            print(f"Error updating responsive layout in responses: {e}")
+    
+    def should_use_tablet_layout(self, category, is_landscape):
+        """Determine if tablet layout should be used"""
+        if category == "large_tablet":
+            return True  # Always use tablet layout on large tablets
+        elif category == "tablet":
+            return is_landscape  # Use tablet layout on tablet landscape only
+        else:
+            return False  # Never use tablet layout on phones/small tablets
+    
+    def setup_layout_for_device(self):
+        """Setup layout based on device type"""
+        if not hasattr(self.ids, 'main_content_layout'):
+            return
+            
+        main_layout = self.ids.main_content_layout
+        master_panel = self.ids.master_panel
+        detail_panel = self.ids.detail_panel
+        
+        if self.is_tablet_layout:
+            # Side-by-side layout for tablets
+            main_layout.orientation = "horizontal"
+            master_panel.size_hint_x = 0.6  # 60% for master list
+            detail_panel.size_hint_x = 0.4  # 40% for detail view
+            
+            print("Responses: Switched to tablet side-by-side layout")
+        else:
+            # Stacked layout for phones/small screens
+            main_layout.orientation = "vertical"
+            master_panel.size_hint_x = 1  # 100% for master list
+            detail_panel.size_hint_x = 0  # Hide detail panel
+            
+            print("Responses: Switched to mobile stacked layout")
+    
+    def on_select_all(self, active):
+        """Handle select all checkbox"""
+        for child in self.ids.responses_grid.children:
+            if isinstance(child, ResponseItem):
+                child.set_selected(active)
+        
+        # Update selected set
+        if active:
+            self.selected_respondents = {item.respondent_data['id'] for item in self.ids.responses_grid.children if isinstance(item, ResponseItem)}
+        else:
+            self.selected_respondents.clear()
+        
+        self.update_selection_ui()
+    
+    def on_item_selection_changed(self, respondent_data, selected):
+        """Handle individual item selection change"""
+        respondent_id = respondent_data.get('id')
+        
+        if selected:
+            self.selected_respondents.add(respondent_id)
+        else:
+            self.selected_respondents.discard(respondent_id)
+        
+        self.update_selection_ui()
+        
+        # Update select all checkbox
+        total_items = len([child for child in self.ids.responses_grid.children if isinstance(child, ResponseItem)])
+        if hasattr(self.ids, 'select_all_checkbox'):
+            if len(self.selected_respondents) == total_items and total_items > 0:
+                self.ids.select_all_checkbox.active = True
+            else:
+                self.ids.select_all_checkbox.active = False
+    
+    def update_selection_ui(self):
+        """Update selection-related UI elements"""
+        count = len(self.selected_respondents)
+        
+        # Update selection count label
+        if hasattr(self.ids, 'selection_count_label'):
+            self.ids.selection_count_label.text = f"{count} selected"
+        
+        # Enable/disable bulk action buttons
+        has_selection = count > 0
+        
+        # Enable bulk action buttons based on selection
+        if hasattr(self.ids, 'bulk_actions_toolbar'):
+            for child in self.ids.bulk_actions_toolbar.children:
+                if isinstance(child, MDRaisedButton):
+                    child.disabled = not has_selection
 
     def show_loader(self, show=True):
         """Show/hide loading spinner"""
@@ -360,45 +587,142 @@ class ResponsesScreen(Screen):
             # Clear grid if this is a fresh load
             if self.current_offset <= len(new_respondents):
                 self.ids.responses_grid.clear_widgets()
+                self.selected_respondents.clear()  # Clear selections on fresh load
+                self.update_selection_ui()
             
-            # Add new respondent items
+            # Add new respondent items with tablet optimization
             for respondent in new_respondents:
                 item = ResponseItem(
                     respondent_data=respondent,
                     on_view_responses=self.view_respondent_responses,
                     on_edit_respondent=self.edit_respondent,
-                    on_delete_respondent=self.delete_respondent
+                    on_delete_respondent=self.delete_respondent,
+                    on_selection_changed=self.on_item_selection_changed  # New callback
                 )
                 self.ids.responses_grid.add_widget(item)
             
-            # Add load more button if not last page
+            # Add load more button if not last page - tablet optimized
             if not is_last_page and len(new_respondents) >= self.page_limit:
-                load_more_btn = MDRaisedButton(
-                    text="Load More",
-                    size_hint_y=None,
-                    height=dp(40),
-                    on_release=lambda x: self.load_respondents(load_more=True)
-                )
+                load_more_btn = self.create_tablet_optimized_load_more_button()
                 load_more_btn.id = 'load_more_button'
                 self.ids.load_more_button = load_more_btn
-                self.ids.content_layout.add_widget(load_more_btn)
+                # Find the master panel and add to it instead of content_layout
+                if hasattr(self.ids, 'master_panel'):
+                    self.ids.master_panel.add_widget(load_more_btn)
+                else:
+                    self.ids.content_layout.add_widget(load_more_btn)
             
             # Show no data message if empty
             if not self.respondents_data:
-                no_data_label = MDLabel(
-                    text="No responses found. Start collecting data to see respondents here.",
-                    halign="center",
-                    font_style="Subtitle1",
-                    size_hint_y=None,
-                    height=dp(60)
-                )
+                no_data_label = self.create_tablet_optimized_no_data_label()
                 self.ids.responses_grid.add_widget(no_data_label)
                 
         except Exception as e:
             print(f"Error updating UI: {e}")
-
+    
+    def create_tablet_optimized_load_more_button(self):
+        """Create a tablet-optimized load more button"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            category = ResponsiveHelper.get_screen_size_category()
+            
+            # Responsive button sizing
+            if category in ["tablet", "large_tablet"]:
+                button_height = dp(52)
+                font_size = "16sp"
+            else:
+                button_height = dp(40)
+                font_size = "14sp"
+            
+            return MDRaisedButton(
+                text="Load More Respondents",
+                size_hint_y=None,
+                height=button_height,
+                font_size=font_size,
+                on_release=lambda x: self.load_respondents(load_more=True)
+            )
+            
+        except Exception as e:
+            print(f"Error creating tablet load more button: {e}")
+            # Fallback
+            return MDRaisedButton(
+                text="Load More",
+                size_hint_y=None,
+                height=dp(40),
+                on_release=lambda x: self.load_respondents(load_more=True)
+            )
+    
+    def create_tablet_optimized_no_data_label(self):
+        """Create a tablet-optimized no data label"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            category = ResponsiveHelper.get_screen_size_category()
+            
+            # Responsive label sizing
+            if category in ["tablet", "large_tablet"]:
+                label_height = dp(80)
+                font_size = "18sp"
+            else:
+                label_height = dp(60)
+                font_size = "16sp"
+            
+            return MDLabel(
+                text="No responses found. Start collecting data to see respondents here.",
+                halign="center",
+                font_style="Subtitle1",
+                font_size=font_size,
+                size_hint_y=None,
+                height=label_height
+            )
+            
+        except Exception as e:
+            print(f"Error creating tablet no data label: {e}")
+            # Fallback
+            return MDLabel(
+                text="No responses found. Start collecting data to see respondents here.",
+                halign="center",
+                font_style="Subtitle1",
+                size_hint_y=None,
+                height=dp(60)
+            )
+    
     def view_respondent_responses(self, respondent_data):
-        """Show detailed responses for a respondent"""
+        """Show detailed responses for a respondent - tablet optimized"""
+        if self.is_tablet_layout:
+            # Show in side panel for tablets
+            self.show_detail_in_side_panel(respondent_data)
+        else:
+            # Show in dialog for phones
+            self.show_detail_in_dialog(respondent_data)
+    
+    def show_detail_in_side_panel(self, respondent_data):
+        """Show respondent details in the side panel (tablet mode)"""
+        self.current_detail_respondent = respondent_data
+        self.show_loader(True)
+        
+        def _load_details():
+            try:
+                detailed_data, error = self.responses_service.get_respondent_detail_with_responses(
+                    respondent_data['respondent_id']
+                )
+                
+                if error:
+                    raise Exception(error)
+                
+                Clock.schedule_once(lambda dt: self._update_detail_panel(detailed_data))
+                
+            except Exception as e:
+                print(f"Error loading respondent details: {e}")
+                Clock.schedule_once(lambda dt: toast(f"Error loading details: {str(e)}"))
+            finally:
+                Clock.schedule_once(lambda dt: self.show_loader(False))
+        
+        threading.Thread(target=_load_details, daemon=True).start()
+    
+    def show_detail_in_dialog(self, respondent_data):
+        """Show respondent details in a dialog (mobile mode)"""
         self.show_loader(True)
         
         def _load_details():
@@ -419,6 +743,175 @@ class ResponsesScreen(Screen):
                 Clock.schedule_once(lambda dt: self.show_loader(False))
         
         threading.Thread(target=_load_details, daemon=True).start()
+    
+    def _update_detail_panel(self, respondent_data):
+        """Update the detail panel with respondent data"""
+        try:
+            if not hasattr(self.ids, 'detail_content'):
+                return
+                
+            content = self.ids.detail_content
+            content.clear_widgets()
+            
+            # Header with respondent info
+            header_card = MDCard(
+                orientation="vertical",
+                padding=dp(16),
+                spacing=dp(8),
+                size_hint_y=None,
+                height=dp(100),
+                elevation=1
+            )
+            
+            name_label = MDLabel(
+                text=f"Respondent: {respondent_data.get('display_name', 'Unknown')}",
+                font_style="H6",
+                font_size="18sp",
+                size_hint_y=None,
+                height=dp(30)
+            )
+            
+            project_label = MDLabel(
+                text=f"Project: {respondent_data.get('project_name', 'Unknown')}",
+                font_style="Subtitle1",
+                font_size="16sp",
+                size_hint_y=None,
+                height=dp(25)
+            )
+            
+            id_label = MDLabel(
+                text=f"ID: {respondent_data.get('respondent_id', 'Unknown')}",
+                font_style="Body2",
+                font_size="14sp",
+                size_hint_y=None,
+                height=dp(25)
+            )
+            
+            header_card.add_widget(name_label)
+            header_card.add_widget(project_label)
+            header_card.add_widget(id_label)
+            content.add_widget(header_card)
+            
+            # Responses
+            responses = respondent_data.get('responses', [])
+            if not responses:
+                no_responses = MDLabel(
+                    text="No responses found for this respondent",
+                    halign="center",
+                    font_size="16sp",
+                    size_hint_y=None,
+                    height=dp(40)
+                )
+                content.add_widget(no_responses)
+            else:
+                for i, response in enumerate(responses):
+                    response_card = self.create_tablet_response_card(response, i+1)
+                    content.add_widget(response_card)
+                    
+        except Exception as e:
+            print(f"Error updating detail panel: {e}")
+    
+    def create_tablet_response_card(self, response, question_number):
+        """Create a tablet-optimized response card"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            category = ResponsiveHelper.get_screen_size_category()
+            
+            # Responsive card sizing
+            if category in ["tablet", "large_tablet"]:
+                card_height = dp(120)
+                padding = dp(16)
+                spacing = dp(8)
+                font_sizes = {"question": "16sp", "answer": "14sp", "time": "12sp"}
+            else:
+                card_height = dp(100)
+                padding = dp(12)
+                spacing = dp(6)
+                font_sizes = {"question": "14sp", "answer": "13sp", "time": "11sp"}
+            
+            card = MDCard(
+                orientation="vertical",
+                padding=padding,
+                spacing=spacing,
+                size_hint_y=None,
+                height=card_height,
+                elevation=2
+            )
+            
+            question_label = MDLabel(
+                text=f"Q{question_number}: {response.get('question_text', 'Unknown Question')}",
+                font_style="Subtitle2",
+                font_size=font_sizes["question"],
+                size_hint_y=None,
+                height=dp(30)
+            )
+            
+            answer_label = MDLabel(
+                text=f"Answer: {response.get('response_value', 'No answer')}",
+                font_style="Body1",
+                font_size=font_sizes["answer"],
+                size_hint_y=None,
+                height=dp(30),
+                text_size=(None, None)
+            )
+            
+            time_label = MDLabel(
+                text=f"Collected: {response.get('collected_at_formatted', 'Unknown time')}",
+                font_style="Caption",
+                font_size=font_sizes["time"],
+                size_hint_y=None,
+                height=dp(25)
+            )
+            
+            card.add_widget(question_label)
+            card.add_widget(answer_label)
+            card.add_widget(time_label)
+            
+            return card
+            
+        except Exception as e:
+            print(f"Error creating tablet response card: {e}")
+            # Fallback to original
+            return self.create_original_response_card(response, question_number)
+    
+    def create_original_response_card(self, response, question_number):
+        """Create original response card as fallback"""
+        card = MDCard(
+            orientation="vertical",
+            padding=dp(10),
+            spacing=dp(5),
+            size_hint_y=None,
+            height=dp(80),
+            elevation=2
+        )
+        
+        question_label = MDLabel(
+            text=f"Q{question_number}: {response.get('question_text', 'Unknown Question')}",
+            font_style="Subtitle2",
+            size_hint_y=None,
+            height=dp(25)
+        )
+        
+        answer_label = MDLabel(
+            text=f"Answer: {response.get('response_value', 'No answer')}",
+            font_style="Body1",
+            size_hint_y=None,
+            height=dp(25)
+        )
+        
+        time_label = MDLabel(
+            text=f"Collected: {response.get('collected_at_formatted', 'Unknown time')}",
+            font_style="Caption",
+            size_hint_y=None,
+            height=dp(20)
+        )
+        
+        card.add_widget(question_label)
+        card.add_widget(answer_label)
+        card.add_widget(time_label)
+        
+        return card
 
     def _show_response_dialog(self, respondent_data):
         """Show the response detail dialog"""

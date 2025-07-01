@@ -34,4 +34,6 @@ urlpatterns = [
     path('dashboard-stats/', views.dashboard_stats, name='dashboard-stats'),
     path('activity-stream/', views.activity_stream, name='activity-stream'),
     path('dashboard/', views.dashboard_combined, name='dashboard-combined'),
+    # Authentication endpoints
+    path('auth/', include('authentication.urls')),
 ] 

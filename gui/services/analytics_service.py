@@ -49,8 +49,9 @@ class AnalyticsService:
 
     def get_project_data(self, project_id: str) -> pd.DataFrame:
         """Get project data as pandas DataFrame for analysis"""
+        conn = None
         try:
-        conn = self.db_service.get_db_connection()
+            conn = self.db_service.get_db_connection()
             
             # Get all responses for the project with question details
             query = """
@@ -70,7 +71,7 @@ class AnalyticsService:
                 ORDER BY r.respondent_id, q.order_index
             """
             
-        cursor = conn.cursor()
+            cursor = conn.cursor()
             cursor.execute(query, (project_id,))
             results = cursor.fetchall()
             

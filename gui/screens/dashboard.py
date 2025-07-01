@@ -16,6 +16,7 @@ from kivy.clock import Clock
 from widgets.activity_item import ActivityItem
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDIconButton
+from widgets.team_member_dialog import TeamMemberDialog
 
 
 Builder.load_file("kv/dashboard.kv")
@@ -33,6 +34,12 @@ class DashboardScreen(MDScreen):
         """Called when the screen is entered."""
         self.ids.top_bar.set_title("Dashboard")
         
+        # CLINICAL: Force immediate responsive layout
+        self.update_responsive_layout()
+        
+        # CLINICAL: Force layout refresh after a short delay to ensure KV is loaded
+        Clock.schedule_once(self._force_layout_refresh, 0.1)
+        
         # Initialize dashboard service for current user with retry logic
         if self._initialize_with_retry():
             self.update_stats()
@@ -43,6 +50,27 @@ class DashboardScreen(MDScreen):
         # Schedule auto-refresh every 30 seconds if enabled
         if self.auto_refresh_enabled:
             Clock.schedule_interval(self.auto_refresh_stats, 30)
+
+    def _force_layout_refresh(self, dt):
+        """Force a complete layout refresh to ensure responsive layout is applied"""
+        try:
+            print("CLINICAL: Forcing layout refresh")
+            
+            # Force responsive layout update again
+            self.update_responsive_layout()
+            
+            # Force all grids to re-layout
+            if hasattr(self.ids, 'stats_grid'):
+                self.ids.stats_grid.do_layout()
+            if hasattr(self.ids, 'actions_grid'):
+                self.ids.actions_grid.do_layout()
+            if hasattr(self.ids, 'content_layout'):
+                self.ids.content_layout.do_layout()
+                
+            print("CLINICAL: Layout refresh completed")
+            
+        except Exception as e:
+            print(f"CLINICAL ERROR in layout refresh: {e}")
 
     def _initialize_with_retry(self, max_retries=3, delay=0.5):
         """Initialize dashboard with retry logic"""
@@ -104,6 +132,55 @@ class DashboardScreen(MDScreen):
         self.manager.transition.direction = "left"  
         self.manager.current = screen_name
     
+    def open_team_management(self):
+        """Open team member management dialog"""
+        try:
+            team_dialog = TeamMemberDialog(
+                dashboard_service=self.dashboard_service,
+                callback=self.on_team_management_closed
+            )
+            team_dialog.open()
+        except Exception as e:
+            print(f"Error opening team management dialog: {e}")
+    
+    def on_team_management_closed(self):
+        """Called when team management dialog is closed"""
+        # Refresh dashboard stats to reflect any changes
+        self.update_stats(show_loader=False)
+    
+    def update_team_member_card(self, team_members_count):
+        """Update the team member card with enhanced information"""
+        try:
+            self.ids.team_members_card.value = str(team_members_count)
+            
+            # Provide contextual information based on count
+            if team_members_count == 'N/A' or team_members_count == 'Error':
+                self.ids.team_members_card.note = "Click to manage team members"
+            elif team_members_count == 'Loading...':
+                self.ids.team_members_card.note = "Loading team information..."
+            elif team_members_count == 'Offline':
+                self.ids.team_members_card.note = "Offline - cached data"
+            else:
+                try:
+                    count = int(team_members_count)
+                    if count == 0:
+                        self.ids.team_members_card.note = "No team members yet - click to add"
+                    elif count == 1:
+                        self.ids.team_members_card.note = "Just you - click to invite others"
+                    else:
+                        # Try to get detailed info
+                        team_info = self.dashboard_service.get_total_team_members_info()
+                        if team_info and 'details' in team_info:
+                            self.ids.team_members_card.note = team_info['details']
+                        else:
+                            self.ids.team_members_card.note = f"{count} team members - click to manage"
+                except ValueError:
+                    self.ids.team_members_card.note = "Click to manage team members"
+        
+        except Exception as e:
+            print(f"Error updating team member card: {e}")
+            self.ids.team_members_card.note = "Click to manage team members"
+    
     def show_loader(self, show=True):
         self.ids.spinner.active = show
         self.ids.main_scroll_view.opacity = 0 if show else 1
@@ -143,13 +220,13 @@ class DashboardScreen(MDScreen):
         self.ids.total_responses_card.value = "Error"
         self.ids.active_projects_card.value = "Error"
         self.ids.pending_sync_card.value = "Error"
-        self.ids.team_members_card.value = "Error"
+        self.update_team_member_card("Error")  # Use dedicated method
         
-        # Clear notes
+        # Clear notes for other cards
         self.ids.total_responses_card.note = ""
         self.ids.active_projects_card.note = ""
         self.ids.pending_sync_card.note = ""
-        self.ids.team_members_card.note = ""
+        # Team members card note is handled by update_team_member_card
         
         # Clear activity feed and show error message
         activity_feed_layout = self.ids.activity_feed_layout
@@ -198,8 +275,11 @@ class DashboardScreen(MDScreen):
             # Pending sync - user's sync operations
             self.ids.pending_sync_card.note = "Your pending operations"
             
-            # Team members - people who worked on accessible projects
-            self.ids.team_members_card.note = "Active in your projects"
+            # Team members note is set in the enhanced display section
+            # Don't override it here unless there's an error
+            team_members_count = stats.get('team_members', 'N/A')
+            if team_members_count == 'N/A' or team_members_count == 'Error':
+                self.ids.team_members_card.note = "Click to manage team members"
             
             # Show additional stats as tooltips or helper text
             failed_sync = stats.get('failed_sync', '0')
@@ -216,7 +296,10 @@ class DashboardScreen(MDScreen):
             self.ids.total_responses_card.value = stats.get('total_respondents', 'N/A')
             self.ids.active_projects_card.value = stats.get('active_projects', 'N/A')
             self.ids.pending_sync_card.value = stats.get('pending_sync', 'N/A')
-            self.ids.team_members_card.value = stats.get('team_members', 'N/A')
+            
+            # Enhanced team members display using dedicated method
+            team_members_count = stats.get('team_members', 'N/A')
+            self.update_team_member_card(team_members_count)
 
             # Update additional stats if available
             failed_sync = stats.get('failed_sync', '0')
@@ -246,7 +329,8 @@ class DashboardScreen(MDScreen):
                     activity_feed_layout.add_widget(ActivityItem(
                         activity_text=activity.get('text'),
                         activity_time=activity.get('time'),
-                        activity_icon=activity.get('icon')
+                        activity_icon=activity.get('icon'),
+                        activity_type=activity.get('type', '')
                     ))
                     
             # Show additional information if available
@@ -300,13 +384,13 @@ class DashboardScreen(MDScreen):
             self.ids.total_responses_card.value = "Loading..."
             self.ids.active_projects_card.value = "Loading..."
             self.ids.pending_sync_card.value = "Loading..."
-            self.ids.team_members_card.value = "Loading..."
+            self.update_team_member_card("Loading...")  # Use dedicated method
             
-            # Clear notes
+            # Clear notes for other cards
             self.ids.total_responses_card.note = ""
             self.ids.active_projects_card.note = ""
             self.ids.pending_sync_card.note = ""
-            self.ids.team_members_card.note = ""
+            # Team members card note is handled by update_team_member_card
             
             # Clear activity feed
             activity_feed_layout = self.ids.activity_feed_layout
@@ -386,4 +470,194 @@ class DashboardScreen(MDScreen):
             Clock.schedule_interval(self.auto_refresh_stats, 30)
         else:
             Clock.unschedule(self.auto_refresh_stats)
-        print(f"Auto-refresh {'enabled' if self.auto_refresh_enabled else 'disabled'}") 
+        print(f"Auto-refresh {'enabled' if self.auto_refresh_enabled else 'disabled'}")
+    
+    def on_window_resize(self, width, height):
+        """Handle window resize for responsive layout adjustments"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            # Determine screen size category and orientation
+            category = ResponsiveHelper.get_screen_size_category()
+            is_landscape = ResponsiveHelper.is_landscape()
+            
+            print(f"Dashboard: Window resized to {width}x{height} - {category} {'landscape' if is_landscape else 'portrait'}")
+            
+            # Update responsive properties
+            self.update_responsive_layout()
+            
+        except Exception as e:
+            print(f"Error handling window resize in dashboard: {e}")
+    
+    def update_responsive_layout(self):
+        """Update layout based on current screen size"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            from kivy.core.window import Window
+            
+            # Get current window dimensions
+            window_width = Window.width
+            window_height = Window.height
+            
+            print(f"CLINICAL DEBUG: Window dimensions: {window_width}x{window_height}")
+            
+            # Update spacing and padding based on screen size
+            if hasattr(self.ids, 'content_layout'):
+                self.ids.content_layout.spacing = ResponsiveHelper.get_responsive_spacing()
+                self.ids.content_layout.padding = ResponsiveHelper.get_responsive_padding()
+            
+            # CLINICAL FIX: Force single column for narrow windows
+            if hasattr(self.ids, 'stats_container'):
+                category = ResponsiveHelper.get_screen_size_category()
+                is_landscape = ResponsiveHelper.is_landscape()
+                
+                print(f"CLINICAL DEBUG: Category={category}, Landscape={is_landscape}")
+                
+                # AGGRESSIVE WIDTH-BASED COLUMN CALCULATION
+                # Each card needs absolute minimum 180dp width + 16dp spacing
+                min_card_width = 180
+                spacing = 16
+                padding = 48  # Total left+right padding
+                available_width = window_width - padding
+                
+                print(f"CLINICAL DEBUG: Available width for cards: {available_width}dp")
+                
+                # Calculate maximum possible columns with safety margin
+                max_possible_cols = max(1, int(available_width / (min_card_width + spacing)))
+                
+                print(f"CLINICAL DEBUG: Max possible columns: {max_possible_cols}")
+                
+                # CLINICAL DECISION TREE - SUPER CONSERVATIVE FOR NARROW WINDOWS
+                if window_width < 700:  # Very narrow - FORCE single column (increased from 600)
+                    stats_cols = 1
+                    actions_cols = 1
+                    print("CLINICAL: FORCING single column for very narrow window")
+                elif window_width < 1200:  # Narrow - FORCE single column for stats (increased from 1000)
+                    stats_cols = 1
+                    actions_cols = 2
+                    print("CLINICAL: FORCING single stats column for narrow window")
+                elif window_width < 1600:  # Medium - 2 columns max (increased from 1400)
+                    stats_cols = min(2, max_possible_cols)
+                    actions_cols = 2
+                    print("CLINICAL: Using 2 columns max for medium window")
+                else:  # Wide - use calculated columns but cap at 3 for actions
+                    if is_landscape and category in ["tablet", "large_tablet"]:
+                        stats_cols = min(4, max_possible_cols)
+                        actions_cols = 3  # Max 3 columns for actions for better visual balance
+                    else:
+                        stats_cols = min(2, max_possible_cols)
+                        actions_cols = 2
+                    print("CLINICAL: Using calculated columns for wide window")
+                
+                # SAFETY CHECK - Never allow more columns than fit
+                stats_cols = min(stats_cols, max_possible_cols, 4)
+                stats_cols = max(stats_cols, 1)  # Never less than 1
+                
+                actions_cols = min(actions_cols, 3)  # Cap actions at 3 columns for better visual balance
+                actions_cols = max(actions_cols, 1)
+                
+                print(f" Using {stats_cols} stats columns, {actions_cols} action columns")
+                
+                # Apply the calculated columns immediately
+                self.set_stats_grid_columns(stats_cols)
+                self.set_actions_grid_columns(actions_cols)
+                
+                # Update card sizes based on available space
+                self.update_card_sizes(stats_cols, window_width, category)
+            
+        except Exception as e:
+            print(f"CLINICAL ERROR in responsive layout: {e}")
+            # EMERGENCY FALLBACK - Force single column
+            self.set_stats_grid_columns(1)
+            self.set_actions_grid_columns(1)
+
+    def update_card_sizes(self, cols, window_width, category):
+        """Update StatCard sizes based on layout and screen size"""
+        try:
+            print(f"CLINICAL: Updating card sizes for {cols} columns, width={window_width}")
+            
+            # CLINICAL CARD HEIGHT CALCULATION
+            if window_width < 500:  # Very narrow
+                card_height = 100  # Compact
+            elif window_width < 800:  # Narrow
+                card_height = 120
+            elif cols == 1:  # Single column - can be taller
+                card_height = 140
+            elif cols == 2:  # Two columns
+                card_height = 130
+            elif cols == 3:  # Three columns
+                card_height = 120
+            else:  # Four columns
+                card_height = 110
+            
+            print(f"CLINICAL: Setting card height to {card_height}dp")
+            
+            # Update all stat cards with clinical precision
+            card_ids = ['total_responses_card', 'active_projects_card', 'pending_sync_card', 'team_members_card']
+            for card_id in card_ids:
+                if hasattr(self.ids, card_id):
+                    card = getattr(self.ids, card_id)
+                    
+                    # FORCE HEIGHT UPDATE
+                    card.size_hint_y = None
+                    card.height = dp(card_height)
+                    
+                    # Try responsive height method if available
+                    if hasattr(card, 'update_responsive_height'):
+                        card.update_responsive_height(card_height)
+                    
+                    print(f"CLINICAL: Updated {card_id} height to {card_height}dp")
+            
+        except Exception as e:
+            print(f"CLINICAL ERROR updating card sizes: {e}")
+
+    def set_stats_grid_columns(self, cols):
+        """Set the number of columns for the stats grid with clinical precision"""
+        try:
+            if hasattr(self.ids, 'stats_grid'):
+                self.ids.stats_grid.cols = cols
+                print(f"CLINICAL: Stats grid columns set to {cols}")
+                
+                # FORCE FULL WIDTH FOR SINGLE COLUMN
+                if cols == 1:
+                    card_ids = ['total_responses_card', 'active_projects_card', 'pending_sync_card', 'team_members_card']
+                    for card_id in card_ids:
+                        if hasattr(self.ids, card_id):
+                            card = getattr(self.ids, card_id)
+                            card.size_hint_x = 1  # Force full width
+                            print(f"CLINICAL: Forced {card_id} to full width")
+                
+                # Force grid to re-layout immediately
+                if hasattr(self.ids.stats_grid, 'do_layout'):
+                    self.ids.stats_grid.do_layout()
+                
+                # Force parent layouts to update
+                if hasattr(self.ids, 'stats_container'):
+                    self.ids.stats_container.do_layout()
+                if hasattr(self.ids, 'content_layout'):
+                    self.ids.content_layout.do_layout()
+                    
+        except Exception as e:
+            print(f"CLINICAL ERROR setting stats grid columns: {e}")
+    
+    def set_actions_grid_columns(self, cols):
+        """Set the number of columns for the actions grid with clinical precision"""
+        try:
+            if hasattr(self.ids, 'actions_grid'):
+                self.ids.actions_grid.cols = cols
+                print(f"CLINICAL: Actions grid columns set to {cols}")
+                
+                # Update button heights based on columns for better visual balance
+                button_height = dp(60) if cols <= 2 else dp(55)
+                self.ids.actions_grid.row_default_height = button_height
+                
+                # Force grid to re-layout immediately
+                if hasattr(self.ids.actions_grid, 'do_layout'):
+                    self.ids.actions_grid.do_layout()
+                
+                # Force container to re-layout as well
+                if hasattr(self.ids, 'actions_container'):
+                    self.ids.actions_container.do_layout()
+                    
+        except Exception as e:
+            print(f"CLINICAL ERROR setting actions grid columns: {e}") 

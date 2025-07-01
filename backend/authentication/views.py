@@ -211,3 +211,58 @@ class ResetPasswordView(APIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UserSearchView(APIView):
+    """Search for users by username or email for team member invitations"""
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        query = request.query_params.get('q', '').strip()
+        
+        if not query:
+            return Response({'users': []})
+        
+        if len(query) < 2:
+            return Response({'users': []})  # Require at least 2 characters
+        
+        # Only allow users with permission to create projects to search for users
+        if not request.user.can_create_projects():
+            return Response(
+                {'error': 'You do not have permission to search for users'}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Search users by username, email, first_name, last_name
+        users = User.objects.filter(
+            Q(username__icontains=query) |
+            Q(email__icontains=query) |
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query)
+        ).exclude(
+            id=request.user.id  # Exclude current user
+        ).values(
+            'id', 'username', 'email', 'first_name', 'last_name', 'role', 'institution'
+        )[:10]  # Limit to 10 results
+        
+        # Format the results for frontend
+        formatted_users = []
+        for user in users:
+            full_name = f"{user['first_name']} {user['last_name']}".strip()
+            if not full_name:
+                full_name = user['username']
+            
+            display_text = f"{user['username']} ({user['email']})"
+            if full_name != user['username']:
+                display_text = f"{full_name} - {user['username']} ({user['email']})"
+            
+            formatted_users.append({
+                'id': user['id'],
+                'username': user['username'],
+                'email': user['email'],
+                'full_name': full_name,
+                'display_text': display_text,
+                'role': user['role'],
+                'institution': user['institution'] or ''
+            })
+        
+        return Response({'users': formatted_users})

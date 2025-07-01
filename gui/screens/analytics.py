@@ -69,9 +69,20 @@ class AnalyticsScreen(Screen):
 
     def _delayed_init(self, dt):
         """Delayed initialization to ensure all widgets are ready"""
+        # Set top bar title for consistency
+        if hasattr(self.ids, 'top_bar'):
+            self.ids.top_bar.set_title("Analytics")
+        
         self.setup_analytics_service()
         self.load_projects()
         self.setup_tabs()
+        
+        # Clean up any overlapping widgets
+        self.cleanup_overlapping_widgets()
+        
+        # Initialize responsive layout
+        self.update_responsive_layout()
+        
         self.update_quick_stats()
 
     def setup_analytics_service(self):
@@ -83,6 +94,24 @@ class AnalyticsScreen(Screen):
                 app.auth_service,
                 app.db_service
             )
+
+    def cleanup_overlapping_widgets(self):
+        """Clean up any potentially overlapping widgets that could cause text mangling"""
+        try:
+            # Clear stats container to prevent overlapping
+            if hasattr(self.ids, 'stats_container'):
+                stats_container = getattr(self.ids, 'stats_container', None)
+                if stats_container:
+                    stats_container.clear_widgets()
+            
+            # Ensure project selector has clean text
+            if hasattr(self.ids, 'project_selector'):
+                project_selector = getattr(self.ids, 'project_selector', None)
+                if project_selector:
+                    project_selector.text = "Select Project for Analysis"
+                    
+        except Exception as e:
+            print(f"Error cleaning up overlapping widgets: {e}")
 
     def load_projects(self):
         """Load available projects for analysis"""
@@ -179,7 +208,10 @@ class AnalyticsScreen(Screen):
             
         self.current_project_id = project['id']
         self.current_project_name = project['name']
-        self.ids.project_selector.text = project['name']
+        
+        # Clear and set project selector text properly
+        if hasattr(self.ids, 'project_selector'):
+            self.ids.project_selector.text = project['name']
         
         # Update quick stats for selected project
         self.update_quick_stats()
@@ -224,25 +256,41 @@ class AnalyticsScreen(Screen):
             self.load_qualitative()
 
     def update_quick_stats(self):
-        """Update the quick statistics cards"""
+        """Update the quick statistics cards with tablet optimization"""
         if not hasattr(self.ids, 'stats_container'):
             return
             
         try:
-            stats = self.get_project_stats()
-            self.ids.stats_container.clear_widgets()
+            # Ensure stats container exists and is properly cleared
+            stats_container = getattr(self.ids, 'stats_container', None)
+            if not stats_container:
+                return
+                
+            # Clear any existing widgets completely
+            stats_container.clear_widgets()
             
-            # Create stat cards
+            stats = self.get_project_stats()
+            
+            # Only create stat cards if we have a current project
+            if not self.current_project_id:
+                return
+            
+            # Create stat cards with clean data
             stat_items = [
                 ("Total Responses", stats.get('total_responses', 0), "chart-line"),
-                ("Questions", stats.get('total_questions', 0), "help-circle"),
+                ("Questions", stats.get('total_questions', 0), "help-circle"), 
                 ("Completion Rate", f"{stats.get('completion_rate', 0)}%", "check-circle"),
                 ("Last Updated", stats.get('last_updated', 'Never'), "clock")
             ]
             
             for label, value, icon in stat_items:
-                card = self.create_stat_card(label, str(value), icon)
-                self.ids.stats_container.add_widget(card)
+                try:
+                    # Create clean stat card
+                    card = self.create_clean_stat_card(label, str(value), icon)
+                    if card:
+                        stats_container.add_widget(card)
+                except Exception as card_error:
+                    print(f"Error creating stat card for {label}: {card_error}")
                 
         except Exception as e:
             print(f"Error updating quick stats: {e}")
@@ -306,10 +354,106 @@ class AnalyticsScreen(Screen):
             if 'conn' in locals():
                 conn.close()
 
+    def create_tablet_optimized_stat_card(self, title, value, icon):
+        """Create a tablet-optimized statistics card"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            from widgets.stat_card import StatCard
+            
+            category = ResponsiveHelper.get_screen_size_category()
+            
+            # Adjust card size based on device category
+            if category in ["tablet", "large_tablet"]:
+                card = StatCard(
+                    title=title, 
+                    value=str(value), 
+                    icon=icon,
+                    size_hint=(None, None),
+                    size=(dp(180), dp(80)),  # Larger for tablets
+                )
+            else:
+                card = StatCard(
+                    title=title, 
+                    value=str(value), 
+                    icon=icon,
+                    size_hint=(None, None),
+                    size=(dp(140), dp(60)),  # Standard size
+                )
+                
+            return card
+            
+        except Exception as e:
+            print(f"Error creating tablet stat card: {e}")
+            # Fallback to original method
+            return self.create_stat_card(title, value, icon)
+
     def create_stat_card(self, title, value, icon):
         """Create a statistics card widget"""
         from widgets.stat_card import StatCard
         return StatCard(title=title, value=value, icon=icon)
+
+    def create_clean_stat_card(self, title, value, icon):
+        """Create a clean statistics card without overlapping text"""
+        try:
+            from widgets.stat_card import StatCard
+            
+            # Create stat card with clean properties
+            card = StatCard(
+                title=str(title).strip(),
+                value=str(value).strip(), 
+                icon=icon,
+                size_hint=(None, None),
+                size=(dp(160), dp(70))
+            )
+            return card
+            
+        except Exception as e:
+            print(f"Error creating clean stat card: {e}")
+            # Fallback to basic card creation
+            try:
+                from kivymd.uix.card import MDCard
+                from kivymd.uix.label import MDLabel
+                from kivymd.uix.boxlayout import MDBoxLayout
+                
+                card = MDCard(
+                    size_hint=(None, None),
+                    size=(dp(160), dp(70)),
+                    elevation=1,
+                    padding=dp(8)
+                )
+                
+                layout = MDBoxLayout(
+                    orientation='vertical',
+                    spacing=dp(4)
+                )
+                
+                title_label = MDLabel(
+                    text=str(title).strip(),
+                    font_style="Caption",
+                    theme_text_color="Secondary",
+                    halign="center",
+                    size_hint_y=None,
+                    height=dp(20)
+                )
+                
+                value_label = MDLabel(
+                    text=str(value).strip(),
+                    font_style="H6",
+                    theme_text_color="Primary", 
+                    halign="center",
+                    size_hint_y=None,
+                    height=dp(30)
+                )
+                
+                layout.add_widget(title_label)
+                layout.add_widget(value_label)
+                card.add_widget(layout)
+                
+                return card
+                
+            except Exception as fallback_error:
+                print(f"Error creating fallback stat card: {fallback_error}")
+                return None
 
     def load_project_data_characteristics(self):
         """Load data characteristics for auto-detection"""
@@ -367,7 +511,7 @@ class AnalyticsScreen(Screen):
             Clock.schedule_once(lambda dt: self.set_loading(False), 0)
 
     def _display_auto_detection(self, recommendations):
-        """Display auto-detection recommendations"""
+        """Display auto-detection recommendations with tablet optimization"""
         if not hasattr(self.ids, 'auto_detection_content'):
             return
             
@@ -378,7 +522,8 @@ class AnalyticsScreen(Screen):
             content.add_widget(MDLabel(
                 text="No analysis recommendations available",
                 halign="center",
-                theme_text_color="Secondary"
+                theme_text_color="Secondary",
+                font_size="16sp"
             ))
             return
             
@@ -391,14 +536,77 @@ class AnalyticsScreen(Screen):
                     font_style="H6",
                     theme_text_color="Primary",
                     size_hint_y=None,
-                    height=dp(40)
+                    height=dp(48),
+                    font_size="20sp"
                 )
                 content.add_widget(header)
                 
                 # Recommendations
                 for rec in recs[:3]:  # Show top 3 recommendations
-                    rec_card = self.create_recommendation_card(rec)
+                    rec_card = self.create_tablet_optimized_recommendation_card(rec)
                     content.add_widget(rec_card)
+
+    def create_tablet_optimized_recommendation_card(self, recommendation):
+        """Create a tablet-optimized recommendation card"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            category = ResponsiveHelper.get_screen_size_category()
+            
+            # Responsive card sizing
+            if category in ["tablet", "large_tablet"]:
+                card_height = dp(150)
+                button_height = dp(48)
+                font_sizes = {"title": "18sp", "desc": "16sp", "button": "16sp"}
+            else:
+                card_height = dp(120)
+                button_height = dp(36)
+                font_sizes = {"title": "16sp", "desc": "14sp", "button": "14sp"}
+            
+            card = MDCard(
+                orientation="vertical",
+                padding=dp(20),
+                spacing=dp(12),
+                size_hint_y=None,
+                height=card_height,
+                elevation=2
+            )
+            
+            # Recommendation title
+            title = MDLabel(
+                text=recommendation.get('method', 'Unknown Method'),
+                font_style="Subtitle1",
+                theme_text_color="Primary",
+                font_size=font_sizes["title"]
+            )
+            card.add_widget(title)
+            
+            # Recommendation description
+            desc = MDLabel(
+                text=recommendation.get('rationale', 'No description available'),
+                font_style="Body2",
+                theme_text_color="Secondary",
+                font_size=font_sizes["desc"],
+                text_size=(None, None)
+            )
+            card.add_widget(desc)
+            
+            # Action button
+            action_btn = MDRaisedButton(
+                text="Run Analysis",
+                size_hint=(None, None),
+                height=button_height,
+                width=dp(140),
+                font_size=font_sizes["button"]
+            )
+            card.add_widget(action_btn)
+            
+            return card
+            
+        except Exception as e:
+            print(f"Error creating tablet recommendation card: {e}")
+            # Fallback to original method
+            return self.create_recommendation_card(recommendation)
 
     def create_recommendation_card(self, recommendation):
         """Create a recommendation card"""
@@ -561,4 +769,154 @@ class AnalyticsScreen(Screen):
 
     def show_analysis_config(self):
         """Show analysis configuration dialog"""
-        toast("Analysis configuration coming soon!") 
+        toast("Analysis configuration coming soon")
+        
+    def on_window_resize(self, width, height):
+        """Handle window resize for responsive layout adjustments"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            # Determine screen size category and orientation
+            category = ResponsiveHelper.get_screen_size_category()
+            is_landscape = ResponsiveHelper.is_landscape()
+            
+            print(f"Analytics: Window resized to {width}x{height} - {category} {'landscape' if is_landscape else 'portrait'}")
+            
+            # Update responsive properties
+            self.update_responsive_layout()
+            
+        except Exception as e:
+            print(f"Error handling window resize in analytics: {e}")
+    
+    def update_responsive_layout(self):
+        """Update layout based on current screen size"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            category = ResponsiveHelper.get_screen_size_category()
+            is_landscape = ResponsiveHelper.is_landscape()
+            
+            print(f"Analytics: Updating responsive layout for {category} {'landscape' if is_landscape else 'portrait'}")
+            
+            # Update all tab layouts
+            self.update_tab_layouts(category, is_landscape)
+            
+            # Update stats container spacing
+            if hasattr(self.ids, 'stats_container'):
+                spacing = ResponsiveHelper.get_responsive_spacing()
+                self.ids.stats_container.spacing = spacing
+            
+            # Update tab bar for larger screens
+            if hasattr(self.ids, 'analytics_tabs'):
+                if category in ["tablet", "large_tablet"]:
+                    self.ids.analytics_tabs.tab_bar_height = dp(64)
+                else:
+                    self.ids.analytics_tabs.tab_bar_height = dp(48)
+            
+        except Exception as e:
+            print(f"Error updating responsive layout in analytics: {e}")
+    
+    def update_tab_layouts(self, category, is_landscape):
+        """Update layout orientation for all analytics tabs based on screen size"""
+        # Determine if we should use side-by-side layout
+        use_side_by_side = self.should_use_side_by_side_layout(category, is_landscape)
+        
+        print(f"Analytics: Using {'side-by-side' if use_side_by_side else 'stacked'} layout")
+        
+        # Update each tab layout
+        tab_layouts = [
+            'auto_detection_layout',
+            'descriptive_layout', 
+            'inferential_layout',
+            'qualitative_layout'
+        ]
+        
+        for layout_id in tab_layouts:
+            if hasattr(self.ids, layout_id):
+                layout = getattr(self.ids, layout_id)
+                if use_side_by_side:
+                    self.setup_side_by_side_layout(layout, layout_id)
+                else:
+                    self.setup_stacked_layout(layout, layout_id)
+    
+    def should_use_side_by_side_layout(self, category, is_landscape):
+        """Determine if side-by-side layout should be used"""
+        if category == "large_tablet":
+            return True  # Always use side-by-side on large tablets
+        elif category == "tablet":
+            return is_landscape  # Use side-by-side on tablet landscape only
+        elif category == "small_tablet":
+            return is_landscape  # Use side-by-side on small tablet landscape only
+        else:  # phone
+            return False  # Never use side-by-side on phones
+    
+    def setup_side_by_side_layout(self, layout, layout_id):
+        """Configure layout for side-by-side configuration + results panels"""
+        if not layout:
+            return
+            
+        layout.orientation = 'horizontal'
+        layout.spacing = dp(16)
+        
+        # Find and configure panels
+        config_panel = self.find_config_panel(layout, layout_id)
+        results_panel = self.find_results_panel(layout, layout_id)
+        
+        if config_panel:
+            config_panel.size_hint_x = 0.35  # 35% width
+            config_panel.size_hint_y = 1
+        
+        if results_panel:
+            results_panel.size_hint_x = 0.65  # 65% width
+            results_panel.size_hint_y = 1
+    
+    def setup_stacked_layout(self, layout, layout_id):
+        """Configure layout for stacked configuration over results"""
+        if not layout:
+            return
+            
+        layout.orientation = 'vertical'
+        layout.spacing = dp(12)
+        
+        # Find and configure panels
+        config_panel = self.find_config_panel(layout, layout_id)
+        results_panel = self.find_results_panel(layout, layout_id)
+        
+        if config_panel:
+            config_panel.size_hint_x = 1  # Full width
+            config_panel.size_hint_y = None  # Auto height
+            # Set specific height for config panel in stacked mode
+            if hasattr(config_panel, 'height'):
+                config_panel.height = dp(200)
+        
+        if results_panel:
+            results_panel.size_hint_x = 1  # Full width
+            results_panel.size_hint_y = 1  # Take remaining space
+    
+    def find_config_panel(self, layout, layout_id):
+        """Find the configuration panel in a layout"""
+        config_panel_ids = {
+            'auto_detection_layout': 'auto_config_panel',
+            'descriptive_layout': 'descriptive_config_panel',
+            'inferential_layout': 'inferential_config_panel',
+            'qualitative_layout': 'qualitative_config_panel'
+        }
+        
+        panel_id = config_panel_ids.get(layout_id)
+        if panel_id and hasattr(self.ids, panel_id):
+            return getattr(self.ids, panel_id)
+        return None
+    
+    def find_results_panel(self, layout, layout_id):
+        """Find the results panel in a layout"""
+        results_panel_ids = {
+            'auto_detection_layout': 'auto_results_panel',
+            'descriptive_layout': 'descriptive_results_panel',
+            'inferential_layout': 'inferential_results_panel',
+            'qualitative_layout': 'qualitative_results_panel'
+        }
+        
+        panel_id = results_panel_ids.get(layout_id)
+        if panel_id and hasattr(self.ids, panel_id):
+            return getattr(self.ids, panel_id)
+        return None 

@@ -46,19 +46,26 @@ def dashboard_stats(request):
     
         active_projects = user_projects.count()
         
-        # Team members calculation (unique users who have activity in user's accessible projects)
+        # Team members calculation using new ProjectMember model
         team_member_ids = set()
         
-        # Add response collectors from user's accessible projects
+        # Add project creators from user's accessible projects
+        project_creators = user_projects.values_list('created_by_id', flat=True).distinct()
+        team_member_ids.update(project_creators)
+        
+        # Add team members from ProjectMember model
+        from projects.models import ProjectMember
+        project_members = ProjectMember.objects.filter(
+            project__in=user_projects
+        ).values_list('user_id', flat=True).distinct()
+        team_member_ids.update(project_members)
+        
+        # Add response collectors from user's accessible projects (for backward compatibility)
         response_collectors = ResponseModel.objects.filter(
             project__in=user_projects,
             collected_by__isnull=False
         ).values_list('collected_by_id', flat=True).distinct()
         team_member_ids.update(response_collectors)
-        
-        # Add project creators from user's accessible projects
-        project_creators = user_projects.values_list('created_by_id', flat=True).distinct()
-        team_member_ids.update(project_creators)
         
         team_members = len(team_member_ids)
     
@@ -188,6 +195,25 @@ def activity_stream(request):
                 'project_id': str(project.id)
             })
         
+        # Recent team member activities - user-specific
+        from projects.models import ProjectMemberActivity
+        team_activities = ProjectMemberActivity.objects.filter(
+            project__in=user_projects,
+            created_at__gte=thirty_days_ago
+        ).select_related('project', 'actor', 'target_user').order_by('-created_at')[:10]
+        
+        for activity in team_activities:
+            activities.append({
+                'text': activity.description,
+                'timestamp': activity.created_at.isoformat(),
+                'verb': activity.activity_type,
+                'type': 'team_member',
+                'project_name': activity.project.name,
+                'project_id': str(activity.project.id),
+                'actor_name': activity.actor.first_name or activity.actor.username,
+                'target_name': activity.target_user.first_name or activity.target_user.username if activity.target_user else None
+            })
+        
         # Recent sync activities - user-specific
         user_sync_queue = SyncQueue.objects.filter(
             created_at__gte=thirty_days_ago,
@@ -250,16 +276,27 @@ def dashboard_combined(request):
         
         active_projects = user_projects.count()
         
-        # Team members calculation
+        # Team members calculation using new ProjectMember model
         team_member_ids = set()
+        
+        # Add project creators from user's accessible projects
+        project_creators = user_projects.values_list('created_by_id', flat=True).distinct()
+        team_member_ids.update(project_creators)
+        
+        # Add team members from ProjectMember model
+        from projects.models import ProjectMember
+        project_members = ProjectMember.objects.filter(
+            project__in=user_projects
+        ).values_list('user_id', flat=True).distinct()
+        team_member_ids.update(project_members)
+        
+        # Add response collectors from user's accessible projects (for backward compatibility)
         response_collectors = ResponseModel.objects.filter(
             project__in=user_projects,
             collected_by__isnull=False
         ).values_list('collected_by_id', flat=True).distinct()
         team_member_ids.update(response_collectors)
         
-        project_creators = user_projects.values_list('created_by_id', flat=True).distinct()
-        team_member_ids.update(project_creators)
         team_members = len(team_member_ids)
         
         # Sync statistics - user-specific
@@ -318,6 +355,21 @@ def dashboard_combined(request):
                 'timestamp': project.created_at.isoformat(),
                 'verb': 'created',
                 'type': 'project'
+            })
+        
+        # Recent team member activities from user's accessible projects
+        from projects.models import ProjectMemberActivity
+        team_activities = ProjectMemberActivity.objects.filter(
+            project__in=user_projects,
+            created_at__gte=thirty_days_ago
+        ).select_related('project', 'actor', 'target_user').order_by('-created_at')[:8]
+        
+        for activity in team_activities:
+            activities.append({
+                'text': activity.description,
+                'timestamp': activity.created_at.isoformat(),
+                'verb': activity.activity_type,
+                'type': 'team_member'
             })
         
         # Sort activities by timestamp
