@@ -1,479 +1,486 @@
 <FormBuilderScreen>:
-    MDBoxLayout:
-        orientation: 'vertical'
-        spacing: 0
-        size_hint: 1, 1  # Ensure full screen coverage
-        md_bg_color: 0.96, 0.96, 0.96, 1
-
-        # Top Bar - Consistent with other screens
-        TopBar:
-            id: top_bar
-            size_hint_y: None
-            height: dp(56)
-
-        # Enhanced Header Bar
-        MDCard:
-            orientation: 'vertical'
-            size_hint_y: None
-            height: dp(70)  # Further reduced to save more space
-            elevation: 2
-            md_bg_color: 1, 1, 1, 1
-
-            # Project Selection Row - Simplified
-            MDBoxLayout:
-                orientation: 'horizontal'
-                padding: [dp(20), dp(16), dp(20), dp(16)]
-                spacing: dp(16)
-                size_hint_y: None
-                height: dp(48)
-
-                MDLabel:
-                    text: "Project:"
-                    font_style: "Subtitle1"
-                    theme_text_color: "Primary"
-                    font_size: "16sp"
-                    size_hint_x: None
-                    width: dp(80)
-                    halign: "left"
-
-                MDDropDownItem:
-                    id: project_spinner
-                    text: 'Select Project'
-                    on_release: root.open_project_menu()
-                    size_hint_x: 1
-                    font_size: '16sp'
-
-            # Description Row
-            MDBoxLayout:
-                padding: [dp(20), 0, dp(20), dp(16)]
-                size_hint_y: None
-                height: dp(32)
-
-                MDLabel:
-                    text: "Build professional forms with customizable question types"
-                    font_style: "Body2"
-                    theme_text_color: "Secondary"
-                    font_size: "14sp"
-
-        # Main Content Area - Properly sized to fill available space
+    FloatLayout:
         MDBoxLayout:
-            orientation: 'horizontal'
-            spacing: dp(16)
-            padding: [dp(16), dp(16), dp(16), dp(16)]
-            size_hint: 1, 1  # Fill all available space
+            orientation: 'vertical'
+            spacing: 0
+            size_hint: 1, 1  # Ensure full screen coverage
+            md_bg_color: 0.96, 0.96, 0.96, 1
 
-            # Left Sidebar - Question Types
-            MDCard:
-                id: sidebar_card
-                orientation: 'vertical'
-                size_hint: (0.32, 1)  # 32% width, full height
-                elevation: 1
-                md_bg_color: 1, 1, 1, 1
+            # Top Bar - Consistent with other screens
+            TopBar:
+                id: top_bar
+                size_hint_y: None
+                height: dp(56)
 
-                # Sidebar Header
-                MDBoxLayout:
-                    orientation: 'vertical'
-                    size_hint_y: None
-                    height: dp(50)  # Match form canvas header
-                    padding: [dp(16), dp(12), dp(16), dp(8)]
+            Widget:
+                size_hint_y: None
+                height: dp(15)
 
-                    MDLabel:
-                        text: "Question Types"
-                        font_style: "H6"
-                        bold: True
-                        theme_text_color: "Primary"
-                        font_size: "18sp"
-                        size_hint_y: None
-                        height: dp(24)
-
-                    MDLabel:
-                        text: "Choose question types to build your form"
-                        font_style: "Caption"
-                        theme_text_color: "Secondary"
-                        font_size: "12sp"
-                        size_hint_y: None
-                        height: dp(18)
-
-                # Scrollable Question Types - Expand to fill remaining space
-                MDScrollView:
-                    do_scroll_x: False
-                    do_scroll_y: True
-                    size_hint: 1, 1  # Fill remaining space in sidebar
-                    bar_width: dp(4)
-                    bar_color: 0.8, 0.8, 0.8, 1
-
-                    MDBoxLayout:
-                        orientation: 'vertical'
-                        padding: [dp(16), dp(12), dp(16), dp(16)]
-                        spacing: dp(16)  # Reduced spacing for better fit
-                        size_hint_y: None
-                        height: max(self.minimum_height, self.parent.height)
-
-                        # TEXT RESPONSES SECTION
-                        MDBoxLayout:
-                            orientation: 'vertical'
-                            spacing: dp(12)  # Increased spacing for tablets
-                            size_hint_y: None
-                            height: self.minimum_height
-
-                            # Section Header
-                            MDBoxLayout:
-                                orientation: 'horizontal'
-                                spacing: dp(8)
-                                size_hint_y: None
-                                height: dp(32)  # Larger header for tablets
-
-                                MDIcon:
-                                    icon: "format-text"
-                                    size_hint: None, None
-                                    size: dp(24), dp(24)  # Larger icon for tablets
-                                    theme_icon_color: "Primary"
-
-                                MDLabel:
-                                    text: "Text Responses"
-                                    font_style: "Subtitle1"
-                                    bold: True
-                                    theme_text_color: "Primary"
-                                    font_size: "16sp"  # Larger font for tablets
-
-                            # Text Response Buttons - Tablet optimized
-                            MDRaisedButton:
-                                text: "Short Text"
-                                on_release: root.add_question('text_short')
-                                size_hint_y: None
-                                height: dp(48)  # Tablet-friendly touch target
-                                md_bg_color: 0.2, 0.6, 1, 1
-                                font_size: "15sp"  # Larger font for tablets
-                                elevation: 1
-
-                            MDRaisedButton:
-                                text: "Long Text"
-                                on_release: root.add_question('text_long')
-                                size_hint_y: None
-                                height: dp(48)  # Tablet-friendly touch target
-                                md_bg_color: 0.2, 0.6, 1, 1
-                                font_size: "15sp"  # Larger font for tablets
-                                elevation: 1
-
-                        # NUMERIC RESPONSES SECTION
-                        MDBoxLayout:
-                            orientation: 'vertical'
-                            spacing: dp(12)  # Increased spacing for tablets
-                            size_hint_y: None
-                            height: self.minimum_height
-
-                            # Section Header
-                            MDBoxLayout:
-                                orientation: 'horizontal'
-                                spacing: dp(8)
-                                size_hint_y: None
-                                height: dp(32)  # Larger header for tablets
-
-                                MDIcon:
-                                    icon: "numeric"
-                                    size_hint: None, None
-                                    size: dp(24), dp(24)  # Larger icon for tablets
-                                    theme_icon_color: "Primary"
-
-                                MDLabel:
-                                    text: "Numeric Responses"
-                                    font_style: "Subtitle1"
-                                    bold: True
-                                    theme_text_color: "Primary"
-                                    font_size: "16sp"  # Larger font for tablets
-
-                            # Numeric Response Buttons - Tablet optimized
-                            MDRaisedButton:
-                                text: "Number (Integer)"
-                                on_release: root.add_question('numeric_integer')
-                                size_hint_y: None
-                                height: dp(48)  # Tablet-friendly touch target
-                                md_bg_color: 1, 0.6, 0.2, 1
-                                font_size: "15sp"  # Larger font for tablets
-                                elevation: 1
-
-                            MDRaisedButton:
-                                text: "Number (Decimal)"
-                                on_release: root.add_question('numeric_decimal')
-                                size_hint_y: None
-                                height: dp(48)  # Tablet-friendly touch target
-                                md_bg_color: 1, 0.6, 0.2, 1
-                                font_size: "15sp"  # Larger font for tablets
-                                elevation: 1
-
-                        # CHOICE RESPONSES SECTION
-                        MDBoxLayout:
-                            orientation: 'vertical'
-                            spacing: dp(8)  # Reduced spacing
-                            size_hint_y: None
-                            height: self.minimum_height
-
-                            # Section Header
-                            MDBoxLayout:
-                                orientation: 'horizontal'
-                                spacing: dp(8)
-                                size_hint_y: None
-                                height: dp(28)  # Smaller header
-
-                                MDIcon:
-                                    icon: "check-circle-outline"
-                                    size_hint: None, None
-                                    size: dp(18), dp(18)  # Smaller icon
-                                    theme_icon_color: "Primary"
-
-                                MDLabel:
-                                    text: "Choice Responses"
-                                    font_style: "Subtitle1"
-                                    bold: True
-                                    theme_text_color: "Primary"
-                                    font_size: "15sp"  # Smaller font
-
-                            # Choice Response Buttons
-                            MDRaisedButton:
-                                text: "Single Choice"
-                                on_release: root.add_question('choice_single')
-                                size_hint_y: None
-                                height: dp(36)
-                                md_bg_color: 0.8, 0.4, 0.2, 1
-                                font_size: "13sp"
-                                elevation: 1
-
-                            MDRaisedButton:
-                                text: "Multiple Choice"
-                                on_release: root.add_question('choice_multiple')
-                                size_hint_y: None
-                                height: dp(36)
-                                md_bg_color: 0.8, 0.4, 0.2, 1
-                                font_size: "13sp"
-                                elevation: 1
-
-                        # DATE & TIME SECTION
-                        MDBoxLayout:
-                            orientation: 'vertical'
-                            spacing: dp(8)  # Reduced spacing
-                            size_hint_y: None
-                            height: self.minimum_height
-
-                            # Section Header
-                            MDBoxLayout:
-                                orientation: 'horizontal'
-                                spacing: dp(8)
-                                size_hint_y: None
-                                height: dp(28)  # Smaller header
-
-                                MDIcon:
-                                    icon: "calendar"
-                                    size_hint: None, None
-                                    size: dp(18), dp(18)  # Smaller icon
-                                    theme_icon_color: "Primary"
-
-                                MDLabel:
-                                    text: "Date & Time"
-                                    font_style: "Subtitle1"
-                                    bold: True
-                                    theme_text_color: "Primary"
-                                    font_size: "15sp"  # Smaller font
-
-                            # Date & Time Buttons
-                            MDRaisedButton:
-                                text: "Date"
-                                on_release: root.add_question('date')
-                                size_hint_y: None
-                                height: dp(36)
-                                md_bg_color: 0.2, 0.7, 0.4, 1
-                                font_size: "13sp"
-                                elevation: 1
-
-                            MDRaisedButton:
-                                text: "Date & Time"
-                                on_release: root.add_question('datetime')
-                                size_hint_y: None
-                                height: dp(36)
-                                md_bg_color: 0.2, 0.7, 0.4, 1
-                                font_size: "13sp"
-                                elevation: 1
-
-                        # SPECIAL SECTION
-                        MDBoxLayout:
-                            orientation: 'vertical'
-                            spacing: dp(8)  # Reduced spacing
-                            size_hint_y: None
-                            height: self.minimum_height
-
-                            # Section Header
-                            MDBoxLayout:
-                                orientation: 'horizontal'
-                                spacing: dp(8)
-                                size_hint_y: None
-                                height: dp(28)  # Smaller header
-
-                                MDIcon:
-                                    icon: "cog"
-                                    size_hint: None, None
-                                    size: dp(18), dp(18)  # Smaller icon
-                                    theme_icon_color: "Primary"
-
-                                MDLabel:
-                                    text: "Special Types"
-                                    font_style: "Subtitle1"
-                                    bold: True
-                                    theme_text_color: "Primary"
-                                    font_size: "15sp"  # Smaller font
-
-                            # Special Buttons
-                            MDRaisedButton:
-                                text: "GPS Location"
-                                on_release: root.add_question('geopoint')
-                                size_hint_y: None
-                                height: dp(36)
-                                md_bg_color: 0.6, 0.2, 0.8, 1
-                                font_size: "13sp"
-                                elevation: 1
-
-                            MDRaisedButton:
-                                text: "Photo/Image"
-                                on_release: root.add_question('image')
-                                size_hint_y: None
-                                height: dp(36)
-                                md_bg_color: 0.2, 0.8, 0.8, 1
-                                font_size: "13sp"
-                                elevation: 1
-
-                            MDRaisedButton:
-                                text: "Audio Recording"
-                                on_release: root.add_question('audio')
-                                size_hint_y: None
-                                height: dp(36)
-                                md_bg_color: 0.2, 0.8, 0.8, 1
-                                font_size: "13sp"
-                                elevation: 1
-
-                            MDRaisedButton:
-                                text: "Barcode/QR Code"
-                                on_release: root.add_question('barcode')
-                                size_hint_y: None
-                                height: dp(36)
-                                md_bg_color: 0.4, 0.4, 0.4, 1
-                                font_size: "13sp"
-                                elevation: 1
-
-            # Right Panel - Form Canvas
+            # Enhanced Header Bar
             MDCard:
                 orientation: 'vertical'
-                size_hint: (0.68, 1)  # 68% width, full height
-                elevation: 1
+                size_hint_y: None
+                height: dp(70)  # Further reduced to save more space
+                elevation: 2
                 md_bg_color: 1, 1, 1, 1
 
-                # Form Canvas Header - Simplified
+                # Project Selection Row - Simplified
                 MDBoxLayout:
-                    orientation: 'vertical'
+                    orientation: 'horizontal'
+                    padding: [dp(20), dp(16), dp(20), dp(16)]
+                    spacing: dp(16)
                     size_hint_y: None
-                    height: dp(50)  # Further reduced
-                    padding: [dp(16), dp(12), dp(16), dp(8)]
+                    height: dp(48)
 
                     MDLabel:
-                        text: "Form Questions"
-                        font_style: "H6"
-                        bold: True
+                        text: "Project:"
+                        font_style: "Subtitle1"
                         theme_text_color: "Primary"
-                        font_size: "18sp"
-                        size_hint_y: None
-                        height: dp(24)
+                        font_size: "16sp"
+                        size_hint_x: None
+                        width: dp(80)
+                        halign: "left"
+
+                    MDDropDownItem:
+                        id: project_spinner
+                        text: 'Select Project'
+                        on_release: root.open_project_menu()
+                        size_hint_x: 1
+                        font_size: '16sp'
+
+                # Description Row
+                MDBoxLayout:
+                    padding: [dp(20), 0, dp(20), dp(16)]
+                    size_hint_y: None
+                    height: dp(32)
 
                     MDLabel:
-                        text: "Add questions from the left panel to build your form"
+                        text: "Build professional forms with customizable question types"
                         font_style: "Body2"
                         theme_text_color: "Secondary"
                         font_size: "14sp"
-                        size_hint_y: None
-                        height: dp(18)
 
-                # Form Canvas Content Area - Expand to fill remaining space
-                MDScrollView:
-                    do_scroll_x: False
-                    do_scroll_y: True
-                    size_hint: 1, 1  # Fill remaining space
-                    bar_width: dp(4)
-                    bar_color: 0.8, 0.8, 0.8, 1
+            # Main Content Area - Properly sized to fill available space
+            MDBoxLayout:
+                orientation: 'horizontal'
+                spacing: dp(16)
+                padding: [dp(32), dp(16), dp(32), 0]
+                size_hint_y: 1  # This makes it expand to fill available space
 
+                # Left Sidebar - Question Types
+                MDCard:
+                    id: sidebar_card
+                    orientation: 'vertical'
+                    size_hint: (0.32, 1)
+                    size_hint_y: 1  # Stretch vertically
+                    elevation: 1
+                    md_bg_color: 1, 1, 1, 1
+
+                    # Sidebar Header
                     MDBoxLayout:
-                        id: form_canvas
                         orientation: 'vertical'
-                        spacing: dp(16)
                         size_hint_y: None
-                        height: max(self.minimum_height, self.parent.height)
-                        padding: [dp(20), dp(16), dp(20), dp(20)]
+                        height: dp(50)  # Match form canvas header
+                        padding: [dp(16), dp(12), dp(16), dp(8)]
 
-                        # Empty state when no questions
-                        MDBoxLayout:
-                            id: empty_state
-                            orientation: 'vertical'
-                            spacing: dp(16)
+                        MDLabel:
+                            text: "Question Types"
+                            font_style: "H6"
+                            bold: True
+                            theme_text_color: "Primary"
+                            font_size: "18sp"
                             size_hint_y: None
-                            height: dp(200)
+                            height: dp(24)
 
-                            Widget:
+                        MDLabel:
+                            text: "Choose question types to build your form"
+                            font_style: "Caption"
+                            theme_text_color: "Secondary"
+                            font_size: "12sp"
+                            size_hint_y: None
+                            height: dp(18)
+
+                    # Scrollable Question Types - Expand to fill remaining space
+                    MDScrollView:
+                        do_scroll_x: False
+                        do_scroll_y: True
+                        size_hint: 1, 1  # Fill remaining space in sidebar
+                        bar_width: dp(4)
+                        bar_color: 0.8, 0.8, 0.8, 1
+
+                        MDBoxLayout:
+                            orientation: 'vertical'
+                            padding: [dp(16), dp(12), dp(16), dp(16)]
+                            spacing: dp(16)  # Reduced spacing for better fit
+                            size_hint_y: None
+                            height: max(self.minimum_height, self.parent.height)
+
+                            # TEXT RESPONSES SECTION
+                            MDBoxLayout:
+                                orientation: 'vertical'
+                                spacing: dp(12)  # Increased spacing for tablets
                                 size_hint_y: None
-                                height: dp(40)
+                                height: self.minimum_height
 
-                            MDIcon:
-                                icon: "clipboard-text-outline"
-                                size_hint: None, None
-                                size: dp(64), dp(64)
-                                pos_hint: {'center_x': 0.5}
-                                theme_icon_color: "Hint"
+                                # Section Header
+                                MDBoxLayout:
+                                    orientation: 'horizontal'
+                                    spacing: dp(8)
+                                    size_hint_y: None
+                                    height: dp(32)  # Larger header for tablets
 
-                            MDLabel:
-                                text: "No questions added yet"
-                                font_style: "H6"
-                                theme_text_color: "Hint"
-                                halign: "center"
-                                font_size: "18sp"
+                                    MDIcon:
+                                        icon: "format-text"
+                                        size_hint: None, None
+                                        size: dp(24), dp(24)  # Larger icon for tablets
+                                        theme_icon_color: "Primary"
 
-                            MDLabel:
-                                text: "Select question types from the left panel to start building your form"
-                                font_style: "Body2"
-                                theme_text_color: "Hint"
-                                halign: "center"
-                                font_size: "14sp"
+                                    MDLabel:
+                                        text: "Text Responses"
+                                        font_style: "Subtitle1"
+                                        bold: True
+                                        theme_text_color: "Primary"
+                                        font_size: "16sp"  # Larger font for tablets
 
-        # Footer - Action buttons at bottom
-        MDCard:
-            orientation: 'horizontal'
-            size_hint_y: None
-            height: dp(50)  # Further reduced for maximum content space
-            padding: [dp(20), dp(8)]
-            spacing: dp(16)
-            elevation: 2
-            md_bg_color: 1, 1, 1, 1
+                                # Text Response Buttons - Tablet optimized
+                                MDRaisedButton:
+                                    text: "Short Text"
+                                    on_release: root.add_question('text_short')
+                                    size_hint_y: None
+                                    height: dp(48)  # Tablet-friendly touch target
+                                    md_bg_color: 0.2, 0.6, 1, 1
+                                    font_size: "15sp"  # Larger font for tablets
+                                    elevation: 1
 
-            Widget:
-                size_hint_x: 1
+                                MDRaisedButton:
+                                    text: "Long Text"
+                                    on_release: root.add_question('text_long')
+                                    size_hint_y: None
+                                    height: dp(48)  # Tablet-friendly touch target
+                                    md_bg_color: 0.2, 0.6, 1, 1
+                                    font_size: "15sp"  # Larger font for tablets
+                                    elevation: 1
 
-            MDRaisedButton:
-                text: "Save Form"
-                icon: "content-save"
-                md_bg_color: 0.27, 0.65, 0.27, 1
-                font_size: "14sp"
-                size_hint: None, None
-                size: dp(120), dp(40)
+                            # NUMERIC RESPONSES SECTION
+                            MDBoxLayout:
+                                orientation: 'vertical'
+                                spacing: dp(12)  # Increased spacing for tablets
+                                size_hint_y: None
+                                height: self.minimum_height
+
+                                # Section Header
+                                MDBoxLayout:
+                                    orientation: 'horizontal'
+                                    spacing: dp(8)
+                                    size_hint_y: None
+                                    height: dp(32)  # Larger header for tablets
+
+                                    MDIcon:
+                                        icon: "numeric"
+                                        size_hint: None, None
+                                        size: dp(24), dp(24)  # Larger icon for tablets
+                                        theme_icon_color: "Primary"
+
+                                    MDLabel:
+                                        text: "Numeric Responses"
+                                        font_style: "Subtitle1"
+                                        bold: True
+                                        theme_text_color: "Primary"
+                                        font_size: "16sp"  # Larger font for tablets
+
+                                # Numeric Response Buttons - Tablet optimized
+                                MDRaisedButton:
+                                    text: "Number (Integer)"
+                                    on_release: root.add_question('numeric_integer')
+                                    size_hint_y: None
+                                    height: dp(48)  # Tablet-friendly touch target
+                                    md_bg_color: 1, 0.6, 0.2, 1
+                                    font_size: "15sp"  # Larger font for tablets
+                                    elevation: 1
+
+                                MDRaisedButton:
+                                    text: "Number (Decimal)"
+                                    on_release: root.add_question('numeric_decimal')
+                                    size_hint_y: None
+                                    height: dp(48)  # Tablet-friendly touch target
+                                    md_bg_color: 1, 0.6, 0.2, 1
+                                    font_size: "15sp"  # Larger font for tablets
+                                    elevation: 1
+
+                            # CHOICE RESPONSES SECTION
+                            MDBoxLayout:
+                                orientation: 'vertical'
+                                spacing: dp(8)  # Reduced spacing
+                                size_hint_y: None
+                                height: self.minimum_height
+
+                                # Section Header
+                                MDBoxLayout:
+                                    orientation: 'horizontal'
+                                    spacing: dp(8)
+                                    size_hint_y: None
+                                    height: dp(28)  # Smaller header
+
+                                    MDIcon:
+                                        icon: "check-circle-outline"
+                                        size_hint: None, None
+                                        size: dp(18), dp(18)  # Smaller icon
+                                        theme_icon_color: "Primary"
+
+                                    MDLabel:
+                                        text: "Choice Responses"
+                                        font_style: "Subtitle1"
+                                        bold: True
+                                        theme_text_color: "Primary"
+                                        font_size: "15sp"  # Smaller font
+
+                                # Choice Response Buttons
+                                MDRaisedButton:
+                                    text: "Single Choice"
+                                    on_release: root.add_question('choice_single')
+                                    size_hint_y: None
+                                    height: dp(36)
+                                    md_bg_color: 0.8, 0.4, 0.2, 1
+                                    font_size: "13sp"
+                                    elevation: 1
+
+                                MDRaisedButton:
+                                    text: "Multiple Choice"
+                                    on_release: root.add_question('choice_multiple')
+                                    size_hint_y: None
+                                    height: dp(36)
+                                    md_bg_color: 0.8, 0.4, 0.2, 1
+                                    font_size: "13sp"
+                                    elevation: 1
+
+                            # DATE & TIME SECTION
+                            MDBoxLayout:
+                                orientation: 'vertical'
+                                spacing: dp(8)  # Reduced spacing
+                                size_hint_y: None
+                                height: self.minimum_height
+
+                                # Section Header
+                                MDBoxLayout:
+                                    orientation: 'horizontal'
+                                    spacing: dp(8)
+                                    size_hint_y: None
+                                    height: dp(28)  # Smaller header
+
+                                    MDIcon:
+                                        icon: "calendar"
+                                        size_hint: None, None
+                                        size: dp(18), dp(18)  # Smaller icon
+                                        theme_icon_color: "Primary"
+
+                                    MDLabel:
+                                        text: "Date & Time"
+                                        font_style: "Subtitle1"
+                                        bold: True
+                                        theme_text_color: "Primary"
+                                        font_size: "15sp"  # Smaller font
+
+                                # Date & Time Buttons
+                                MDRaisedButton:
+                                    text: "Date"
+                                    on_release: root.add_question('date')
+                                    size_hint_y: None
+                                    height: dp(36)
+                                    md_bg_color: 0.2, 0.7, 0.4, 1
+                                    font_size: "13sp"
+                                    elevation: 1
+
+                                MDRaisedButton:
+                                    text: "Date & Time"
+                                    on_release: root.add_question('datetime')
+                                    size_hint_y: None
+                                    height: dp(36)
+                                    md_bg_color: 0.2, 0.7, 0.4, 1
+                                    font_size: "13sp"
+                                    elevation: 1
+
+                            # SPECIAL SECTION
+                            MDBoxLayout:
+                                orientation: 'vertical'
+                                spacing: dp(8)  # Reduced spacing
+                                size_hint_y: None
+                                height: self.minimum_height
+
+                                # Section Header
+                                MDBoxLayout:
+                                    orientation: 'horizontal'
+                                    spacing: dp(8)
+                                    size_hint_y: None
+                                    height: dp(28)  # Smaller header
+
+                                    MDIcon:
+                                        icon: "cog"
+                                        size_hint: None, None
+                                        size: dp(18), dp(18)  # Smaller icon
+                                        theme_icon_color: "Primary"
+
+                                    MDLabel:
+                                        text: "Special Types"
+                                        font_style: "Subtitle1"
+                                        bold: True
+                                        theme_text_color: "Primary"
+                                        font_size: "15sp"  # Smaller font
+
+                                # Special Buttons
+                                MDRaisedButton:
+                                    text: "GPS Location"
+                                    on_release: root.add_question('geopoint')
+                                    size_hint_y: None
+                                    height: dp(36)
+                                    md_bg_color: 0.6, 0.2, 0.8, 1
+                                    font_size: "13sp"
+                                    elevation: 1
+
+                                MDRaisedButton:
+                                    text: "Photo/Image"
+                                    on_release: root.add_question('image')
+                                    size_hint_y: None
+                                    height: dp(36)
+                                    md_bg_color: 0.2, 0.8, 0.8, 1
+                                    font_size: "13sp"
+                                    elevation: 1
+
+                                MDRaisedButton:
+                                    text: "Audio Recording"
+                                    on_release: root.add_question('audio')
+                                    size_hint_y: None
+                                    height: dp(36)
+                                    md_bg_color: 0.2, 0.8, 0.8, 1
+                                    font_size: "13sp"
+                                    elevation: 1
+
+                                MDRaisedButton:
+                                    text: "Barcode/QR Code"
+                                    on_release: root.add_question('barcode')
+                                    size_hint_y: None
+                                    height: dp(36)
+                                    md_bg_color: 0.4, 0.4, 0.4, 1
+                                    font_size: "13sp"
+                                    elevation: 1
+
+                # Right Panel - Form Canvas
+                MDCard:
+                    orientation: 'vertical'
+                    size_hint: (0.68, 1)
+                    size_hint_y: 1  # Stretch vertically
+                    elevation: 1
+                    md_bg_color: 1, 1, 1, 1
+
+                    # Form Canvas Header - Simplified
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: dp(50)  # Further reduced
+                        padding: [dp(16), dp(12), dp(16), dp(8)]
+
+                        MDLabel:
+                            text: "Form Questions"
+                            font_style: "H6"
+                            bold: True
+                            theme_text_color: "Primary"
+                            font_size: "18sp"
+                            size_hint_y: None
+                            height: dp(24)
+
+                        MDLabel:
+                            text: "Add questions from the left panel to build your form"
+                            font_style: "Body2"
+                            theme_text_color: "Secondary"
+                            font_size: "14sp"
+                            size_hint_y: None
+                            height: dp(18)
+
+                    # Form Canvas Content Area - Expand to fill remaining space
+                    MDScrollView:
+                        do_scroll_x: False
+                        do_scroll_y: True
+                        size_hint: 1, 1  # Fill remaining space
+                        bar_width: dp(4)
+                        bar_color: 0.8, 0.8, 0.8, 1
+
+                        MDBoxLayout:
+                            id: form_canvas
+                            orientation: 'vertical'
+                            spacing: dp(24)
+                            size_hint_y: None
+                            height: max(self.minimum_height, self.parent.height)
+                            padding: [dp(24), dp(24), dp(24), dp(24)]
+
+                            # Empty state when no questions
+                            MDBoxLayout:
+                                id: empty_state
+                                orientation: 'vertical'
+                                spacing: dp(16)
+                                size_hint_y: None
+                                height: dp(200)
+
+                                Widget:
+                                    size_hint_y: None
+                                    height: dp(40)
+
+                                MDIcon:
+                                    icon: "clipboard-text-outline"
+                                    size_hint: None, None
+                                    size: dp(64), dp(64)
+                                    pos_hint: {'center_x': 0.5}
+                                    theme_icon_color: "Hint"
+
+                                MDLabel:
+                                    text: "No questions added yet"
+                                    font_style: "H6"
+                                    theme_text_color: "Hint"
+                                    halign: "center"
+                                    font_size: "18sp"
+
+                                MDLabel:
+                                    text: "Select question types from the left panel to start building your form"
+                                    font_style: "Body2"
+                                    theme_text_color: "Hint"
+                                    halign: "center"
+                                    font_size: "14sp"
+
+            # Footer - Action buttons at bottom
+            MDCard:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: dp(50)  # Further reduced for maximum content space
+                padding: [dp(20), dp(8)]
+                spacing: dp(16)
                 elevation: 2
-                on_release: root.save_form()
+                md_bg_color: 1, 1, 1, 1
 
-            MDRaisedButton:
-                text: "Preview"
-                icon: "eye"
-                md_bg_color: 0.4, 0.4, 0.9, 1
-                font_size: "14sp"
-                size_hint: None, None
-                size: dp(100), dp(40)
-                elevation: 2
-                on_release: root.preview_questions()
+                Widget:
+                    size_hint_x: 1
 
-            Widget:
-                size_hint_x: 1
+                MDRaisedButton:
+                    text: "Save Form"
+                    icon: "content-save"
+                    md_bg_color: 0.27, 0.65, 0.27, 1
+                    font_size: "14sp"
+                    size_hint: None, None
+                    size: dp(120), dp(40)
+                    elevation: 2
+                    on_release: root.save_form()
 
-        # Loading Overlay
+                MDRaisedButton:
+                    text: "Preview"
+                    icon: "eye"
+                    md_bg_color: 0.4, 0.4, 0.9, 1
+                    font_size: "14sp"
+                    size_hint: None, None
+                    size: dp(100), dp(40)
+                    elevation: 2
+                    on_release: root.preview_questions()
+
+                Widget:
+                    size_hint_x: 1
+
+        # Loading Overlay (floats above content, does not affect layout)
         MDBoxLayout:
             id: loading_overlay
             orientation: 'vertical'

@@ -129,18 +129,14 @@ class BaseFormField(MDCard):
             }
     
     def update_responsive_layout(self):
-        """Update layout properties based on screen size"""
         values = self.get_responsive_values()
-        
-        # Update card properties
-        self.padding = values['padding']
+        # Reduce top padding to dp(8), keep left/right/bottom as before
+        self.padding = [values['padding'], dp(8), values['padding'], values['padding']]
         self.spacing = values['spacing']
         self.size_hint_y = None
-        self.height = values['height']
-        self.md_bg_color = (1, 1, 1, 1)  # Pure white background
-        self.elevation = 1  # Subtle shadow
-        
-        # Update existing children if they exist
+        self.height = values['height'] + self.get_content_height() + dp(8)
+        self.md_bg_color = (1, 1, 1, 1)
+        self.elevation = 0.6
         self.update_existing_widgets(values)
     
     def update_existing_widgets(self, values):
@@ -168,29 +164,26 @@ class BaseFormField(MDCard):
             self.response_label.font_size = values['font_size_secondary']
     
     def create_header_section(self):
-        """Create responsive header section"""
         values = self.get_responsive_values()
-        
+        # Remove any extra top padding in header
         self.header_card = MDCard(
             orientation='horizontal',
             size_hint_y=None,
             height=values['header_height'],
-            padding=values['padding'] * 0.6,  # Proportional padding
+            padding=[values['padding'] * 0.6, 0, values['padding'] * 0.6, 0],  # No top/bottom padding
             spacing=dp(12),
-            md_bg_color=(0.95, 0.95, 0.95, 1),  # Light gray background
+            md_bg_color=(0.95, 0.95, 0.95, 1),
             elevation=0
         )
-        
         self.question_number_label = MDLabel(
             text=f"Question {self.question_number}",
             font_style="Subtitle1",
             theme_text_color="Primary",
             bold=True,
             size_hint_x=None,
-            width=dp(120),  # Slightly wider for tablets
+            width=dp(120),
             font_size=values['font_size_main']
         )
-        
         self.response_type_label = MDLabel(
             text=self.get_response_type_display(),
             font_style="Caption",
@@ -198,7 +191,6 @@ class BaseFormField(MDCard):
             halign="right",
             font_size=values['font_size_small']
         )
-        
         self.header_card.add_widget(self.question_number_label)
         self.header_card.add_widget(self.response_type_label)
         self.add_widget(self.header_card)
@@ -325,13 +317,21 @@ class BaseFormField(MDCard):
             
         return len(errors) == 0, errors
 
+    def get_content_height(self):
+        """Override in subclasses to return extra content height."""
+        return 0
+
+    def update_field_height(self):
+        values = self.get_responsive_values()
+        extra_padding = dp(24)
+        self.height = values['height'] + self.get_content_height() + extra_padding
+
 class ShortTextField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "text_short"
-        
-        # Create responsive text input
         self.create_text_input()
+        self.update_field_height()
     
     def create_text_input(self):
         """Create responsive text input field"""
@@ -361,13 +361,16 @@ class ShortTextField(BaseFormField):
         if hasattr(self, 'text_input'):
             self.text_input.text = str(value)
 
+    def get_content_height(self):
+        values = self.get_responsive_values()
+        return values['input_height'] + values['input_height'] 
+
 class LongTextField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "text_long"
-        
-        # Create responsive multiline text input
         self.create_text_input()
+        self.update_field_height()
     
     def create_text_input(self):
         """Create responsive multiline text input field"""
@@ -406,13 +409,17 @@ class LongTextField(BaseFormField):
         if hasattr(self, 'text_input'):
             self.text_input.text = str(value)
 
+    def get_content_height(self):
+        values = self.get_responsive_values()
+        long_text_height = values['input_height'] * 2.5
+        return long_text_height + values['input_height'] - dp(16)
+
 class NumericIntegerField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "numeric_integer"
-        
-        # Create responsive numeric input
         self.create_numeric_input()
+        self.update_field_height()
     
     def create_numeric_input(self):
         """Create responsive numeric input field"""
@@ -455,13 +462,16 @@ class NumericIntegerField(BaseFormField):
             is_valid = False
         return is_valid, errors
 
+    def get_content_height(self):
+        values = self.get_responsive_values()
+        return values['input_height'] + values['input_height'] + dp(8)
+
 class NumericDecimalField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "numeric_decimal"
-        
-        # Create responsive decimal input
         self.create_decimal_input()
+        self.update_field_height()
     
     def create_decimal_input(self):
         """Create responsive decimal input field"""
@@ -504,6 +514,10 @@ class NumericDecimalField(BaseFormField):
             is_valid = False
         return is_valid, errors
 
+    def get_content_height(self):
+        values = self.get_responsive_values()
+        return values['input_height'] + values['input_height'] + dp(8)
+
 class SingleChoiceField(BaseFormField):
     options = ListProperty([])
 
@@ -512,137 +526,97 @@ class SingleChoiceField(BaseFormField):
         self.response_type = "choice_single"
         self.selected_option = None
         self.checkboxes = []
-        
-        # Create responsive options management
         self.create_options_header()
         self.create_options_container()
-        
-        # Initialize with default options if none provided
         if not self.options:
             self.options = ['Option 1', 'Option 2']
-        
-        # Update height based on options and screen size
         self.update_field_height()
-    
+
     def create_options_header(self):
-        """Create responsive options management header"""
-        values = self.get_responsive_values()
-        
         self.options_header = MDBoxLayout(
             orientation='horizontal',
-            spacing=dp(12),  # Increased spacing for tablets
+            spacing=dp(8),
             size_hint_y=None,
-            height=values['button_height']
+            height=dp(40)
         )
-        
         self.options_label = MDLabel(
             text="Options:",
-            size_hint_x=0.3,
+            size_hint_x=0.4,
             font_style="Subtitle2",
             theme_text_color="Primary",
-            font_size=values['font_size_secondary']
+            font_size="14sp",
+            halign="left",
+            valign="middle"
         )
-        
-        # Tablet-optimized buttons with larger touch targets
         self.add_option_btn = MDRaisedButton(
             text="Add Option",
-            size_hint_x=0.35,
-            size_hint_y=None,
-            height=values['button_height'],
-            font_size=values['font_size_small'],
+            size_hint_x=None,
+            width=dp(90),
+            height=dp(32),
+            font_size="12sp",
             on_release=self.add_option
         )
-        
         self.remove_option_btn = MDRaisedButton(
             text="Remove Last",
-            size_hint_x=0.35,
-            size_hint_y=None,
-            height=values['button_height'],
-            font_size=values['font_size_small'],
+            size_hint_x=None,
+            width=dp(110),
+            height=dp(32),
+            font_size="12sp",
             on_release=self.remove_last_option
         )
-        
         self.options_header.add_widget(self.options_label)
         self.options_header.add_widget(self.add_option_btn)
         self.options_header.add_widget(self.remove_option_btn)
         self.add_widget(self.options_header)
-    
+
     def create_options_container(self):
-        """Create responsive options container with multi-column support"""
         self.options_container = MDBoxLayout(
             orientation='vertical',
-            spacing=dp(12),  # Increased spacing for tablets
+            spacing=dp(8),
             size_hint_y=None,
             adaptive_height=True
         )
         self.add_widget(self.options_container)
-    
-    def get_optimal_columns(self):
-        """Get optimal number of columns based on screen size and option count"""
-        if not self.responsive_helper:
-            return 1  # Fallback to single column
-        
-        category = self.responsive_helper.get_screen_size_category()
-        is_landscape = self.responsive_helper.is_landscape()
-        option_count = len(self.options)
-        
-        # Column calculation based on screen size
-        if category == "large_tablet":
-            max_cols = 3 if is_landscape else 2
-        elif category == "tablet":
-            max_cols = 2 if is_landscape else 2
-        elif category == "small_tablet":
-            max_cols = 2 if is_landscape else 1
-        else:  # phone
-            max_cols = 1
-        
-        # Don't use more columns than we have options
-        return min(max_cols, option_count, 3)  # Cap at 3 columns max
-    
-    def _on_window_resize(self, *args):
-        """Handle window resize"""
-        super()._on_window_resize(*args)
-        self.update_options_layout()
-        self.update_button_sizes()
-    
-    def update_button_sizes(self):
-        """Update button sizes for responsive design"""
-        if not hasattr(self, 'options_header'):
+
+    def on_options(self, instance, options):
+        self.options_container.clear_widgets()
+        self.checkboxes = []
+        if not options:
             return
-        
-        values = self.get_responsive_values()
-        
-        # Update header buttons
-        if hasattr(self, 'add_option_btn'):
-            self.add_option_btn.height = values['button_height']
-            self.add_option_btn.font_size = values['font_size_small']
-        
-        if hasattr(self, 'remove_option_btn'):
-            self.remove_option_btn.height = values['button_height']
-            self.remove_option_btn.font_size = values['font_size_small']
-        
-        if hasattr(self, 'options_label'):
-            self.options_label.font_size = values['font_size_secondary']
-    
-    def update_field_height(self):
-        """Update field height based on options and screen size"""
-        values = self.get_responsive_values()
-        cols = self.get_optimal_columns()
-        
-        # Calculate rows needed
-        rows = (len(self.options) + cols - 1) // cols  # Ceiling division
-        
-        # Base height + option rows
-        option_height = values['button_height'] + dp(12)  # Button height + spacing
-        total_option_height = rows * option_height
-        
-        self.height = values['height'] + total_option_height
-    
+        for i, option in enumerate(options):
+            row = MDBoxLayout(
+                orientation='horizontal',
+                spacing=dp(8),
+                size_hint_y=None,
+                height=dp(36)
+            )
+            checkbox = MDCheckbox(
+                size_hint=(None, None),
+                size=(dp(20), dp(20)),
+                on_active=lambda x, active, opt=option: self.on_option_selected(opt, active)
+            )
+            option_input = MDTextField(
+                text=option,
+                size_hint_x=0.8,
+                font_size="13sp",
+                height=dp(32),
+                size_hint_y=None,
+                mode="rectangle",
+                on_text_validate=lambda instance, idx=i: self.update_option(idx, instance.text)
+            )
+            option_input.bind(on_text_validate=lambda instance, idx=i: self.update_option(idx, instance.text))
+            row.add_widget(checkbox)
+            row.add_widget(option_input)
+            self.options_container.add_widget(row)
+            self.checkboxes.append(checkbox)
+        self.update_field_height()
+
     def add_option(self, instance):
         """Add a new option to the choice field"""
         new_option = f"Option {len(self.options) + 1}"
         self.options = self.options + [new_option]
         toast("Option added. You can edit the option text directly.")
+        self.update_field_height()
     
     def remove_last_option(self, instance):
         """Remove the last option from the choice field"""
@@ -651,112 +625,7 @@ class SingleChoiceField(BaseFormField):
             toast("Option removed.")
         else:
             toast("Single choice questions need at least 2 options.")
-    
-    def on_options(self, instance, options):
-        """Handle options list changes with responsive layout"""
-        self.options_container.clear_widgets()
-        self.checkboxes = []
-        
-        if not options:
-            return
-        
-        self.update_options_layout()
         self.update_field_height()
-    
-    def update_options_layout(self):
-        """Update options layout with responsive multi-column support"""
-        self.options_container.clear_widgets()
-        self.checkboxes = []
-        
-        if not self.options:
-            return
-        
-        values = self.get_responsive_values()
-        cols = self.get_optimal_columns()
-        
-        if cols == 1:
-            # Single column layout
-            self.create_single_column_options(values)
-        else:
-            # Multi-column layout for tablets
-            self.create_multi_column_options(values, cols)
-    
-    def create_single_column_options(self, values):
-        """Create single column options layout"""
-        for i, option in enumerate(self.options):
-            row = self.create_option_row(i, option, values)
-            self.options_container.add_widget(row)
-    
-    def create_multi_column_options(self, values, cols):
-        """Create multi-column options layout for tablets"""
-        # Group options into rows
-        for row_start in range(0, len(self.options), cols):
-            row_options = self.options[row_start:row_start + cols]
-            
-            # Create horizontal container for this row
-            row_container = MDBoxLayout(
-                orientation='horizontal',
-                spacing=dp(16),  # Space between columns
-                size_hint_y=None,
-                height=values['button_height'] + dp(8),
-                adaptive_width=True
-            )
-            
-            # Add options to this row
-            for i, option in enumerate(row_options):
-                option_index = row_start + i
-                option_widget = self.create_option_widget(option_index, option, values)
-                option_widget.size_hint_x = 1 / len(row_options)  # Equal width
-                row_container.add_widget(option_widget)
-            
-            self.options_container.add_widget(row_container)
-    
-    def create_option_row(self, index, option, values):
-        """Create a single option row"""
-        row = MDBoxLayout(
-            orientation='horizontal',
-            spacing=dp(12),
-            size_hint_y=None,
-            height=values['button_height'] + dp(8)
-        )
-        
-        option_widget = self.create_option_widget(index, option, values)
-        row.add_widget(option_widget)
-        return row
-    
-    def create_option_widget(self, index, option, values):
-        """Create an individual option widget"""
-        option_container = MDBoxLayout(
-            orientation='horizontal',
-            spacing=dp(12),
-            size_hint_y=None,
-            height=values['button_height']
-        )
-        
-        checkbox = MDCheckbox(
-            group="single_choice",
-            size_hint=(None, None),
-            size=(dp(32), dp(32)),  # Larger checkbox for tablets
-            on_active=lambda x, active, opt=option: self.on_option_selected(opt, active)
-        )
-        
-        # Make option text editable with responsive sizing
-        option_input = MDTextField(
-            text=option,
-            size_hint_x=0.8,
-            font_size=values['font_size_secondary'],
-            height=values['input_height'],
-            size_hint_y=None,
-            mode="rectangle",
-            on_text_validate=lambda instance, idx=index: self.update_option(idx, instance.text)
-        )
-        option_input.bind(on_text_validate=lambda instance, idx=index: self.update_option(idx, instance.text))
-        
-        option_container.add_widget(checkbox)
-        option_container.add_widget(option_input)
-        self.checkboxes.append(checkbox)
-        
-        return option_container
     
     def on_option_selected(self, option, active):
         if active:
@@ -793,6 +662,14 @@ class SingleChoiceField(BaseFormField):
             
         return is_valid, errors
 
+    def get_content_height(self):
+        values = self.get_responsive_values()
+        base = values['input_height'] + values['input_height'] + dp(8)
+        options_header_height = self.options_header.height if hasattr(self, 'options_header') else dp(40)
+        option_row_height = dp(36)
+        total_option_height = len(self.options) * option_row_height
+        return base + options_header_height + total_option_height 
+
 class MultipleChoiceField(BaseFormField):
     options = ListProperty([])
 
@@ -801,112 +678,105 @@ class MultipleChoiceField(BaseFormField):
         self.response_type = "choice_multiple"
         self.selected_options = []
         self.checkboxes = []
-        
-        # Add options management section
+        self.create_options_header()
+        self.create_options_container()
+        if not self.options:
+            self.options = ['Option 1', 'Option 2']
+        self.update_field_height()
+
+    def create_options_header(self):
         self.options_header = MDBoxLayout(
             orientation='horizontal',
-            spacing=dp(10),
+            spacing=dp(8),
             size_hint_y=None,
             height=dp(40)
         )
-        
         self.options_label = MDLabel(
             text="Options:",
-            size_hint_x=0.3,
+            size_hint_x=0.4,
             font_style="Subtitle2",
-            theme_text_color="Primary"
+            theme_text_color="Primary",
+            font_size="14sp",
+            halign="left",
+            valign="middle"
         )
-        
         self.add_option_btn = MDRaisedButton(
             text="Add Option",
-            size_hint_x=0.35,
-            size_hint_y=None,
+            size_hint_x=None,
+            width=dp(90),
             height=dp(32),
             font_size="12sp",
             on_release=self.add_option
         )
-        
         self.remove_option_btn = MDRaisedButton(
             text="Remove Last",
-            size_hint_x=0.35,
-            size_hint_y=None,
+            size_hint_x=None,
+            width=dp(110),
             height=dp(32),
             font_size="12sp",
             on_release=self.remove_last_option
         )
-        
         self.options_header.add_widget(self.options_label)
         self.options_header.add_widget(self.add_option_btn)
         self.options_header.add_widget(self.remove_option_btn)
         self.add_widget(self.options_header)
-        
+
+    def create_options_container(self):
         self.options_container = MDBoxLayout(
             orientation='vertical',
             spacing=dp(8),
             size_hint_y=None,
-            adaptive_height=True
+            adaptive_height=False
         )
         self.add_widget(self.options_container)
-        
-        # Initialize with default options if none provided
-        if not self.options:
-            self.options = ['Option 1', 'Option 2']
-        
-        # Update height based on options
-        self.height = dp(160 + len(self.options) * 40)
-    
-    def add_option(self, instance):
-        """Add a new option to the choice field"""
-        new_option = f"Option {len(self.options) + 1}"
-        self.options = self.options + [new_option]
-        toast("Option added. You can edit the option text directly.")
-    
-    def remove_last_option(self, instance):
-        """Remove the last option from the choice field"""
-        if len(self.options) > 2:  # Keep at least 2 options
-            self.options = self.options[:-1]
-            toast("Option removed.")
-        else:
-            toast("Multiple choice questions need at least 2 options.")
-    
+
     def on_options(self, instance, options):
         self.options_container.clear_widgets()
         self.checkboxes = []
-        
         for i, option in enumerate(options):
             row = MDBoxLayout(
                 orientation='horizontal',
-                spacing=dp(10),
+                spacing=dp(8),
                 size_hint_y=None,
-                height=dp(40)
+                height=dp(36)
             )
-            
             checkbox = MDCheckbox(
                 size_hint=(None, None),
-                size=(dp(24), dp(24)),
+                size=(dp(20), dp(20)),
                 on_active=lambda x, active, opt=option: self.on_option_selected(opt, active)
             )
-            
-            # Make option text editable
             option_input = MDTextField(
                 text=option,
                 size_hint_x=0.8,
-                font_size="14sp",
+                font_size="13sp",
                 height=dp(32),
                 size_hint_y=None,
                 mode="rectangle",
                 on_text_validate=lambda instance, idx=i: self.update_option(idx, instance.text)
             )
             option_input.bind(on_text_validate=lambda instance, idx=i: self.update_option(idx, instance.text))
-            
             row.add_widget(checkbox)
             row.add_widget(option_input)
             self.options_container.add_widget(row)
             self.checkboxes.append(checkbox)
-        
-        # Update height
-        self.height = dp(160 + len(options) * 40)
-    
+        self.update_field_height()
+
+    def add_option(self, instance):
+        """Add a new option to the choice field"""
+        new_option = f"Option {len(self.options) + 1}"
+        self.options = self.options + [new_option]
+        toast("Option added. You can edit the option text directly.")
+        self.update_field_height()
+
+    def remove_last_option(self, instance):
+        """Remove the last option from the choice field"""
+        if len(self.options) > 2:
+            self.options = self.options[:-1]
+            toast("Option removed.")
+        else:
+            toast("Multiple choice questions need at least 2 options.")
+        self.update_field_height()
+
     def update_option(self, index, new_text):
         """Update an option text"""
         if 0 <= index < len(self.options) and new_text.strip():
@@ -944,6 +814,14 @@ class MultipleChoiceField(BaseFormField):
             
         return is_valid, errors
 
+    def get_content_height(self):
+        values = self.get_responsive_values()
+        base = values['input_height'] + values['input_height'] + dp(8)
+        options_header_height = self.options_header.height if hasattr(self, 'options_header') else dp(40)
+        option_row_height = dp(36)
+        total_option_height = len(self.options) * option_row_height
+        return base + options_header_height + total_option_height 
+
 class RatingScaleField(BaseFormField):
     min_value = NumericProperty(1)
     max_value = NumericProperty(5)
@@ -952,7 +830,6 @@ class RatingScaleField(BaseFormField):
         super().__init__(**kwargs)
         self.response_type = "scale_rating"
         self.current_value = self.min_value
-        
         self.value_label = MDLabel(
             text=f"Rating: {self.current_value}",
             theme_text_color="Secondary",
@@ -960,7 +837,6 @@ class RatingScaleField(BaseFormField):
             size_hint_y=None,
             height=dp(30)
         )
-        
         self.slider = MDSlider(
             min=self.min_value,
             max=self.max_value,
@@ -970,10 +846,14 @@ class RatingScaleField(BaseFormField):
             height=dp(30)
         )
         self.slider.bind(value=self.on_slider_value)
-        
         self.add_widget(self.value_label)
         self.add_widget(self.slider)
-    
+        self.update_field_height()
+
+    def get_content_height(self):
+        values = self.get_responsive_values()
+        return values['input_height'] + values['input_height'] + dp(8) + dp(30) + dp(30) + dp(2)
+
     def on_slider_value(self, instance, value):
         self.current_value = int(value)
         self.value_label.text = f"Rating: {self.current_value}"
@@ -987,21 +867,28 @@ class RatingScaleField(BaseFormField):
             self.slider.value = self.current_value
             self.value_label.text = f"Rating: {self.current_value}"
 
+    def get_content_height(self):
+        return dp(60)  # 2x 30dp for label and slider
+
 class DateField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "date"
         self.selected_date = None
+        self.create_date_input()
+        self.update_field_height()
 
+    def create_date_input(self):
+        values = self.get_responsive_values()
         self.date_input = MDTextField(
-            hint_text="Tap to select date",
+            hint_text="Select date",
             mode="rectangle",
-            readonly=True,
             size_hint_y=None,
-            height=dp(48),
+            height=values['input_height'],
+            font_size=values['font_size_secondary'],
+            readonly=True,
             on_focus=self.show_date_picker
         )
-
         self.add_widget(self.date_input)
 
     def show_date_picker(self, instance, focus):
@@ -1026,35 +913,42 @@ class DateField(BaseFormField):
             except ValueError:
                 pass
 
+    def get_content_height(self):
+        values = self.get_responsive_values()
+        return values['input_height'] + values['input_height'] + dp(8) + values['input_height'] + dp(2)
+
 class DateTimeField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "datetime"
         self.selected_date = None
         self.selected_time = None
-        self.height = dp(180)  # Increased for question input + two date fields
+        self.create_datetime_inputs()
+        self.update_field_height()
 
+    def create_datetime_inputs(self):
+        values = self.get_responsive_values()
         self.date_input = MDTextField(
-            hint_text="Tap to select date",
+            hint_text="Select date",
             mode="rectangle",
-            readonly=True,
             size_hint_y=None,
-            height=dp(48),
+            height=values['input_height'],
+            font_size=values['font_size_secondary'],
+            readonly=True,
             on_focus=self.show_date_picker
         )
-        
         self.time_input = MDTextField(
-            hint_text="Tap to select time",
+            hint_text="Select time",
             mode="rectangle",
-            readonly=True,
             size_hint_y=None,
-            height=dp(48),
+            height=values['input_height'],
+            font_size=values['font_size_secondary'],
+            readonly=True,
             on_focus=self.show_time_picker
         )
-
         self.add_widget(self.date_input)
         self.add_widget(self.time_input)
-    
+
     def show_date_picker(self, instance, focus):
         if focus:
             date_dialog = MDDatePicker()
@@ -1094,46 +988,31 @@ class DateTimeField(BaseFormField):
             except ValueError:
                 pass
 
+    def get_content_height(self):
+        values = self.get_responsive_values()
+        return values['input_height'] + values['input_height'] + dp(8) + values['input_height'] + values['input_height'] + dp(2)
+
 class LocationPickerField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "geopoint"
         self.current_location = None
-        self.height = dp(180)  # Increased for question input + location fields
+        self.create_location_input()
+        self.update_field_height()
 
-        self.location_display = MDTextField(
-            hint_text="No location selected",
+    def create_location_input(self):
+        values = self.get_responsive_values()
+        self.location_input = MDTextField(
+            hint_text="Tap to get location",
             mode="rectangle",
+            size_hint_y=None,
+            height=values['input_height'],
+            font_size=values['font_size_secondary'],
             readonly=True,
-            size_hint_y=None,
-            height=dp(48)
+            on_focus=self.get_current_location
         )
-        
-        self.button_container = MDBoxLayout(
-            orientation='horizontal',
-            spacing=dp(10),
-            size_hint_y=None,
-            height=dp(48)
-        )
-        
-        self.get_location_btn = MDRaisedButton(
-            text="Get Current Location",
-            size_hint_x=0.7,
-            on_release=self.get_current_location
-        )
-        
-        self.clear_btn = MDIconButton(
-            icon="delete",
-            size_hint_x=0.3,
-            on_release=self.clear_location
-        )
-        
-        self.button_container.add_widget(self.get_location_btn)
-        self.button_container.add_widget(self.clear_btn)
+        self.add_widget(self.location_input)
 
-        self.add_widget(self.location_display)
-        self.add_widget(self.button_container)
-    
     def get_current_location(self, instance):
         # Simulate getting GPS location
         # In a real app, you'd use plyer.gps or similar
@@ -1142,13 +1021,8 @@ class LocationPickerField(BaseFormField):
         lon = round(random.uniform(-180, 180), 6)
         
         self.current_location = {'latitude': lat, 'longitude': lon}
-        self.location_display.text = f"Lat: {lat}, Lon: {lon}"
+        self.location_input.text = f"Lat: {lat}, Lon: {lon}"
         toast("Location captured!")
-    
-    def clear_location(self, instance):
-        self.current_location = None
-        self.location_display.text = ""
-        self.location_display.hint_text = "No location selected"
     
     def get_value(self):
         return self.current_location
@@ -1158,15 +1032,21 @@ class LocationPickerField(BaseFormField):
             self.current_location = value
             lat = value.get('latitude', 0)
             lon = value.get('longitude', 0)
-            self.location_display.text = f"Lat: {lat}, Lon: {lon}"
+            self.location_input.text = f"Lat: {lat}, Lon: {lon}"
+
+    def get_content_height(self):
+        values = self.get_responsive_values()
+        return values['input_height'] + values['input_height'] + dp(8) + values['input_height'] + dp(2)
 
 class PhotoUploadField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "image"
         self.photo_path = None
-        self.height = dp(180)  # Increased for question input + photo fields
-        
+        self.create_photo_input()
+        self.update_field_height()
+
+    def create_photo_input(self):
         self.photo_display = MDTextField(
             hint_text="No photo selected",
             mode="rectangle",
@@ -1174,32 +1054,27 @@ class PhotoUploadField(BaseFormField):
             size_hint_y=None,
             height=dp(48)
         )
-        
         self.button_container = MDBoxLayout(
             orientation='horizontal',
             spacing=dp(10),
             size_hint_y=None,
             height=dp(48)
         )
-        
         self.camera_btn = MDRaisedButton(
             text="Take Photo",
             size_hint_x=0.5,
             on_release=self.take_photo
         )
-        
         self.gallery_btn = MDRaisedButton(
             text="Choose from Gallery",
             size_hint_x=0.5,
             on_release=self.choose_from_gallery
         )
-        
         self.button_container.add_widget(self.camera_btn)
         self.button_container.add_widget(self.gallery_btn)
-
         self.add_widget(self.photo_display)
         self.add_widget(self.button_container)
-    
+
     def take_photo(self, instance):
         # Simulate taking a photo
         # In a real app, you'd use plyer.camera or similar
@@ -1222,14 +1097,20 @@ class PhotoUploadField(BaseFormField):
         if value:
             self.photo_display.text = f"Photo: {value}"
 
+    def get_content_height(self):
+        values = self.get_responsive_values()
+        return values['input_height'] + values['input_height'] + dp(8) + dp(48) + dp(48) + dp(2)
+
 class AudioRecordingField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "audio"
         self.audio_path = None
         self.is_recording = False
-        self.height = dp(180)  # Increased for question input + audio fields
-        
+        self.create_audio_input()
+        self.update_field_height()
+
+    def create_audio_input(self):
         self.audio_display = MDTextField(
             hint_text="No audio recorded",
             mode="rectangle",
@@ -1237,32 +1118,27 @@ class AudioRecordingField(BaseFormField):
             size_hint_y=None,
             height=dp(48)
         )
-        
         self.button_container = MDBoxLayout(
             orientation='horizontal',
             spacing=dp(10),
             size_hint_y=None,
             height=dp(48)
         )
-        
         self.record_btn = MDRaisedButton(
             text="Start Recording",
             size_hint_x=0.7,
             on_release=self.toggle_recording
         )
-        
         self.clear_btn = MDIconButton(
             icon="delete",
             size_hint_x=0.3,
             on_release=self.clear_audio
         )
-        
         self.button_container.add_widget(self.record_btn)
         self.button_container.add_widget(self.clear_btn)
-
         self.add_widget(self.audio_display)
         self.add_widget(self.button_container)
-    
+
     def toggle_recording(self, instance):
         if not self.is_recording:
             # Start recording
@@ -1298,29 +1174,34 @@ class AudioRecordingField(BaseFormField):
         if value:
             self.audio_display.text = f"Audio: {value}"
 
+    def get_content_height(self):
+        values = self.get_responsive_values()
+        return values['input_height'] + values['input_height'] + dp(8) + dp(48) + dp(48) + dp(2)
+
 class BarcodeField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "barcode"
         self.barcode_value = None
+        self.create_barcode_input()
+        self.update_field_height()
 
+    def create_barcode_input(self):
         self.barcode_input = MDTextField(
             hint_text="Scan or enter barcode",
             mode="rectangle",
             size_hint_y=None,
             height=dp(48)
         )
-        
         self.scan_btn = MDRaisedButton(
             text="Scan Barcode",
             size_hint_y=None,
             height=dp(36),
             on_release=self.scan_barcode
         )
-
         self.add_widget(self.barcode_input)
         self.add_widget(self.scan_btn)
-    
+
     def scan_barcode(self, instance):
         # Simulate barcode scanning
         # In a real app, you'd use zbarcam or similar
@@ -1337,6 +1218,10 @@ class BarcodeField(BaseFormField):
     def set_value(self, value):
         self.barcode_value = value
         self.barcode_input.text = str(value) if value else ""
+
+    def get_content_height(self):
+        values = self.get_responsive_values()
+        return values['input_height'] + values['input_height'] + dp(8) + dp(48) + dp(36) + dp(2)
 
 # Factory function to create form fields based on response type
 def create_form_field(response_type, question_text="", options=None, **kwargs):
@@ -1358,6 +1243,7 @@ def create_form_field(response_type, question_text="", options=None, **kwargs):
     }
     
     field_class = field_map.get(response_type, ShortTextField)
+    print(f"Creating field class: {field_class}")
     field = field_class(question_text=question_text, **kwargs)
     
     # Set options for choice fields
