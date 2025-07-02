@@ -583,25 +583,29 @@ class SingleChoiceField(BaseFormField):
         self.checkboxes = []
         if not options:
             return
+        values = self.get_responsive_values()
+        option_row_height = values['input_height'] + dp(8)
         for i, option in enumerate(options):
             row = MDBoxLayout(
                 orientation='horizontal',
                 spacing=dp(8),
                 size_hint_y=None,
-                height=dp(36)
+                height=option_row_height
             )
             checkbox = MDCheckbox(
                 size_hint=(None, None),
                 size=(dp(20), dp(20)),
+                pos_hint={'center_y': 0.5},
                 on_active=lambda x, active, opt=option: self.on_option_selected(opt, active)
             )
             option_input = MDTextField(
                 text=option,
                 size_hint_x=0.8,
                 font_size="13sp",
-                height=dp(32),
+                height=values['input_height'],
                 size_hint_y=None,
                 mode="rectangle",
+                pos_hint={'center_y': 0.5},
                 on_text_validate=lambda instance, idx=i: self.update_option(idx, instance.text)
             )
             option_input.bind(on_text_validate=lambda instance, idx=i: self.update_option(idx, instance.text))
@@ -664,11 +668,11 @@ class SingleChoiceField(BaseFormField):
 
     def get_content_height(self):
         values = self.get_responsive_values()
-        base = values['input_height'] + values['input_height'] + dp(8)
+        base = values['input_height'] + values['input_height']
         options_header_height = self.options_header.height if hasattr(self, 'options_header') else dp(40)
-        option_row_height = dp(36)
+        option_row_height = values['input_height'] + dp(8)
         total_option_height = len(self.options) * option_row_height
-        return base + options_header_height + total_option_height 
+        return base + options_header_height + total_option_height
 
 class MultipleChoiceField(BaseFormField):
     options = ListProperty([])
@@ -733,25 +737,29 @@ class MultipleChoiceField(BaseFormField):
     def on_options(self, instance, options):
         self.options_container.clear_widgets()
         self.checkboxes = []
+        values = self.get_responsive_values()
+        option_row_height = values['input_height'] + dp(8)
         for i, option in enumerate(options):
             row = MDBoxLayout(
                 orientation='horizontal',
                 spacing=dp(8),
                 size_hint_y=None,
-                height=dp(36)
+                height=option_row_height
             )
             checkbox = MDCheckbox(
                 size_hint=(None, None),
                 size=(dp(20), dp(20)),
+                pos_hint={'center_y': 0.5},
                 on_active=lambda x, active, opt=option: self.on_option_selected(opt, active)
             )
             option_input = MDTextField(
                 text=option,
                 size_hint_x=0.8,
                 font_size="13sp",
-                height=dp(32),
+                height=values['input_height'],
                 size_hint_y=None,
                 mode="rectangle",
+                pos_hint={'center_y': 0.5},
                 on_text_validate=lambda instance, idx=i: self.update_option(idx, instance.text)
             )
             option_input.bind(on_text_validate=lambda instance, idx=i: self.update_option(idx, instance.text))
@@ -816,11 +824,11 @@ class MultipleChoiceField(BaseFormField):
 
     def get_content_height(self):
         values = self.get_responsive_values()
-        base = values['input_height'] + values['input_height'] + dp(8)
+        base = values['input_height'] + values['input_height']
         options_header_height = self.options_header.height if hasattr(self, 'options_header') else dp(40)
-        option_row_height = dp(36)
+        option_row_height = values['input_height'] + dp(8)
         total_option_height = len(self.options) * option_row_height
-        return base + options_header_height + total_option_height 
+        return base + options_header_height + total_option_height
 
 class RatingScaleField(BaseFormField):
     min_value = NumericProperty(1)
