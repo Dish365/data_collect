@@ -730,7 +730,7 @@ class MultipleChoiceField(BaseFormField):
             orientation='vertical',
             spacing=dp(8),
             size_hint_y=None,
-            adaptive_height=False
+            adaptive_height=True
         )
         self.add_widget(self.options_container)
 
