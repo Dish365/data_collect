@@ -4,3 +4,6 @@ __pycache__/
 venv/
 */venv/
 gui/venv/
+
+# Authentication files - contain sensitive tokens and user data
+gui/auth.json
