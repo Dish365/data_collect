@@ -78,16 +78,17 @@ class QuestionSerializer(serializers.ModelSerializer):
         response_type = data.get('response_type')
         options = data.get('options')
         
-        # Check if options are provided for multiple choice questions
-        if response_type == 'choice' and (not options or options == []):
-            raise serializers.ValidationError("Options are required for multiple choice questions.")
+        # Check if options are provided for choice questions (both new and legacy types)
+        choice_types = ['choice', 'choice_single', 'choice_multiple']
+        if response_type in choice_types and (not options or options == []):
+            raise serializers.ValidationError("Options are required for choice questions.")
         
-        # Check if options are provided for non-multiple choice questions
-        if response_type != 'choice' and options and options != []:
-            raise serializers.ValidationError("Options should only be provided for multiple choice questions.")
+        # Check if options are provided for non-choice questions
+        if response_type not in choice_types and options and options != []:
+            raise serializers.ValidationError("Options should only be provided for choice questions.")
         
         # Check if allow_multiple is set for non-choice questions
-        if data.get('allow_multiple', False) and response_type != 'choice':
+        if data.get('allow_multiple', False) and response_type not in choice_types:
             raise serializers.ValidationError("Multiple answers can only be allowed for choice questions.")
         
         return data 

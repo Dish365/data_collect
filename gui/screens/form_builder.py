@@ -320,8 +320,8 @@ class FormBuilderScreen(Screen):
         """Populates the UI with question widgets using the new form fields."""
         question_number = 1
         for q_data in self.questions_data:
-            # Get response type from the data
-            response_type = q_data.get('question_type', 'text_short')
+            # Get response type from the data - check both question_type (local DB) and response_type (API)
+            response_type = q_data.get('response_type') or q_data.get('question_type', 'text_short')
             question_text = q_data.get('question_text', '')
             options = q_data.get('options') or []
             
@@ -331,6 +331,12 @@ class FormBuilderScreen(Screen):
                     options = json.loads(options)
                 except:
                     options = []
+            
+            # Ensure choice fields have at least default options if none are provided
+            if response_type in ['choice_single', 'choice_multiple'] and (not options or len(options) == 0):
+                options = ['Option 1', 'Option 2']
+            
+            print(f"Loading question: {question_text}, type: {response_type}, options: {options}")
             
             # Create the appropriate form field
             try:
@@ -526,11 +532,15 @@ class FormBuilderScreen(Screen):
             options = []
             allow_multiple = False
             
-            if hasattr(widget, 'options') and widget.options:
-                options = widget.options
-                if len(options) < 2 and 'choice' in response_type:
+            if hasattr(widget, 'options') and response_type in ['choice_single', 'choice_multiple']:
+                # Get the latest option texts from the input widgets
+                option_inputs = getattr(widget, 'option_inputs', [])
+                options = [input_widget.text.strip() for input_widget in option_inputs if input_widget.text.strip()]
+                if len(options) < 2:
                     validation_errors.append(f"Question {i}: Choice questions need at least 2 options")
                     continue
+            else:
+                options = []
             
             if hasattr(widget, 'selected_options'):
                 allow_multiple = True
