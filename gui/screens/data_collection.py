@@ -125,33 +125,121 @@ class DataCollectionScreen(Screen):
         self.load_projects()
 
     def load_projects(self):
+        """Loads all projects from the backend API and syncs to local DB."""
         app = App.get_running_app()
+        
+        # Ensure user is authenticated and has valid user data
+        if not app.auth_service.is_authenticated():
+            toast("Authentication required. Redirecting to login.")
+            Clock.schedule_once(lambda dt: setattr(self.manager, 'current', 'login'), 0.5)
+            return
+        
+        user_data = app.auth_service.get_user_data()
+        if not user_data or not user_data.get('id'):
+            toast("Invalid user session. Please log in again.")
+            Clock.schedule_once(lambda dt: setattr(self.manager, 'current', 'login'), 0.5)
+            return
+        
+        # Start loading in background thread
+        def _load_projects_thread():
+            try:
+                # First try to get projects from backend API
+                response = app.auth_service.make_authenticated_request('api/v1/projects/')
+                
+                if 'error' not in response:
+                    # Sync backend projects to local database
+                    api_projects = response.get('results', []) if 'results' in response else response
+                    if isinstance(api_projects, list):
+                        self._sync_projects_to_local(api_projects)
+                
+                # Now load from local database (single source of truth)
+                conn = app.db_service.get_db_connection()
+                try:
+                    cursor = conn.cursor()
+                    user_id = user_data.get('id')
+                    cursor.execute("SELECT id, name FROM projects WHERE user_id = ? ORDER BY name", (user_id,))
+                    projects = cursor.fetchall()
+                    
+                    # Update UI on main thread
+                    Clock.schedule_once(lambda dt: self._update_projects_ui(projects, user_id))
+                    
+                except Exception as e:
+                    print(f"Error loading projects from local DB: {e}")
+                    Clock.schedule_once(lambda dt: toast(f"Error loading projects: {str(e)}"))
+                finally:
+                    if conn:
+                        conn.close()
+                        
+            except Exception as e:
+                print(f"Error loading projects: {e}")
+                Clock.schedule_once(lambda dt: toast(f"Error loading projects: {str(e)}"))
+        
+        # Start background loading
+        threading.Thread(target=_load_projects_thread, daemon=True).start()
+    
+    def _sync_projects_to_local(self, api_projects):
+        """Sync projects from API to local database."""
+        app = App.get_running_app()
+        user_data = app.auth_service.get_user_data()
+        user_id = user_data.get('id') if user_data else None
+        
+        if not user_id:
+            return
+            
         conn = app.db_service.get_db_connection()
         try:
             cursor = conn.cursor()
-            user_id = app.auth_service.get_user_data().get('id')
-            if user_id:
-                cursor.execute("SELECT id, name FROM projects WHERE user_id = ? ORDER BY name", (user_id,))
-            else:
-                cursor.execute("SELECT id, name FROM projects ORDER BY name")
-            projects = cursor.fetchall()
-            if not projects:
-                toast("No projects found. Redirecting to Projects page.")
-                try:
-                    if self.manager and hasattr(self.manager, 'screen_names') and 'projects' in self.manager.screen_names:
-                        Clock.schedule_once(lambda dt: setattr(self.manager, 'current', 'projects'), 0.5)
-                except Exception as e:
-                    print(f"Screen transition error: {e}")
-                return  # Prevent further code execution
-            self.project_list = [p['name'] for p in projects]
-            self.project_map = {p['name']: p['id'] for p in projects}
+            
+            # Clear existing projects for this user that are synced (not pending local changes)
+            cursor.execute("DELETE FROM projects WHERE user_id = ? AND sync_status != 'pending'", (user_id,))
+            
+            # Insert/update projects from API
+            for project in api_projects:
+                cursor.execute("""
+                    INSERT OR REPLACE INTO projects 
+                    (id, name, description, user_id, sync_status, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    project.get('id'),
+                    project.get('name'),
+                    project.get('description', ''),
+                    user_id,
+                    'synced',
+                    project.get('created_at'),
+                    project.get('updated_at')
+                ))
+            
+            conn.commit()
+            print(f"Synced {len(api_projects)} projects to local database")
+            
+        except Exception as e:
+            print(f"Error syncing projects to local database: {e}")
+        finally:
+            if conn:
+                conn.close()
+    
+    def _update_projects_ui(self, projects, user_id):
+        """Update the UI with loaded projects."""
+        if not projects:
+            toast("No projects found. Create a project first to collect data.")
+            self.project_list = []
+            self.project_map = {}
             self.project_id = None
             self.current_respondent_id = None
-            self.ids.project_spinner.text = 'Select Project'
-            self.ids.form_canvas.clear_widgets()
+            self.ids.project_spinner.text = 'No Projects Available'
+            self._show_empty_state("No projects found", "Go to the Projects page to create a new project first.")
             self._update_submit_button()
-        finally:
-            conn.close()
+            return
+            
+        self.project_list = [p['name'] for p in projects]
+        self.project_map = {p['name']: p['id'] for p in projects}
+        self.project_id = None
+        self.current_respondent_id = None
+        self.ids.project_spinner.text = 'Select Project'
+        self.ids.form_canvas.clear_widgets()
+        self._update_submit_button()
+        
+        print(f"Loaded {len(projects)} projects for user {user_id}")
 
     def open_project_menu(self):
         if self.project_menu:
@@ -358,9 +446,15 @@ class DataCollectionScreen(Screen):
             choice_widget, choice_height = self.create_tablet_choice_field(
                 options, allow_multiple, q_text, font_sizes, touch_targets
             )
-            answer_box.add_widget(choice_widget)
+            # choice_widget is a tuple of (widget, list_of_checkboxes)
+            if isinstance(choice_widget, tuple):
+                widget_to_add, checkbox_list = choice_widget
+                answer_box.add_widget(widget_to_add)
+                container.response_field = checkbox_list
+            else:
+                answer_box.add_widget(choice_widget)
+                container.response_field = choice_widget
             answer_box.height = choice_height + dp(32)
-            container.response_field = choice_widget
 
         elif q_type == 'scale':
             scale_widget, scale_height = self.create_tablet_scale_field(font_sizes, touch_targets)
@@ -448,7 +542,8 @@ class DataCollectionScreen(Screen):
         total_height = len(options) * (option_height + dp(8))
         options_box.height = total_height
         
-        return checks, total_height
+        # Return tuple of (widget, checkbox_list) for proper handling
+        return (options_box, checks), total_height
 
     def create_tablet_scale_field(self, font_sizes, touch_targets):
         """Create tablet-optimized scale field"""

@@ -15,6 +15,7 @@ from kivymd.toast import toast
 from kivy.clock import Clock
 from kivy.core.window import Window
 import datetime
+import uuid
 
 # Base field class for all form fields
 class BaseFormField(MDCard):
@@ -1005,46 +1006,143 @@ class LocationPickerField(BaseFormField):
         super().__init__(**kwargs)
         self.response_type = "geopoint"
         self.current_location = None
+        self.gps_accuracy = None
+        self.is_getting_location = False
         self.create_location_input()
         self.update_field_height()
 
     def create_location_input(self):
         values = self.get_responsive_values()
+        
+        # Location display field
         self.location_input = MDTextField(
-            hint_text="Tap to get location",
+            hint_text="No location captured",
             mode="rectangle",
             size_hint_y=None,
             height=values['input_height'],
             font_size=values['font_size_secondary'],
-            readonly=True,
-            on_focus=self.get_current_location
+            readonly=True
         )
+        
+        # GPS buttons
+        self.button_container = MDBoxLayout(
+            orientation='horizontal',
+            spacing=dp(10),
+            size_hint_y=None,
+            height=values['button_height']
+        )
+        
+        self.get_location_btn = MDRaisedButton(
+            text="Get GPS Location",
+            size_hint_x=0.7,
+            on_release=self.get_current_location
+        )
+        
+        self.clear_location_btn = MDRaisedButton(
+            text="Clear",
+            size_hint_x=0.3,
+            on_release=self.clear_location
+        )
+        
+        self.button_container.add_widget(self.get_location_btn)
+        self.button_container.add_widget(self.clear_location_btn)
+        
+        # GPS status/accuracy info
+        self.gps_info_label = MDLabel(
+            text="",
+            font_style="Caption",
+            theme_text_color="Secondary",
+            size_hint_y=None,
+            height=dp(20),
+            font_size="12sp"
+        )
+        
         self.add_widget(self.location_input)
+        self.add_widget(self.button_container)
+        self.add_widget(self.gps_info_label)
 
     def get_current_location(self, instance):
-        # Simulate getting GPS location
-        # In a real app, you'd use plyer.gps or similar
-        import random
-        lat = round(random.uniform(-90, 90), 6)
-        lon = round(random.uniform(-180, 180), 6)
+        """Get current GPS location"""
+        if self.is_getting_location:
+            return
+            
+        self.is_getting_location = True
+        self.get_location_btn.text = "Getting Location..."
+        self.get_location_btn.disabled = True
+        toast("Getting GPS location...")
         
-        self.current_location = {'latitude': lat, 'longitude': lon}
+        # Simulate GPS acquisition delay and then get location
+        Clock.schedule_once(self._simulate_gps_result, 2)
+    
+    def _simulate_gps_result(self, dt):
+        """Simulate GPS result - in real app would use plyer.gps"""
+        import random
+        
+        # Simulate realistic GPS coordinates (example: around Montreal, Canada)
+        base_lat = 45.5017  # Montreal latitude
+        base_lon = -73.5673  # Montreal longitude
+        
+        # Add small random offset to simulate movement
+        lat_offset = random.uniform(-0.01, 0.01)  # ~1km range
+        lon_offset = random.uniform(-0.01, 0.01)  # ~1km range
+        
+        lat = round(base_lat + lat_offset, 6)
+        lon = round(base_lon + lon_offset, 6)
+        
+        # Simulate GPS accuracy (typical smartphone GPS accuracy)
+        accuracy = round(random.uniform(3.0, 15.0), 1)  # 3-15 meters
+        
+        self.current_location = {
+            'latitude': lat, 
+            'longitude': lon,
+            'accuracy': accuracy,
+            'timestamp': datetime.datetime.now().isoformat(),
+            'provider': 'gps'
+        }
+        self.gps_accuracy = accuracy
+        
+        # Update display
         self.location_input.text = f"Lat: {lat}, Lon: {lon}"
-        toast("Location captured!")
+        self.gps_info_label.text = f"Accuracy: ±{accuracy}m | Captured: {datetime.datetime.now().strftime('%H:%M:%S')}"
+        
+        # Reset button
+        self.get_location_btn.text = "Get GPS Location"
+        self.get_location_btn.disabled = False
+        self.is_getting_location = False
+        
+        toast(f"Location captured with {accuracy}m accuracy!")
+    
+    def clear_location(self, instance):
+        """Clear captured location"""
+        self.current_location = None
+        self.gps_accuracy = None
+        self.location_input.text = ""
+        self.location_input.hint_text = "No location captured"
+        self.gps_info_label.text = ""
+        toast("Location cleared")
     
     def get_value(self):
+        """Return the GPS location with metadata"""
         return self.current_location
     
     def set_value(self, value):
+        """Set location value from saved data"""
         if value and isinstance(value, dict):
             self.current_location = value
             lat = value.get('latitude', 0)
             lon = value.get('longitude', 0)
+            accuracy = value.get('accuracy')
+            timestamp = value.get('timestamp', '')
+            
             self.location_input.text = f"Lat: {lat}, Lon: {lon}"
+            
+            if accuracy and timestamp:
+                time_str = timestamp.split('T')[1][:8] if 'T' in timestamp else timestamp
+                self.gps_info_label.text = f"Accuracy: ±{accuracy}m | Captured: {time_str}"
 
     def get_content_height(self):
         values = self.get_responsive_values()
-        return values['input_height'] + values['input_height'] + dp(8) + values['input_height'] + dp(2)
+        return values['input_height'] + values['button_height'] + dp(20) + dp(16)
 
 class PhotoUploadField(BaseFormField):
     def __init__(self, **kwargs):
@@ -1231,6 +1329,418 @@ class BarcodeField(BaseFormField):
         values = self.get_responsive_values()
         return values['input_height'] + values['input_height'] + dp(8) + dp(48) + dp(36) + dp(2)
 
+class GeoShapeField(BaseFormField):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.response_type = "geoshape"
+        self.shape_points = []
+        self.create_geoshape_input()
+        self.update_field_height()
+
+    def create_geoshape_input(self):
+        """Create GPS area/polygon capture interface"""
+        values = self.get_responsive_values()
+        
+        # Display field for area info
+        self.area_input = MDTextField(
+            hint_text="Tap to capture area boundary",
+            mode="rectangle",
+            size_hint_y=None,
+            height=values['input_height'],
+            font_size=values['font_size_secondary'],
+            readonly=True
+        )
+        
+        # Buttons for area capture
+        self.button_container = MDBoxLayout(
+            orientation='horizontal',
+            spacing=dp(10),
+            size_hint_y=None,
+            height=values['button_height']
+        )
+        
+        self.start_capture_btn = MDRaisedButton(
+            text="Start Area Capture",
+            size_hint_x=0.5,
+            on_release=self.start_area_capture
+        )
+        
+        self.clear_area_btn = MDRaisedButton(
+            text="Clear Area",
+            size_hint_x=0.5,
+            on_release=self.clear_area
+        )
+        
+        self.button_container.add_widget(self.start_capture_btn)
+        self.button_container.add_widget(self.clear_area_btn)
+        
+        self.add_widget(self.area_input)
+        self.add_widget(self.button_container)
+
+    def start_area_capture(self, instance):
+        """Start capturing area boundary points"""
+        # Simulate area capture - in real app would use GPS tracking
+        import random
+        
+        # Generate 4-6 random GPS points forming a rough polygon
+        num_points = random.randint(4, 6)
+        center_lat = random.uniform(-90, 90)
+        center_lon = random.uniform(-180, 180)
+        
+        self.shape_points = []
+        for i in range(num_points):
+            # Generate points around center within ~1km radius
+            lat_offset = random.uniform(-0.01, 0.01)
+            lon_offset = random.uniform(-0.01, 0.01)
+            point = {
+                'latitude': round(center_lat + lat_offset, 6),
+                'longitude': round(center_lon + lon_offset, 6)
+            }
+            self.shape_points.append(point)
+        
+        # Update display
+        area_size = random.uniform(0.1, 5.0)  # Simulated area in hectares
+        self.area_input.text = f"Area captured: {len(self.shape_points)} points, ~{area_size:.1f} hectares"
+        toast(f"Area captured with {len(self.shape_points)} boundary points!")
+
+    def clear_area(self, instance):
+        """Clear captured area"""
+        self.shape_points = []
+        self.area_input.text = ""
+        self.area_input.hint_text = "Tap to capture area boundary"
+        toast("Area cleared")
+
+    def get_value(self):
+        """Return the captured area as a GeoJSON-like structure"""
+        if not self.shape_points:
+            return None
+        
+        return {
+            'type': 'Polygon',
+            'coordinates': [[
+                [point['longitude'], point['latitude']] for point in self.shape_points
+            ]],
+            'properties': {
+                'point_count': len(self.shape_points),
+                'capture_method': 'mobile_gps'
+            }
+        }
+
+    def set_value(self, value):
+        """Set area value from saved data"""
+        if value and isinstance(value, dict) and value.get('type') == 'Polygon':
+            coordinates = value.get('coordinates', [[]])[0]
+            self.shape_points = [
+                {'latitude': coord[1], 'longitude': coord[0]} 
+                for coord in coordinates
+            ]
+            point_count = len(self.shape_points)
+            self.area_input.text = f"Area loaded: {point_count} boundary points"
+
+    def get_content_height(self):
+        values = self.get_responsive_values()
+        return values['input_height'] + values['button_height'] + dp(16)
+
+class VideoRecordingField(BaseFormField):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.response_type = "video"
+        self.video_path = None
+        self.is_recording = False
+        self.create_video_input()
+        self.update_field_height()
+
+    def create_video_input(self):
+        """Create video recording interface"""
+        values = self.get_responsive_values()
+        
+        self.video_display = MDTextField(
+            hint_text="No video recorded",
+            mode="rectangle",
+            readonly=True,
+            size_hint_y=None,
+            height=values['input_height'],
+            font_size=values['font_size_secondary']
+        )
+        
+        self.button_container = MDBoxLayout(
+            orientation='horizontal',
+            spacing=dp(10),
+            size_hint_y=None,
+            height=values['button_height']
+        )
+        
+        self.record_btn = MDRaisedButton(
+            text="Start Video Recording",
+            size_hint_x=0.6,
+            on_release=self.toggle_recording
+        )
+        
+        self.gallery_btn = MDRaisedButton(
+            text="Choose Video",
+            size_hint_x=0.4,
+            on_release=self.choose_from_gallery
+        )
+        
+        self.button_container.add_widget(self.record_btn)
+        self.button_container.add_widget(self.gallery_btn)
+        
+        self.add_widget(self.video_display)
+        self.add_widget(self.button_container)
+
+    def toggle_recording(self, instance):
+        """Toggle video recording"""
+        if not self.is_recording:
+            # Start recording
+            self.is_recording = True
+            self.record_btn.text = "Stop Recording"
+            self.record_btn.md_bg_color = (1, 0.2, 0.2, 1)  # Red
+            toast("Video recording started...")
+            
+            # Simulate recording completion after 5 seconds
+            Clock.schedule_once(self.stop_recording, 5)
+        else:
+            self.stop_recording()
+
+    def stop_recording(self, dt=None):
+        """Stop video recording"""
+        self.is_recording = False
+        self.record_btn.text = "Start Video Recording"
+        self.record_btn.md_bg_color = (0.2, 0.4, 0.8, 1)  # Default blue
+        
+        self.video_path = f"video_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+        duration = "0:05"  # Simulated duration
+        self.video_display.text = f"Video: {self.video_path} ({duration})"
+        toast("Video recording completed!")
+
+    def choose_from_gallery(self, instance):
+        """Choose video from gallery"""
+        # Simulate choosing from gallery
+        # In a real app, you'd use plyer.filechooser or similar
+        self.video_path = f"gallery_video_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+        self.video_display.text = f"Video: {self.video_path}"
+        toast("Video selected from gallery!")
+
+    def get_value(self):
+        return self.video_path
+
+    def set_value(self, value):
+        self.video_path = value
+        if value:
+            self.video_display.text = f"Video: {value}"
+
+    def get_content_height(self):
+        values = self.get_responsive_values()
+        return values['input_height'] + values['button_height'] + dp(16)
+
+class FileUploadField(BaseFormField):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.response_type = "file"
+        self.file_path = None
+        self.file_info = {}
+        self.create_file_input()
+        self.update_field_height()
+
+    def create_file_input(self):
+        """Create file upload interface"""
+        values = self.get_responsive_values()
+        
+        self.file_display = MDTextField(
+            hint_text="No file selected",
+            mode="rectangle",
+            readonly=True,
+            size_hint_y=None,
+            height=values['input_height'],
+            font_size=values['font_size_secondary']
+        )
+        
+        self.button_container = MDBoxLayout(
+            orientation='horizontal',
+            spacing=dp(10),
+            size_hint_y=None,
+            height=values['button_height']
+        )
+        
+        self.choose_btn = MDRaisedButton(
+            text="Choose File",
+            size_hint_x=0.6,
+            on_release=self.choose_file
+        )
+        
+        self.clear_btn = MDRaisedButton(
+            text="Clear",
+            size_hint_x=0.4,
+            on_release=self.clear_file
+        )
+        
+        self.button_container.add_widget(self.choose_btn)
+        self.button_container.add_widget(self.clear_btn)
+        
+        # File type info
+        self.info_label = MDLabel(
+            text="Supported: PDF, DOC, XLS, TXT, images (max 50MB)",
+            font_style="Caption",
+            theme_text_color="Secondary",
+            size_hint_y=None,
+            height=dp(20),
+            font_size="12sp"
+        )
+        
+        self.add_widget(self.file_display)
+        self.add_widget(self.button_container)
+        self.add_widget(self.info_label)
+
+    def choose_file(self, instance):
+        """Choose file for upload"""
+        # Simulate file selection
+        # In a real app, you'd use plyer.filechooser
+        import random
+        
+        file_types = [
+            ("document.pdf", "PDF Document", "156 KB"),
+            ("spreadsheet.xlsx", "Excel Spreadsheet", "89 KB"),
+            ("report.docx", "Word Document", "234 KB"),
+            ("data.csv", "CSV Data", "45 KB"),
+            ("image.jpg", "JPEG Image", "512 KB")
+        ]
+        
+        filename, file_type, file_size = random.choice(file_types)
+        self.file_path = f"uploads/{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+        self.file_info = {
+            'filename': filename,
+            'type': file_type,
+            'size': file_size,
+            'upload_date': datetime.datetime.now().isoformat()
+        }
+        
+        self.file_display.text = f"{filename} ({file_size})"
+        toast(f"File selected: {filename}")
+
+    def clear_file(self, instance):
+        """Clear selected file"""
+        self.file_path = None
+        self.file_info = {}
+        self.file_display.text = ""
+        self.file_display.hint_text = "No file selected"
+        toast("File cleared")
+
+    def get_value(self):
+        """Return file information"""
+        if not self.file_path:
+            return None
+        
+        return {
+            'file_path': self.file_path,
+            'file_info': self.file_info
+        }
+
+    def set_value(self, value):
+        """Set file value from saved data"""
+        if value and isinstance(value, dict):
+            self.file_path = value.get('file_path')
+            self.file_info = value.get('file_info', {})
+            
+            if self.file_info.get('filename'):
+                size = self.file_info.get('size', 'Unknown size')
+                self.file_display.text = f"{self.file_info['filename']} ({size})"
+
+    def get_content_height(self):
+        values = self.get_responsive_values()
+        return values['input_height'] + values['button_height'] + dp(20) + dp(16)
+
+class DigitalSignatureField(BaseFormField):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.response_type = "signature"
+        self.signature_data = None
+        self.create_signature_input()
+        self.update_field_height()
+
+    def create_signature_input(self):
+        """Create digital signature interface"""
+        values = self.get_responsive_values()
+        
+        # Signature area placeholder
+        self.signature_area = MDCard(
+            size_hint_y=None,
+            height=dp(120),
+            md_bg_color=(0.95, 0.95, 0.95, 1),
+            elevation=1
+        )
+        
+        self.signature_placeholder = MDLabel(
+            text="Signature Area\n(Tap 'Capture Signature' to sign)",
+            halign="center",
+            valign="center",
+            theme_text_color="Secondary",
+            font_size="14sp"
+        )
+        self.signature_area.add_widget(self.signature_placeholder)
+        
+        # Buttons
+        self.button_container = MDBoxLayout(
+            orientation='horizontal',
+            spacing=dp(10),
+            size_hint_y=None,
+            height=values['button_height']
+        )
+        
+        self.capture_btn = MDRaisedButton(
+            text="Capture Signature",
+            size_hint_x=0.6,
+            on_release=self.capture_signature
+        )
+        
+        self.clear_btn = MDRaisedButton(
+            text="Clear",
+            size_hint_x=0.4,
+            on_release=self.clear_signature
+        )
+        
+        self.button_container.add_widget(self.capture_btn)
+        self.button_container.add_widget(self.clear_btn)
+        
+        self.add_widget(self.signature_area)
+        self.add_widget(self.button_container)
+
+    def capture_signature(self, instance):
+        """Capture digital signature"""
+        # Simulate signature capture
+        # In a real app, you'd use a signature pad widget
+        self.signature_data = {
+            'signature_id': str(uuid.uuid4()),
+            'captured_at': datetime.datetime.now().isoformat(),
+            'signature_points': []  # Would contain actual signature stroke data
+        }
+        
+        # Update display
+        self.signature_placeholder.text = "✓ Signature Captured\n" + \
+                                         datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+        self.signature_area.md_bg_color = (0.9, 1.0, 0.9, 1)  # Light green
+        toast("Signature captured successfully!")
+
+    def clear_signature(self, instance):
+        """Clear captured signature"""
+        self.signature_data = None
+        self.signature_placeholder.text = "Signature Area\n(Tap 'Capture Signature' to sign)"
+        self.signature_area.md_bg_color = (0.95, 0.95, 0.95, 1)  # Default gray
+        toast("Signature cleared")
+
+    def get_value(self):
+        return self.signature_data
+
+    def set_value(self, value):
+        if value and isinstance(value, dict):
+            self.signature_data = value
+            if value.get('captured_at'):
+                self.signature_placeholder.text = "✓ Signature Captured\n" + value['captured_at']
+                self.signature_area.md_bg_color = (0.9, 1.0, 0.9, 1)
+
+    def get_content_height(self):
+        values = self.get_responsive_values()
+        return dp(120) + values['button_height'] + dp(16)
+
 # Factory function to create form fields based on response type
 def create_form_field(response_type, question_text="", options=None, **kwargs):
     """Factory function to create form fields based on response type"""
@@ -1245,8 +1755,12 @@ def create_form_field(response_type, question_text="", options=None, **kwargs):
         'date': DateField,
         'datetime': DateTimeField,
         'geopoint': LocationPickerField,
+        'geoshape': GeoShapeField,
         'image': PhotoUploadField,
         'audio': AudioRecordingField,
+        'video': VideoRecordingField,
+        'file': FileUploadField,
+        'signature': DigitalSignatureField,
         'barcode': BarcodeField,
     }
     

@@ -299,10 +299,10 @@
                                     font_size: "13sp"
                                     elevation: 1
 
-                            # SPECIAL SECTION
+                            # LOCATION & GPS SECTION
                             MDBoxLayout:
                                 orientation: 'vertical'
-                                spacing: dp(8)  # Reduced spacing
+                                spacing: dp(8)
                                 size_hint_y: None
                                 height: self.minimum_height
 
@@ -311,22 +311,22 @@
                                     orientation: 'horizontal'
                                     spacing: dp(8)
                                     size_hint_y: None
-                                    height: dp(28)  # Smaller header
+                                    height: dp(28)
 
                                     MDIcon:
-                                        icon: "cog"
+                                        icon: "map-marker"
                                         size_hint: None, None
-                                        size: dp(18), dp(18)  # Smaller icon
+                                        size: dp(18), dp(18)
                                         theme_icon_color: "Primary"
 
                                     MDLabel:
-                                        text: "Special Types"
+                                        text: "Location & GPS"
                                         font_style: "Subtitle1"
                                         bold: True
                                         theme_text_color: "Primary"
-                                        font_size: "15sp"  # Smaller font
+                                        font_size: "15sp"
 
-                                # Special Buttons
+                                # Location Buttons
                                 MDRaisedButton:
                                     text: "GPS Location"
                                     on_release: root.add_question('geopoint')
@@ -336,6 +336,43 @@
                                     font_size: "13sp"
                                     elevation: 1
 
+                                MDRaisedButton:
+                                    text: "GPS Area"
+                                    on_release: root.add_question('geoshape')
+                                    size_hint_y: None
+                                    height: dp(36)
+                                    md_bg_color: 0.6, 0.2, 0.8, 1
+                                    font_size: "13sp"
+                                    elevation: 1
+
+                            # MEDIA SECTION
+                            MDBoxLayout:
+                                orientation: 'vertical'
+                                spacing: dp(8)
+                                size_hint_y: None
+                                height: self.minimum_height
+
+                                # Section Header
+                                MDBoxLayout:
+                                    orientation: 'horizontal'
+                                    spacing: dp(8)
+                                    size_hint_y: None
+                                    height: dp(28)
+
+                                    MDIcon:
+                                        icon: "camera"
+                                        size_hint: None, None
+                                        size: dp(18), dp(18)
+                                        theme_icon_color: "Primary"
+
+                                    MDLabel:
+                                        text: "Media & Files"
+                                        font_style: "Subtitle1"
+                                        bold: True
+                                        theme_text_color: "Primary"
+                                        font_size: "15sp"
+
+                                # Media Buttons
                                 MDRaisedButton:
                                     text: "Photo/Image"
                                     on_release: root.add_question('image')
@@ -355,8 +392,72 @@
                                     elevation: 1
 
                                 MDRaisedButton:
+                                    text: "Video Recording"
+                                    on_release: root.add_question('video')
+                                    size_hint_y: None
+                                    height: dp(36)
+                                    md_bg_color: 0.2, 0.8, 0.8, 1
+                                    font_size: "13sp"
+                                    elevation: 1
+
+                                MDRaisedButton:
+                                    text: "File Upload"
+                                    on_release: root.add_question('file')
+                                    size_hint_y: None
+                                    height: dp(36)
+                                    md_bg_color: 0.2, 0.8, 0.8, 1
+                                    font_size: "13sp"
+                                    elevation: 1
+
+                            # SPECIAL SECTION
+                            MDBoxLayout:
+                                orientation: 'vertical'
+                                spacing: dp(8)
+                                size_hint_y: None
+                                height: self.minimum_height
+
+                                # Section Header
+                                MDBoxLayout:
+                                    orientation: 'horizontal'
+                                    spacing: dp(8)
+                                    size_hint_y: None
+                                    height: dp(28)
+
+                                    MDIcon:
+                                        icon: "cog"
+                                        size_hint: None, None
+                                        size: dp(18), dp(18)
+                                        theme_icon_color: "Primary"
+
+                                    MDLabel:
+                                        text: "Special Types"
+                                        font_style: "Subtitle1"
+                                        bold: True
+                                        theme_text_color: "Primary"
+                                        font_size: "15sp"
+
+                                # Special Buttons
+                                MDRaisedButton:
+                                    text: "Digital Signature"
+                                    on_release: root.add_question('signature')
+                                    size_hint_y: None
+                                    height: dp(36)
+                                    md_bg_color: 0.4, 0.4, 0.4, 1
+                                    font_size: "13sp"
+                                    elevation: 1
+
+                                MDRaisedButton:
                                     text: "Barcode/QR Code"
                                     on_release: root.add_question('barcode')
+                                    size_hint_y: None
+                                    height: dp(36)
+                                    md_bg_color: 0.4, 0.4, 0.4, 1
+                                    font_size: "13sp"
+                                    elevation: 1
+
+                                MDRaisedButton:
+                                    text: "Rating Scale"
+                                    on_release: root.add_question('scale_rating')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.4, 0.4, 0.4, 1

@@ -58,8 +58,12 @@ class FormBuilderScreen(Screen):
             'date': 'Date',
             'datetime': 'Date & Time',
             'geopoint': 'GPS Location',
+            'geoshape': 'GPS Area',
             'image': 'Photo/Image',
             'audio': 'Audio Recording',
+            'video': 'Video Recording',
+            'file': 'File Upload',
+            'signature': 'Digital Signature',
             'barcode': 'Barcode/QR Code',
         }
     
@@ -96,7 +100,7 @@ class FormBuilderScreen(Screen):
             Clock.schedule_once(lambda dt: setattr(self.manager, 'current', 'dashboard'), 1)
 
     def load_projects(self):
-        """Loads all projects from the local DB and populates the spinner."""
+        """Loads all projects from the backend API and syncs to local DB."""
         app = App.get_running_app()
         
         # Ensure user is authenticated and has valid user data
@@ -111,69 +115,140 @@ class FormBuilderScreen(Screen):
             Clock.schedule_once(lambda dt: setattr(self.manager, 'current', 'login'), 0.5)
             return
         
+        # Start loading in background thread
+        def _load_projects_thread():
+            try:
+                # First try to get projects from backend API
+                response = app.auth_service.make_authenticated_request('api/v1/projects/')
+                
+                if 'error' not in response:
+                    # Sync backend projects to local database
+                    api_projects = response.get('results', []) if 'results' in response else response
+                    if isinstance(api_projects, list):
+                        self._sync_projects_to_local(api_projects)
+                
+                # Now load from local database (single source of truth)
+                conn = app.db_service.get_db_connection()
+                try:
+                    cursor = conn.cursor()
+                    user_id = user_data.get('id')
+                    cursor.execute("SELECT id, name FROM projects WHERE user_id = ? ORDER BY name", (user_id,))
+                    projects = cursor.fetchall()
+                    
+                    # Update UI on main thread
+                    Clock.schedule_once(lambda dt: self._update_projects_ui(projects, user_id))
+                    
+                except Exception as e:
+                    print(f"Error loading projects from local DB: {e}")
+                    Clock.schedule_once(lambda dt: toast(f"Error loading projects: {str(e)}"))
+                finally:
+                    if conn:
+                        conn.close()
+                        
+            except Exception as e:
+                print(f"Error loading projects: {e}")
+                Clock.schedule_once(lambda dt: toast(f"Error loading projects: {str(e)}"))
+        
+        # Start background loading
+        threading.Thread(target=_load_projects_thread, daemon=True).start()
+    
+    def _sync_projects_to_local(self, api_projects):
+        """Sync projects from API to local database."""
+        app = App.get_running_app()
+        user_data = app.auth_service.get_user_data()
+        user_id = user_data.get('id') if user_data else None
+        
+        if not user_id:
+            return
+            
         conn = app.db_service.get_db_connection()
         try:
             cursor = conn.cursor()
-            user_id = user_data.get('id')
-            cursor.execute("SELECT id, name FROM projects WHERE user_id = ? ORDER BY name", (user_id,))
-            projects = cursor.fetchall()
             
-            if not projects:
-                # Instead of redirecting, show a helpful message and allow user to create projects
-                toast("No projects found. Create a project first to build forms.")
-                self.project_list = []
-                self.project_map = {}
-                if hasattr(self.ids, 'project_spinner'):
-                    self.ids.project_spinner.text = 'No Projects Available'
-                self.project_id = None
-                self.ids.form_canvas.clear_widgets()
-                
-                # Add a helpful widget to the form canvas
-                help_layout = MDBoxLayout(
-                    orientation='vertical',
-                    spacing=dp(16),
-                    adaptive_height=True,
-                    size_hint_y=None,
-                    height=dp(200)
-                )
-                
-                help_label = MDLabel(
-                    text="No projects found!\n\nTo create forms, you need to have at least one project.\nGo to the Projects page to create a new project first.",
-                    halign="center",
-                    theme_text_color="Secondary",
-                    size_hint_y=None,
-                    height=dp(120)
-                )
-                
-                go_to_projects_btn = MDRaisedButton(
-                    text="Go to Projects",
-                    size_hint=(None, None),
-                    size=(dp(150), dp(40)),
-                    pos_hint={'center_x': 0.5},
-                    on_release=lambda x: setattr(self.manager, 'current', 'projects')
-                )
-                
-                help_layout.add_widget(help_label)
-                help_layout.add_widget(go_to_projects_btn)
-                self.ids.form_canvas.add_widget(help_layout)
-                
-                print(f"No projects found for user {user_id}")
-                return
-                
-            self.project_list = [p['name'] for p in projects]
-            self.project_map = {p['name']: p['id'] for p in projects}
+            # Clear existing projects for this user that are synced (not pending local changes)
+            cursor.execute("DELETE FROM projects WHERE user_id = ? AND sync_status != 'pending'", (user_id,))
+            
+            # Insert/update projects from API
+            for project in api_projects:
+                cursor.execute("""
+                    INSERT OR REPLACE INTO projects 
+                    (id, name, description, user_id, sync_status, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    project.get('id'),
+                    project.get('name'),
+                    project.get('description', ''),
+                    user_id,
+                    'synced',
+                    project.get('created_at'),
+                    project.get('updated_at')
+                ))
+            
+            conn.commit()
+            print(f"Synced {len(api_projects)} projects to local database")
+            
+        except Exception as e:
+            print(f"Error syncing projects to local database: {e}")
+        finally:
+            if conn:
+                conn.close()
+    
+    def _update_projects_ui(self, projects, user_id):
+        """Update the UI with loaded projects."""
+        if not projects:
+            # Show helpful message and allow user to create projects
+            toast("No projects found. Create a project first to build forms.")
+            self.project_list = []
+            self.project_map = {}
             if hasattr(self.ids, 'project_spinner'):
-                self.ids.project_spinner.text = 'Select Project'
+                self.ids.project_spinner.text = 'No Projects Available'
             self.project_id = None
             self.ids.form_canvas.clear_widgets()
             
-            print(f"Loaded {len(projects)} projects for user {user_id}")
+            # Add a helpful widget to the form canvas
+            help_layout = MDBoxLayout(
+                orientation='vertical',
+                spacing=dp(16),
+                adaptive_height=True,
+                size_hint_y=None,
+                height=dp(200)
+            )
             
-        except Exception as e:
-            print(f"Error loading projects: {e}")
-            toast(f"Error loading projects: {str(e)}")
-        finally:
-            conn.close()
+            help_label = MDLabel(
+                text="No projects found!\n\nTo create forms, you need to have at least one project.\nGo to the Projects page to create a new project first.",
+                halign="center",
+                theme_text_color="Secondary",
+                size_hint_y=None,
+                height=dp(120)
+            )
+            
+            go_to_projects_btn = MDRaisedButton(
+                text="Go to Projects",
+                size_hint=(None, None),
+                size=(dp(150), dp(40)),
+                pos_hint={'center_x': 0.5},
+                on_release=lambda x: setattr(self.manager, 'current', 'projects')
+            )
+            
+            help_layout.add_widget(help_label)
+            help_layout.add_widget(go_to_projects_btn)
+            self.ids.form_canvas.add_widget(help_layout)
+            
+            print(f"No projects found for user {user_id}")
+            return
+            
+        self.project_list = [p['name'] for p in projects]
+        self.project_map = {p['name']: p['id'] for p in projects}
+        if hasattr(self.ids, 'project_spinner'):
+            self.ids.project_spinner.text = 'Select Project'
+        self.project_id = None
+        self.ids.form_canvas.clear_widgets()
+        
+        print(f"Loaded {len(projects)} projects for user {user_id}")
+        
+        # Update UI elements
+        self.update_question_count()
+        self.update_empty_state()
 
     def open_project_menu(self):
         if self.project_menu:
