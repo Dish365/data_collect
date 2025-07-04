@@ -522,15 +522,14 @@ class NumericDecimalField(BaseFormField):
 class SingleChoiceField(BaseFormField):
     options = ListProperty([])
 
-    def __init__(self, **kwargs):
+    def __init__(self, question_text="", options=None, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "choice_single"
         self.selected_option = None
         self.checkboxes = []
         self.create_options_header()
         self.create_options_container()
-        if not self.options:
-            self.options = ['Option 1', 'Option 2']
+        self.options = options if options else ['Option 1', 'Option 2']
         self.update_field_height()
 
     def create_options_header(self):
@@ -580,9 +579,19 @@ class SingleChoiceField(BaseFormField):
         self.add_widget(self.options_container)
 
     def on_options(self, instance, options):
+        print(f"SingleChoiceField.on_options called with: {options}")
+        # Store current user-entered text from existing option inputs
+        current_texts = {}
+        if hasattr(self, 'option_inputs'):
+            for i, input_widget in enumerate(self.option_inputs):
+                if i < len(self.options):
+                    current_texts[i] = input_widget.text
+        
         self.options_container.clear_widgets()
         self.checkboxes = []
+        self.option_inputs = []  # Store references to option input widgets
         if not options:
+            print("No options provided, returning early")
             return
         values = self.get_responsive_values()
         option_row_height = values['input_height'] + dp(8)
@@ -599,8 +608,11 @@ class SingleChoiceField(BaseFormField):
                 pos_hint={'center_y': 0.5},
                 on_active=lambda x, active, opt=option: self.on_option_selected(opt, active)
             )
+            
+            # Use user-entered text if available, otherwise use the option text
+            display_text = current_texts.get(i, option)
             option_input = MDTextField(
-                text=option,
+                text=display_text,
                 size_hint_x=0.8,
                 font_size="13sp",
                 height=values['input_height'],
@@ -614,6 +626,7 @@ class SingleChoiceField(BaseFormField):
             row.add_widget(option_input)
             self.options_container.add_widget(row)
             self.checkboxes.append(checkbox)
+            self.option_inputs.append(option_input)
         self.update_field_height()
 
     def add_option(self, instance):
@@ -639,9 +652,11 @@ class SingleChoiceField(BaseFormField):
     def update_option(self, index, new_text):
         """Update an option text"""
         if 0 <= index < len(self.options) and new_text.strip():
-            options_list = list(self.options)
-            options_list[index] = new_text.strip()
-            self.options = options_list
+            # Only update if the text actually changed
+            if self.options[index] != new_text.strip():
+                options_list = list(self.options)
+                options_list[index] = new_text.strip()
+                self.options = options_list
     
     def get_value(self):
         return self.selected_option
@@ -678,15 +693,14 @@ class SingleChoiceField(BaseFormField):
 class MultipleChoiceField(BaseFormField):
     options = ListProperty([])
 
-    def __init__(self, **kwargs):
+    def __init__(self, question_text="", options=None, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "choice_multiple"
         self.selected_options = []
         self.checkboxes = []
         self.create_options_header()
         self.create_options_container()
-        if not self.options:
-            self.options = ['Option 1', 'Option 2']
+        self.options = options if options else ['Option 1', 'Option 2']
         self.update_field_height()
 
     def create_options_header(self):
@@ -736,8 +750,17 @@ class MultipleChoiceField(BaseFormField):
         self.add_widget(self.options_container)
 
     def on_options(self, instance, options):
+        print(f"MultipleChoiceField.on_options called with: {options}")
+        # Store current user-entered text from existing option inputs
+        current_texts = {}
+        if hasattr(self, 'option_inputs'):
+            for i, input_widget in enumerate(self.option_inputs):
+                if i < len(self.options):
+                    current_texts[i] = input_widget.text
+        
         self.options_container.clear_widgets()
         self.checkboxes = []
+        self.option_inputs = []  # Store references to option input widgets
         values = self.get_responsive_values()
         option_row_height = values['input_height'] + dp(8)
         for i, option in enumerate(options):
@@ -753,8 +776,11 @@ class MultipleChoiceField(BaseFormField):
                 pos_hint={'center_y': 0.5},
                 on_active=lambda x, active, opt=option: self.on_option_selected(opt, active)
             )
+            
+            # Use user-entered text if available, otherwise use the option text
+            display_text = current_texts.get(i, option)
             option_input = MDTextField(
-                text=option,
+                text=display_text,
                 size_hint_x=0.8,
                 font_size="13sp",
                 height=values['input_height'],
@@ -768,6 +794,7 @@ class MultipleChoiceField(BaseFormField):
             row.add_widget(option_input)
             self.options_container.add_widget(row)
             self.checkboxes.append(checkbox)
+            self.option_inputs.append(option_input)
         self.update_field_height()
 
     def add_option(self, instance):
@@ -789,9 +816,11 @@ class MultipleChoiceField(BaseFormField):
     def update_option(self, index, new_text):
         """Update an option text"""
         if 0 <= index < len(self.options) and new_text.strip():
-            options_list = list(self.options)
-            options_list[index] = new_text.strip()
-            self.options = options_list
+            # Only update if the text actually changed
+            if self.options[index] != new_text.strip():
+                options_list = list(self.options)
+                options_list[index] = new_text.strip()
+                self.options = options_list
     
     def on_option_selected(self, option, active):
         if active and option not in self.selected_options:
@@ -1766,11 +1795,6 @@ def create_form_field(response_type, question_text="", options=None, **kwargs):
     
     field_class = field_map.get(response_type, ShortTextField)
     print(f"Creating field class: {field_class}")
-    field = field_class(question_text=question_text, **kwargs)
-    
-    # Set options for choice fields
-    if hasattr(field, 'options') and options:
-        field.options = options
-    
+    field = field_class(question_text=question_text, options=options, **kwargs)
     return field
 

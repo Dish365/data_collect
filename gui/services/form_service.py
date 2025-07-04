@@ -44,6 +44,14 @@ class FormService:
             else:
                 cursor.execute("SELECT * FROM questions WHERE project_id = ? ORDER BY order_index", (project_id,))
             questions_data = [dict(row) for row in cursor.fetchall()]
+            
+            # Debug logging to see what's being loaded
+            for q in questions_data:
+                print(f"Loaded question: {q.get('question_text', 'No text')}")
+                print(f"  - Type: {q.get('question_type', 'No type')}")
+                print(f"  - Options: {q.get('options', 'No options')}")
+                print(f"  - Options type: {type(q.get('options'))}")
+            
             return questions_data, None
         except Exception as e:
             print(f"Error loading questions: {e}")
