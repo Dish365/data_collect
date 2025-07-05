@@ -1,0 +1,56 @@
+<AnalyticsStatCard>:
+    size_hint_x: None
+    width: dp(380)
+    size_hint_y: None
+    height: dp(120)
+    radius: [16, 16, 16, 16]
+    elevation: 3
+    padding: dp(20)
+    md_bg_color: (0.98, 0.98, 0.98, 1)
+
+    MDBoxLayout:
+        orientation: "horizontal"
+        spacing: dp(18)
+        size_hint: 1, 1
+        pos_hint: {"center_y": 0.5}
+
+        MDIconButton:
+            icon: root.icon
+            theme_icon_color: "Custom"
+            icon_color: app.theme_cls.primary_color
+            user_font_size: "32sp"
+            size_hint: None, None
+            size: dp(48), dp(48)
+            pos_hint: {"center_y": 0.5}
+            disabled: True
+
+        MDBoxLayout:
+            orientation: "vertical"
+            spacing: dp(2)
+            size_hint_y: 1
+
+            MDLabel:
+                text: root.value
+                font_style: "H5"
+                bold: True
+                halign: "left"
+                theme_text_color: "Primary"
+                size_hint_y: None
+                height: self.texture_size[1]
+
+            MDLabel:
+                text: root.title
+                font_style: "Body1"
+                halign: "left"
+                theme_text_color: "Secondary"
+                size_hint_y: None
+                height: self.texture_size[1]
+
+            MDLabel:
+                text: root.note
+                font_style: "Caption"
+                halign: "left"
+                theme_text_color: "Hint"
+                size_hint_y: None
+                height: self.texture_size[1] if self.text else 0
+                opacity: 1 if self.text else 0 
