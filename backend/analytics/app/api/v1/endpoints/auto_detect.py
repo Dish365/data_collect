@@ -9,7 +9,7 @@ from typing import Dict, Any, List, Optional
 import pandas as pd
 import json
 
-from backend.analytics.core.database import get_db
+from core.database import get_db
 from app.analytics.auto_detect import (
     UnifiedAutoDetector,
     create_auto_detector,
@@ -230,7 +230,7 @@ async def get_data_characteristics(
         df = pd.DataFrame(data)
         unified_detector = UnifiedAutoDetector()
         
-        characteristics = unified_detector.data_profiler.profile_data(df, variable_metadata)
+        characteristics = unified_detector.data_profiler.profile_data(df)
         
         return {
             "data_profile": _format_data_characteristics(characteristics),
