@@ -1795,6 +1795,10 @@ def create_form_field(response_type, question_text="", options=None, **kwargs):
     
     field_class = field_map.get(response_type, ShortTextField)
     print(f"Creating field class: {field_class}")
-    field = field_class(question_text=question_text, options=options, **kwargs)
+    # Only pass options to choice fields
+    if response_type in ['choice_single', 'choice_multiple']:
+        field = field_class(question_text=question_text, options=options, **kwargs)
+    else:
+        field = field_class(question_text=question_text, **kwargs)
     return field
 

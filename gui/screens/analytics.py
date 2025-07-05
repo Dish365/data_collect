@@ -16,6 +16,7 @@ from kivymd.uix.spinner import MDSpinner
 from kivymd.uix.selectioncontrol import MDCheckbox
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.slider import MDSlider
+from kivy.core.window import Window
 
 import threading
 import json
@@ -62,6 +63,7 @@ class AnalyticsScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.analysis_results = {}
+        Window.bind(on_resize=self.on_window_resize)
 
     def on_enter(self):
         """Initialize analytics screen when entered"""
@@ -259,39 +261,30 @@ class AnalyticsScreen(Screen):
         """Update the quick statistics cards with tablet optimization"""
         if not hasattr(self.ids, 'stats_container'):
             return
-            
         try:
-            # Ensure stats container exists and is properly cleared
             stats_container = getattr(self.ids, 'stats_container', None)
             if not stats_container:
                 return
-                
-            # Clear any existing widgets completely
             stats_container.clear_widgets()
-            
             stats = self.get_project_stats()
-            
-            # Only create stat cards if we have a current project
             if not self.current_project_id:
                 return
-            
-            # Create stat cards with clean data
+            # Use a grid layout for 2 cards per row
+            stats_container.cols = 2
             stat_items = [
-                ("Total Responses", stats.get('total_responses', 0), "chart-line"),
-                ("Questions", stats.get('total_questions', 0), "help-circle"), 
-                ("Completion Rate", f"{stats.get('completion_rate', 0)}%", "check-circle"),
-                ("Last Updated", stats.get('last_updated', 'Never'), "clock")
+                ("Total Responses", stats.get('total_responses', 0), "database", "From your accessible projects"),
+                ("Questions", stats.get('total_questions', 0), "help-circle", "Questions in this project"),
+                ("Completion Rate", f"{stats.get('completion_rate', 0)}%", "check-circle", "Survey completion rate"),
+                ("Last Updated", stats.get('last_updated', 'Never'), "clock", "Most recent update"),
             ]
-            
-            for label, value, icon in stat_items:
+            from widgets.analytics_stat_card import AnalyticsStatCard
+            for label, value, icon, note in stat_items:
                 try:
-                    # Create clean stat card
-                    card = self.create_clean_stat_card(label, str(value), icon)
+                    card = AnalyticsStatCard(title=label, value=str(value), icon=icon, note=note)
                     if card:
                         stats_container.add_widget(card)
                 except Exception as card_error:
-                    print(f"Error creating stat card for {label}: {card_error}")
-                
+                    print(f"Error creating analytics stat card for {label}: {card_error}")
         except Exception as e:
             print(f"Error updating quick stats: {e}")
 
@@ -771,152 +764,33 @@ class AnalyticsScreen(Screen):
         """Show analysis configuration dialog"""
         toast("Analysis configuration coming soon")
         
-    def on_window_resize(self, width, height):
-        """Handle window resize for responsive layout adjustments"""
-        try:
-            from widgets.responsive_layout import ResponsiveHelper
-            
-            # Determine screen size category and orientation
-            category = ResponsiveHelper.get_screen_size_category()
-            is_landscape = ResponsiveHelper.is_landscape()
-            
-            print(f"Analytics: Window resized to {width}x{height} - {category} {'landscape' if is_landscape else 'portrait'}")
-            
-            # Update responsive properties
-            self.update_responsive_layout()
-            
-        except Exception as e:
-            print(f"Error handling window resize in analytics: {e}")
-    
+    def on_window_resize(self, window, width, height):
+        self.update_responsive_layout()
+
     def update_responsive_layout(self):
-        """Update layout based on current screen size"""
+        # Responsive columns for stat cards
         try:
-            from widgets.responsive_layout import ResponsiveHelper
-            
-            category = ResponsiveHelper.get_screen_size_category()
-            is_landscape = ResponsiveHelper.is_landscape()
-            
-            print(f"Analytics: Updating responsive layout for {category} {'landscape' if is_landscape else 'portrait'}")
-            
-            # Update all tab layouts
-            self.update_tab_layouts(category, is_landscape)
-            
-            # Update stats container spacing
+            window_width = Window.width
+            min_card_width = 320  # match dashboard style
+            spacing = 24
+            padding = 48  # left+right
+            available_width = window_width - padding
+            max_possible_cols = max(1, int(available_width / (min_card_width + spacing)))
+            if window_width < 700:
+                stats_cols = 1
+            elif window_width < 1200:
+                stats_cols = 2
+            elif window_width < 1600:
+                stats_cols = min(3, max_possible_cols)
+            else:
+                stats_cols = min(4, max_possible_cols)
+            stats_cols = min(stats_cols, 4)
+            stats_cols = max(stats_cols, 1)
             if hasattr(self.ids, 'stats_container'):
-                spacing = ResponsiveHelper.get_responsive_spacing()
-                self.ids.stats_container.spacing = spacing
-            
-            # Update tab bar for larger screens
-            if hasattr(self.ids, 'analytics_tabs'):
-                if category in ["tablet", "large_tablet"]:
-                    self.ids.analytics_tabs.tab_bar_height = dp(64)
-                else:
-                    self.ids.analytics_tabs.tab_bar_height = dp(48)
-            
+                self.ids.stats_container.cols = stats_cols
+                self.ids.stats_container.do_layout()
         except Exception as e:
-            print(f"Error updating responsive layout in analytics: {e}")
-    
-    def update_tab_layouts(self, category, is_landscape):
-        """Update layout orientation for all analytics tabs based on screen size"""
-        # Determine if we should use side-by-side layout
-        use_side_by_side = self.should_use_side_by_side_layout(category, is_landscape)
-        
-        print(f"Analytics: Using {'side-by-side' if use_side_by_side else 'stacked'} layout")
-        
-        # Update each tab layout
-        tab_layouts = [
-            'auto_detection_layout',
-            'descriptive_layout', 
-            'inferential_layout',
-            'qualitative_layout'
-        ]
-        
-        for layout_id in tab_layouts:
-            if hasattr(self.ids, layout_id):
-                layout = getattr(self.ids, layout_id)
-                if use_side_by_side:
-                    self.setup_side_by_side_layout(layout, layout_id)
-                else:
-                    self.setup_stacked_layout(layout, layout_id)
-    
-    def should_use_side_by_side_layout(self, category, is_landscape):
-        """Determine if side-by-side layout should be used"""
-        if category == "large_tablet":
-            return True  # Always use side-by-side on large tablets
-        elif category == "tablet":
-            return is_landscape  # Use side-by-side on tablet landscape only
-        elif category == "small_tablet":
-            return is_landscape  # Use side-by-side on small tablet landscape only
-        else:  # phone
-            return False  # Never use side-by-side on phones
-    
-    def setup_side_by_side_layout(self, layout, layout_id):
-        """Configure layout for side-by-side configuration + results panels"""
-        if not layout:
-            return
-            
-        layout.orientation = 'horizontal'
-        layout.spacing = dp(16)
-        
-        # Find and configure panels
-        config_panel = self.find_config_panel(layout, layout_id)
-        results_panel = self.find_results_panel(layout, layout_id)
-        
-        if config_panel:
-            config_panel.size_hint_x = 0.35  # 35% width
-            config_panel.size_hint_y = 1
-        
-        if results_panel:
-            results_panel.size_hint_x = 0.65  # 65% width
-            results_panel.size_hint_y = 1
-    
-    def setup_stacked_layout(self, layout, layout_id):
-        """Configure layout for stacked configuration over results"""
-        if not layout:
-            return
-            
-        layout.orientation = 'vertical'
-        layout.spacing = dp(12)
-        
-        # Find and configure panels
-        config_panel = self.find_config_panel(layout, layout_id)
-        results_panel = self.find_results_panel(layout, layout_id)
-        
-        if config_panel:
-            config_panel.size_hint_x = 1  # Full width
-            config_panel.size_hint_y = None  # Auto height
-            # Set specific height for config panel in stacked mode
-            if hasattr(config_panel, 'height'):
-                config_panel.height = dp(200)
-        
-        if results_panel:
-            results_panel.size_hint_x = 1  # Full width
-            results_panel.size_hint_y = 1  # Take remaining space
-    
-    def find_config_panel(self, layout, layout_id):
-        """Find the configuration panel in a layout"""
-        config_panel_ids = {
-            'auto_detection_layout': 'auto_config_panel',
-            'descriptive_layout': 'descriptive_config_panel',
-            'inferential_layout': 'inferential_config_panel',
-            'qualitative_layout': 'qualitative_config_panel'
-        }
-        
-        panel_id = config_panel_ids.get(layout_id)
-        if panel_id and hasattr(self.ids, panel_id):
-            return getattr(self.ids, panel_id)
-        return None
-    
-    def find_results_panel(self, layout, layout_id):
-        """Find the results panel in a layout"""
-        results_panel_ids = {
-            'auto_detection_layout': 'auto_results_panel',
-            'descriptive_layout': 'descriptive_results_panel',
-            'inferential_layout': 'inferential_results_panel',
-            'qualitative_layout': 'qualitative_results_panel'
-        }
-        
-        panel_id = results_panel_ids.get(layout_id)
-        if panel_id and hasattr(self.ids, panel_id):
-            return getattr(self.ids, panel_id)
-        return None 
+            print(f"Error in analytics responsive layout: {e}")
+            if hasattr(self.ids, 'stats_container'):
+                self.ids.stats_container.cols = 1
+                self.ids.stats_container.do_layout() 

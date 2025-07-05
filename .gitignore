@@ -7,3 +7,6 @@ gui/venv/
 
 # Authentication files - contain sensitive tokens and user data
 gui/auth.json
+
+# Cursor IDE configuration and rules - development-specific
+.cursor/

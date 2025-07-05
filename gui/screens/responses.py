@@ -230,6 +230,8 @@ class ResponseItem(MDCard):
                 size_hint_x=None,
                 width=button_width,
                 height=button_height,
+                theme_text_color="Custom",
+                text_color=(0.2, 0.6, 1, 1),  # Blue
                 font_size=font_size,
                 on_release=self.view_responses
             )
@@ -240,6 +242,8 @@ class ResponseItem(MDCard):
                 size_hint_x=None,
                 width=button_width,
                 height=button_height,
+                theme_text_color="Custom",
+                text_color=(1, 0.6, 0.2, 1),  # Orange
                 font_size=font_size,
                 on_release=self.edit_respondent
             )
@@ -271,6 +275,8 @@ class ResponseItem(MDCard):
             text="View",
             size_hint_x=None,
             width=dp(50),
+            theme_text_color="Custom",
+            text_color=(0.2, 0.6, 1, 1),  # Blue
             on_release=self.view_responses
         )
         
@@ -279,6 +285,8 @@ class ResponseItem(MDCard):
             text="Edit",
             size_hint_x=None,
             width=dp(50),
+            theme_text_color="Custom",
+            text_color=(1, 0.6, 0.2, 1),  # Orange
             on_release=self.edit_respondent
         )
         
