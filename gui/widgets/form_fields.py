@@ -327,11 +327,33 @@ class BaseFormField(MDCard):
         extra_padding = dp(24)
         self.height = values['height'] + self.get_content_height() + extra_padding
 
+    def create_delete_button(self):
+        values = self.get_responsive_values()
+        self.delete_container = MDBoxLayout(
+            orientation='horizontal',
+            size_hint_y=None,
+            height=values['button_height'],
+            spacing=dp(10)
+        )
+        spacer = MDBoxLayout(size_hint_x=1)
+        self.delete_container.add_widget(spacer)
+        self.delete_button = MDRaisedButton(
+            text="Delete Question",
+            md_bg_color=(1, 0.3, 0.3, 1),
+            on_release=lambda x: self.parent.remove_widget(self),
+            size_hint=(None, None),
+            size=(dp(140), values['button_height']),
+            font_size=values['font_size_small']
+        )
+        self.delete_container.add_widget(self.delete_button)
+        self.add_widget(self.delete_container)
+
 class ShortTextField(BaseFormField):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.response_type = "text_short"
         self.create_text_input()
+        self.create_delete_button()
         self.update_field_height()
     
     def create_text_input(self):
@@ -371,6 +393,7 @@ class LongTextField(BaseFormField):
         super().__init__(**kwargs)
         self.response_type = "text_long"
         self.create_text_input()
+        self.create_delete_button()
         self.update_field_height()
     
     def create_text_input(self):
@@ -420,6 +443,7 @@ class NumericIntegerField(BaseFormField):
         super().__init__(**kwargs)
         self.response_type = "numeric_integer"
         self.create_numeric_input()
+        self.create_delete_button()
         self.update_field_height()
     
     def create_numeric_input(self):
@@ -472,6 +496,7 @@ class NumericDecimalField(BaseFormField):
         super().__init__(**kwargs)
         self.response_type = "numeric_decimal"
         self.create_decimal_input()
+        self.create_delete_button()
         self.update_field_height()
     
     def create_decimal_input(self):
@@ -530,6 +555,7 @@ class SingleChoiceField(BaseFormField):
         self.create_options_header()
         self.create_options_container()
         self.options = options if options else ['Option 1', 'Option 2']
+        self.create_delete_button()
         self.update_field_height()
 
     def create_options_header(self):
@@ -701,6 +727,7 @@ class MultipleChoiceField(BaseFormField):
         self.create_options_header()
         self.create_options_container()
         self.options = options if options else ['Option 1', 'Option 2']
+        self.create_delete_button()
         self.update_field_height()
 
     def create_options_header(self):
@@ -886,6 +913,7 @@ class RatingScaleField(BaseFormField):
         self.slider.bind(value=self.on_slider_value)
         self.add_widget(self.value_label)
         self.add_widget(self.slider)
+        self.create_delete_button()
         self.update_field_height()
 
     def get_content_height(self):
@@ -914,6 +942,7 @@ class DateField(BaseFormField):
         self.response_type = "date"
         self.selected_date = None
         self.create_date_input()
+        self.create_delete_button()
         self.update_field_height()
 
     def create_date_input(self):
@@ -962,6 +991,7 @@ class DateTimeField(BaseFormField):
         self.selected_date = None
         self.selected_time = None
         self.create_datetime_inputs()
+        self.create_delete_button()
         self.update_field_height()
 
     def create_datetime_inputs(self):
@@ -1038,6 +1068,7 @@ class LocationPickerField(BaseFormField):
         self.gps_accuracy = None
         self.is_getting_location = False
         self.create_location_input()
+        self.create_delete_button()
         self.update_field_height()
 
     def create_location_input(self):
@@ -1175,54 +1206,193 @@ class LocationPickerField(BaseFormField):
 
 class PhotoUploadField(BaseFormField):
     def __init__(self, **kwargs):
+        self.photo_path = None  # Ensure attribute exists before any parent or Kivy code runs
         super().__init__(**kwargs)
         self.response_type = "image"
-        self.photo_path = None
-        self.create_photo_input()
         self.update_field_height()
 
+    def create_response_section(self):
+        # Only add the photo controls as the response section, below the question label
+        self.create_photo_input()
+
     def create_photo_input(self):
+        """Create enhanced photo input interface with preview"""
+        values = self.get_responsive_values()
+        
+        # Photo display area
         self.photo_display = MDTextField(
             hint_text="No photo selected",
             mode="rectangle",
             readonly=True,
             size_hint_y=None,
-            height=dp(48)
+            height=values['input_height'],
+            font_size=values['font_size_secondary']
         )
+        
+        # Photo preview area (hidden initially)
+        self.photo_preview = MDCard(
+            size_hint_y=None,
+            height=dp(120),
+            md_bg_color=(0.95, 0.95, 0.95, 1),
+            elevation=1,
+            opacity=0  # Hidden initially
+        )
+        
+        self.preview_label = MDLabel(
+            text="Photo Preview",
+            halign="center",
+            valign="center",
+            theme_text_color="Secondary",
+            font_size="14sp"
+        )
+        self.photo_preview.add_widget(self.preview_label)
+        
+        # Button container with three buttons
         self.button_container = MDBoxLayout(
             orientation='horizontal',
-            spacing=dp(10),
+            spacing=dp(8),
             size_hint_y=None,
-            height=dp(48)
+            height=values['button_height']
         )
+        
         self.camera_btn = MDRaisedButton(
-            text="Take Photo",
-            size_hint_x=0.5,
-            on_release=self.take_photo
+            text="📷 Camera",
+            size_hint_x=0.33,
+            on_release=self.take_photo,
+            font_size=values['font_size_small']
         )
+        
         self.gallery_btn = MDRaisedButton(
-            text="Choose from Gallery",
-            size_hint_x=0.5,
-            on_release=self.choose_from_gallery
+            text="🖼️ Gallery",
+            size_hint_x=0.33,
+            on_release=self.choose_from_gallery,
+            font_size=values['font_size_small']
         )
+        
+        self.clear_btn = MDRaisedButton(
+            text="🗑️ Clear",
+            size_hint_x=0.33,
+            on_release=self.clear_photo,
+            md_bg_color=(0.8, 0.2, 0.2, 1),
+            font_size=values['font_size_small']
+        )
+        
         self.button_container.add_widget(self.camera_btn)
         self.button_container.add_widget(self.gallery_btn)
+        self.button_container.add_widget(self.clear_btn)
+        
         self.add_widget(self.photo_display)
+        self.add_widget(self.photo_preview)
         self.add_widget(self.button_container)
 
     def take_photo(self, instance):
-        # Simulate taking a photo
-        # In a real app, you'd use plyer.camera or similar
-        self.photo_path = f"photo_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
-        self.photo_display.text = f"Photo: {self.photo_path}"
-        toast("Photo captured!")
+        """Take a photo using the device camera"""
+        try:
+            from plyer import camera
+            
+            def on_camera_result(filename):
+                if filename:
+                    # Handle the captured photo
+                    self.photo_path = filename
+                    self.photo_display.text = f"Photo: {filename.split('/')[-1]}"
+                    self._update_photo_preview(filename)
+                    toast("Photo captured successfully!")
+                else:
+                    toast("Photo capture cancelled")
+            
+            # Take photo with camera
+            camera.take_picture(
+                filename=f"photo_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg",
+                on_complete=on_camera_result
+            )
+            
+        except ImportError:
+            # Fallback for when plyer is not available
+            self.photo_path = f"photo_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+            self.photo_display.text = f"Photo: {self.photo_path}"
+            toast("Photo captured! (Simulated)")
+        except Exception as e:
+            toast(f"Camera error: {str(e)}")
     
     def choose_from_gallery(self, instance):
-        # Simulate choosing from gallery
-        # In a real app, you'd use plyer.filechooser or similar
-        self.photo_path = f"gallery_photo_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
-        self.photo_display.text = f"Photo: {self.photo_path}"
-        toast("Photo selected!")
+        """Choose a photo from the device gallery"""
+        try:
+            from plyer import filechooser
+            
+            def on_file_result(selection):
+                if selection:
+                    # Handle the selected file
+                    file_path = selection[0]  # First selected file
+                    
+                    # Validate file type
+                    allowed_extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.gif', '.tiff']
+                    file_ext = file_path.lower()[file_path.rfind('.'):]
+                    
+                    if file_ext in allowed_extensions:
+                        self.photo_path = file_path
+                        self.photo_display.text = f"Photo: {file_path.split('/')[-1]}"
+                        self._update_photo_preview(file_path)
+                        toast("Photo selected successfully!")
+                    else:
+                        toast("Please select a valid image file (JPG, PNG, BMP, GIF, TIFF)")
+                else:
+                    toast("No file selected")
+            
+            # Open file chooser for images
+            filechooser.open_file(
+                title="Select Photo",
+                filters=[("Image files", "*.jpg", "*.jpeg", "*.png", "*.bmp", "*.gif", "*.tiff")],
+                on_selection=on_file_result
+            )
+            
+        except ImportError:
+            # Fallback for when plyer is not available
+            self.photo_path = f"gallery_photo_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+            self.photo_display.text = f"Photo: {self.photo_path}"
+            toast("Photo selected! (Simulated)")
+        except Exception as e:
+            toast(f"File chooser error: {str(e)}")
+    
+    def clear_photo(self, instance):
+        """Clear the selected photo"""
+        self.photo_path = None
+        self.photo_display.text = ""
+        self.photo_display.hint_text = "No photo selected"
+        
+        # Hide preview
+        self.photo_preview.opacity = 0
+        self.preview_label.text = "Photo Preview"
+        
+        toast("Photo cleared")
+    
+    def _update_photo_preview(self, file_path):
+        """Update the photo preview area"""
+        try:
+            # Show preview area
+            self.photo_preview.opacity = 1
+            
+            # Update preview label with file info
+            filename = file_path.split('/')[-1] if '/' in file_path else file_path
+            file_size = "Unknown size"
+            
+            # Try to get file size
+            try:
+                import os
+                if os.path.exists(file_path):
+                    size_bytes = os.path.getsize(file_path)
+                    if size_bytes < 1024:
+                        file_size = f"{size_bytes} B"
+                    elif size_bytes < 1024 * 1024:
+                        file_size = f"{size_bytes // 1024} KB"
+                    else:
+                        file_size = f"{size_bytes // (1024 * 1024)} MB"
+            except:
+                pass
+            
+            self.preview_label.text = f"📷 {filename}\n📏 {file_size}"
+            
+        except Exception as e:
+            self.preview_label.text = f"Photo Preview\nError: {str(e)}"
     
     def get_value(self):
         return self.photo_path
@@ -1231,10 +1401,20 @@ class PhotoUploadField(BaseFormField):
         self.photo_path = value
         if value:
             self.photo_display.text = f"Photo: {value}"
+            self._update_photo_preview(value)
+        else:
+            self.clear_photo(None)
 
     def get_content_height(self):
         values = self.get_responsive_values()
-        return values['input_height'] + values['input_height'] + dp(8) + dp(48) + dp(48) + dp(2)
+        # Base height: input + button + spacing
+        base_height = values['input_height'] + values['button_height'] + dp(16)
+        
+        # Add preview height if photo is selected
+        if self.photo_path and hasattr(self, 'photo_preview') and self.photo_preview.opacity > 0:
+            base_height += dp(120) + dp(8)  # Preview height + spacing
+        
+        return base_height
 
 class AudioRecordingField(BaseFormField):
     def __init__(self, **kwargs):
@@ -1243,6 +1423,7 @@ class AudioRecordingField(BaseFormField):
         self.audio_path = None
         self.is_recording = False
         self.create_audio_input()
+        self.create_delete_button()
         self.update_field_height()
 
     def create_audio_input(self):
@@ -1319,6 +1500,7 @@ class BarcodeField(BaseFormField):
         self.response_type = "barcode"
         self.barcode_value = None
         self.create_barcode_input()
+        self.create_delete_button()
         self.update_field_height()
 
     def create_barcode_input(self):
@@ -1364,6 +1546,7 @@ class GeoShapeField(BaseFormField):
         self.response_type = "geoshape"
         self.shape_points = []
         self.create_geoshape_input()
+        self.create_delete_button()
         self.update_field_height()
 
     def create_geoshape_input(self):
@@ -1477,6 +1660,7 @@ class VideoRecordingField(BaseFormField):
         self.video_path = None
         self.is_recording = False
         self.create_video_input()
+        self.create_delete_button()
         self.update_field_height()
 
     def create_video_input(self):
@@ -1569,6 +1753,7 @@ class FileUploadField(BaseFormField):
         self.file_path = None
         self.file_info = {}
         self.create_file_input()
+        self.create_delete_button()
         self.update_field_height()
 
     def create_file_input(self):
@@ -1684,6 +1869,7 @@ class DigitalSignatureField(BaseFormField):
         self.response_type = "signature"
         self.signature_data = None
         self.create_signature_input()
+        self.create_delete_button()
         self.update_field_height()
 
     def create_signature_input(self):
