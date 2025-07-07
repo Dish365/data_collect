@@ -79,8 +79,9 @@ class ProjectDialog(MDBoxLayout):
             self.ids.name_field.text = name
             self.ids.desc_field.text = description
             
-            # Auto-focus on name field for better UX
-            Clock.schedule_once(lambda dt: self.ids.name_field.focus(True), 0.2)
+            def set_focus(dt):
+                self.ids.name_field.focus = True
+            Clock.schedule_once(set_focus, 0.2)
             
         except Exception as e:
             print(f"Error setting project dialog data: {e}")

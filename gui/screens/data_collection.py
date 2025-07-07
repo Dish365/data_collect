@@ -529,9 +529,10 @@ class DataCollectionScreen(Screen):
                     container.response_field = choice_widget
                 answer_box.height = choice_height + dp(32)
             elif q_type == 'scale':
-                scale_widget, scale_height = self.create_tablet_scale_field(font_sizes, touch_targets)
+                from widgets.form_fields import RatingScaleField
+                scale_widget = RatingScaleField(question_text=q_text)
                 answer_box.add_widget(scale_widget)
-                answer_box.height = scale_height + dp(32)
+                answer_box.height = scale_widget.height + dp(32)
                 container.response_field = scale_widget
             elif q_type in ['image', 'photo']:
                 photo_widget, photo_height = self.create_tablet_photo_field(font_sizes, touch_targets)
@@ -539,6 +540,18 @@ class DataCollectionScreen(Screen):
                     answer_box.add_widget(photo_widget)
                     answer_box.height = photo_height + dp(32)
                     container.response_field = photo_widget
+            elif q_type == 'file':
+                from widgets.form_fields import FileUploadField
+                file_widget = FileUploadField(question_text=q_text)
+                answer_box.add_widget(file_widget)
+                answer_box.height = file_widget.height + dp(32)
+                container.response_field = file_widget
+            elif q_type == 'date':
+                from widgets.form_fields import DateField
+                date_widget = DateField(question_text=q_text)
+                answer_box.add_widget(date_widget)
+                answer_box.height = date_widget.height + dp(32)
+                container.response_field = date_widget
             else:
                 # Default to text field for unknown types
                 field = self.create_tablet_text_field('text', font_sizes, touch_targets)
