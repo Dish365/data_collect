@@ -45,6 +45,26 @@ class FormService:
                 cursor.execute("SELECT * FROM questions WHERE project_id = ? ORDER BY order_index", (project_id,))
             questions_data = [dict(row) for row in cursor.fetchall()]
             
+            # Parse JSON strings back to Python objects
+            for q in questions_data:
+                # Parse options from JSON string
+                options = q.get('options')
+                if options and isinstance(options, str):
+                    try:
+                        q['options'] = json.loads(options)
+                    except json.JSONDecodeError:
+                        print(f"Error parsing options JSON for question {q.get('question_text', 'Unknown')}: {options}")
+                        q['options'] = []
+                
+                # Parse validation_rules from JSON string
+                validation_rules = q.get('validation_rules')
+                if validation_rules and isinstance(validation_rules, str):
+                    try:
+                        q['validation_rules'] = json.loads(validation_rules)
+                    except json.JSONDecodeError:
+                        print(f"Error parsing validation_rules JSON for question {q.get('question_text', 'Unknown')}: {validation_rules}")
+                        q['validation_rules'] = {}
+            
             # Debug logging to see what's being loaded
             for q in questions_data:
                 print(f"Loaded question: {q.get('question_text', 'No text')}")

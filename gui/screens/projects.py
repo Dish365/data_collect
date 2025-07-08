@@ -12,6 +12,7 @@ from kivy.app import App
 
 from widgets.project_item import ProjectItem
 from widgets.project_dialog import ProjectDialog
+from widgets.loading_overlay import LoadingOverlay
 from services.auth_service import AuthService
 from services.project_service import ProjectService
 from services.sync_service import SyncService
@@ -45,6 +46,9 @@ class ProjectsScreen(Screen):
         self.current_sort = "name"
         self.is_grid_view = True
         self.sort_menu = None
+        
+        # Initialize loading overlay
+        self.loading_overlay = LoadingOverlay()
 
     def on_enter(self):
         self.ids.top_bar.set_title("Projects")
@@ -380,7 +384,7 @@ class ProjectsScreen(Screen):
 
     def check_and_sync_projects(self):
         """Check for network and sync projects if online."""
-        self.show_loader(True)
+        self.show_loader(True, "Syncing projects...")
         def _check_network_and_sync():
             is_online = self.auth_service._check_network_connectivity()
             if is_online:
@@ -395,12 +399,11 @@ class ProjectsScreen(Screen):
 
         threading.Thread(target=_check_network_and_sync).start()
 
-    def show_loader(self, show=True):
-        if self.ids.spinner:
-            self.ids.spinner.active = show
-        if self.ids.content_layout:
-            self.ids.content_layout.opacity = 0.3 if show else 1
-            self.ids.content_layout.disabled = show
+    def show_loader(self, show=True, message="Loading..."):
+        if show:
+            self.loading_overlay.show(message)
+        else:
+            self.loading_overlay.hide()
 
     def create_tablet_dialog_button(self, text, on_release, is_primary=False, disabled=False, **kwargs):
         """Create a tablet-optimized dialog button"""
@@ -542,7 +545,7 @@ class ProjectsScreen(Screen):
 
     def save_project(self, instance):
         """Save project with enhanced validation and tablet UX"""
-        self.show_loader(True)
+        self.show_loader(True, "Saving project...")
         try:
             # Get data from the dialog's content with validation
             content = self.dialog.content_cls
@@ -608,7 +611,7 @@ class ProjectsScreen(Screen):
         if self.is_loading:
             return
         self.is_loading = True
-        self.show_loader(True)
+        self.show_loader(True, "Loading projects...")
 
         if clear_existing:
             self.current_offset = 0
@@ -694,7 +697,7 @@ class ProjectsScreen(Screen):
 
     def delete_project(self, project_id):
         def confirm_delete(instance):
-            self.show_loader(True)
+            self.show_loader(True, "Deleting project...")
             self._execute_api_call(self.project_service.delete_project, project_id)
             delete_dialog.dismiss()
 

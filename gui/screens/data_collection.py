@@ -20,6 +20,8 @@ import json
 import threading
 import uuid
 
+from widgets.loading_overlay import LoadingOverlay
+
 Builder.load_file("kv/collect_data.kv")
 
 class DataCollectionScreen(Screen):
@@ -38,6 +40,9 @@ class DataCollectionScreen(Screen):
         self.answered_questions = set()
         self.total_questions = 0
         self.progress_value = 0.0
+        
+        # Initialize loading overlay
+        self.loading_overlay = LoadingOverlay()
 
     def on_enter(self):
         self.clear_current_form()  # Clear form and reset progress on screen enter
@@ -281,6 +286,9 @@ class DataCollectionScreen(Screen):
             self.ids.project_spinner.text = text
             self.current_respondent_id = None
             
+            # Show loading overlay
+            self.loading_overlay.show("Loading form...")
+            
             print(f"Loading form for project ID: {self.project_id}")
             self.load_form()
             self._update_submit_button()
@@ -296,6 +304,8 @@ class DataCollectionScreen(Screen):
             self.ids.project_spinner.text = 'Select Project'
             self.ids.form_canvas.clear_widgets()
             self._update_submit_button()
+            # Hide loading overlay on error
+            self.loading_overlay.hide()
 
     def load_form(self):
         """Load the form questions for the selected project with tablet optimizations"""
@@ -371,6 +381,8 @@ class DataCollectionScreen(Screen):
             self._show_empty_state("Error loading form", str(e))
         finally:
             self._is_loading_form = False
+            # Hide loading overlay
+            self.loading_overlay.hide()
 
     def create_tablet_question_widget(self, q, index):
         """Create tablet-optimized UI widget for a question"""
@@ -431,7 +443,8 @@ class DataCollectionScreen(Screen):
             if not options:
                 options = ["Option 1", "Option 2"]
             
-            allow_multiple = bool(q.get('allow_multiple', False))
+            # Determine if multiple answers are allowed based on response type
+            allow_multiple = (q_type == 'choice_multiple')
             
             print(f"Question type: {q_type}, Options: {options}")
             
