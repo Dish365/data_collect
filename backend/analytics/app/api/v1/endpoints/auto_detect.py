@@ -47,8 +47,47 @@ async def analyze_comprehensive(
         Comprehensive analysis results with cross-module insights
     """
     try:
-        # Convert to DataFrame
-        df = pd.DataFrame(data)
+        # Validate input data
+        if not data:
+            raise HTTPException(
+                status_code=422,
+                detail="Input data cannot be empty"
+            )
+        
+        # Validate analysis_type
+        valid_types = ["auto", "basic", "comprehensive"]
+        if analysis_type not in valid_types:
+            raise HTTPException(
+                status_code=422,
+                detail=f"analysis_type must be one of {valid_types}"
+            )
+        
+        # Convert to DataFrame with better error handling
+        try:
+            df = pd.DataFrame(data)
+            if df.empty:
+                raise HTTPException(
+                    status_code=422,
+                    detail="DataFrame is empty after conversion"
+                )
+        except Exception as e:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Cannot convert data to DataFrame: {str(e)}"
+            )
+        
+        # Validate target/grouping variables exist in data
+        if target_variable and target_variable not in df.columns:
+            raise HTTPException(
+                status_code=422,
+                detail=f"target_variable '{target_variable}' not found in data columns"
+            )
+        
+        if grouping_variable and grouping_variable not in df.columns:
+            raise HTTPException(
+                status_code=422,
+                detail=f"grouping_variable '{grouping_variable}' not found in data columns"
+            )
         
         # Use the unified auto-detection system
         results = analyze_comprehensive_data(
@@ -64,10 +103,14 @@ async def analyze_comprehensive(
         # Convert to API-friendly format
         return _format_comprehensive_results(results)
         
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
     except Exception as e:
+        # Handle unexpected errors
         raise HTTPException(
-            status_code=400,
-            detail=f"Error in comprehensive analysis: {str(e)}"
+            status_code=500,
+            detail=f"Internal server error in comprehensive analysis: {str(e)}"
         )
 
 @router.post("/analyze/descriptive")
