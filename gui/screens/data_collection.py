@@ -30,6 +30,7 @@ class DataCollectionScreen(Screen):
     questions_data = []
     response_widgets = []
     current_respondent_id = StringProperty(None, allownone=True)
+    _is_loading_form = False  # Guard flag
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -39,10 +40,10 @@ class DataCollectionScreen(Screen):
         self.progress_value = 0.0
 
     def on_enter(self):
+        self.clear_current_form()  # Clear form and reset progress on screen enter
         # Set top bar title for consistency
         if hasattr(self.ids, 'top_bar'):
             self.ids.top_bar.set_title("Collect Data")
-        
         Clock.schedule_once(self._delayed_load, 0)
         # Apply responsive layout
         self.update_responsive_layout()
@@ -298,9 +299,13 @@ class DataCollectionScreen(Screen):
 
     def load_form(self):
         """Load the form questions for the selected project with tablet optimizations"""
+        if self._is_loading_form:
+            print("[DEBUG] load_form called while already loading. Skipping duplicate call.")
+            return
+        self._is_loading_form = True
         try:
-            print(f"Starting to load form for project: {self.project_id}")
-            
+            print(f"[DEBUG] Starting to load form for project: {self.project_id}")
+            print(f"[DEBUG] Current form_canvas children before clear: {len(self.ids.form_canvas.children)}")
             self.ids.form_canvas.clear_widgets()
             self.response_widgets = []
             self.answered_questions = set()
@@ -355,6 +360,7 @@ class DataCollectionScreen(Screen):
             # Populate side panel with question overview
             self.populate_question_overview()
             
+            print(f"[DEBUG] Current form_canvas children after load: {len(self.ids.form_canvas.children)}")
             print("Form loading completed successfully")
             
         except Exception as e:
@@ -363,6 +369,8 @@ class DataCollectionScreen(Screen):
             traceback.print_exc()
             toast(f"Error loading form: {str(e)}")
             self._show_empty_state("Error loading form", str(e))
+        finally:
+            self._is_loading_form = False
 
     def create_tablet_question_widget(self, q, index):
         """Create tablet-optimized UI widget for a question"""
@@ -409,18 +417,20 @@ class DataCollectionScreen(Screen):
             touch_targets = {"button": dp(44), "checkbox": dp(32)}
 
         try:
-            q_type = q.get('question_type', 'text')
+            # Get question type - check both response_type (new) and question_type (legacy)
+            q_type = q.get('response_type') or q.get('question_type', 'text')
             q_text = q.get('question_text', '')
             q_id = q.get('id', '')
             options = q.get('options') or []
             
-            if isinstance(options, str):
-                try:
-                    options = json.loads(options)
-                except Exception as e:
-                    print(f"Error parsing options JSON: {e}")
-                    options = []
-                    
+            # Ensure options is a list
+            if not options or not isinstance(options, list):
+                options = []
+            # Clean up options: remove empty/whitespace-only strings
+            options = [opt for opt in options if isinstance(opt, str) and opt.strip()]
+            if not options:
+                options = ["Option 1", "Option 2"]
+            
             allow_multiple = bool(q.get('allow_multiple', False))
             
             print(f"Question type: {q_type}, Options: {options}")
@@ -506,32 +516,27 @@ class DataCollectionScreen(Screen):
             )
 
             # Create appropriate input widget based on question type
-            if q_type in ['text', 'long_text', 'numeric', 'date', 'location']:
-                field = self.create_tablet_text_field(q_type, font_sizes, touch_targets)
-                def on_answer_change(instance, value, q_id=q_id):
-                    print(f"[DEBUG] Main on_answer_change fired for field id={id(instance)} value={value}")
-                    self.track_answer_progress(q_id)
-                field.bind(text=on_answer_change)
+            if q_type in ['text', 'long_text', 'numeric', 'location']:
+                from widgets.response_fields import create_response_field
+                field = create_response_field(q_type, hint_text='Enter your answer', on_answer=lambda: self.track_answer_progress(q_id))
                 answer_box.add_widget(field)
                 answer_box.height = field.height + dp(32)
                 container.response_field = field
             elif q_type in ['choice', 'choice_single', 'choice_multiple']:
-                choice_widget, choice_height = self.create_tablet_choice_field(
-                    options, allow_multiple, q_text, font_sizes, touch_targets
+                from widgets.response_fields import create_response_field
+                choice_widget = create_response_field(
+                    'choice_multiple' if allow_multiple else 'choice_single',
+                    options=options,
+                    on_answer=lambda: self.track_answer_progress(q_id)
                 )
-                # choice_widget is a tuple of (widget, list_of_checkboxes)
-                if isinstance(choice_widget, tuple):
-                    widget_to_add, checkbox_list = choice_widget
-                    answer_box.add_widget(widget_to_add)
-                    container.response_field = checkbox_list
-                else:
-                    answer_box.add_widget(choice_widget)
-                    container.response_field = choice_widget
-                answer_box.height = choice_height + dp(32)
+                answer_box.add_widget(choice_widget)
+                answer_box.height = choice_widget.height + dp(32)
+                container.response_field = choice_widget
             elif q_type == 'scale':
-                scale_widget, scale_height = self.create_tablet_scale_field(font_sizes, touch_targets)
+                from widgets.response_fields import create_response_field
+                scale_widget = create_response_field('scale', min_value=1, max_value=5, on_answer=lambda: self.track_answer_progress(q_id))
                 answer_box.add_widget(scale_widget)
-                answer_box.height = scale_height + dp(32)
+                answer_box.height = scale_widget.height + dp(32)
                 container.response_field = scale_widget
             elif q_type in ['image', 'photo']:
                 photo_widget, photo_height = self.create_tablet_photo_field(font_sizes, touch_targets)
@@ -539,19 +544,34 @@ class DataCollectionScreen(Screen):
                     answer_box.add_widget(photo_widget)
                     answer_box.height = photo_height + dp(32)
                     container.response_field = photo_widget
+            elif q_type == 'file':
+                from widgets.response_fields import create_response_field
+                file_widget = create_response_field('file', on_answer=lambda: self.track_answer_progress(q_id))
+                answer_box.add_widget(file_widget)
+                answer_box.height = file_widget.height + dp(32)
+                container.response_field = file_widget
+            elif q_type == 'date':
+                from widgets.response_fields import create_response_field
+                date_widget = create_response_field('date', on_answer=lambda qid=q_id: self.track_answer_progress(qid))
+                answer_box.add_widget(date_widget)
+                answer_box.height = date_widget.height + dp(32)
+                container.response_field = date_widget
+            elif q_type == 'datetime':
+                from widgets.response_fields import create_response_field
+                datetime_widget = create_response_field('datetime', on_answer=lambda qid=q_id: self.track_answer_progress(qid))
+                answer_box.add_widget(datetime_widget)
+                answer_box.height = datetime_widget.height + dp(32)
+                container.response_field = datetime_widget
             else:
                 # Default to text field for unknown types
-                field = self.create_tablet_text_field('text', font_sizes, touch_targets)
-                def on_answer_change(instance, value, q_id=q_id):
-                    print(f"[DEBUG] Main on_answer_change fired for field id={id(instance)} value={value}")
-                    self.track_answer_progress(q_id)
-                field.bind(text=on_answer_change)
+                from widgets.response_fields import create_response_field
+                field = create_response_field('text', hint_text='Enter your answer', on_answer=lambda: self.track_answer_progress(q_id))
                 answer_box.add_widget(field)
                 answer_box.height = field.height + dp(32)
                 container.response_field = field
             container.add_widget(answer_box)
             # Bind answer events for progress tracking (only for non-text fields now)
-            if q_type not in ['text', 'long_text', 'numeric', 'date', 'location']:
+            if q_type not in ['text', 'long_text', 'numeric', 'date', 'datetime', 'location']:
                 self.bind_answer_events(container, q_type, q_id)
 
             # Calculate total height
@@ -562,27 +582,37 @@ class DataCollectionScreen(Screen):
             return container
             
         except Exception as e:
-            print(f"Error creating question widget: {e}")
             import traceback
-            traceback.print_exc()
-            
-            # Return a simple error widget
-            error_container = MDCard(
+            error_message = f"Error loading question {index+1}: {e}\n" + traceback.format_exc()
+            print(error_message)
+            error_card = MDCard(
                 orientation='vertical',
                 size_hint_y=None,
                 height=dp(80),
                 padding=dp(16),
-                md_bg_color=[1, 0.8, 0.8, 1]  # Light red background
+                md_bg_color=[1, 0.8, 0.8, 1],
+                elevation=0
             )
-            
             error_label = MDLabel(
-                text=f"Error loading question {index + 1}",
+                text=f"[b]Error loading question {index+1}[/b]\n{str(e)}",
+                markup=True,
                 theme_text_color="Error",
-                font_size="14sp"
+                halign="left",
+                valign="middle"
             )
-            error_container.add_widget(error_label)
-            
-            return error_container
+            error_card.add_widget(error_label)
+            # Add a hidden label with the traceback for copy-paste
+            tb_label = MDLabel(
+                text=traceback.format_exc(),
+                font_size="10sp",
+                theme_text_color="Secondary",
+                halign="left",
+                valign="top",
+                opacity=0.5,
+                shorten=False
+            )
+            error_card.add_widget(tb_label)
+            return error_card
 
     def create_tablet_text_field(self, q_type, font_sizes, touch_targets):
         """Create tablet-optimized text input field"""
@@ -844,12 +874,12 @@ class DataCollectionScreen(Screen):
                     q_type = q.get('question_type', 'text')
                     break
             # Expanded type check for all text/numeric input types
-            if q_type in ('text', 'long_text', 'numeric', 'date', 'location', 'text_short', 'text_long', 'numeric_integer', 'numeric_decimal'):
+            if q_type in ('text', 'long_text', 'numeric', 'date', 'datetime', 'location', 'text_short', 'text_long', 'numeric_integer', 'numeric_decimal'):
                 if hasattr(widget, 'response_field') and widget.response_field:
-                    value = getattr(widget.response_field, 'text', None)
-                    print(f"[DEBUG] Value in text field for question_id={question_id}: '{value}'")
-                    if value is not None and str(value).strip():
-                        is_answered = True
+                    value = widget.response_field.get_value()
+                    print(f"[DEBUG] Value from get_value() for question_id={question_id}: '{value}'")
+                    if value is not None and (not isinstance(value, str) or value.strip()):
+                        is_answered = bool(value) if not isinstance(value, str) else bool(value.strip())
             elif q_type in ('choice', 'choice_single', 'choice_multiple'):
                 if hasattr(widget, 'response_field') and widget.response_field:
                     is_answered = any(cb.active for cb, opt in widget.response_field)
@@ -931,7 +961,8 @@ class DataCollectionScreen(Screen):
             for i, q in enumerate(self.questions_data):
                 try:
                     q_text = q.get('question_text', '')
-                    q_type = q.get('question_type', 'text')
+                    # Get question type - check both response_type (new) and question_type (legacy)
+                    q_type = q.get('response_type') or q.get('question_type', 'text')
                     
                     # Create overview item
                     item_card = MDCard(
@@ -973,6 +1004,7 @@ class DataCollectionScreen(Screen):
                         'choice_multiple': "☑️",
                         'scale': "📊",
                         'date': "📅",
+                        'datetime': "📅⏰",
                         'location': "📍",
                         'photo': "📷"
                     }.get(q_type, "❓")
@@ -1005,6 +1037,9 @@ class DataCollectionScreen(Screen):
             self._clear_form()
             self.answered_questions.clear()
             self.update_progress()
+            # Clear the question overview panel
+            if hasattr(self.ids, 'question_overview'):
+                self.ids.question_overview.clear_widgets()
             toast("Form cleared")
         except Exception as e:
             print(f"Error clearing form: {e}")
@@ -1051,44 +1086,18 @@ class DataCollectionScreen(Screen):
         threading.Thread(target=self._submit_in_thread, daemon=True).start()
 
     def has_text_input_data(self, widget):
-        """Return True if the widget's response_field has non-empty text, False otherwise."""
-        print(f"Checking widget: {widget}")
-        if hasattr(widget, 'response_field'):
-            print(f"  response_field: {widget.response_field} (type: {type(widget.response_field)})")
-            
-            # Handle different types of response_field
-            if hasattr(widget.response_field, 'text'):
-                # Direct text field (MDTextField)
-                value = widget.response_field.text
-                print(f"  response_field.text: {value} (type: {type(value)})")
-                if value is not None and str(value).strip():
-                    print(f"Input field has data: '{value}'")
-                    return True
-                else:
-                    print(f"Input field is empty or only spaces: '{value}'")
-                    return False
-            elif isinstance(widget.response_field, list):
-                # Checkbox list for choice questions
-                for cb, opt in widget.response_field:
-                    if cb.active:
-                        print(f"Checkbox selected: '{opt}'")
-                        return True
-                print("No checkboxes selected")
+        """Check if a widget has any text input data"""
+        if hasattr(widget, 'response_field') and widget.response_field:
+            print(f"response_field type: {type(widget.response_field)}")
+            value = widget.response_field.get_value()
+            print(f"Value in text field for question_id={getattr(widget, 'question_id', None)}: '{value}'")
+            if value is None:
                 return False
-            elif hasattr(widget.response_field, 'value'):
-                # Slider or other value-based widget
-                value = widget.response_field.value
-                print(f"  response_field.value: {value} (type: {type(value)})")
-                if value is not None and str(value).strip():
-                    print(f"Value field has data: '{value}'")
-                    return True
-                else:
-                    print(f"Value field is empty: '{value}'")
-                    return False
-            else:
-                print(f"Unknown response_field type: {type(widget.response_field)}")
-                return False
-        print("Widget has no response_field or response_field is None")
+            if isinstance(value, str):
+                return bool(value.strip())
+            if isinstance(value, list):
+                return bool(value)
+            return bool(value)
         return False
 
     def _submit_in_thread(self):
@@ -1101,7 +1110,8 @@ class DataCollectionScreen(Screen):
             has_responses = False
             
             for q, widget in self.response_widgets:
-                q_type = q.get('question_type', 'text')
+                # Get question type - check both response_type (new) and question_type (legacy)
+                q_type = q.get('response_type') or q.get('question_type', 'text')
                 q_id = q.get('id', '')
                 print(f"[DEBUG] Collecting answer for question: {q.get('question_text')} (type: {q_type}, id: {q_id})")
                 print(f"[DEBUG] Widget: {widget}, type: {type(widget)}")
@@ -1113,58 +1123,29 @@ class DataCollectionScreen(Screen):
                     print(f"[DEBUG] Widget has NO response_field!")
                 answer = None
                 
-                # Expanded type check for all text/numeric input types
-                if q_type in ('text', 'long_text', 'numeric', 'date', 'location', 'text_short', 'text_long', 'numeric_integer', 'numeric_decimal'):
-                    if hasattr(widget, 'response_field') and widget.response_field:
-                        raw_value = widget.response_field.text
-                        print(f"[DEBUG] Before submit: Question '{q.get('question_text')}' input text: '{raw_value}'")
-                        print(f"[DEBUG] Text color: {getattr(widget.response_field, 'text_color', 'N/A')}, Background color: {getattr(widget.response_field, 'background_color', 'N/A')}")
-                        answer = raw_value if raw_value is not None else ''
-                        answer = answer.strip()
-                        print(f"Stripped value in text input for '{q.get('question_text')}': '{answer}'")
-                        if not answer:
-                            print(f"Skipping empty answer for '{q.get('question_text')}'")
-                            continue
-                        # Additional validation for tablet input
-                        if q_type in ('numeric', 'numeric_integer', 'numeric_decimal') and answer:
-                            try:
-                                float(answer)  # Validate numeric input
-                            except ValueError:
-                                Clock.schedule_once(lambda dt: toast(f"Invalid number format in question {q.get('question_text', '')[:30]}..."))
-                                Clock.schedule_once(lambda dt: self._reset_submit_button())
-                                return
-                    else:
+                # Handle response collection using the new response field structure
+                if hasattr(widget, 'response_field') and widget.response_field:
+                    # Use the get_value method from response fields
+                    answer = widget.response_field.get_value()
+                    print(f"[DEBUG] Response field value for '{q.get('question_text')}': {answer}")
+                    
+                    # Validate and process the answer
+                    if answer is None or (isinstance(answer, str) and not answer.strip()):
                         print(f"Skipping empty answer for '{q.get('question_text')}'")
                         continue
-                elif q_type == 'choice' or q_type in ('choice_single', 'choice_multiple'):
-                    if hasattr(widget, 'response_field'):
-                        print(f"Checkbox states for '{q.get('question_text')}':")
-                        for cb, opt in widget.response_field:
-                            print(f"  Option: '{opt}', Checkbox active: {cb.active}")
-                        if bool(q.get('allow_multiple', False)) or q_type == 'choice_multiple':
-                            selected_options = [opt for cb, opt in widget.response_field if cb.active]
-                            print(f"Selected options for '{q.get('question_text')}': {selected_options}")
-                            if not selected_options:
-                                print(f"Skipping empty choice for '{q.get('question_text')}'")
-                                continue
-                            answer = json.dumps(selected_options)
-                        else:
-                            found = False
-                            for cb, opt in widget.response_field:
-                                if cb.active:
-                                    answer = opt
-                                    found = True
-                                    break
-                            if not found:
-                                print(f"Skipping empty single choice for '{q.get('question_text')}'")
-                                continue
-                elif q_type == 'scale':
-                    if hasattr(widget, 'response_field') and widget.response_field:
-                        answer = str(int(widget.response_field.value))
-                        
-                elif q_type == 'photo':
-                    # Photo handling placeholder
-                    answer = None
+                    
+                    # Additional validation for numeric types
+                    if q_type in ('numeric', 'numeric_integer', 'numeric_decimal') and answer:
+                        try:
+                            float(answer)  # Validate numeric input
+                        except ValueError:
+                            Clock.schedule_once(lambda dt: toast(f"Invalid number format in question {q.get('question_text', '')[:30]}..."))
+                            Clock.schedule_once(lambda dt: self._reset_submit_button())
+                            return
+                else:
+                    print(f"Skipping empty answer for '{q.get('question_text')}'")
+                    continue
+                
 
                 # Enhanced response tracking
                 if answer is not None and str(answer).strip():
@@ -1287,18 +1268,21 @@ class DataCollectionScreen(Screen):
     def _clear_form(self):
         """Enhanced form clearing for tablet widgets"""
         for q, widget in self.response_widgets:
-            q_type = q.get('question_type', 'text')
+            # Get question type - check both response_type (new) and question_type (legacy)
+            q_type = q.get('response_type') or q.get('question_type', 'text')
             
             try:
-                if q_type in ('text', 'long_text', 'numeric', 'date', 'location'):
+                if q_type in ('text', 'long_text', 'numeric', 'location'):
                     if hasattr(widget, 'response_field') and widget.response_field:
                         widget.response_field.text = ""
-                        
+                elif q_type in ('date', 'datetime'):
+                    if hasattr(widget, 'response_field') and widget.response_field:
+                        # Clear date/datetime fields by setting value to None
+                        widget.response_field.set_value(None)
                 elif q_type == 'choice':
                     if hasattr(widget, 'response_field'):
                         for cb, opt in widget.response_field:
                             cb.active = False
-                            
                 elif q_type == 'scale':
                     if hasattr(widget, 'response_field') and widget.response_field:
                         widget.response_field.value = 3  # Reset to middle value

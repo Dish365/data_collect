@@ -72,14 +72,24 @@ class ProjectItem(MDCard, EventDispatcher):
             text=self.name, 
             font_style="Subtitle1" if not self.is_tablet() else "H6",  # Larger font for tablets
             adaptive_height=True,
-            font_size=self.get_name_font_size()
+            font_size=self.get_name_font_size(),
+            text_size=(None, None),  # Will be set dynamically
+            halign='left',
+            valign='middle',
+            shorten=True,  # Enable text shortening with ellipses
+            shorten_from='right'  # Shorten from the right side
         )
         self.desc_label = MDLabel(
             text=self.description, 
             font_style="Body2" if not self.is_tablet() else "Body1",  # Larger font for tablets
             theme_text_color="Secondary", 
             adaptive_height=True,
-            font_size=self.get_description_font_size()
+            font_size=self.get_description_font_size(),
+            text_size=(None, None),  # Will be set dynamically
+            halign='left',
+            valign='middle',
+            shorten=True,  # Enable text shortening with ellipses
+            shorten_from='right'  # Shorten from the right side
         )
         info_layout.add_widget(self.name_label)
         info_layout.add_widget(self.desc_label)
@@ -133,6 +143,8 @@ class ProjectItem(MDCard, EventDispatcher):
         self.bind(description=self._update_description)
         self.bind(created_at=self._update_date)
         self.bind(sync_status=self._update_sync_status)
+        self.bind(size=self._update_text_sizes)
+        self.bind(pos=self._update_text_sizes)
 
         # Populate initial data
         self._update_date(self, self.created_at)
@@ -387,9 +399,11 @@ class ProjectItem(MDCard, EventDispatcher):
 
     def _update_name(self, instance, value):
         self.name_label.text = value
-    
+        self._update_text_sizes()
+
     def _update_description(self, instance, value):
         self.desc_label.text = value
+        self._update_text_sizes()
     
     def _update_date(self, instance, value):
         if not value:
@@ -422,6 +436,40 @@ class ProjectItem(MDCard, EventDispatcher):
         self.sync_status_label.text = label_text
         self.sync_status_label.theme_text_color = 'Custom'
         self.sync_status_label.text_color = color
+
+    def _update_text_sizes(self, *args):
+        """Update text sizes to enable proper ellipses truncation"""
+        try:
+            # Calculate available width for text
+            # Account for date circle, right layout, and padding
+            total_width = self.width
+            date_circle_width = self.get_date_circle_size()[0]
+            right_layout_width = self.get_sync_status_size()[0] + self.get_menu_button_size()[0] + self.get_right_layout_spacing()
+            padding_width = self.padding[0] + self.padding[2]  # left + right padding
+            spacing_width = self.spacing * 2  # spacing between elements
+            
+            # Calculate available width for info layout
+            available_width = total_width - date_circle_width - right_layout_width - padding_width - spacing_width
+            
+            # Set text_size for name and description labels
+            if available_width > 0:
+                # Name gets more space (about 60% of available width)
+                name_width = available_width * 0.6
+                self.name_label.text_size = (name_width, None)
+                
+                # Description gets the remaining space (about 40% of available width)
+                desc_width = available_width * 0.4
+                self.desc_label.text_size = (desc_width, None)
+            else:
+                # Fallback if width calculation fails
+                self.name_label.text_size = (200, None)
+                self.desc_label.text_size = (150, None)
+                
+        except Exception as e:
+            print(f"Error updating text sizes: {e}")
+            # Fallback values
+            self.name_label.text_size = (200, None)
+            self.desc_label.text_size = (150, None)
 
     def on_edit(self, *args):
         self.menu.dismiss()
