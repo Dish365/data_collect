@@ -1,37 +1,22 @@
 """
-API router for v1 endpoints.
+API router for v1 endpoints - streamlined analytics API.
 """
 
 from fastapi import APIRouter
-from .endpoints import (
-    descriptive,
-    inferential,
-    qualitative,
-    auto_detect
-)
+from .endpoints import analytics, sync
 
 api_router = APIRouter()
 
+# Streamlined analytics endpoints
 api_router.include_router(
-    descriptive.router,
-    prefix="/descriptive",
-    tags=["descriptive"]
+    analytics.router,
+    prefix="/analytics",
+    tags=["analytics"]
 )
 
+# Sync endpoints
 api_router.include_router(
-    inferential.router,
-    prefix="/inferential",
-    tags=["inferential"]
-)
-
-api_router.include_router(
-    qualitative.router,
-    prefix="/qualitative",
-    tags=["qualitative"]
-)
-
-api_router.include_router(
-    auto_detect.router,
-    prefix="/auto-detect",
-    tags=["auto-detect"]
+    sync.router,
+    prefix="/sync",
+    tags=["sync"]
 ) 

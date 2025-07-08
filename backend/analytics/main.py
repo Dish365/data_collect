@@ -1,5 +1,5 @@
 """
-Main FastAPI application for the analytics engine.
+Main FastAPI application for the streamlined analytics engine.
 """
 
 from fastapi import FastAPI
@@ -15,14 +15,15 @@ async def lifespan(app: FastAPI):
     """Lifespan events for the FastAPI application."""
     # Startup
     await init_db()
+    print("Analytics engine started successfully")
     yield
     # Shutdown
-    pass
+    print("Analytics engine shutting down")
 
 app = FastAPI(
-    title="Research Analytics Engine",
-    description="Analytics engine for the research data collection tool",
-    version="1.0.0",
+    title=settings.PROJECT_NAME,
+    description="Streamlined analytics engine for research data collection",
+    version=settings.VERSION,
     lifespan=lifespan
 )
 
@@ -31,12 +32,21 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
 
 # Include routers
-app.include_router(api_router, prefix="/api/v1")
+app.include_router(api_router, prefix=settings.API_V1_STR)
+
+# Root endpoint
+@app.get("/")
+async def root():
+    return {
+        "message": "Research Analytics Engine API",
+        "version": settings.VERSION,
+        "status": "running"
+    }
 
 if __name__ == "__main__":
     import uvicorn
