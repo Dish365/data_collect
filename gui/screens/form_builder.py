@@ -31,6 +31,7 @@ import uuid
 import json
 
 from services.form_service import FormService
+from widgets.loading_overlay import LoadingOverlay
 
 Builder.load_file("kv/form_builder.kv")
 
@@ -45,6 +46,9 @@ class FormBuilderScreen(Screen):
         app = App.get_running_app()
         self.form_service = FormService(app.auth_service, app.db_service, app.sync_service)
         self.questions_data = []
+        
+        # Initialize loading overlay
+        self.loading_overlay = LoadingOverlay()
         
         # Response type display mapping
         self.response_type_display = {
@@ -291,10 +295,15 @@ class FormBuilderScreen(Screen):
             if hasattr(self.ids, 'top_bar'):
                 self.ids.top_bar.set_title(f"Form Builder - {text}")
             
+            # Show loading overlay
+            self.show_loader(True, "Loading form...")
+            
             self.load_form()
         except Exception as e:
             print(f"Error selecting project: {e}")
             toast(f"Error selecting project: {str(e)}")
+            # Hide loading overlay on error
+            self.show_loader(False)
 
     def load_form(self):
         """Loads the questions for the current project."""
@@ -312,7 +321,7 @@ class FormBuilderScreen(Screen):
                 error_message = str(e)  # Capture the error message
                 Clock.schedule_once(lambda dt: toast(f"Error: {error_message}"))
             finally:
-                Clock.schedule_once(lambda dt: self.show_loader(False))
+                Clock.schedule_once(lambda dt: self.show_loader(False, "Loading form..."))
 
         threading.Thread(target=_load_in_thread).start()
 
@@ -542,8 +551,8 @@ class FormBuilderScreen(Screen):
             else:
                 options = []
             
-            if hasattr(widget, 'selected_options'):
-                allow_multiple = True
+            # Determine if multiple answers are allowed based on response type
+            allow_multiple = (response_type == 'choice_multiple')
             
             # Map to backend format
             questions_to_save.append({
@@ -579,9 +588,11 @@ class FormBuilderScreen(Screen):
 
         threading.Thread(target=_save_in_thread).start()
 
-    def show_loader(self, show=True):
-        self.ids.spinner.active = show
-        self.ids.form_canvas.disabled = show
+    def show_loader(self, show=True, message="Loading..."):
+        if show:
+            self.loading_overlay.show(message)
+        else:
+            self.loading_overlay.hide()
 
     def preview_questions(self):
         """Show a dialog previewing the current form questions."""
@@ -613,7 +624,7 @@ class FormBuilderScreen(Screen):
             # Add options for choice fields
             if hasattr(widget, 'options') and widget.options:
                 q['options'] = widget.options
-                q['allow_multiple'] = hasattr(widget, 'selected_options')
+                q['allow_multiple'] = (response_type == 'choice_multiple')
             
             questions.append(q)
 

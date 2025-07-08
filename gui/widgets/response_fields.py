@@ -328,6 +328,8 @@ class ChoiceResponseField(BaseResponseField):
                 size=(dp(32), dp(32)),
                 pos_hint={'center_y': 0.5}
             )
+            # Store the option text with the checkbox for easy access
+            checkbox.option_text = option
             label = MDLabel(
                 text=option,
                 font_size=values['font_size_secondary'],
@@ -349,7 +351,7 @@ class ChoiceResponseField(BaseResponseField):
                 checkbox.font_size = values['font_size_secondary']
     
     def on_option_selected(self, instance, value):
-        option_text = instance.text
+        option_text = instance.option_text
         
         if self.allow_multiple:
             if value:
@@ -385,7 +387,7 @@ class ChoiceResponseField(BaseResponseField):
         
         # Update checkbox states
         for checkbox in self.checkboxes:
-            checkbox.active = checkbox.text in self.selected_values
+            checkbox.active = checkbox.option_text in self.selected_values
     
     def get_content_height(self):
         if not self.options:
