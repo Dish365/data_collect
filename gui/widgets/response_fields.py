@@ -1,20 +1,18 @@
-from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import StringProperty, ListProperty, NumericProperty
 from kivymd.uix.card import MDCard
 from kivy.metrics import dp
-from kivymd.uix.button import MDRaisedButton, MDIconButton
+from kivy.uix.widget import Widget
+from kivymd.uix.button import MDButton
 from kivymd.uix.slider import MDSlider
-from kivymd.uix.pickers import MDDatePicker, MDTimePicker
-from kivymd.uix.gridlayout import MDGridLayout
+from kivymd.uix.pickers.datepicker import MDDatePicker
+from kivymd.uix.pickers.timepicker import MDTimePicker
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.selectioncontrol import MDCheckbox
 from kivymd.uix.label import MDLabel
-from kivy.clock import Clock
 from kivy.core.window import Window
 import datetime
 import uuid
-from kivymd.uix.snackbar import Snackbar
+from kivymd.uix.snackbar import MDSnackbar
 
 # Base response field class - only handles response input
 class BaseResponseField(MDCard):
@@ -161,7 +159,7 @@ class TextResponseField(BaseResponseField):
             size_hint_y=None,
             height=values['input_height'],
             font_size=values['font_size_secondary'],
-            mode="rectangle"
+            mode="outlined"
         )
         self.text_input.bind(text=self._on_text_change)
         self.add_widget(self.text_input)
@@ -206,7 +204,7 @@ class NumericResponseField(BaseResponseField):
             size_hint_y=None,
             height=values['input_height'],
             font_size=values['font_size_secondary'],
-            mode="rectangle"
+            mode="outlined"
         )
         # Override insert_text for strict filtering
         if self.decimal:
@@ -284,7 +282,7 @@ class NumericResponseField(BaseResponseField):
         if not valid and value.strip():
             print("[DEBUG] Invalid numeric input! Clearing field.")
             instance.text = ""
-            Snackbar(
+            MDSnackbar(
                 text="Please enter a valid number.",
                 md_bg_color=(0, 0, 1, 1),
                 snackbar_x="10dp",
@@ -365,7 +363,7 @@ class ChoiceResponseField(BaseResponseField):
             self.selected_values = [option_text] if value else []
             for checkbox in self.checkboxes:
                 if checkbox != instance:
-                    checkbox.active = False
+                    checkbox
         
         print(f"[DEBUG] ChoiceResponseField value changed: {self.selected_values}")
         if self.on_answer:
@@ -513,7 +511,8 @@ class DateResponseField(BaseResponseField):
             theme_text_color="Secondary"
         )
         
-        self.date_button = MDRaisedButton(
+        self.date_button = MDButton(
+        style="elevated",
             text="Choose Date",
             size_hint_y=None,
             height=values['button_height'],
@@ -598,7 +597,8 @@ class DateTimeResponseField(BaseResponseField):
             theme_text_color="Secondary"
         )
         
-        self.date_button = MDRaisedButton(
+        self.date_button = MDButton(
+        style="elevated",
             text="Date",
             size_hint_y=None,
             height=values['button_height'],
@@ -623,7 +623,8 @@ class DateTimeResponseField(BaseResponseField):
             theme_text_color="Secondary"
         )
         
-        self.time_button = MDRaisedButton(
+        self.time_button = MDButton(
+        style="elevated",
             text="Time",
             size_hint_y=None,
             height=values['button_height'],
@@ -745,7 +746,8 @@ class FileResponseField(BaseResponseField):
             height=values['button_height']
         )
         
-        self.choose_button = MDRaisedButton(
+        self.choose_button = MDButton(
+        style="elevated",
             text="Choose File",
             size_hint_y=None,
             height=values['button_height'],
@@ -753,7 +755,8 @@ class FileResponseField(BaseResponseField):
         )
         self.choose_button.bind(on_release=self.choose_file)
         
-        self.clear_button = MDRaisedButton(
+        self.clear_button = MDButton(
+        style="elevated",
             text="Clear",
             size_hint_y=None,
             height=values['button_height'],

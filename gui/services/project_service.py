@@ -1,10 +1,5 @@
-from kivy.app import App
-import threading
 import uuid
-import json
 from datetime import datetime
-from kivymd.toast import toast
-from kivy.clock import Clock
 import time
 
 class ProjectService:

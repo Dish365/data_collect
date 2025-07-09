@@ -1,3 +1,4 @@
+#:import MDButton kivymd.uix.button.MDButton
 <ResponsesScreen>:
     name: "responses"
 
@@ -46,21 +47,21 @@
                             MDLabel:
                                 id: total_respondents_label
                                 text: "Total Respondents: Loading..."
-                                font_style: "Subtitle1"
+                                font_style: "Body"
                                 font_size: "18sp"  # Larger font for tablets
                                 size_hint_x: 0.33
                                 
                             MDLabel:
                                 id: total_responses_label
                                 text: "Total Responses: Loading..."
-                                font_style: "Subtitle1"
+                                font_style: "Body"
                                 font_size: "18sp"  # Larger font for tablets
                                 size_hint_x: 0.33
                                 
                             MDLabel:
                                 id: avg_responses_label
                                 text: "Avg per Respondent: Loading..."
-                                font_style: "Subtitle1"
+                                font_style: "Body"
                                 font_size: "18sp"  # Larger font for tablets
                                 size_hint_x: 0.34
 
@@ -90,7 +91,7 @@
 
                                 MDLabel:
                                     text: "Survey Responses"
-                                    font_style: "H6"
+                                    font_style: "Label"
                                     font_size: "22sp"  # Larger font for tablets
                                     pos_hint: {"center_y": 0.5}
                                     size_hint_x: None
@@ -110,7 +111,7 @@
                                     height: dp(52)  # Tablet-friendly height
                                     font_size: "16sp"  # Larger font
                                     pos_hint: {"center_y": 0.5}
-                                    mode: "rectangle"
+                                    mode: "outlined"
                                     on_text: root.search_respondents(self.text)
 
                                 MDIconButton:
@@ -129,7 +130,8 @@
                             size_hint_y: None
                             height: dp(52)  # Tablet-friendly height
                             
-                            MDRaisedButton:
+                            MDButton:
+                                style: "elevated"
                                 text: "Export Selected"
                                 size_hint_x: None
                                 width: dp(140)
@@ -137,13 +139,15 @@
                                 font_size: "16sp"
                                 disabled: True
                                 
-                            MDRaisedButton:
+                            MDButton:
+                                style: "elevated"
                                 text: "Delete Selected"
                                 size_hint_x: None
                                 width: dp(140)
                                 height: dp(44)
                                 font_size: "16sp"
-                                theme_bg_color: "Error"
+                                theme_bg_color: "Custom"
+                                md_bg_color: (0.8, 0.2, 0.2, 1)
                                 disabled: True
                                 
                             Widget:  # Spacer
@@ -179,7 +183,7 @@
                         MDLabel:
                             text: "Respondent ID"
                             size_hint_x: 0.18
-                            font_style: "Subtitle2"
+                            font_style: "Body"
                             font_size: "16sp"  # Larger font for tablets
                             halign: "left"
                             theme_text_color: "Primary"
@@ -187,7 +191,7 @@
                         MDLabel:
                             text: "Name"
                             size_hint_x: 0.18
-                            font_style: "Subtitle2"
+                            font_style: "Body"
                             font_size: "16sp"
                             halign: "left"
                             theme_text_color: "Primary"
@@ -195,7 +199,7 @@
                         MDLabel:
                             text: "Project"
                             size_hint_x: 0.18
-                            font_style: "Subtitle2"
+                            font_style: "Body"
                             font_size: "16sp"
                             halign: "left"
                             theme_text_color: "Primary"
@@ -203,7 +207,7 @@
                         MDLabel:
                             text: "Responses"
                             size_hint_x: 0.1
-                            font_style: "Subtitle2"
+                            font_style: "Body"
                             font_size: "16sp"
                             halign: "center"
                             theme_text_color: "Primary"
@@ -211,7 +215,7 @@
                         MDLabel:
                             text: "Last Response"
                             size_hint_x: 0.18
-                            font_style: "Subtitle2"
+                            font_style: "Body"
                             font_size: "16sp"
                             halign: "center"
                             theme_text_color: "Primary"
@@ -219,7 +223,7 @@
                         MDLabel:
                             text: "Actions"
                             size_hint_x: 0.18
-                            font_style: "Subtitle2"
+                            font_style: "Body"
                             font_size: "16sp"
                             halign: "center"
                             theme_text_color: "Primary"
@@ -244,7 +248,7 @@
                 
                 MDLabel:
                     text: "Response Details"
-                    font_style: "H6"
+                    font_style: "Label"
                     font_size: "20sp"
                     size_hint_y: None
                     height: dp(40)
@@ -266,7 +270,7 @@
                             theme_text_color: "Secondary"
 
         # Loading spinner - Larger for tablets
-        MDSpinner:
+        MDCircularProgressIndicator:
             id: spinner
             size_hint: None, None
             size: dp(56), dp(56)  # Larger spinner for tablets

@@ -1,24 +1,30 @@
+#:import Window kivy.core.window.Window
+
 <TopBar>:
     size_hint_y: None
-    height: dp(56)
+    height: dp(64) if Window.width > 600 else dp(56)
     md_bg_color: app.theme_cls.primary_color
     orientation: 'horizontal'
-    padding: dp(8)
-    spacing: dp(8)
+    padding: dp(12) if Window.width > 600 else dp(8)
+    spacing: dp(12) if Window.width > 600 else dp(8)
 
     MDIconButton:
         icon: "view-dashboard"
         theme_icon_color: "Custom"
         icon_color: 1, 1, 1, 1
         pos_hint: {"center_y": 0.5}
+        size_hint: None, None
+        size: (dp(48), dp(48)) if Window.width > 600 else (dp(40), dp(40))
+        user_font_size: "28sp" if Window.width > 600 else "24sp"
         on_release: app.root.current = 'dashboard'
 
     MDLabel:
         id: top_title
         text: "Dashboard"
-        font_style: "H6"
+        font_style: "Label"
         theme_text_color: "Custom"
         text_color: 1, 1, 1, 1
+        font_size: "20sp" if Window.width > 600 else "18sp"
         size_hint_x: 1
         pos_hint: {"center_y": 0.5}
 
@@ -26,20 +32,24 @@
         orientation: 'horizontal'
         adaptive_size: True
         pos_hint: {"center_y": 0.5}
-        spacing: dp(8)
+        spacing: dp(12) if Window.width > 600 else dp(8)
 
         MDIconButton:
             icon: "account-circle-outline"
             theme_text_color: "Custom"
             icon_color: 1, 1, 1, 1
             pos_hint: {"center_y": 0.5}
+            size_hint: None, None
+            size: (dp(44), dp(44)) if Window.width > 600 else (dp(36), dp(36))
+            user_font_size: "24sp" if Window.width > 600 else "20sp"
 
         MDLabel:
             id: user_name
             text: app.user_display_name
-            font_style: "Subtitle1"
+            font_style: "Body"
             theme_text_color: "Custom"
             text_color: 1, 1, 1, 1
+            font_size: "16sp" if Window.width > 600 else "14sp"
             adaptive_size: True
             pos_hint: {"center_y": 0.5}
 
@@ -48,4 +58,7 @@
             theme_icon_color: "Custom"
             icon_color: 1, 1, 1, 1
             pos_hint: {"center_y": 0.5}
+            size_hint: None, None
+            size: (dp(44), dp(44)) if Window.width > 600 else (dp(36), dp(36))
+            user_font_size: "24sp" if Window.width > 600 else "20sp"
             on_release: root.logout()

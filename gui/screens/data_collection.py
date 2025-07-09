@@ -5,10 +5,10 @@ from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.metrics import dp
 
-from kivymd.toast import toast
+from utils.toast import toast
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.textfield import MDTextField
-from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.button import MDButton
 from kivymd.uix.label import MDLabel
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.selectioncontrol import MDCheckbox
@@ -21,6 +21,7 @@ import threading
 import uuid
 
 from widgets.loading_overlay import LoadingOverlay
+from widgets.top_bar import TopBar
 
 Builder.load_file("kv/collect_data.kv")
 
@@ -609,7 +610,8 @@ class DataCollectionScreen(Screen):
             error_label = MDLabel(
                 text=f"[b]Error loading question {index+1}[/b]\n{str(e)}",
                 markup=True,
-                theme_text_color="Error",
+                theme_text_color="Custom",
+                text_color=(0.8, 0.2, 0.2, 1),
                 halign="left",
                 valign="middle"
             )
@@ -639,7 +641,7 @@ class DataCollectionScreen(Screen):
 
         field = MDTextField(
             hint_text=hint,
-            mode="rectangle",
+            mode="outlined",
             multiline=q_type == 'long_text',
             input_filter='int' if q_type == 'numeric' else None,
             size_hint_y=None,
@@ -747,7 +749,8 @@ class DataCollectionScreen(Screen):
             
             error_label = MDLabel(
                 text="Error creating choice field",
-                theme_text_color="Error",
+                theme_text_color="Custom",
+                text_color=(0.8, 0.2, 0.2, 1),
                 font_size="14sp"
             )
             error_box.add_widget(error_label)
@@ -820,7 +823,8 @@ class DataCollectionScreen(Screen):
             height=dp(100)
         )
         
-        placeholder_button = MDRaisedButton(
+        placeholder_button = MDButton(
+        style="elevated",
             text="📷 Photo Upload (Coming Soon)",
             size_hint_y=None,
             height=touch_targets["button"],
@@ -1295,7 +1299,7 @@ class DataCollectionScreen(Screen):
                 elif q_type == 'choice':
                     if hasattr(widget, 'response_field'):
                         for cb, opt in widget.response_field:
-                            cb.active = False
+                            cb
                 elif q_type == 'scale':
                     if hasattr(widget, 'response_field') and widget.response_field:
                         widget.response_field.value = 3  # Reset to middle value

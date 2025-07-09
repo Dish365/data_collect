@@ -2,7 +2,7 @@ import json
 import requests
 from datetime import datetime
 import pandas as pd
-from typing import Dict, List, Any, Optional
+from typing import Dict
 
 
 class AnalyticsService:
@@ -102,7 +102,7 @@ class AnalyticsService:
             # Try backend API first
             result = self._make_analytics_request(f'project/{project_id}/data-characteristics')
             
-            if 'error' not in result:
+            if result is not None and 'error' not in result:
                 return result.get('characteristics', result)
                 
             # Fallback to local analysis
@@ -153,7 +153,7 @@ class AnalyticsService:
             # Call streamlined recommendations API
             result = self._make_analytics_request(f'project/{project_id}/recommendations')
             
-            if 'error' in result:
+            if result is None or 'error' in result:
                 # Fallback to local recommendations if backend fails
                 characteristics = self.get_data_characteristics(project_id)
                 return self._generate_local_recommendations(characteristics)
@@ -231,7 +231,7 @@ class AnalyticsService:
             # Try backend API first
             result = self._make_analytics_request(f'project/{project_id}/analyze', method='POST', data={'analysis_type': 'descriptive'})
             
-            if 'error' not in result:
+            if result is not None and 'error' not in result:
                 return result
                 
             # Fallback to local analysis
@@ -283,7 +283,7 @@ class AnalyticsService:
             
             result = self._make_analytics_request('inferential/', method='POST', data=payload)
             
-            if 'error' in result:
+            if result is None or 'error' in result:
                 return {'error': 'Inferential analysis not available offline'}
                 
             return result
@@ -301,7 +301,7 @@ class AnalyticsService:
             
             result = self._make_analytics_request('qualitative/', method='POST', data=payload)
             
-            if 'error' in result:
+            if result is None or 'error' in result:
                 return self._run_local_qualitative_analysis(project_id, analysis_config)
                 
             return result
@@ -347,6 +347,9 @@ class AnalyticsService:
         """Check if analytics backend is available"""
         try:
             result = self._make_analytics_request('health')
+            # Ensure we always return a valid dictionary
+            if result is None:
+                return {'error': 'No response from backend', 'available': False}
             return result
         except Exception as e:
             return {'error': f'Backend health check failed: {str(e)}', 'available': False}

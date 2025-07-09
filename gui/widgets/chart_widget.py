@@ -4,7 +4,6 @@ from kivy.uix.button import Button
 from kivy_garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 from kivy.metrics import dp
 import matplotlib.pyplot as plt
-import numpy as np
 
 class ChartWidget(BoxLayout):
     def __init__(self, chart_type='bar', data=None, title='', **kwargs):

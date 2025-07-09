@@ -1,30 +1,33 @@
+#:import MDButton kivymd.uix.button.MDButton
+#:import Window kivy.core.window.Window
+
 <ProjectsScreen>:
     name: "projects"
 
     MDBoxLayout:
         orientation: "vertical"
-        spacing: dp(12)  # Increased spacing for tablets
+        spacing: dp(12)
 
         # Responsive TopBar - Larger for tablets
         TopBar:
             id: top_bar
             size_hint_y: None
-            height: dp(64)  # Increased from default for tablets
+            height: dp(64) if Window.width > 600 else dp(56)
 
         # Main content layout
         MDBoxLayout:
             orientation: "vertical"
             id: content_layout
-            padding: dp(12)
-            spacing: dp(16)  # Increased spacing
+            padding: dp(20) if Window.width > 600 else dp(12)
+            spacing: dp(20) if Window.width > 600 else dp(16)
 
             # Enhanced Header Section with Search and Actions
             MDCard:
-                padding: dp(20)  # Increased padding for tablets
-                spacing: dp(16)  # Increased spacing
+                padding: dp(24) if Window.width > 600 else dp(16)
+                spacing: dp(20) if Window.width > 600 else dp(16)
                 size_hint_y: None
-                height: dp(140)  # Increased height for tablets
-                elevation: 0.8
+                height: dp(160) if Window.width > 600 else dp(140)
+                elevation: 2
 
                 MDBoxLayout:
                     orientation: "vertical"
@@ -33,22 +36,22 @@
                     # Title and Navigation Row
                     MDBoxLayout:
                         orientation: "horizontal"
-                        spacing: dp(16)  # Increased spacing
+                        spacing: dp(16)
                         size_hint_y: None
-                        height: dp(48)  # Larger for tablets
+                        height: dp(56) if Window.width > 600 else dp(48)
 
                         # Left Section: Back arrow + Title
                         MDBoxLayout:
                             orientation: "horizontal"
-                            spacing: dp(12)  # Increased spacing
-                            size_hint_x: 0.4
+                            spacing: dp(12)
+                            size_hint_x: 0.4 if Window.width > 600 else 0.5
                             pos_hint: {"center_y": 0.5}
 
                             MDIconButton:
                                 icon: "arrow-left"
                                 size_hint_x: None
-                                width: dp(56)  # Larger touch target
-                                user_font_size: "28sp"  # Larger icon
+                                width: dp(56) if Window.width > 600 else dp(48)
+                                user_font_size: "28sp" if Window.width > 600 else "24sp"
                                 on_release:
                                     root.manager.transition.direction = "right"
                                     root.manager.current = "dashboard"
@@ -58,98 +61,103 @@
 
                             MDLabel:
                                 text: "Projects"
-                                font_style: "H5"
-                                font_size: "24sp"  # Larger font for tablets
+                                font_style: "Title"
+                                font_size: "24sp" if Window.width > 600 else "20sp"
                                 pos_hint: {"center_y": 0.5}
                                 size_hint_x: None
-                                width: dp(140)  # Slightly wider
+                                width: dp(140) if Window.width > 600 else dp(120)
 
                         # Right Section: Search bar + Buttons
                         MDBoxLayout:
                             orientation: "horizontal"
-                            spacing: dp(12)  # Increased spacing
-                            size_hint_x: 0.6
+                            spacing: dp(12)
+                            size_hint_x: 0.6 if Window.width > 600 else 0.5
                             pos_hint: {"center_y": 0.5}
 
                             MDTextField:
                                 id: search_field
                                 hint_text: "Search projects by name..."
-                                size_hint_x: 0.65
-                                height: dp(52)  # Tablet-friendly height
-                                font_size: "16sp"  # Larger font
+                                size_hint_x: 0.65 if Window.width > 600 else 0.6
+                                height: dp(56) if Window.width > 600 else dp(48)
+                                font_size: "16sp" if Window.width > 600 else "14sp"
                                 pos_hint: {"center_y": 0.5}
-                                mode: "rectangle"
+                                mode: "outlined"
                                 on_text: root.search_projects(self.text)
 
-                            MDRaisedButton:
+                            MDButton:
+                                style: "elevated"
                                 text: "New Project"
                                 on_release: root.open_project_dialog()
                                 md_bg_color: app.theme_cls.primary_color
                                 text_color: 1, 1, 1, 1
                                 size_hint_x: None
-                                width: dp(140)  # Slightly wider
-                                height: dp(48)  # Tablet-friendly height
-                                font_size: "16sp"  # Larger font
+                                width: dp(140) if Window.width > 600 else dp(120)
+                                height: dp(56) if Window.width > 600 else dp(48)
+                                font_size: "16sp" if Window.width > 600 else "14sp"
                                 pos_hint: {"center_y": 0.5}
 
                             MDIconButton:
                                 icon: "refresh"
                                 size_hint_x: None
-                                width: dp(56)  # Larger touch target
-                                user_font_size: "28sp"  # Larger icon
+                                width: dp(56) if Window.width > 600 else dp(48)
+                                user_font_size: "28sp" if Window.width > 600 else "24sp"
                                 on_release: root.check_and_sync_projects()
                                 pos_hint: {"center_y": 0.5}
 
-                    # Quick Filter Toolbar (new for tablets)
+                    # Quick Filter Toolbar (responsive for tablets)
                     MDBoxLayout:
                         id: filter_toolbar
                         orientation: "horizontal"
-                        spacing: dp(12)
+                        spacing: dp(12) if Window.width > 600 else dp(8)
                         size_hint_y: None
-                        height: dp(52)  # Tablet-friendly height
+                        height: dp(56) if Window.width > 600 else dp(48)
 
                         MDLabel:
                             text: "Filter:"
-                            font_size: "16sp"
+                            font_size: "16sp" if Window.width > 600 else "14sp"
                             size_hint_x: None
-                            width: dp(60)
+                            width: dp(60) if Window.width > 600 else dp(50)
                             pos_hint: {"center_y": 0.5}
 
-                        MDRaisedButton:
+                        MDButton:
+                            style: "elevated"
                             id: filter_all_btn
                             text: "All Projects"
                             size_hint_x: None
-                            width: dp(120)
-                            height: dp(44)  # Tablet touch target
-                            font_size: "14sp"
+                            width: dp(120) if Window.width > 600 else dp(100)
+                            height: dp(48) if Window.width > 600 else dp(40)
+                            font_size: "14sp" if Window.width > 600 else "12sp"
                             md_bg_color: app.theme_cls.primary_color
                             on_release: root.filter_projects("all")
 
-                        MDRaisedButton:
+                        MDButton:
+                            style: "elevated"
                             id: filter_recent_btn
                             text: "Recent"
                             size_hint_x: None
-                            width: dp(100)
-                            height: dp(44)
-                            font_size: "14sp"
+                            width: dp(100) if Window.width > 600 else dp(80)
+                            height: dp(48) if Window.width > 600 else dp(40)
+                            font_size: "14sp" if Window.width > 600 else "12sp"
                             on_release: root.filter_projects("recent")
 
-                        MDRaisedButton:
+                        MDButton:
+                            style: "elevated"
                             id: filter_synced_btn
                             text: "Synced"
                             size_hint_x: None
-                            width: dp(100)
-                            height: dp(44)
-                            font_size: "14sp"
+                            width: dp(100) if Window.width > 600 else dp(80)
+                            height: dp(48) if Window.width > 600 else dp(40)
+                            font_size: "14sp" if Window.width > 600 else "12sp"
                             on_release: root.filter_projects("synced")
 
-                        MDRaisedButton:
+                        MDButton:
+                            style: "elevated"
                             id: filter_pending_btn
                             text: "Pending"
                             size_hint_x: None
-                            width: dp(100)
-                            height: dp(44)
-                            font_size: "14sp"
+                            width: dp(100) if Window.width > 600 else dp(80)
+                            height: dp(48) if Window.width > 600 else dp(40)
+                            font_size: "14sp" if Window.width > 600 else "12sp"
                             on_release: root.filter_projects("pending")
 
                         Widget:  # Spacer
@@ -159,8 +167,8 @@
                         MDIconButton:
                             icon: "sort"
                             size_hint_x: None
-                            width: dp(56)
-                            user_font_size: "28sp"
+                            width: dp(56) if Window.width > 600 else dp(48)
+                            user_font_size: "28sp" if Window.width > 600 else "24sp"
                             on_release: root.show_sort_menu()
                             pos_hint: {"center_y": 0.5}
 
@@ -169,8 +177,8 @@
                             id: view_toggle_btn
                             icon: "view-grid"
                             size_hint_x: None
-                            width: dp(56)
-                            user_font_size: "28sp"
+                            width: dp(56) if Window.width > 600 else dp(48)
+                            user_font_size: "28sp" if Window.width > 600 else "24sp"
                             on_release: root.toggle_view_mode()
                             pos_hint: {"center_y": 0.5}
 
@@ -178,10 +186,11 @@
             MDScrollView:
                 MDGridLayout:
                     id: projects_grid
-                    cols: 1  # Will be dynamically adjusted for tablets
-                    spacing: dp(16)  # Increased spacing for tablets
-                    padding: dp(20)  # Increased padding for tablets
+                    # Dynamic columns based on screen size
+                    cols: 3 if Window.width > 800 else (2 if Window.width > 600 else 1)
+                    spacing: dp(20) if Window.width > 600 else dp(16)
+                    padding: dp(24) if Window.width > 600 else dp(16)
                     adaptive_height: True
-                    row_default_height: dp(120)  # Increased default height for tablet cards
+                    row_default_height: dp(140) if Window.width > 600 else dp(120)
                     
 

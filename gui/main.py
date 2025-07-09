@@ -1,6 +1,12 @@
 import os
 os.environ['KIVY_LOG_MODE'] = 'PYTHON'
 
+# Suppress KivyMD 2.0.0 deprecation warnings that we can't control
+# Note: FocusBehavior deprecation warning comes from KivyMD's internal MDTextField implementation
+# This will be resolved when KivyMD updates to use StateFocusBehavior internally
+import warnings
+warnings.filterwarnings("ignore", message=".*FocusBehavior.*is deprecated.*", category=DeprecationWarning)
+
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
 from kivy.core.window import Window
@@ -34,8 +40,34 @@ class ResearchCollectorApp(MDApp):
     user_display_name = StringProperty("Guest")
 
     def build(self):
-        self.theme_cls.primary_palette = "Blue"    
-        self.theme_cls.primary_hue     = "500" 
+        # Modern, sleek theme configuration for KivyMD 2.0
+        self.theme_cls.theme_style = "Light"  # Clean, modern light theme
+        self.theme_cls.primary_palette = "Blue"
+        self.theme_cls.primary_hue = "600"  # Sophisticated deep blue
+        self.theme_cls.accent_palette = "Cyan"
+        self.theme_cls.accent_hue = "A200"
+        
+        # Modern Material You design (KivyMD 2.0)
+        try:
+            self.theme_cls.material_style = "M3"  # Material Design 3
+        except AttributeError:
+            # Fallback for older versions
+            pass
+        
+        # Custom modern color scheme using hex colors
+        self.theme_cls.primary_color = "#1976D2"  # Modern blue
+        self.theme_cls.accent_color = "#00E5FF"   # Cyan accent
+        
+        # Modern background colors
+        try:
+            # KivyMD 2.0 background colors
+            self.theme_cls.bg_normal = "#FAFAFA"      # Clean light background
+            self.theme_cls.surface_color = "#FFFFFF"  # Pure white surfaces
+            self.theme_cls.bg_dark = "#121212"        # Dark theme background
+            self.theme_cls.bg_light = "#FAFAFA"       # Light theme background
+        except AttributeError:
+            # Fallback for compatibility
+            pass
         
         # Responsive window sizing for tablet optimization
         if platform != 'android':

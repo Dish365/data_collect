@@ -1,9 +1,9 @@
 from kivy.uix.screenmanager import Screen
 from kivy.lang import Builder
 from kivy.clock import Clock
-from kivy.metrics import dp
-from kivymd.toast import toast
+from utils.toast import toast
 from kivy.app import App
+from widgets.top_bar import TopBar
 import threading
 
 from widgets.sync_item import SyncItem

@@ -1,20 +1,17 @@
 from kivy.uix.screenmanager import Screen
-from kivy.uix.label import Label
 from kivy.metrics import dp
 from kivy.lang import Builder
 from kivy.clock import Clock
-from kivymd.toast import toast
+from utils.toast import toast
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDRaisedButton, MDFlatButton
+from kivymd.uix.button import MDButton
 from kivymd.uix.label import MDLabel
 from kivymd.uix.card import MDCard
-from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.selectioncontrol import MDCheckbox
 from kivy.app import App
-
+from widgets.top_bar import TopBar
 import threading
-from datetime import datetime
 
 Builder.load_file("kv/responses.kv")
 
@@ -31,7 +28,7 @@ class ResponseDetailDialog(MDBoxLayout):
         # Respondent info header
         header = MDLabel(
             text=f"Responses from {respondent_data.get('display_name', 'Unknown')}",
-            font_style="H6",
+            font_style="Title",
             size_hint_y=None,
             height=dp(40)
         )
@@ -40,7 +37,7 @@ class ResponseDetailDialog(MDBoxLayout):
         # Project info
         project_info = MDLabel(
             text=f"Project: {respondent_data.get('project_name', 'Unknown')}",
-            font_style="Subtitle1",
+            font_style="Body",
             size_hint_y=None,
             height=dp(30)
         )
@@ -78,21 +75,21 @@ class ResponseDetailDialog(MDBoxLayout):
                 
                 question_label = MDLabel(
                     text=f"Q{i+1}: {response.get('question_text', 'Unknown Question')}",
-                    font_style="Subtitle2",
+                    font_style="Body",
                     size_hint_y=None,
                     height=dp(25)
                 )
                 
                 answer_label = MDLabel(
                     text=f"Answer: {response.get('response_value', 'No answer')}",
-                    font_style="Body1",
+                    font_style="Body",
                     size_hint_y=None,
                     height=dp(25)
                 )
                 
                 time_label = MDLabel(
                     text=f"Collected: {response.get('collected_at_formatted', 'Unknown time')}",
-                    font_style="Caption",
+                    font_style="Label",
                     size_hint_y=None,
                     height=dp(20)
                 )
@@ -143,7 +140,7 @@ class ResponseItem(MDCard):
         respondent_id_label = MDLabel(
             text=respondent_id_text,
             size_hint_x=0.18,
-            font_style="Body2",
+            font_style="Body",
             font_size="16sp",  # Larger font for tablets
             halign="left"
         )
@@ -153,7 +150,7 @@ class ResponseItem(MDCard):
         name_label = MDLabel(
             text=display_name,
             size_hint_x=0.18,
-            font_style="Body2",
+            font_style="Body",
             font_size="16sp",  # Larger font for tablets
             halign="left"
         )
@@ -163,7 +160,7 @@ class ResponseItem(MDCard):
         project_label = MDLabel(
             text=project_name,
             size_hint_x=0.18,
-            font_style="Body2",
+            font_style="Body",
             font_size="16sp",  # Larger font for tablets
             halign="left"
         )
@@ -173,7 +170,7 @@ class ResponseItem(MDCard):
         count_label = MDLabel(
             text=str(response_count),
             size_hint_x=0.1,
-            font_style="Body2",
+            font_style="Body",
             font_size="16sp",  # Larger font for tablets
             halign="center"
         )
@@ -182,7 +179,7 @@ class ResponseItem(MDCard):
         date_label = MDLabel(
             text=last_response,
             size_hint_x=0.18,
-            font_style="Body2",
+            font_style="Body",
             font_size="16sp",  # Larger font for tablets
             halign="center"
         )
@@ -225,7 +222,8 @@ class ResponseItem(MDCard):
                 font_size = "12sp"
             
             # View Button
-            view_button = MDFlatButton(
+            view_button = MDButton(
+                style="text",
                 text="View",
                 size_hint_x=None,
                 width=button_width,
@@ -237,7 +235,8 @@ class ResponseItem(MDCard):
             )
             
             # Edit Button
-            edit_button = MDFlatButton(
+            edit_button = MDButton(
+                style="text",
                 text="Edit",
                 size_hint_x=None,
                 width=button_width,
@@ -249,13 +248,15 @@ class ResponseItem(MDCard):
             )
             
             # Delete Button
-            delete_button = MDFlatButton(
+            delete_button = MDButton(
+                style="text",
                 text="Delete",
                 size_hint_x=None,
                 width=button_width,
                 height=button_height,
                 font_size=font_size,
-                theme_text_color="Error",
+                theme_text_color="Custom",
+                text_color=(0.8, 0.2, 0.2, 1),
                 on_release=self.delete_respondent
             )
             
@@ -271,7 +272,8 @@ class ResponseItem(MDCard):
     def create_original_buttons(self, layout):
         """Create original action buttons as fallback"""
         # View Button
-        view_button = MDFlatButton(
+        view_button = MDButton(
+            style="text",
             text="View",
             size_hint_x=None,
             width=dp(50),
@@ -281,7 +283,8 @@ class ResponseItem(MDCard):
         )
         
         # Edit Button
-        edit_button = MDFlatButton(
+        edit_button = MDButton(
+            style="text",
             text="Edit",
             size_hint_x=None,
             width=dp(50),
@@ -291,11 +294,13 @@ class ResponseItem(MDCard):
         )
         
         # Delete Button
-        delete_button = MDFlatButton(
+        delete_button = MDButton(
+            style="text",
             text="Del",
             size_hint_x=None,
             width=dp(40),
-            theme_text_color="Error",
+            theme_text_color="Custom",
+            text_color=(0.8, 0.2, 0.2, 1),
             on_release=self.delete_respondent
         )
         
@@ -487,7 +492,7 @@ class ResponsesScreen(Screen):
         # Enable bulk action buttons based on selection
         if hasattr(self.ids, 'bulk_actions_toolbar'):
             for child in self.ids.bulk_actions_toolbar.children:
-                if isinstance(child, MDRaisedButton):
+                if isinstance(child, MDButton):
                     child.disabled = not has_selection
 
     def show_loader(self, show=True):
@@ -643,7 +648,8 @@ class ResponsesScreen(Screen):
                 button_height = dp(40)
                 font_size = "14sp"
             
-            return MDRaisedButton(
+            return MDButton(
+                style="elevated",
                 text="Load More Respondents",
                 size_hint_y=None,
                 height=button_height,
@@ -654,7 +660,8 @@ class ResponsesScreen(Screen):
         except Exception as e:
             print(f"Error creating tablet load more button: {e}")
             # Fallback
-            return MDRaisedButton(
+            return MDButton(
+                style="elevated",
                 text="Load More",
                 size_hint_y=None,
                 height=dp(40),
@@ -679,7 +686,7 @@ class ResponsesScreen(Screen):
             return MDLabel(
                 text="No responses found. Start collecting data to see respondents here.",
                 halign="center",
-                font_style="Subtitle1",
+                font_style="Body",
                 font_size=font_size,
                 size_hint_y=None,
                 height=label_height
@@ -691,7 +698,7 @@ class ResponsesScreen(Screen):
             return MDLabel(
                 text="No responses found. Start collecting data to see respondents here.",
                 halign="center",
-                font_style="Subtitle1",
+                font_style="Body",
                 size_hint_y=None,
                 height=dp(60)
             )
@@ -773,7 +780,7 @@ class ResponsesScreen(Screen):
             
             name_label = MDLabel(
                 text=f"Respondent: {respondent_data.get('display_name', 'Unknown')}",
-                font_style="H6",
+                font_style="Title",
                 font_size="18sp",
                 size_hint_y=None,
                 height=dp(30)
@@ -781,7 +788,7 @@ class ResponsesScreen(Screen):
             
             project_label = MDLabel(
                 text=f"Project: {respondent_data.get('project_name', 'Unknown')}",
-                font_style="Subtitle1",
+                font_style="Body",
                 font_size="16sp",
                 size_hint_y=None,
                 height=dp(25)
@@ -789,7 +796,7 @@ class ResponsesScreen(Screen):
             
             id_label = MDLabel(
                 text=f"ID: {respondent_data.get('respondent_id', 'Unknown')}",
-                font_style="Body2",
+                font_style="Body",
                 font_size="14sp",
                 size_hint_y=None,
                 height=dp(25)
@@ -849,7 +856,7 @@ class ResponsesScreen(Screen):
             
             question_label = MDLabel(
                 text=f"Q{question_number}: {response.get('question_text', 'Unknown Question')}",
-                font_style="Subtitle2",
+                font_style="Body",
                 font_size=font_sizes["question"],
                 size_hint_y=None,
                 height=dp(30)
@@ -857,7 +864,7 @@ class ResponsesScreen(Screen):
             
             answer_label = MDLabel(
                 text=f"Answer: {response.get('response_value', 'No answer')}",
-                font_style="Body1",
+                font_style="Body",
                 font_size=font_sizes["answer"],
                 size_hint_y=None,
                 height=dp(30),
@@ -866,7 +873,7 @@ class ResponsesScreen(Screen):
             
             time_label = MDLabel(
                 text=f"Collected: {response.get('collected_at_formatted', 'Unknown time')}",
-                font_style="Caption",
+                font_style="Label",
                 font_size=font_sizes["time"],
                 size_hint_y=None,
                 height=dp(25)
@@ -896,21 +903,21 @@ class ResponsesScreen(Screen):
         
         question_label = MDLabel(
             text=f"Q{question_number}: {response.get('question_text', 'Unknown Question')}",
-            font_style="Subtitle2",
+            font_style="Body",
             size_hint_y=None,
             height=dp(25)
         )
         
         answer_label = MDLabel(
             text=f"Answer: {response.get('response_value', 'No answer')}",
-            font_style="Body1",
+            font_style="Body",
             size_hint_y=None,
             height=dp(25)
         )
         
         time_label = MDLabel(
             text=f"Collected: {response.get('collected_at_formatted', 'Unknown time')}",
-            font_style="Caption",
+            font_style="Label",
             size_hint_y=None,
             height=dp(20)
         )
@@ -931,7 +938,7 @@ class ResponsesScreen(Screen):
                 type="custom",
                 content_cls=content,
                 buttons=[
-                    MDFlatButton(
+                    MDButton(
                         text="CLOSE",
                         on_release=lambda x: self.detail_dialog.dismiss()
                     )
@@ -1017,7 +1024,7 @@ class ResponsesScreen(Screen):
             checkbox_layout.add_widget(anonymous_checkbox)
             checkbox_layout.add_widget(checkbox_label)
             
-            content.add_widget(MDLabel(text=f"Edit Respondent: {respondent_data.get('respondent_id', 'Unknown')}", font_style="H6"))
+            content.add_widget(MDLabel(text=f"Edit Respondent: {respondent_data.get('respondent_id', 'Unknown')}", font_style="Title"))
             content.add_widget(name_field)
             content.add_widget(email_field)
             content.add_widget(phone_field)
@@ -1038,11 +1045,11 @@ class ResponsesScreen(Screen):
                 type="custom",
                 content_cls=content,
                 buttons=[
-                    MDFlatButton(
+                    MDButton(
                         text="CANCEL",
                         on_release=lambda x: self.edit_dialog.dismiss()
                     ),
-                    MDRaisedButton(
+                    MDButton(
                         text="SAVE",
                         on_release=save_changes
                     )
@@ -1074,13 +1081,14 @@ class ResponsesScreen(Screen):
                 type="custom",
                 content_cls=content,
                 buttons=[
-                    MDFlatButton(
+                    MDButton(
                         text="CANCEL",
                         on_release=lambda x: self.delete_dialog.dismiss()
                     ),
-                    MDRaisedButton(
+                    MDButton(
                         text="DELETE",
-                        theme_bg_color="Error",
+                        theme_bg_color="Custom",
+                        md_bg_color=(0.8, 0.2, 0.2, 1),
                         on_release=confirm_delete
                     )
                 ],

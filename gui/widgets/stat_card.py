@@ -4,7 +4,6 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDIconButton
 from kivy.properties import StringProperty
 from kivy.metrics import dp
-from kivy.app import App
 from kivy.lang import Builder
 from kivy.core.window import Window
 

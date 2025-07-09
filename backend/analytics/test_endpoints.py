@@ -37,8 +37,8 @@ def test_imports():
         from app.analytics.auto_detect import UnifiedAutoDetector
         print("✓ Unified auto-detector import successful")
         
-        # Test endpoint imports
-        from app.api.v1.endpoints import descriptive, inferential, qualitative, auto_detect
+        # Test endpoint imports - Updated to match consolidated API structure
+        from app.api.v1.endpoints import analytics
         print("✓ All endpoint imports successful")
         
         return True
@@ -198,15 +198,16 @@ def test_endpoint_structure():
     print("\nTesting endpoint structure...")
     
     try:
-        from app.api.v1.endpoints import descriptive, inferential, qualitative, auto_detect
+        # Updated to match the consolidated API structure
+        from app.api.v1.endpoints import analytics
         
-        # Check that routers exist
-        assert hasattr(descriptive, 'router'), "Descriptive router missing"
-        assert hasattr(inferential, 'router'), "Inferential router missing"  
-        assert hasattr(qualitative, 'router'), "Qualitative router missing"
-        assert hasattr(auto_detect, 'router'), "Auto-detect router missing"
+        # Check that analytics router exists
+        assert hasattr(analytics, 'router'), "Analytics router missing"
+        print("✓ Analytics router found")
         
-        print("✓ All endpoint routers found")
+        # Check that the analytics router has expected endpoints
+        endpoints = [route.path for route in analytics.router.routes]
+        print(f"✓ Found {len(endpoints)} analytics endpoints")
         
         # Check that main API router can be imported
         from app.api.v1.api import api_router
@@ -250,10 +251,9 @@ def main():
     if passed == total:
         print("🎉 All tests passed! The analytics endpoints are ready to use.")
         print("\nEndpoint URLs (when server is running):")
-        print("- Descriptive: /api/v1/descriptive/")
-        print("- Inferential: /api/v1/inferential/")  
-        print("- Qualitative: /api/v1/qualitative/")
-        print("- Auto-detect: /api/v1/auto-detect/")
+        print("- Analytics: /api/v1/analytics/")
+        print("- Health Check: /api/v1/analytics/health")
+        print("- Project Analysis: /api/v1/analytics/project/{project_id}/analyze")
     else:
         print("⚠️  Some tests failed. Check the error messages above.")
     

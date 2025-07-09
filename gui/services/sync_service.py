@@ -1,5 +1,4 @@
 import json
-import requests
 from datetime import datetime
 from kivy.clock import Clock
 from services.auth_service import AuthService

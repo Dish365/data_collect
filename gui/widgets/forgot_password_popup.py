@@ -2,7 +2,7 @@ from kivy.uix.popup import Popup
 from kivy.properties import BooleanProperty
 from kivy.lang import Builder
 from kivymd.app import MDApp
-from kivymd.toast import toast
+from utils.toast import toast
 
 Builder.load_file("kv/forgot_password_popup.kv")  # Adjust path if needed
 
@@ -62,7 +62,7 @@ class ForgotPasswordPopup(Popup):
     def _show_token_dialog(self, message):
         """Show development token dialog"""
         from kivymd.uix.dialog import MDDialog
-        from kivymd.uix.button import MDFlatButton
+        from kivymd.uix.button import MDButton, MDIconButton
         from kivymd.uix.textfield import MDTextField
         from kivymd.uix.boxlayout import MDBoxLayout
         from kivymd.uix.label import MDLabel
@@ -93,7 +93,7 @@ class ForgotPasswordPopup(Popup):
         
         token_field = MDTextField(
             text=token,
-            mode="rectangle",
+            mode="outlined",
             readonly=True,
             size_hint_y=None,
             height="40dp"
@@ -103,7 +103,7 @@ class ForgotPasswordPopup(Popup):
         new_password_field = MDTextField(
             hint_text="New Password",
             password=True,
-            mode="rectangle",
+            mode="outlined",
             size_hint_y=None,
             height="40dp"
         )
@@ -112,7 +112,7 @@ class ForgotPasswordPopup(Popup):
         confirm_password_field = MDTextField(
             hint_text="Confirm New Password", 
             password=True,
-            mode="rectangle",
+            mode="outlined",
             size_hint_y=None,
             height="40dp"
         )
@@ -144,8 +144,10 @@ class ForgotPasswordPopup(Popup):
             type="custom",
             content_cls=content,
             buttons=[
-                MDFlatButton(text="Cancel", on_release=lambda x: dialog.dismiss()),
-                MDFlatButton(text="Reset Password", on_release=lambda x: reset_password())
+                MDButton(
+        style="text",text="Cancel", on_release=lambda x: dialog.dismiss()),
+                MDButton(
+        style="text",text="Reset Password", on_release=lambda x: reset_password())
             ]
         )
         

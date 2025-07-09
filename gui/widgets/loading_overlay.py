@@ -2,11 +2,9 @@ from kivy.uix.modalview import ModalView
 from kivymd.uix.card import MDCard
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
-from kivymd.uix.spinner import MDSpinner
+from kivymd.uix.progressindicator import MDCircularProgressIndicator
 from kivy.metrics import dp
 from kivy.properties import StringProperty, BooleanProperty
-from kivy.clock import Clock
-
 
 class LoadingOverlay(ModalView):
     """A reusable loading overlay with spinner and message"""
@@ -38,12 +36,11 @@ class LoadingOverlay(ModalView):
             size_hint=(1, 1)
         )
         
-        # Add spinner
-        self.spinner = MDSpinner(
+        # Add progress indicator
+        self.spinner = MDCircularProgressIndicator(
             size_hint=(None, None),
             size=(dp(40), dp(40)),
-            pos_hint={'center_x': 0.5},
-            active=True
+            pos_hint={'center_x': 0.5}
         )
         
         # Add message label

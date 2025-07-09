@@ -3,23 +3,20 @@ from kivy.uix.label import Label
 from kivy.metrics import dp
 from kivy.lang import Builder
 from kivy.clock import Clock
-from kivymd.toast import toast
+from kivy.core.window import Window
+from utils.toast import toast
 from kivymd.uix.dialog import MDDialog
-from kivymd.uix.textfield import MDTextField
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.button import MDButton
+from kivymd.uix.label import MDLabel
 from kivy.app import App
 
-from widgets.project_item import ProjectItem
 from widgets.project_dialog import ProjectDialog
 from widgets.loading_overlay import LoadingOverlay
-from services.auth_service import AuthService
+from widgets.top_bar import TopBar
+from widgets.responsive_layout import ResponsiveHelper
 from services.project_service import ProjectService
-from services.sync_service import SyncService
 
 import threading
-import uuid
-import json
 from datetime import datetime
 
 Builder.load_file("kv/projects.kv")
@@ -49,6 +46,9 @@ class ProjectsScreen(Screen):
         
         # Initialize loading overlay
         self.loading_overlay = LoadingOverlay()
+        
+        # Bind window resize event
+        Window.bind(on_resize=self.on_window_resize)
 
     def on_enter(self):
         self.ids.top_bar.set_title("Projects")
@@ -58,11 +58,9 @@ class ProjectsScreen(Screen):
         
         self.check_and_sync_projects()
 
-    def on_window_resize(self, width, height):
+    def on_window_resize(self, window, width, height):
         """Handle window resize for responsive layout adjustments"""
         try:
-            from widgets.responsive_layout import ResponsiveHelper
-            
             # Determine screen size category and orientation
             category = ResponsiveHelper.get_screen_size_category()
             is_landscape = ResponsiveHelper.is_landscape()
@@ -78,8 +76,6 @@ class ProjectsScreen(Screen):
     def update_responsive_layout(self):
         """Update layout based on current screen size"""
         try:
-            from widgets.responsive_layout import ResponsiveHelper
-            
             category = ResponsiveHelper.get_screen_size_category()
             is_landscape = ResponsiveHelper.is_landscape()
             
@@ -94,6 +90,9 @@ class ProjectsScreen(Screen):
                     self.ids.top_bar.height = dp(64)
                 else:
                     self.ids.top_bar.height = dp(56)
+            
+            # Update responsive spacing and padding
+            self.update_responsive_spacing(category)
             
         except Exception as e:
             print(f"Error updating responsive layout in projects: {e}")
@@ -118,6 +117,21 @@ class ProjectsScreen(Screen):
         if grid.cols != cols:
             grid.cols = cols
             print(f"Projects: Updated grid to {cols} columns for {category} {'landscape' if is_landscape else 'portrait'}")
+    
+    def update_responsive_spacing(self, category):
+        """Update spacing and padding based on screen size"""
+        if not hasattr(self.ids, 'projects_grid'):
+            return
+            
+        grid = self.ids.projects_grid
+        
+        # Update spacing based on screen size
+        if category in ["tablet", "large_tablet"]:
+            grid.spacing = dp(20)
+            grid.padding = dp(24)
+        else:
+            grid.spacing = dp(16)
+            grid.padding = dp(16)
     
     def filter_projects(self, filter_type):
         """Filter projects by type"""
@@ -280,7 +294,6 @@ class ProjectsScreen(Screen):
     def create_tablet_optimized_project_item(self, project):
         """Create a tablet-optimized project item"""
         try:
-            from widgets.responsive_layout import ResponsiveHelper
             from widgets.project_item import ProjectItem
             
             category = ResponsiveHelper.get_screen_size_category()
@@ -299,7 +312,9 @@ class ProjectsScreen(Screen):
                 # Increase padding and spacing for tablets
                 project_item.padding = (dp(12), dp(12), dp(8), dp(12))
                 project_item.spacing = dp(16)
-                project_item.height = dp(84)  # Slightly taller for tablets
+                project_item.height = dp(140)  # Slightly taller for tablets
+            else:
+                project_item.height = dp(120)  # Standard height for phones
             
             # Bind events
             project_item.bind(
@@ -338,8 +353,6 @@ class ProjectsScreen(Screen):
     def show_empty_state(self):
         """Show appropriate empty state message"""
         try:
-            from widgets.responsive_layout import ResponsiveHelper
-            
             category = ResponsiveHelper.get_screen_size_category()
             
             # Create responsive empty state message
@@ -408,8 +421,6 @@ class ProjectsScreen(Screen):
     def create_tablet_dialog_button(self, text, on_release, is_primary=False, disabled=False, **kwargs):
         """Create a tablet-optimized dialog button"""
         try:
-            from widgets.responsive_layout import ResponsiveHelper
-            
             category = ResponsiveHelper.get_screen_size_category()
             
             # Responsive button sizing
@@ -431,7 +442,8 @@ class ProjectsScreen(Screen):
                 font_size = "13sp"
             
             # Create button with responsive styling
-            button = MDRaisedButton(
+            button = MDButton(
+                style="elevated",
                 text=text,
                 on_release=on_release,
                 size_hint_y=None,
@@ -448,7 +460,8 @@ class ProjectsScreen(Screen):
         except Exception as e:
             print(f"Error creating tablet dialog button: {e}")
             # Fallback to standard button
-            return MDRaisedButton(
+            return MDButton(
+                style="elevated",
                 text=text,
                 on_release=on_release,
                 disabled=disabled,
@@ -483,7 +496,6 @@ class ProjectsScreen(Screen):
             
             # Enhanced dialog with tablet sizing
             try:
-                from widgets.responsive_layout import ResponsiveHelper
                 category = ResponsiveHelper.get_screen_size_category()
                 
                 # Set dialog size based on device category
@@ -657,7 +669,6 @@ class ProjectsScreen(Screen):
         # Add load more button if needed (using tablet-optimized styling)
         if not is_last_page:
             try:
-                from widgets.responsive_layout import ResponsiveHelper
                 category = ResponsiveHelper.get_screen_size_category()
                 
                 # Tablet-optimized load more button
@@ -665,7 +676,8 @@ class ProjectsScreen(Screen):
                 button_width = dp(160) if category in ["tablet", "large_tablet"] else dp(140)
                 font_size = "16sp" if category in ["tablet", "large_tablet"] else "14sp"
                 
-                self.ids.load_more_button = MDRaisedButton(
+                self.ids.load_more_button = MDButton(
+                    style="elevated",
                     text="Load More Projects",
                     on_release=lambda x: self.load_projects(search_query=self.ids.search_field.text if hasattr(self.ids, 'search_field') else ""),
                     size_hint_y=None,
@@ -681,7 +693,8 @@ class ProjectsScreen(Screen):
             except Exception as e:
                 print(f"Error creating tablet-optimized load more button: {e}")
                 # Fallback to original button
-                self.ids.load_more_button = MDRaisedButton(
+                self.ids.load_more_button = MDButton(
+                    style="elevated",
                     text="Load More",
                     on_release=lambda x: self.load_projects(search_query=self.ids.search_field.text if hasattr(self.ids, 'search_field') else ""),
                     size_hint_y=None,
@@ -705,11 +718,13 @@ class ProjectsScreen(Screen):
             title="Delete Project?",
             text="This action cannot be undone.",
             buttons=[
-                MDRaisedButton(
+                MDButton(
+                    style="elevated",
                     text="CANCEL",
                     on_release=lambda x: delete_dialog.dismiss(),
                 ),
-                MDRaisedButton(
+                MDButton(
+                    style="elevated",
                     text="DELETE",
                     md_bg_color=(1, 0, 0, 1),
                     on_release=confirm_delete,

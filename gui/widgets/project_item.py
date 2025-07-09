@@ -1,8 +1,5 @@
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
-from kivy.uix.label import Label
 from kivy.metrics import dp
-from kivy.properties import StringProperty, BooleanProperty
+from kivy.properties import StringProperty
 from kivy.event import EventDispatcher
 from kivymd.uix.card import MDCard
 from kivymd.uix.button import MDIconButton

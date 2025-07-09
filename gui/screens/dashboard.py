@@ -1,22 +1,15 @@
 from kivy.app import App
-from kivy.uix.screenmanager import Screen
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.button import Button
-from kivy.uix.label import Label
 from kivy.metrics import dp
-from widgets.stat_card import StatCard
 from kivymd.uix.screen import MDScreen
 from kivy.lang import Builder
-from kivy.core.window import Window
-from widgets.top_bar import TopBar
 from services.dashboard_service import DashboardService
 import threading
 from kivy.clock import Clock
 from widgets.activity_item import ActivityItem
 from kivymd.uix.label import MDLabel
-from kivymd.uix.button import MDIconButton
 from widgets.team_member_dialog import TeamMemberDialog
+from widgets.top_bar import TopBar
+from widgets.stat_card import StatCard
 
 
 Builder.load_file("kv/dashboard.kv")
@@ -234,7 +227,8 @@ class DashboardScreen(MDScreen):
         activity_feed_layout.add_widget(MDLabel(
             text=f"Error loading data: {error_message}", 
             halign="center", 
-            theme_text_color="Error",
+            theme_text_color="Custom",
+            text_color=(0.8, 0.2, 0.2, 1),
             size_hint_y=None,
             height=dp(40)
         ))

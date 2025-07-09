@@ -1,17 +1,32 @@
-from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import StringProperty, ListProperty, NumericProperty
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.selectioncontrol import MDCheckbox
-from kivy.uix.boxlayout import BoxLayout 
 from kivy.metrics import dp
-from kivymd.uix.button import MDRaisedButton, MDIconButton
+from kivymd.uix.button import MDButton, MDIconButton
 from kivymd.uix.slider import MDSlider
-from kivymd.uix.pickers import MDDatePicker, MDTimePicker
-from kivymd.uix.gridlayout import MDGridLayout
+
+# Updated imports for KivyMD 2.0.0
+try:
+    from kivymd.uix.pickers.datepicker import MDDatePicker
+    from kivymd.uix.pickers.timepicker import MDTimePicker
+except ImportError:
+    try:
+        from kivymd.uix.pickers.datepicker.datepicker import MDDatePicker
+        from kivymd.uix.pickers.timepicker.timepicker import MDTimePicker
+    except ImportError:
+        try:
+            from kivymd.uix.pickers.datepicker import MDDatePicker
+            from kivymd.uix.pickers.timepicker import MDTimePicker
+        except ImportError:
+            # Fallback for older versions or if imports fail
+            print("Warning: Could not import MDDatePicker and MDTimePicker. Date/Time fields will be disabled.")
+            MDDatePicker = None
+            MDTimePicker = None
+
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.toast import toast
+from utils.toast import toast
 from kivy.clock import Clock
 from kivy.core.window import Window
 import datetime
@@ -222,7 +237,7 @@ class BaseFormField(MDCard):
         self.question_input = MDTextField(
             text=self.question_text,
             hint_text="Enter your question here...",
-            mode="rectangle",
+            mode="outlined",
             multiline=False,
             size_hint_y=None,
             height=values['input_height'],
@@ -337,7 +352,8 @@ class BaseFormField(MDCard):
         )
         spacer = MDBoxLayout(size_hint_x=1)
         self.delete_container.add_widget(spacer)
-        self.delete_button = MDRaisedButton(
+        self.delete_button = MDButton(
+            style="elevated",
             text="Delete Question",
             md_bg_color=(1, 0.3, 0.3, 1),
             on_release=lambda x: self.parent.remove_widget(self),
@@ -362,7 +378,7 @@ class ShortTextField(BaseFormField):
         
         self.text_input = MDTextField(
             hint_text="Short text answer",
-            mode="rectangle",
+            mode="outlined",
             size_hint_y=None,
             height=values['input_height'],
             font_size=values['font_size_secondary']
@@ -405,7 +421,7 @@ class LongTextField(BaseFormField):
         
         self.text_input = MDTextField(
             hint_text="Long text answer (multiple lines)",
-            mode="rectangle",
+            mode="outlined",
             multiline=True,
             size_hint_y=None,
             height=long_text_height,
@@ -453,7 +469,7 @@ class NumericIntegerField(BaseFormField):
         self.number_input = MDTextField(
             hint_text="Enter a whole number",
             input_filter="int",  # Only allow integers
-            mode="rectangle",
+            mode="outlined",
             size_hint_y=None,
             height=values['input_height'],
             font_size=values['font_size_secondary']
@@ -506,7 +522,7 @@ class NumericDecimalField(BaseFormField):
         self.number_input = MDTextField(
             hint_text="Enter a decimal number",
             input_filter="float",  # Allow decimal numbers
-            mode="rectangle",
+            mode="outlined",
             size_hint_y=None,
             height=values['input_height'],
             font_size=values['font_size_secondary']
@@ -574,7 +590,8 @@ class SingleChoiceField(BaseFormField):
             halign="left",
             valign="middle"
         )
-        self.add_option_btn = MDRaisedButton(
+        self.add_option_btn = MDButton(
+            style="elevated",
             text="Add Option",
             size_hint_x=None,
             width=dp(90),
@@ -582,7 +599,8 @@ class SingleChoiceField(BaseFormField):
             font_size="12sp",
             on_release=self.add_option
         )
-        self.remove_option_btn = MDRaisedButton(
+        self.remove_option_btn = MDButton(
+            style="elevated",
             text="Remove Last",
             size_hint_x=None,
             width=dp(110),
@@ -643,7 +661,7 @@ class SingleChoiceField(BaseFormField):
                 font_size="13sp",
                 height=values['input_height'],
                 size_hint_y=None,
-                mode="rectangle",
+                mode="outlined",
                 pos_hint={'center_y': 0.5},
                 on_text_validate=lambda instance, idx=i: self.update_option(idx, instance.text)
             )
@@ -692,7 +710,7 @@ class SingleChoiceField(BaseFormField):
         # Update UI to reflect the selection
         for i, option in enumerate(self.options):
             if option == value and i < len(self.checkboxes):
-                self.checkboxes[i].active = True
+                self.checkboxes[i]
     
     def validate(self):
         is_valid, errors = super().validate()
@@ -746,7 +764,8 @@ class MultipleChoiceField(BaseFormField):
             halign="left",
             valign="middle"
         )
-        self.add_option_btn = MDRaisedButton(
+        self.add_option_btn = MDButton(
+            style="elevated",
             text="Add Option",
             size_hint_x=None,
             width=dp(90),
@@ -754,7 +773,8 @@ class MultipleChoiceField(BaseFormField):
             font_size="12sp",
             on_release=self.add_option
         )
-        self.remove_option_btn = MDRaisedButton(
+        self.remove_option_btn = MDButton(
+            style="elevated",
             text="Remove Last",
             size_hint_x=None,
             width=dp(110),
@@ -812,7 +832,7 @@ class MultipleChoiceField(BaseFormField):
                 font_size="13sp",
                 height=values['input_height'],
                 size_hint_y=None,
-                mode="rectangle",
+                mode="outlined",
                 pos_hint={'center_y': 0.5},
                 on_text_validate=lambda instance, idx=i: self.update_option(idx, instance.text)
             )
@@ -863,7 +883,7 @@ class MultipleChoiceField(BaseFormField):
         # Update UI to reflect the selections
         for i, option in enumerate(self.options):
             if option in self.selected_options and i < len(self.checkboxes):
-                self.checkboxes[i].active = True
+                self.checkboxes[i]
     
     def validate(self):
         is_valid, errors = super().validate()
@@ -947,22 +967,53 @@ class DateField(BaseFormField):
 
     def create_date_input(self):
         values = self.get_responsive_values()
-        self.date_input = MDTextField(
-            hint_text="Select date",
-            mode="rectangle",
-            size_hint_y=None,
-            height=values['input_height'],
-            font_size=values['font_size_secondary'],
-            readonly=True,
-            on_focus=self.show_date_picker
-        )
-        self.add_widget(self.date_input)
+        
+        # Check if date picker is available
+        if MDDatePicker is None:
+            # Fallback to manual date entry
+            self.date_input = MDTextField(
+                hint_text="Enter date (YYYY-MM-DD)",
+                mode="outlined",
+                size_hint_y=None,
+                height=values['input_height'],
+                font_size=values['font_size_secondary']
+            )
+            self.add_widget(self.date_input)
+            
+            # Add warning label
+            warning_label = MDLabel(
+                text="⚠️ Date picker not available. Enter date manually.",
+                theme_text_color="Custom",
+                text_color=(0.8, 0.2, 0.2, 1),
+                font_size="12sp",
+                size_hint_y=None,
+                height=dp(20)
+            )
+            self.add_widget(warning_label)
+        else:
+            self.date_input = MDTextField(
+                hint_text="Select date",
+                mode="outlined",
+                size_hint_y=None,
+                height=values['input_height'],
+                font_size=values['font_size_secondary'],
+                readonly=True,
+                on_focus=self.show_date_picker
+            )
+            self.add_widget(self.date_input)
 
     def show_date_picker(self, instance, focus):
-        if focus:
-            date_dialog = MDDatePicker()
-            date_dialog.bind(on_save=self.set_date)
-            date_dialog.open()
+        if focus and MDDatePicker is not None:
+            try:
+                # Try the new KivyMD 2.0.0 API
+                date_dialog = MDDatePicker()
+                date_dialog.bind(on_save=self.set_date)
+                date_dialog.open()
+            except Exception as e:
+                print(f"Error opening date picker: {e}")
+                toast("Date picker error. Please enter date manually.")
+                self.date_input.readonly = False
+                self.date_input.hint_text = "Enter date (YYYY-MM-DD)"
     
     def set_date(self, instance, date_obj, *_):
         self.selected_date = date_obj
@@ -970,7 +1021,11 @@ class DateField(BaseFormField):
         instance.dismiss()
     
     def get_value(self):
-        return self.selected_date.strftime('%Y-%m-%d') if self.selected_date else None
+        if self.selected_date:
+            return self.selected_date.strftime('%Y-%m-%d')
+        elif hasattr(self, 'date_input') and self.date_input.text:
+            return self.date_input.text
+        return None
     
     def set_value(self, value):
         if value:
@@ -978,11 +1033,15 @@ class DateField(BaseFormField):
                 self.selected_date = datetime.datetime.strptime(value, '%Y-%m-%d').date()
                 self.date_input.text = value
             except ValueError:
-                pass
+                self.date_input.text = value
 
     def get_content_height(self):
         values = self.get_responsive_values()
-        return values['input_height'] + values['input_height'] + dp(8) + values['input_height'] + dp(2)
+        base_height = values['input_height'] + values['input_height'] + dp(8) + values['input_height'] + dp(2)
+        # Add extra height for warning label if date picker is not available
+        if MDDatePicker is None:
+            base_height += dp(20)
+        return base_height
 
 class DateTimeField(BaseFormField):
     def __init__(self, **kwargs):
@@ -996,38 +1055,70 @@ class DateTimeField(BaseFormField):
 
     def create_datetime_inputs(self):
         values = self.get_responsive_values()
-        self.date_input = MDTextField(
-            hint_text="Select date",
-            mode="rectangle",
-            size_hint_y=None,
-            height=values['input_height'],
-            font_size=values['font_size_secondary'],
-            readonly=True,
-            on_focus=self.show_date_picker
-        )
-        self.time_input = MDTextField(
-            hint_text="Select time",
-            mode="rectangle",
-            size_hint_y=None,
-            height=values['input_height'],
-            font_size=values['font_size_secondary'],
-            readonly=True,
-            on_focus=self.show_time_picker
-        )
-        self.add_widget(self.date_input)
-        self.add_widget(self.time_input)
+        
+        # Check if pickers are available
+        if MDDatePicker is None or MDTimePicker is None:
+            # Fallback to manual entry
+            self.datetime_input = MDTextField(
+                hint_text="Enter date and time (YYYY-MM-DD HH:MM)",
+                mode="outlined",
+                size_hint_y=None,
+                height=values['input_height'],
+                font_size=values['font_size_secondary']
+            )
+            self.add_widget(self.datetime_input)
+            
+            # Add warning label
+            warning_label = MDLabel(
+                text="⚠️ Date/Time picker not available. Enter manually.",
+                theme_text_color="Custom",
+                text_color=(0.8, 0.2, 0.2, 1),
+                font_size="12sp",
+                size_hint_y=None,
+                height=dp(20)
+            )
+            self.add_widget(warning_label)
+        else:
+            self.date_input = MDTextField(
+                hint_text="Select date",
+                mode="outlined",
+                size_hint_y=None,
+                height=values['input_height'],
+                font_size=values['font_size_secondary'],
+                readonly=True,
+                on_focus=self.show_date_picker
+            )
+            self.time_input = MDTextField(
+                hint_text="Select time",
+                mode="outlined",
+                size_hint_y=None,
+                height=values['input_height'],
+                font_size=values['font_size_secondary'],
+                readonly=True,
+                on_focus=self.show_time_picker
+            )
+            self.add_widget(self.date_input)
+            self.add_widget(self.time_input)
 
     def show_date_picker(self, instance, focus):
-        if focus:
-            date_dialog = MDDatePicker()
-            date_dialog.bind(on_save=self.set_date)
-            date_dialog.open()
+        if focus and MDDatePicker is not None:
+            try:
+                date_dialog = MDDatePicker()
+                date_dialog.bind(on_save=self.set_date)
+                date_dialog.open()
+            except Exception as e:
+                print(f"Error opening date picker: {e}")
+                toast("Date picker error.")
     
     def show_time_picker(self, instance, focus):
-        if focus:
-            time_dialog = MDTimePicker()
-            time_dialog.bind(on_save=self.set_time)
-            time_dialog.open()
+        if focus and MDTimePicker is not None:
+            try:
+                time_dialog = MDTimePicker()
+                time_dialog.bind(on_save=self.set_time)
+                time_dialog.open()
+            except Exception as e:
+                print(f"Error opening time picker: {e}")
+                toast("Time picker error.")
 
     def set_date(self, instance, date_obj, *_):
         self.selected_date = date_obj
@@ -1040,25 +1131,42 @@ class DateTimeField(BaseFormField):
         instance.dismiss()
     
     def get_value(self):
-        if self.selected_date and self.selected_time:
-            dt = datetime.datetime.combine(self.selected_date, self.selected_time)
-            return dt.strftime('%Y-%m-%d %H:%M')
+        if MDDatePicker is None or MDTimePicker is None:
+            # Manual entry mode
+            if hasattr(self, 'datetime_input') and self.datetime_input.text:
+                return self.datetime_input.text
+        else:
+            # Picker mode
+            if self.selected_date and self.selected_time:
+                dt = datetime.datetime.combine(self.selected_date, self.selected_time)
+                return dt.strftime('%Y-%m-%d %H:%M')
         return None
     
     def set_value(self, value):
         if value:
             try:
-                dt = datetime.datetime.strptime(value, '%Y-%m-%d %H:%M')
-                self.selected_date = dt.date()
-                self.selected_time = dt.time()
-                self.date_input.text = dt.strftime('%Y-%m-%d')
-                self.time_input.text = dt.strftime('%H:%M')
+                if MDDatePicker is None or MDTimePicker is None:
+                    # Manual entry mode
+                    if hasattr(self, 'datetime_input'):
+                        self.datetime_input.text = value
+                else:
+                    # Picker mode
+                    dt = datetime.datetime.strptime(value, '%Y-%m-%d %H:%M')
+                    self.selected_date = dt.date()
+                    self.selected_time = dt.time()
+                    self.date_input.text = dt.strftime('%Y-%m-%d')
+                    self.time_input.text = dt.strftime('%H:%M')
             except ValueError:
                 pass
 
     def get_content_height(self):
         values = self.get_responsive_values()
-        return values['input_height'] + values['input_height'] + dp(8) + values['input_height'] + values['input_height'] + dp(2)
+        if MDDatePicker is None or MDTimePicker is None:
+            # Manual entry mode - single input + warning
+            return values['input_height'] + values['input_height'] + dp(8) + values['input_height'] + dp(20) + dp(2)
+        else:
+            # Picker mode - two inputs
+            return values['input_height'] + values['input_height'] + dp(8) + values['input_height'] + values['input_height'] + dp(2)
 
 class LocationPickerField(BaseFormField):
     def __init__(self, **kwargs):
@@ -1077,7 +1185,7 @@ class LocationPickerField(BaseFormField):
         # Location display field
         self.location_input = MDTextField(
             hint_text="No location captured",
-            mode="rectangle",
+            mode="outlined",
             size_hint_y=None,
             height=values['input_height'],
             font_size=values['font_size_secondary'],
@@ -1092,13 +1200,15 @@ class LocationPickerField(BaseFormField):
             height=values['button_height']
         )
         
-        self.get_location_btn = MDRaisedButton(
+        self.get_location_btn = MDButton(
+            style="elevated",
             text="Get GPS Location",
             size_hint_x=0.7,
             on_release=self.get_current_location
         )
         
-        self.clear_location_btn = MDRaisedButton(
+        self.clear_location_btn = MDButton(
+            style="elevated",
             text="Clear",
             size_hint_x=0.3,
             on_release=self.clear_location
@@ -1222,7 +1332,7 @@ class PhotoUploadField(BaseFormField):
         # Photo display area
         self.photo_display = MDTextField(
             hint_text="No photo selected",
-            mode="rectangle",
+            mode="outlined",
             readonly=True,
             size_hint_y=None,
             height=values['input_height'],
@@ -1255,21 +1365,24 @@ class PhotoUploadField(BaseFormField):
             height=values['button_height']
         )
         
-        self.camera_btn = MDRaisedButton(
+        self.camera_btn = MDButton(
+            style="elevated",
             text="📷 Camera",
             size_hint_x=0.33,
             on_release=self.take_photo,
             font_size=values['font_size_small']
         )
         
-        self.gallery_btn = MDRaisedButton(
+        self.gallery_btn = MDButton(
+            style="elevated",
             text="🖼️ Gallery",
             size_hint_x=0.33,
             on_release=self.choose_from_gallery,
             font_size=values['font_size_small']
         )
         
-        self.clear_btn = MDRaisedButton(
+        self.clear_btn = MDButton(
+            style="elevated",
             text="🗑️ Clear",
             size_hint_x=0.33,
             on_release=self.clear_photo,
@@ -1429,7 +1542,7 @@ class AudioRecordingField(BaseFormField):
     def create_audio_input(self):
         self.audio_display = MDTextField(
             hint_text="No audio recorded",
-            mode="rectangle",
+            mode="outlined",
             readonly=True,
             size_hint_y=None,
             height=dp(48)
@@ -1440,7 +1553,8 @@ class AudioRecordingField(BaseFormField):
             size_hint_y=None,
             height=dp(48)
         )
-        self.record_btn = MDRaisedButton(
+        self.record_btn = MDButton(
+            style="elevated",
             text="Start Recording",
             size_hint_x=0.7,
             on_release=self.toggle_recording
@@ -1506,11 +1620,12 @@ class BarcodeField(BaseFormField):
     def create_barcode_input(self):
         self.barcode_input = MDTextField(
             hint_text="Scan or enter barcode",
-            mode="rectangle",
+            mode="outlined",
             size_hint_y=None,
             height=dp(48)
         )
-        self.scan_btn = MDRaisedButton(
+        self.scan_btn = MDButton(
+            style="elevated",
             text="Scan Barcode",
             size_hint_y=None,
             height=dp(36),
@@ -1556,7 +1671,7 @@ class GeoShapeField(BaseFormField):
         # Display field for area info
         self.area_input = MDTextField(
             hint_text="Tap to capture area boundary",
-            mode="rectangle",
+            mode="outlined",
             size_hint_y=None,
             height=values['input_height'],
             font_size=values['font_size_secondary'],
@@ -1571,13 +1686,15 @@ class GeoShapeField(BaseFormField):
             height=values['button_height']
         )
         
-        self.start_capture_btn = MDRaisedButton(
+        self.start_capture_btn = MDButton(
+            style="elevated",
             text="Start Area Capture",
             size_hint_x=0.5,
             on_release=self.start_area_capture
         )
         
-        self.clear_area_btn = MDRaisedButton(
+        self.clear_area_btn = MDButton(
+            style="elevated",
             text="Clear Area",
             size_hint_x=0.5,
             on_release=self.clear_area
@@ -1669,7 +1786,7 @@ class VideoRecordingField(BaseFormField):
         
         self.video_display = MDTextField(
             hint_text="No video recorded",
-            mode="rectangle",
+            mode="outlined",
             readonly=True,
             size_hint_y=None,
             height=values['input_height'],
@@ -1683,13 +1800,15 @@ class VideoRecordingField(BaseFormField):
             height=values['button_height']
         )
         
-        self.record_btn = MDRaisedButton(
+        self.record_btn = MDButton(
+            style="elevated",
             text="Start Video Recording",
             size_hint_x=0.6,
             on_release=self.toggle_recording
         )
         
-        self.gallery_btn = MDRaisedButton(
+        self.gallery_btn = MDButton(
+            style="elevated",
             text="Choose Video",
             size_hint_x=0.4,
             on_release=self.choose_from_gallery
@@ -1762,7 +1881,7 @@ class FileUploadField(BaseFormField):
         
         self.file_display = MDTextField(
             hint_text="No file selected",
-            mode="rectangle",
+            mode="outlined",
             readonly=True,
             size_hint_y=None,
             height=values['input_height'],
@@ -1776,13 +1895,15 @@ class FileUploadField(BaseFormField):
             height=values['button_height']
         )
         
-        self.choose_btn = MDRaisedButton(
+        self.choose_btn = MDButton(
+            style="elevated",
             text="Choose File",
             size_hint_x=0.6,
             on_release=self.choose_file
         )
         
-        self.clear_btn = MDRaisedButton(
+        self.clear_btn = MDButton(
+            style="elevated",
             text="Clear",
             size_hint_x=0.4,
             on_release=self.clear_file
@@ -1901,13 +2022,15 @@ class DigitalSignatureField(BaseFormField):
             height=values['button_height']
         )
         
-        self.capture_btn = MDRaisedButton(
+        self.capture_btn = MDButton(
+            style="elevated",
             text="Capture Signature",
             size_hint_x=0.6,
             on_release=self.capture_signature
         )
         
-        self.clear_btn = MDRaisedButton(
+        self.clear_btn = MDButton(
+            style="elevated",
             text="Clear",
             size_hint_x=0.4,
             on_release=self.clear_signature
@@ -1987,4 +2110,3 @@ def create_form_field(response_type, question_text="", options=None, **kwargs):
     else:
         field = field_class(question_text=question_text, **kwargs)
     return field
-

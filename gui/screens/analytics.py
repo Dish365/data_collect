@@ -4,45 +4,21 @@ from kivy.lang import Builder
 from kivy.clock import Clock
 from kivy.metrics import dp
 from kivy.app import App
-from kivymd.toast import toast
+from utils.toast import toast
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
-from kivymd.uix.button import MDRaisedButton, MDIconButton
+from kivymd.uix.button import MDButton
 from kivymd.uix.card import MDCard
-from kivymd.uix.tab import MDTabsBase, MDTabs
+# Updated imports for KivyMD 2.0.0 - simplified approach
 from kivymd.uix.menu import MDDropdownMenu
-from kivymd.uix.progressbar import MDProgressBar
-from kivymd.uix.spinner import MDSpinner
-from kivymd.uix.selectioncontrol import MDCheckbox
-from kivymd.uix.textfield import MDTextField
-from kivymd.uix.slider import MDSlider
 from kivy.core.window import Window
+from widgets.top_bar import TopBar
 
 import threading
 import json
 from datetime import datetime
 
 Builder.load_file('kv/analytics.kv')
-
-class AnalyticsTab(MDBoxLayout, MDTabsBase):
-    """Base class for analytics tab content"""
-    pass
-
-class AutoDetectionTab(AnalyticsTab):
-    """Auto-detection and overview tab"""
-    pass
-
-class DescriptiveTab(AnalyticsTab):
-    """Descriptive analytics tab"""
-    pass
-
-class InferentialTab(AnalyticsTab):
-    """Inferential statistics tab"""
-    pass
-
-class QualitativeTab(AnalyticsTab):
-    """Qualitative analytics tab"""
-    pass
 
 class AnalyticsScreen(Screen):
     # Properties
@@ -224,38 +200,218 @@ class AnalyticsScreen(Screen):
         toast(f"Selected project: {project['name']}")
 
     def setup_tabs(self):
-        """Setup the analytics tabs"""
-        if not hasattr(self.ids, 'analytics_tabs'):
-            return
-            
-        tabs = self.ids.analytics_tabs
-        tabs.bind(on_tab_switch=self.on_tab_switch)
-
-    def on_tab_switch(self, instance_tabs, instance_tab, instance_tab_label, tab_text):
-        """Handle tab switching"""
-        tab_map = {
-            "Auto-Detection": "auto_detection",
-            "Descriptive": "descriptive", 
-            "Inferential": "inferential",
-            "Qualitative": "qualitative"
-        }
+        """Setup the analytics tabs with simple button-based approach"""
+        # Set initial tab state
+        self.current_tab = "auto_detection"
+        self.update_tab_buttons()
         
-        self.current_tab = tab_map.get(tab_text, "auto_detection")
+    def switch_to_tab(self, tab_name):
+        """Switch to a specific tab"""
+        self.current_tab = tab_name
+        self.update_tab_buttons()
         self.load_tab_content()
+        
+    def update_tab_buttons(self):
+        """Update the visual state of tab buttons"""
+        try:
+            # Get app theme colors
+            app = App.get_running_app()
+            primary_color = app.theme_cls.primary_color
+            surface_color = getattr(app.theme_cls, 'surface_color', (0.98, 0.98, 0.98, 1))
+            
+            # Button IDs and corresponding tab names
+            buttons = {
+                'auto_detection_tab_btn': 'auto_detection',
+                'descriptive_tab_btn': 'descriptive',
+                'inferential_tab_btn': 'inferential',
+                'qualitative_tab_btn': 'qualitative'
+            }
+            
+            # Update button styles based on current tab
+            for btn_id, tab_name in buttons.items():
+                if hasattr(self.ids, btn_id):
+                    button = getattr(self.ids, btn_id)
+                    if tab_name == self.current_tab:
+                        # Active tab styling
+                        button.md_bg_color = primary_color
+                        button.theme_text_color = "Custom"
+                        button.text_color = (1, 1, 1, 1)  # White text
+                    else:
+                        # Inactive tab styling
+                        button.md_bg_color = surface_color
+                        button.theme_text_color = "Primary"
+                        
+        except Exception as e:
+            print(f"Error updating tab buttons: {e}")
 
     def load_tab_content(self):
         """Load content for the current tab"""
-        if not self.current_project_id:
+        if not hasattr(self.ids, 'tab_content_area'):
             return
             
+        content_area = self.ids.tab_content_area
+        content_area.clear_widgets()
+        
+        if not self.current_project_id:
+            # Show project selection message
+            content_area.add_widget(MDLabel(
+                text="Please select a project above to view analysis options",
+                halign="center",
+                theme_text_color="Secondary",
+                font_style="Body",
+                font_size="16sp"
+            ))
+            return
+            
+        # Load content based on current tab
         if self.current_tab == "auto_detection":
-            self.load_auto_detection()
+            self.load_auto_detection_content()
         elif self.current_tab == "descriptive":
-            self.load_descriptive()
+            self.load_descriptive_content()
         elif self.current_tab == "inferential":
-            self.load_inferential()
+            self.load_inferential_content()
         elif self.current_tab == "qualitative":
-            self.load_qualitative()
+            self.load_qualitative_content()
+            
+    def load_auto_detection_content(self):
+        """Load auto-detection tab content"""
+        content_area = self.ids.tab_content_area
+        
+        # Add title
+        title_label = MDLabel(
+            text="Auto-Detection Analysis",
+            font_style="Title",
+            theme_text_color="Primary",
+            size_hint_y=None,
+            height=dp(48)
+        )
+        content_area.add_widget(title_label)
+        
+        # Add description
+        desc_label = MDLabel(
+            text="Automatically detect appropriate analysis methods based on your data",
+            halign="center",
+            theme_text_color="Secondary",
+            font_style="Body",
+            font_size="14sp"
+        )
+        content_area.add_widget(desc_label)
+        
+        # Add run button
+        run_button = MDButton(
+            text="Run Auto-Detection",
+            style="elevated",
+            size_hint=(None, None),
+            size=(dp(200), dp(48)),
+            pos_hint={"center_x": 0.5},
+            on_release=lambda x: self.load_auto_detection()
+        )
+        content_area.add_widget(run_button)
+        
+    def load_descriptive_content(self):
+        """Load descriptive analysis tab content"""
+        content_area = self.ids.tab_content_area
+        
+        # Add title
+        title_label = MDLabel(
+            text="Descriptive Analysis",
+            font_style="Title",
+            theme_text_color="Primary",
+            size_hint_y=None,
+            height=dp(48)
+        )
+        content_area.add_widget(title_label)
+        
+        # Add description
+        desc_label = MDLabel(
+            text="Generate descriptive statistics and summaries for your data",
+            halign="center",
+            theme_text_color="Secondary",
+            font_style="Body",
+            font_size="14sp"
+        )
+        content_area.add_widget(desc_label)
+        
+        # Add run button
+        run_button = MDButton(
+            text="Run Descriptive Analysis",
+            style="elevated",
+            size_hint=(None, None),
+            size=(dp(200), dp(48)),
+            pos_hint={"center_x": 0.5},
+            on_release=lambda x: self.load_descriptive()
+        )
+        content_area.add_widget(run_button)
+        
+    def load_inferential_content(self):
+        """Load inferential analysis tab content"""
+        content_area = self.ids.tab_content_area
+        
+        # Add title
+        title_label = MDLabel(
+            text="Inferential Analysis",
+            font_style="Title",
+            theme_text_color="Primary",
+            size_hint_y=None,
+            height=dp(48)
+        )
+        content_area.add_widget(title_label)
+        
+        # Add description
+        desc_label = MDLabel(
+            text="Perform statistical tests and inference on your data",
+            halign="center",
+            theme_text_color="Secondary",
+            font_style="Body",
+            font_size="14sp"
+        )
+        content_area.add_widget(desc_label)
+        
+        # Add run button
+        run_button = MDButton(
+            text="Run Inferential Analysis",
+            style="elevated",
+            size_hint=(None, None),
+            size=(dp(200), dp(48)),
+            pos_hint={"center_x": 0.5},
+            on_release=lambda x: self.load_inferential()
+        )
+        content_area.add_widget(run_button)
+        
+    def load_qualitative_content(self):
+        """Load qualitative analysis tab content"""
+        content_area = self.ids.tab_content_area
+        
+        # Add title
+        title_label = MDLabel(
+            text="Qualitative Analysis",
+            font_style="Title",
+            theme_text_color="Primary",
+            size_hint_y=None,
+            height=dp(48)
+        )
+        content_area.add_widget(title_label)
+        
+        # Add description
+        desc_label = MDLabel(
+            text="Analyze text and qualitative data using NLP techniques",
+            halign="center",
+            theme_text_color="Secondary",
+            font_style="Body",
+            font_size="14sp"
+        )
+        content_area.add_widget(desc_label)
+        
+        # Add run button
+        run_button = MDButton(
+            text="Run Qualitative Analysis",
+            style="elevated",
+            size_hint=(None, None),
+            size=(dp(200), dp(48)),
+            pos_hint={"center_x": 0.5},
+            on_release=lambda x: self.load_qualitative()
+        )
+        content_area.add_widget(run_button)
 
     def update_quick_stats(self):
         """Update the quick statistics cards with tablet optimization"""
@@ -585,7 +741,8 @@ class AnalyticsScreen(Screen):
             card.add_widget(desc)
             
             # Action button
-            action_btn = MDRaisedButton(
+            action_btn = MDButton(
+                style="elevated",
                 text="Run Analysis",
                 size_hint=(None, None),
                 height=button_height,
@@ -629,7 +786,8 @@ class AnalyticsScreen(Screen):
         card.add_widget(desc)
         
         # Action button
-        action_btn = MDRaisedButton(
+        action_btn = MDButton(
+            style="elevated",
             text="Run Analysis",
             size_hint=(None, None),
             height=dp(36),
@@ -793,4 +951,4 @@ class AnalyticsScreen(Screen):
             print(f"Error in analytics responsive layout: {e}")
             if hasattr(self.ids, 'stats_container'):
                 self.ids.stats_container.cols = 1
-                self.ids.stats_container.do_layout() 
+                self.ids.stats_container.do_layout()

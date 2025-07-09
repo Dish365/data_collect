@@ -1,14 +1,15 @@
 import sqlite3
-import json
-from datetime import datetime
 from pathlib import Path
 from kivy.utils import platform
 
 class DatabaseService:
     def __init__(self):
         if platform == 'android':
-            from android.storage import app_storage_path
-            self.db_path = Path(app_storage_path()) / 'research_data.db'
+            try:
+                from android.storage import app_storage_path
+                self.db_path = Path(app_storage_path()) / 'research_data.db'
+            except ImportError:
+                self.db_path = Path.home() / 'research_data.db'
         else:
             self.db_path = Path.home() / 'research_data.db'
         

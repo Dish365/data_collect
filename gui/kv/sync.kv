@@ -1,3 +1,4 @@
+#:import MDButton kivymd.uix.button.MDButton
 <SyncScreen>:
     name: "sync"
 
@@ -21,13 +22,14 @@
                 # Header
                 MDLabel:
                     text: "Pending Sync Items"
-                    font_style: "H5"
+                    font_style: "Title"
                     size_hint_y: None
                     height: self.texture_size[1] + dp(10)
                     halign: "left"
 
                 # Sync All Button
-                MDRaisedButton:
+                MDButton:
+                    style: "elevated"
                     id: sync_all_button
                     text: "Sync All Pending Items"
                     size_hint_x: 1
@@ -52,20 +54,20 @@
                         size_hint_x: 0.5
 
                 # Progress Bar
-                MDProgressBar:
+                MDCircularProgressIndicator:
                     id: sync_progress
                     value: 0
                     size_hint_y: None
                     height: dp(8)
 
                 # Divider
-                MDSeparator:
+                MDDivider:
                     height: dp(1)
 
                 # Pending Items List
                 MDLabel:
                     text: "Pending Items"
-                    font_style: "Subtitle1"
+                    font_style: "Body"
                     halign: "left"
                     size_hint_y: None
                     height: self.texture_size[1] + dp(10)
@@ -77,7 +79,7 @@
                     adaptive_height: True
 
         # Loading spinner
-        MDSpinner:
+        MDCircularProgressIndicator:
             id: spinner
             size_hint: None, None
             size: dp(46), dp(46)

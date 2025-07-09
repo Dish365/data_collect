@@ -14,7 +14,8 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     
-    # Database - simplified to use SQLite directly
+    # Database - Use separate analytics DB for FastAPI/SQLAlchemy operations
+    # Django database is accessed directly via sqlite3 in AnalyticsUtils
     DATABASE_URL: str = "sqlite:///./analytics.db"
     
     # Security
@@ -27,6 +28,9 @@ class Settings(BaseSettings):
         "http://localhost:8000",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8000",
+        "http://localhost:8001",
+        "http://127.0.0.1:8001",
+        "*",  # Allow all origins for development
     ]
     
     # Analytics settings

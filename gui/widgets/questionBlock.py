@@ -1,18 +1,13 @@
 from kivymd.uix.card import MDCard
 from kivymd.uix.textfield import MDTextField
-from kivymd.uix.button import MDRaisedButton, MDIconButton
+from kivymd.uix.button import MDButton, MDIconButton
 from kivymd.uix.label import MDLabel
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.selectioncontrol import MDSwitch, MDCheckbox
-from kivymd.uix.selectioncontrol import MDCheckbox
-from kivymd.uix.selectioncontrol import MDCheckbox
 from kivymd.uix.selectioncontrol import MDSwitch
 from kivy.metrics import dp
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
-from kivymd.uix.selectioncontrol import MDCheckbox
-
 
 
 class QuestionBlock(MDCard):
@@ -33,7 +28,7 @@ class QuestionBlock(MDCard):
         # Question Input
         self.question_input = MDTextField(
             hint_text="Enter your question",
-            mode="rectangle",
+            mode="outlined",
             size_hint_y=None,
             height=dp(48)
         )
@@ -52,7 +47,8 @@ class QuestionBlock(MDCard):
             width_mult=4
         )
 
-        self.type_button = MDRaisedButton(
+        self.type_button = MDButton(
+        style="elevated",
             text=self.answer_type,
             on_release=self.open_menu,
             size_hint=(None, None),
@@ -84,7 +80,8 @@ class QuestionBlock(MDCard):
             height=dp(40)
         )
         footer.add_widget(Widget())  # spacer
-        footer.add_widget(MDRaisedButton(
+        footer.add_widget(MDButton(
+        style="elevated",
             text="Delete Question",
             md_bg_color=(1, 0.3, 0.3, 1),
             on_release=lambda x: self.parent.remove_widget(self),
@@ -109,10 +106,10 @@ class QuestionBlock(MDCard):
         self.answer_area.clear_widgets()
 
         if answer_type == "Short Answer":
-            self.answer_area.add_widget(MDTextField(hint_text="Short answer preview", mode="rectangle"))
+            self.answer_area.add_widget(MDTextField(hint_text="Short answer preview", mode="outlined"))
 
         elif answer_type == "Long Answer":
-            self.answer_area.add_widget(MDTextField(hint_text="Long answer preview", multiline=True, mode="rectangle"))
+            self.answer_area.add_widget(MDTextField(hint_text="Long answer preview", multiline=True, mode="outlined"))
 
         elif answer_type == "Multiple Choice":
             self.options_widgets = []
@@ -123,7 +120,8 @@ class QuestionBlock(MDCard):
             self.add_option()
             self.add_option()
 
-            add_option_btn = MDRaisedButton(
+            add_option_btn = MDButton(
+        style="elevated",
                 text="Add Option",
                 size_hint=(None, None),
                 size=(dp(120), dp(36)),
@@ -157,7 +155,7 @@ class QuestionBlock(MDCard):
 
     def add_option(self, *args):
         box = BoxLayout(size_hint_y=None, height=dp(50), spacing=dp(8))
-        option_input = MDTextField(hint_text="Option", mode="rectangle")
+        option_input = MDTextField(hint_text="Option", mode="outlined")
         delete_btn = MDIconButton(
             icon="close",
             on_release=lambda x: self.remove_option(box)
@@ -189,10 +187,10 @@ class QuestionBlock(MDCard):
         preview.add_widget(MDLabel(text=self.question_input.text, font_style="Subtitle1"))
 
         if self.answer_type == "Short Answer":
-            preview.add_widget(MDTextField(hint_text="Short answer", mode="rectangle"))
+            preview.add_widget(MDTextField(hint_text="Short answer", mode="outlined"))
 
         elif self.answer_type == "Long Answer":
-            preview.add_widget(MDTextField(hint_text="Long answer", multiline=True, mode="rectangle"))
+            preview.add_widget(MDTextField(hint_text="Long answer", multiline=True, mode="outlined"))
 
         elif self.answer_type == "Multiple Choice":
             option_class = MDCheckbox 

@@ -1,9 +1,5 @@
 from kivymd.uix.card import MDCard
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.label import MDLabel
-from kivymd.uix.button import MDIconButton
 from kivy.properties import StringProperty
-from kivy.metrics import dp
 from kivy.lang import Builder
 
 Builder.load_file("kv/analytics_stat_card.kv")

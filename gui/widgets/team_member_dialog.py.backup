@@ -1,13 +1,15 @@
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
-from kivymd.uix.button import MDButton
+from kivymd.uix.button import MDButton, MDIconButton
 from kivymd.uix.textfield import MDTextField
-from kivymd.uix.list import MDList, MDListItem, MDListItemHeadlineText, MDListItemLeadingIcon, MDListItemTrailingIcon
+from kivymd.uix.list import MDList, OneLineAvatarIconListItem, IconLeftWidget, IconRightWidget, OneLineListItem
+from kivymd.uix.selectioncontrol import MDCheckbox
 from kivymd.uix.card import MDCard
 from kivy.uix.scrollview import ScrollView
 from kivy.metrics import dp
 from kivy.clock import Clock
+from kivy.app import App
 import threading
 
 
@@ -284,10 +286,8 @@ class TeamMemberDialog:
         self.user_dropdown_card.height = max_height
         
         for user in users:
-            user_item = MDListItem(
-                MDListItemHeadlineText(
-                    text=user['display_text']
-                ),
+            user_item = OneLineListItem(
+                text=user['display_text'],
                 on_release=lambda x, u=user: self.select_user(u)
             )
             self.user_dropdown_list.add_widget(user_item)
@@ -407,26 +407,23 @@ class TeamMemberDialog:
             if is_creator:
                 item_text += " [Owner]"
             
-            # Create base list item
-            item = MDListItem(
+            item = OneLineAvatarIconListItem(
+                text=item_text,
                 size_hint_y=None,
                 height=dp(48)
             )
             
             # Add user icon
-            item.add_widget(MDListItemLeadingIcon(
-                icon="account"
-            ))
-            
-            # Add headline text
-            item.add_widget(MDListItemHeadlineText(
-                text=item_text
+            item.add_widget(IconLeftWidget(
+                icon="account",
+                theme_icon_color="Primary"
             ))
             
             # Add remove button (only if not creator)
             if not is_creator:
-                remove_btn = MDListItemTrailingIcon(
-                    icon="delete"
+                remove_btn = IconRightWidget(
+                    icon="delete",
+                    theme_icon_color="Error"
                 )
                 remove_btn.bind(on_release=lambda x, m=member: self.remove_member(m))
                 item.add_widget(remove_btn)
@@ -436,14 +433,11 @@ class TeamMemberDialog:
         except Exception as e:
             print(f"Error creating member item widget: {e}")
             # Return a simple fallback item
-            fallback_item = MDListItem(
+            return OneLineAvatarIconListItem(
+                text="Error loading member",
                 size_hint_y=None,
                 height=dp(48)
             )
-            fallback_item.add_widget(MDListItemHeadlineText(
-                text="Error loading member"
-            ))
-            return fallback_item
     
     def add_member(self, *args):
         """Add a new team member"""

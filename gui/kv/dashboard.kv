@@ -1,3 +1,4 @@
+#:import MDButton kivymd.uix.button.MDButton
 <DashboardScreen>:
     name: "dashboard"
 
@@ -44,7 +45,7 @@
 
                     MDLabel:
                         text: "Research Dashboard"
-                        font_style: "H5"
+                        font_style: "Title"
                         size_hint_y: None
                         height: self.texture_size[1] + dp(16)
                         halign: "left"
@@ -112,7 +113,7 @@
 
                     MDLabel:
                         text: "Dashboard Tools"
-                        font_style: "Subtitle1"
+                        font_style: "Body"
                         halign: "left"
                         size_hint_y: None
                         height: self.texture_size[1] + dp(16)
@@ -140,7 +141,8 @@
                             cols_minimum: {0: dp(120), 1: dp(120), 2: dp(120)}
                             size_hint_x: 1
                             
-                            MDRaisedButton:
+                            MDButton:
+                                style: "elevated"
                                 text: "Projects"
                                 size_hint: 1, None
                                 height: dp(60)
@@ -153,7 +155,8 @@
                                 elevation_press_anim: True
                                 on_press: root.navigate_to("projects")
 
-                            MDRaisedButton:
+                            MDButton:
+                                style: "elevated"
                                 text: "Collect Data"
                                 size_hint: 1, None
                                 height: dp(60)
@@ -166,7 +169,8 @@
                                 elevation_press_anim: True
                                 on_press: root.navigate_to("data_collection")
 
-                            MDRaisedButton:
+                            MDButton:
+                                style: "elevated"
                                 text: "Analytics"
                                 size_hint: 1, None
                                 height: dp(60)
@@ -179,7 +183,8 @@
                                 elevation_press_anim: True
                                 on_press: root.navigate_to("analytics")
 
-                            MDRaisedButton:
+                            MDButton:
+                                style: "elevated"
                                 text: "Form Builder"
                                 size_hint: 1, None
                                 height: dp(60)
@@ -192,7 +197,8 @@
                                 elevation_press_anim: True
                                 on_press: root.navigate_to("form_builder")
 
-                            MDRaisedButton:
+                            MDButton:
+                                style: "elevated"
                                 text: "Team Members"
                                 size_hint: 1, None
                                 height: dp(60)
@@ -205,7 +211,8 @@
                                 elevation_press_anim: True
                                 on_press: root.open_team_management()
 
-                            MDRaisedButton:
+                            MDButton:
+                                style: "elevated"
                                 text: "Sync Status"
                                 size_hint: 1, None
                                 height: dp(60)
@@ -220,7 +227,7 @@
 
                     MDLabel:
                         text: "Recent Activity"
-                        font_style: "Subtitle1"
+                        font_style: "Body"
                         halign: "left"
                         size_hint_y: None
                         height: self.texture_size[1] + dp(16)
@@ -235,7 +242,7 @@
                         height: self.minimum_height
 
             # Loading spinner
-            MDSpinner:
+            MDCircularProgressIndicator:
                 id: spinner
                 size_hint: None, None
                 size: dp(46), dp(46)

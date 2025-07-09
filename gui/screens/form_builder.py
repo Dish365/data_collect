@@ -1,37 +1,24 @@
 from kivy.uix.screenmanager import Screen
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-from kivy.uix.spinner import Spinner
-from kivy.uix.textinput import TextInput
-from kivy.uix.scrollview import ScrollView
 from kivy.metrics import dp
-from widgets.form_fields import (
-    ShortTextField, LongTextField, NumericIntegerField, NumericDecimalField,
-    SingleChoiceField, MultipleChoiceField, RatingScaleField, DateField, 
-    DateTimeField, LocationPickerField, PhotoUploadField, AudioRecordingField, 
-    BarcodeField, create_form_field
-)
-from widgets.questionBlock import QuestionBlock
+from widgets.form_fields import create_form_field
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.scrollview import MDScrollView
-from kivymd.uix.dialog import MDDialog
-from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.button import MDButton
 from kivymd.uix.label import MDLabel
+from kivymd.uix.dialog import MDDialog
 from kivy.clock import Clock
 from kivy.properties import StringProperty, ListProperty
 from kivy.app import App
-from kivymd.toast import toast
+from utils.toast import toast
 import threading
 from kivymd.uix.menu import MDDropdownMenu
 
 from kivy.lang import Builder
 
-import uuid
 import json
 
 from services.form_service import FormService
 from widgets.loading_overlay import LoadingOverlay
+from widgets.top_bar import TopBar
 
 Builder.load_file("kv/form_builder.kv")
 
@@ -226,7 +213,8 @@ class FormBuilderScreen(Screen):
                 height=dp(120)
             )
             
-            go_to_projects_btn = MDRaisedButton(
+            go_to_projects_btn = MDButton(
+        style="elevated",
                 text="Go to Projects",
                 size_hint=(None, None),
                 size=(dp(150), dp(40)),
@@ -681,7 +669,8 @@ class FormBuilderScreen(Screen):
             type="custom",
             content_cls=preview_layout,
             buttons=[
-                MDRaisedButton(text="Close", on_release=lambda x: dialog.dismiss())
+                MDButton(
+        style="elevated",text="Close", on_release=lambda x: dialog.dismiss())
             ],
             auto_dismiss=True,
         )

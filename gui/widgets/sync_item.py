@@ -1,11 +1,8 @@
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
-from kivy.uix.button import Button
 from kivy.metrics import dp
 from kivymd.uix.card import MDCard
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
-from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.button import MDButton
 from datetime import datetime
 
 class SyncItem(MDCard):
@@ -88,7 +85,8 @@ class SyncItem(MDCard):
         button_layout.size_hint_x = 0.3
         
         # Sync button
-        sync_button = MDRaisedButton(
+        sync_button = MDButton(
+        style="elevated",
             text="Sync",
             size_hint_x=1,
             size_hint_y=None,

@@ -6,7 +6,6 @@ from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.spinner import Spinner
 from kivy.uix.checkbox import CheckBox
-from kivy.uix.button import Button
 from kivy.metrics import dp
 from kivy.properties import StringProperty
 import json
@@ -117,7 +116,7 @@ class QuestionWidget(MDBoxLayout, EventDispatcher):
             self.response_widget.text = 'Select an option'
         elif self.question_type == 'multiselect':
             for checkbox, _ in self.checkboxes:
-                checkbox.active = False 
+                checkbox 
 
     def get_data(self):
         # This will be implemented to return the question's data

@@ -1,3 +1,5 @@
+#:import MDButton kivymd.uix.button.MDButton
+#:import MDTabsPrimary kivymd.uix.tab.MDTabsPrimary
 <AnalyticsScreen>:
     name: 'analytics'
 
@@ -49,13 +51,14 @@
                                 size_hint_x: None
                                 width: dp(80)
                                 theme_text_color: "Primary"
-                                font_style: "Subtitle1"
+                                font_style: "Body"
                                 font_size: "16sp"
                                 halign: "left"
                                 valign: "center"
                                 text_size: self.size
 
-                            MDRaisedButton:
+                            MDButton:
+                                style: "elevated"
                                 id: project_selector
                                 text: "Select Project for Analysis"
                                 size_hint_x: 1
@@ -97,371 +100,80 @@
                             height: self.minimum_height
 
         # Loading Spinner - Larger for tablets
-        MDSpinner:
+        MDCircularProgressIndicator:
             id: loading_spinner
             size_hint: None, None
             size: dp(56), dp(56)  # Larger spinner for tablets
             pos_hint: {'center_x': .5, 'center_y': .5}
             active: root.is_loading
             
-        # Main Analytics Tabs - Tablet optimized with larger tabs
-        MDTabs:
-            id: analytics_tabs
+        # Main Analytics Content - Simplified tab approach
+        MDCard:
             size_hint_y: 1
-            tab_bar_height: dp(64)  # Larger tab bar for tablets
+            elevation: 1
+            padding: dp(16)
             
-            # Auto-Detection Tab
-            AutoDetectionTab:
-                title: "Auto-Detection"
+            MDBoxLayout:
+                orientation: 'vertical'
+                spacing: dp(16)
                 
-                # Responsive layout - side-by-side on tablets
+                # Tab Selection Buttons
                 MDBoxLayout:
-                    id: auto_detection_layout
-                    orientation: 'horizontal'  # Will be changed to vertical on small screens
-                    spacing: dp(16)
-                    padding: dp(20)  # Increased padding
-                    
-                    # Configuration Panel (left side on tablets)
-                    MDCard:
-                        id: auto_config_panel
-                        size_hint_x: 0.35  # 35% width on tablets
-                        elevation: 1
-                        padding: dp(20)
-                        orientation: 'vertical'
-                        spacing: dp(16)
-                        
-                        MDLabel:
-                            text: "Smart Analysis"
-                            font_style: "H6"
-                            theme_text_color: "Primary"
-                            size_hint_y: None
-                            height: dp(36)
-                            font_size: "20sp"  # Larger font for tablets
-                            
-                        MDLabel:
-                            text: "AI-powered analysis recommendations based on your data characteristics"
-                            font_style: "Body2" 
-                            theme_text_color: "Secondary"
-                            text_size: self.width, None
-                            font_size: "16sp"  # Larger font for tablets
-                            
-                        MDRaisedButton:
-                            text: "Analyze Data"
-                            size_hint_y: None
-                            height: dp(52)  # Tablet-friendly height
-                            font_size: "16sp"
-                            on_release: root.load_auto_detection()
-                    
-                    # Results Panel (right side on tablets)
-                    MDScrollView:
-                        id: auto_results_panel
-                        size_hint_x: 0.65  # 65% width on tablets
-                        
-                        MDBoxLayout:
-                            id: auto_detection_content
-                            orientation: 'vertical'
-                            spacing: dp(16)
-                            padding: dp(20)
-                            size_hint_y: None
-                            height: self.minimum_height
-                            adaptive_height: True
-                            
-            # Descriptive Analytics Tab - Side-by-side layout
-            DescriptiveTab:
-                title: "Descriptive"
-                
-                MDBoxLayout:
-                    id: descriptive_layout
-                    orientation: 'horizontal'  # Side-by-side on tablets
-                    spacing: dp(16)
-                    padding: dp(20)
-                    
-                    # Configuration Panel (left side)
-                    MDCard:
-                        id: descriptive_config_panel
-                        size_hint_x: 0.35
-                        elevation: 1
-                        padding: dp(20)
-                        orientation: 'vertical'
-                        spacing: dp(16)
-                        
-                        MDLabel:
-                            text: "Analysis Configuration"
-                            font_style: "H6"
-                            theme_text_color: "Primary"
-                            size_hint_y: None
-                            height: dp(36)
-                            font_size: "20sp"
-                            
-                        # Variable Selection
-                        MDTextField:
-                            id: descriptive_variables
-                            hint_text: "Select Variables to Analyze"
-                            mode: "rectangle"
-                            size_hint_y: None
-                            height: dp(52)  # Tablet-friendly height
-                            font_size: "16sp"
-                            
-                        # Analysis Type Buttons - Larger for tablets
-                        MDBoxLayout:
-                            orientation: 'vertical'
-                            spacing: dp(12)
-                            size_hint_y: None
-                            height: self.minimum_height
-                            adaptive_height: True
-                            
-                            MDRaisedButton:
-                                text: "Basic Statistics"
-                                size_hint_y: None
-                                height: dp(52)  # Tablet height
-                                font_size: "16sp"
-                                on_release: root.load_descriptive()
-                                
-                            MDRaisedButton:
-                                text: "Distributions"
-                                size_hint_y: None
-                                height: dp(52)
-                                font_size: "16sp"
-                                
-                            MDRaisedButton:
-                                text: "Correlations"
-                                size_hint_y: None
-                                height: dp(52)
-                                font_size: "16sp"
-                    
-                    # Results Panel (right side)
-                    MDScrollView:
-                        id: descriptive_results_panel
-                        size_hint_x: 0.65
-                        
-                        MDBoxLayout:
-                            id: descriptive_content
-                            orientation: 'vertical'
-                            spacing: dp(16)
-                            padding: dp(20)
-                            size_hint_y: None
-                            height: self.minimum_height
-                            adaptive_height: True
-                            
-                            # Placeholder content with better styling
-                            MDCard:
-                                size_hint_y: None
-                                height: dp(200)
-                                elevation: 1
-                                padding: dp(20)
-                                
-                                MDLabel:
-                                    text: "Select analysis options to view descriptive statistics"
-                                    halign: "center"
-                                    theme_text_color: "Secondary"
-                                    font_style: "Body1"
-                                    font_size: "16sp"
-                        
-            # Inferential Statistics Tab - Enhanced layout
-            InferentialTab:
-                title: "Inferential"
-                
-                MDBoxLayout:
-                    id: inferential_layout
                     orientation: 'horizontal'
-                    spacing: dp(16)
-                    padding: dp(20)
+                    spacing: dp(8)
+                    size_hint_y: None
+                    height: dp(48)
                     
-                    # Configuration Panel
-                    MDCard:
-                        id: inferential_config_panel
-                        size_hint_x: 0.35
-                        elevation: 1
-                        padding: dp(20)
-                        orientation: 'vertical'
-                        spacing: dp(16)
+                    MDButton:
+                        id: auto_detection_tab_btn
+                        text: "Auto-Detection"
+                        style: "elevated"
+                        size_hint_x: 1
+                        height: dp(48)
+                        font_size: "14sp"
+                        on_release: root.switch_to_tab("auto_detection")
                         
-                        MDLabel:
-                            text: "Statistical Tests"
-                            font_style: "H6"
-                            theme_text_color: "Primary"
-                            size_hint_y: None
-                            height: dp(36)
-                            font_size: "20sp"
-                            
-                        # Variable inputs - larger for tablets
-                        MDTextField:
-                            hint_text: "Target Variable"
-                            mode: "rectangle"
-                            size_hint_y: None
-                            height: dp(52)
-                            font_size: "16sp"
-                            
-                        MDTextField:
-                            hint_text: "Grouping Variable"
-                            mode: "rectangle"
-                            size_hint_y: None
-                            height: dp(52)
-                            font_size: "16sp"
-                            
-                        # Test type buttons
-                        MDBoxLayout:
-                            orientation: 'vertical'
-                            spacing: dp(12)
-                            size_hint_y: None
-                            height: self.minimum_height
-                            adaptive_height: True
-                            
-                            MDRaisedButton:
-                                text: "T-Tests"
-                                size_hint_y: None
-                                height: dp(52)
-                                font_size: "16sp"
-                                on_release: root.load_inferential()
-                                
-                            MDRaisedButton:
-                                text: "ANOVA"
-                                size_hint_y: None
-                                height: dp(52)
-                                font_size: "16sp"
-                                
-                            MDRaisedButton:
-                                text: "Regression"
-                                size_hint_y: None
-                                height: dp(52)
-                                font_size: "16sp"
-                    
-                    # Results Panel
-                    MDScrollView:
-                        id: inferential_results_panel
-                        size_hint_x: 0.65
+                    MDButton:
+                        id: descriptive_tab_btn
+                        text: "Descriptive"
+                        style: "elevated"
+                        size_hint_x: 1
+                        height: dp(48)
+                        font_size: "14sp"
+                        on_release: root.switch_to_tab("descriptive")
                         
-                        MDBoxLayout:
-                            id: inferential_content
-                            orientation: 'vertical'
-                            spacing: dp(16)
-                            padding: dp(20)
-                            size_hint_y: None
-                            height: self.minimum_height
-                            adaptive_height: True
-                            
-                            MDCard:
-                                size_hint_y: None
-                                height: dp(200)
-                                elevation: 1
-                                padding: dp(20)
-                                
-                                MDLabel:
-                                    text: "Configure variables and select test type to run inferential statistics"
-                                    halign: "center"
-                                    theme_text_color: "Secondary"
-                                    font_style: "Body1"
-                                    font_size: "16sp"
+                    MDButton:
+                        id: inferential_tab_btn
+                        text: "Inferential"
+                        style: "elevated"
+                        size_hint_x: 1
+                        height: dp(48)
+                        font_size: "14sp"
+                        on_release: root.switch_to_tab("inferential")
                         
-            # Qualitative Analytics Tab - Enhanced layout
-            QualitativeTab:
-                title: "Qualitative"
+                    MDButton:
+                        id: qualitative_tab_btn
+                        text: "Qualitative"
+                        style: "elevated"
+                        size_hint_x: 1
+                        height: dp(48)
+                        font_size: "14sp"
+                        on_release: root.switch_to_tab("qualitative")
                 
+                # Tab Content Area
                 MDBoxLayout:
-                    id: qualitative_layout
-                    orientation: 'horizontal'
+                    id: tab_content_area
+                    orientation: 'vertical'
                     spacing: dp(16)
                     padding: dp(20)
                     
-                    # Configuration Panel
-                    MDCard:
-                        id: qualitative_config_panel
-                        size_hint_x: 0.35
-                        elevation: 1
-                        padding: dp(20)
-                        orientation: 'vertical'
-                        spacing: dp(16)
-                        
-                        MDLabel:
-                            text: "Text Analysis"
-                            font_style: "H6"
-                            theme_text_color: "Primary"
-                            size_hint_y: None
-                            height: dp(36)
-                            font_size: "20sp"
-                            
-                        MDTextField:
-                            hint_text: "Text Fields to Analyze"
-                            mode: "rectangle"
-                            size_hint_y: None
-                            height: dp(52)
-                            font_size: "16sp"
-                            
-                        # Theme count with label
-                        MDBoxLayout:
-                            orientation: 'horizontal'
-                            spacing: dp(12)
-                            size_hint_y: None
-                            height: dp(52)
-                            
-                            MDLabel:
-                                text: "Themes:"
-                                size_hint_x: None
-                                width: dp(80)
-                                theme_text_color: "Primary"
-                                font_size: "16sp"
-                                
-                            MDSlider:
-                                id: theme_count_slider
-                                min: 2
-                                max: 10
-                                value: 5
-                                step: 1
-                                size_hint_x: 1
-                                
-                        # Analysis buttons
-                        MDBoxLayout:
-                            orientation: 'vertical'
-                            spacing: dp(12)
-                            size_hint_y: None
-                            height: self.minimum_height
-                            adaptive_height: True
-                            
-                            MDRaisedButton:
-                                text: "Sentiment Analysis"
-                                size_hint_y: None
-                                height: dp(52)
-                                font_size: "16sp"
-                                on_release: root.load_qualitative()
-                                
-                            MDRaisedButton:
-                                text: "Theme Analysis"
-                                size_hint_y: None
-                                height: dp(52)
-                                font_size: "16sp"
-                                
-                            MDRaisedButton:
-                                text: "Content Analysis"
-                                size_hint_y: None
-                                height: dp(52)
-                                font_size: "16sp"
-                    
-                    # Results Panel
-                    MDScrollView:
-                        id: qualitative_results_panel
-                        size_hint_x: 0.65
-                        
-                        MDBoxLayout:
-                            id: qualitative_content
-                            orientation: 'vertical'
-                            spacing: dp(16)
-                            padding: dp(20)
-                            size_hint_y: None
-                            height: self.minimum_height
-                            adaptive_height: True
-                            
-                            MDCard:
-                                size_hint_y: None
-                                height: dp(200)
-                                elevation: 1
-                                padding: dp(20)
-                                
-                                MDLabel:
-                                    text: "Configure text fields and select analysis type to analyze qualitative data"
-                                    halign: "center"
-                                    theme_text_color: "Secondary"
-                                    font_style: "Body1"
-                                    font_size: "16sp"
+                    MDLabel:
+                        id: tab_content_label
+                        text: "Select a project and analysis type above to begin"
+                        halign: "center"
+                        theme_text_color: "Secondary"
+                        font_style: "Body"
+                        font_size: "16sp"
 
         # Bottom Action Bar - Tablet optimized
         MDBoxLayout:
@@ -471,7 +183,8 @@
             height: dp(64)  # Increased height for tablets
             padding: [dp(20), dp(12)]  # Increased padding
             
-            MDRaisedButton:
+            MDButton:
+                style: "elevated"
                 text: "Export Results"
                 size_hint_x: 1
                 height: dp(52)  # Tablet-friendly height
@@ -479,7 +192,8 @@
                 on_release: root.export_results()
                 disabled: not root.analysis_results
                 
-            MDRaisedButton:
+            MDButton:
+                style: "elevated"
                 text: "Analysis Config"
                 size_hint_x: 1
                 height: dp(52)

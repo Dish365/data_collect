@@ -53,10 +53,27 @@ async def get_data_characteristics(
         df = AnalyticsUtils.get_project_data(project_id)
         
         if df.empty:
+            # Provide more information about why no data was found
+            try:
+                # Check if project exists
+                conn = AnalyticsUtils.get_django_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM projects_project WHERE id = ?", (project_id,))
+                project_exists = cursor.fetchone()[0] > 0
+                conn.close()
+                
+                if not project_exists:
+                    message = f'Project {project_id} not found'
+                else:
+                    message = f'No responses found for project {project_id}'
+                    
+            except Exception:
+                message = 'No data available for this project'
+                
             return AnalyticsUtils.format_api_response(
                 'error', 
                 None, 
-                'No data available for this project'
+                message
             )
         
         characteristics = AnalyticsUtils.analyze_data_characteristics(df)
@@ -258,12 +275,20 @@ async def health_check() -> Dict[str, Any]:
     try:
         # Test database connection
         conn = AnalyticsUtils.get_django_db_connection()
+        
+        # Test a simple query to verify database structure
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = cursor.fetchall()
+        
         conn.close()
         
         return AnalyticsUtils.format_api_response('success', {
             'service': 'analytics',
             'status': 'healthy',
-            'database': 'connected'
+            'database': 'connected',
+            'tables_found': len(tables),
+            'version': '1.0.0'
         })
     except Exception as e:
         return AnalyticsUtils.handle_analysis_error(e, "health check") 

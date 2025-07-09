@@ -34,7 +34,7 @@
             # Value label (main number)
             MDLabel:
                 text: root.value
-                font_style: "H6"
+                font_style: "Label"
                 bold: True
                 adaptive_height: True
                 size_hint_y: None
@@ -44,7 +44,7 @@
             # Title label
             MDLabel:
                 text: root.title
-                font_style: "Body2"
+                font_style: "Body"
                 adaptive_height: True
                 size_hint_y: None
                 height: self.texture_size[1]
@@ -53,7 +53,7 @@
             # Note label (additional info)
             MDLabel:
                 text: root.note
-                font_style: "Caption"
+                font_style: "Label"
                 adaptive_height: True
                 size_hint_y: None
                 height: self.texture_size[1] if self.text else 0

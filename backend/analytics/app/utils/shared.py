@@ -17,20 +17,38 @@ class AnalyticsUtils:
     @staticmethod
     def get_django_db_connection():
         """Get connection to Django SQLite database."""
-        # Path to Django database
-        backend_dir = Path(__file__).parent.parent.parent.parent.parent  # Go up to backend/
+        # Path to Django database - go up from backend/analytics/app/utils/shared.py to backend/
+        current_file = Path(__file__)
+        backend_dir = current_file.parent.parent.parent.parent  # Go up to backend/
         db_path = backend_dir / "db.sqlite3"
         
-        if not db_path.exists():
-            raise FileNotFoundError(f"Django database not found at {db_path}")
+        # Alternative paths to try
+        alternative_paths = [
+            backend_dir / "db.sqlite3",  # backend/db.sqlite3 (most likely)
+            backend_dir.parent / "db.sqlite3",  # data_collect/db.sqlite3 (project root)
+            backend_dir / "analytics" / "analytics.db",  # analytics backend's own DB (fallback)
+        ]
         
-        return sqlite3.connect(str(db_path))
+        # Try to find the database file
+        for path in alternative_paths:
+            if path.exists():
+                print(f"Found Django database at: {path}")
+                conn = sqlite3.connect(str(path))
+                conn.row_factory = sqlite3.Row
+                return conn
+        
+        # If no database found, provide helpful error message
+        searched_paths = "\n".join([f"  - {path}" for path in alternative_paths])
+        raise FileNotFoundError(
+            f"Django database not found. Searched paths:\n{searched_paths}\n"
+            f"Current file location: {current_file}\n"
+            f"Please ensure the Django database exists."
+        )
     
     @staticmethod
     def get_project_data(project_id: str) -> pd.DataFrame:
         """Get project data as DataFrame from Django database."""
         conn = AnalyticsUtils.get_django_db_connection()
-        conn.row_factory = sqlite3.Row
         
         try:
             query = """
@@ -74,7 +92,6 @@ class AnalyticsUtils:
     def get_project_stats(project_id: str) -> Dict[str, Any]:
         """Get basic project statistics."""
         conn = AnalyticsUtils.get_django_db_connection()
-        conn.row_factory = sqlite3.Row
         
         try:
             cursor = conn.cursor()
