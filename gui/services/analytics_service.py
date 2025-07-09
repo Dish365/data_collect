@@ -19,13 +19,7 @@ class AnalyticsService:
         try:
             url = f"{self.base_url}/api/v1/analytics/{endpoint}"
             
-            if self.auth_service.is_authenticated():
-                headers = {
-                    'Authorization': f'Bearer {self.auth_service.get_access_token()}',
-                    'Content-Type': 'application/json'
-                }
-            else:
-                headers = {'Content-Type': 'application/json'}
+            headers = {'Content-Type': 'application/json'}
             
             if method == 'GET':
                 response = requests.get(url, headers=headers, timeout=30)
@@ -35,7 +29,11 @@ class AnalyticsService:
                 raise ValueError(f"Unsupported HTTP method: {method}")
                 
             if response.status_code == 200:
-                return response.json()
+                result = response.json()
+                # Handle the new response format
+                if isinstance(result, dict) and 'data' in result:
+                    return result['data']
+                return result
             else:
                 return {
                     'error': f'HTTP {response.status_code}: {response.text}',
@@ -99,8 +97,15 @@ class AnalyticsService:
                 conn.close()
 
     def get_data_characteristics(self, project_id: str) -> Dict:
-        """Get data characteristics for a project"""
+        """Get data characteristics for a project using streamlined API"""
         try:
+            # Try backend API first
+            result = self._make_analytics_request(f'project/{project_id}/data-characteristics')
+            
+            if 'error' not in result:
+                return result.get('characteristics', result)
+                
+            # Fallback to local analysis
             df = self.get_project_data(project_id)
             
             if df.empty:
@@ -135,7 +140,7 @@ class AnalyticsService:
             return {'error': f'Error analyzing data characteristics: {str(e)}'}
 
     def get_analysis_recommendations(self, project_id: str) -> Dict:
-        """Get smart analysis recommendations from auto-detection system"""
+        """Get smart analysis recommendations from streamlined API"""
         cache_key = f"recommendations_{project_id}"
         
         # Check cache first
@@ -145,22 +150,12 @@ class AnalyticsService:
                 return self.cache[cache_key]['data']
         
         try:
-            # Get data characteristics for the project
-            characteristics = self.get_data_characteristics(project_id)
-            
-            if 'error' in characteristics:
-                return characteristics
-                
-            # Call backend auto-detection API
-            payload = {
-                'project_id': project_id,
-                'data_characteristics': characteristics
-            }
-            
-            result = self._make_analytics_request('auto-detect/', method='POST', data=payload)
+            # Call streamlined recommendations API
+            result = self._make_analytics_request(f'project/{project_id}/recommendations')
             
             if 'error' in result:
                 # Fallback to local recommendations if backend fails
+                characteristics = self.get_data_characteristics(project_id)
                 return self._generate_local_recommendations(characteristics)
             
             # Cache the results
@@ -231,29 +226,18 @@ class AnalyticsService:
         return recommendations
 
     def run_descriptive_analysis(self, project_id: str, analysis_config: Dict = None) -> Dict:
-        """Run descriptive statistical analysis"""
+        """Run descriptive statistical analysis using streamlined API"""
         try:
-            df = self.get_project_data(project_id)
-            
-            if df.empty:
-                return {'error': 'No data available for analysis'}
-            
             # Try backend API first
-            payload = {
-                'project_id': project_id,
-                'analysis_config': analysis_config or {},
-                'data_summary': {
-                    'sample_size': len(df),
-                    'variables': list(df.columns)
-                }
-            }
-            
-            result = self._make_analytics_request('descriptive/', method='POST', data=payload)
+            result = self._make_analytics_request(f'project/{project_id}/analyze', method='POST', data={'analysis_type': 'descriptive'})
             
             if 'error' not in result:
                 return result
                 
             # Fallback to local analysis
+            df = self.get_project_data(project_id)
+            if df.empty:
+                return {'error': 'No data available for analysis'}
             return self._run_local_descriptive_analysis(df)
             
         except Exception as e:
@@ -362,7 +346,7 @@ class AnalyticsService:
     def check_backend_health(self) -> Dict:
         """Check if analytics backend is available"""
         try:
-            result = self._make_analytics_request('health/')
+            result = self._make_analytics_request('health')
             return result
         except Exception as e:
             return {'error': f'Backend health check failed: {str(e)}', 'available': False}
