@@ -1,0 +1,146 @@
+#:import dp kivy.metrics.dp
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDCard kivymd.uix.card.MDCard
+#:import MDButton kivymd.uix.button.MDButton
+#:import MDTextField kivymd.uix.textfield.MDTextField
+#:import MDLabel kivymd.uix.label.MDLabel
+#:import MDIconButton kivymd.uix.button.MDIconButton
+#:import FloatLayout kivy.uix.floatlayout.FloatLayout
+#:import Window kivy.core.window.Window
+
+<LoginScreen>:
+    name: "login"
+    md_bg_color: app.theme_cls.primary_color
+
+    # Use responsive centering that adapts to screen size
+    AnchorLayout:
+        anchor_x: "center"
+        anchor_y: "center"
+        padding: dp(24)
+
+        MDCard:
+            elevation: 8
+            radius: [dp(20)]
+            padding: [dp(32), dp(32), dp(32), dp(32)]
+            
+            # Responsive sizing based on screen dimensions - reduced height
+            size_hint: None, None
+            size: (min(dp(480), Window.width * 0.8), self.minimum_height)
+            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+            
+            # Ensure minimum width for tablets
+            width: max(dp(400), min(dp(600), Window.width * 0.6))
+            
+            MDBoxLayout:
+                orientation: "vertical"
+                adaptive_height: True
+                spacing: dp(20)
+                size_hint_y: None
+                height: self.minimum_height
+
+                # App Title with responsive typography
+                MDLabel:
+                    text: "Research Data Collector"
+                    font_style: "Display"
+                    halign: "center"
+                    size_hint_y: None
+                    height: self.texture_size[1] + dp(8)
+                    font_size: "28sp" if Window.width > 600 else "24sp"
+                    theme_text_color: "Primary"
+
+                # Username field with responsive sizing
+                MDTextField:
+                    id: username
+                    hint_text: "Enter your username"
+                    helper_text: "Use your registered username"
+                    helper_text_mode: "on_focus"
+                    mode: "outlined"
+                    size_hint_y: None
+                    height: dp(56) if Window.width > 600 else dp(48)
+                    font_size: "16sp" if Window.width > 600 else "14sp"
+                    disabled: root.is_authenticating
+                    text: ""
+                    theme_text_color: "Primary"
+                    hint_text_color: [0.6, 0.6, 0.6, 1]
+                    helper_text_color: [0.5, 0.5, 0.5, 1]
+                    text_color: [0, 0, 0, 1]
+
+                # Password field with responsive sizing
+                FloatLayout:
+                    size_hint_y: None
+                    height: dp(56) if Window.width > 600 else dp(48)
+
+                    MDTextField:
+                        id: password
+                        hint_text: "Enter your password"
+                        helper_text: "Enter your account password"
+                        helper_text_mode: "on_focus"
+                        password: not root.password_visible
+                        mode: "outlined"
+                        size_hint: 1, None
+                        height: dp(56) if Window.width > 600 else dp(48)
+                        font_size: "16sp" if Window.width > 600 else "14sp"
+                        pos_hint: {"x": 0, "center_y": 0.5}
+                        disabled: root.is_authenticating
+                        text: ""
+                        theme_text_color: "Primary"
+                        hint_text_color: [0.6, 0.6, 0.6, 1]
+                        helper_text_color: [0.5, 0.5, 0.5, 1]
+                        text_color: [0, 0, 0, 1]
+
+                    MDIconButton:
+                        icon: "eye-off" if root.password_visible else "eye"
+                        on_release: root.toggle_password_visibility()
+                        pos_hint: {"right": 0.96, "center_y": 0.5}
+                        size_hint: None, None
+                        size: (dp(40), dp(40)) if Window.width > 600 else (dp(32), dp(32))
+                        md_bg_color: 0, 0, 0, 0
+                        theme_icon_color: "Custom"
+                        icon_color: 0.5, 0.5, 0.5, 1
+                        user_font_size: "24sp" if Window.width > 600 else "20sp"
+
+                # Forgot password link with responsive typography
+                MDLabel:
+                    markup: True
+                    text: "[ref=forgot][color=377DFF]Forgot Password?[/color][/ref]"
+                    halign: "right"
+                    size_hint_y: None
+                    height: self.texture_size[1] + dp(4)
+                    font_size: "14sp" if Window.width > 600 else "12sp"
+                    on_ref_press: root.on_forgot_password()
+
+                # Login button with responsive sizing
+                MDButton:
+                    id: login_button
+                    text: "Login"
+                    style: "elevated"
+                    size_hint_x: 1
+                    size_hint_y: None
+                    height: dp(56) if Window.width > 600 else dp(48)
+                    font_size: "18sp" if Window.width > 600 else "16sp"
+                    disabled: root.is_authenticating
+                    on_release: root.login()
+                    md_bg_color: app.theme_cls.primary_color
+                    theme_text_color: "Custom"
+                    text_color: [1, 1, 1, 1]
+
+                # Loading indicator with responsive sizing
+                MDLabel:
+                    id: loading_indicator
+                    text: "🔄 Authenticating..." if root.is_authenticating else ""
+                    size_hint_y: None
+                    height: self.texture_size[1] + dp(4) if root.is_authenticating else 0
+                    opacity: 1 if root.is_authenticating else 0
+                    font_size: "16sp" if Window.width > 600 else "14sp"
+                    halign: "center"
+                    theme_text_color: "Primary"
+
+                # Signup link with responsive typography
+                MDLabel:
+                    markup: True
+                    text: "[color=888888]Don't have an account? [/color][ref=signup][color=377DFF]Sign Up[/color][/ref]"
+                    halign: "center"
+                    size_hint_y: None
+                    height: self.texture_size[1] + dp(4)
+                    font_size: "14sp" if Window.width > 600 else "12sp"
+                    on_ref_press: root.on_signup()

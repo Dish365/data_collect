@@ -7,7 +7,7 @@ import threading
 from kivy.clock import Clock
 from widgets.activity_item import ActivityItem
 from kivymd.uix.label import MDLabel
-from widgets.team_member_dialog import TeamMemberDialog
+from screens.team_members import TeamMembersScreen
 from widgets.top_bar import TopBar
 from widgets.stat_card import StatCard
 
@@ -22,6 +22,8 @@ class DashboardScreen(MDScreen):
         self.dashboard_service = DashboardService(app.auth_service, app.db_service)
         self.last_update_time = None
         self.auto_refresh_enabled = True
+        # Set background color
+        self.md_bg_color = app.theme_cls.bg_normal
 
     def on_enter(self, *args):
         """Called when the screen is entered."""
@@ -43,6 +45,12 @@ class DashboardScreen(MDScreen):
         # Schedule auto-refresh every 30 seconds if enabled
         if self.auto_refresh_enabled:
             Clock.schedule_interval(self.auto_refresh_stats, 30)
+
+        # Ensure proper background color
+        app = App.get_running_app()
+        self.md_bg_color = app.theme_cls.bg_normal
+        if hasattr(self.ids, 'content_layout'):
+            self.ids.content_layout.md_bg_color = app.theme_cls.bg_normal
 
     def _force_layout_refresh(self, dt):
         """Force a complete layout refresh to ensure responsive layout is applied"""
@@ -126,18 +134,25 @@ class DashboardScreen(MDScreen):
         self.manager.current = screen_name
     
     def open_team_management(self):
-        """Open team member management dialog"""
+        """Navigate to team member management screen"""
         try:
-            team_dialog = TeamMemberDialog(
-                dashboard_service=self.dashboard_service,
-                callback=self.on_team_management_closed
-            )
-            team_dialog.open()
+            # Create team members screen if not already in manager
+            if not self.manager.has_screen("team_members"):
+                team_screen = TeamMembersScreen(
+                    dashboard_service=self.dashboard_service,
+                    name="team_members"
+                )
+                self.manager.add_widget(team_screen)
+            
+            # Switch to team members screen
+            self.manager.transition.direction = "left"
+            self.manager.current = "team_members"
+            
         except Exception as e:
-            print(f"Error opening team management dialog: {e}")
+            print(f"Error navigating to team management screen: {e}")
     
     def on_team_management_closed(self):
-        """Called when team management dialog is closed"""
+        """Called when returning from team management screen"""
         # Refresh dashboard stats to reflect any changes
         self.update_stats(show_loader=False)
     
@@ -227,8 +242,7 @@ class DashboardScreen(MDScreen):
         activity_feed_layout.add_widget(MDLabel(
             text=f"Error loading data: {error_message}", 
             halign="center", 
-            theme_text_color="Custom",
-            text_color=(0.8, 0.2, 0.2, 1),
+            theme_text_color="Error",
             size_hint_y=None,
             height=dp(40)
         ))

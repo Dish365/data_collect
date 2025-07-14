@@ -217,7 +217,8 @@ def apply_tablet_text_scaling(widget, base_font_style="Body1"):
 
 
 # Tablet-Optimized Button Helpers
-from kivymd.uix.button import MDButton, MDIconButton
+from kivymd.uix.button import MDButtonText as MDButton
+from kivymd.uix.button import MDIconButton
 
 class TabletOptimizedButton(MDButton):
     """Button that automatically adapts size for tablet use"""

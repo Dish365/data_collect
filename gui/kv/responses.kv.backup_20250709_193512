@@ -1,0 +1,278 @@
+#:import MDButton kivymd.uix.button.MDButton
+<ResponsesScreen>:
+    name: "responses"
+
+    MDBoxLayout:
+        orientation: "vertical"
+        
+
+        # Responsive TopBar - Larger for tablets
+        TopBar:
+            id: top_bar
+            size_hint_y: None
+            height: dp(64)  # Increased from default for tablets
+
+        # Main content layout - Responsive (will switch between stacked and side-by-side)
+        MDBoxLayout:
+            id: main_content_layout
+            orientation: "vertical"  # Will be changed to horizontal on tablets
+            spacing: dp(16)  # Increased spacing
+            padding: dp(24)  # Increased padding for tablets
+            # Left Panel / Top Panel (Master View)
+            MDBoxLayout:
+                id: master_panel
+                orientation: "vertical"
+                size_hint_x: 1  # Will be adjusted for tablets
+                spacing: dp(12)
+
+                # Header section with summary stats and controls - Enhanced for tablets
+                MDCard:
+                    padding: dp(20)  # Increased padding for tablets
+                    spacing: dp(12)  # Increased spacing
+                    size_hint_y: None
+                    height: dp(160)  # Increased height for tablets
+                    elevation: 2
+                    
+                    MDBoxLayout:
+                        orientation: "vertical"
+                        spacing: dp(12)  # Increased spacing
+                        
+                        # Summary Statistics Row - Tablet optimized
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: dp(24)  # Increased spacing
+                            size_hint_y: None
+                            height: dp(40)  # Increased height for tablets
+                            
+                            MDLabel:
+                                id: total_respondents_label
+                                text: "Total Respondents: Loading..."
+                                font_style: "Body"
+                                font_size: "18sp"  # Larger font for tablets
+                                size_hint_x: 0.33
+                                
+                            MDLabel:
+                                id: total_responses_label
+                                text: "Total Responses: Loading..."
+                                font_style: "Body"
+                                font_size: "18sp"  # Larger font for tablets
+                                size_hint_x: 0.33
+                                
+                            MDLabel:
+                                id: avg_responses_label
+                                text: "Avg per Respondent: Loading..."
+                                font_style: "Body"
+                                font_size: "18sp"  # Larger font for tablets
+                                size_hint_x: 0.34
+
+                        # Controls Row - Tablet optimized with larger touch targets
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: dp(16)  # Increased spacing
+                            size_hint_y: None
+                            height: dp(56)  # Increased height for tablets
+
+                            # Left Section: Back arrow + Title
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                spacing: dp(12)  # Increased spacing
+                                size_hint_x: 0.4
+                                pos_hint: {"center_y": 0.5}
+
+                                MDIconButton:
+                                    icon: "arrow-left"
+                                    size_hint_x: None
+                                    width: dp(56)  # Larger touch target
+                                    user_font_size: "28sp"  # Larger icon
+                                    on_release: root.go_back_to_dashboard()
+                                    theme_icon_color: "Custom"
+                                    icon_color: 0, 0, 0, 1
+                                    pos_hint: {"center_y": 0.5}
+
+                                MDLabel:
+                                    text: "Survey Responses"
+                                    font_style: "Label"
+                                    font_size: "22sp"  # Larger font for tablets
+                                    pos_hint: {"center_y": 0.5}
+                                    size_hint_x: None
+                                    width: dp(200)  # Slightly wider
+
+                            # Right Section: Search bar + Refresh button - Enhanced for tablets
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                spacing: dp(12)  # Increased spacing
+                                size_hint_x: 0.6
+                                pos_hint: {"center_y": 0.5}
+
+                                MDTextField:
+                                    id: search_field
+                                    hint_text: "Search by ID, name, or project..."
+                                    size_hint_x: 0.8
+                                    height: dp(52)  # Tablet-friendly height
+                                    font_size: "16sp"  # Larger font
+                                    pos_hint: {"center_y": 0.5}
+                                    mode: "outlined"
+                                    on_text: root.search_respondents(self.text)
+
+                                MDIconButton:
+                                    icon: "refresh"
+                                    size_hint_x: None
+                                    width: dp(56)  # Larger touch target
+                                    user_font_size: "28sp"  # Larger icon
+                                    on_release: root.refresh_data()
+                                    pos_hint: {"center_y": 0.5}
+
+                        # Bulk Actions Toolbar (new for tablets)
+                        MDBoxLayout:
+                            id: bulk_actions_toolbar
+                            orientation: "horizontal"
+                            spacing: dp(12)
+                            size_hint_y: None
+                            height: dp(52)  # Tablet-friendly height
+                            
+                            MDButton:
+                                style: "elevated"
+                                text: "Export Selected"
+                                size_hint_x: None
+                                width: dp(140)
+                                height: dp(44)  # Tablet touch target
+                                font_size: "16sp"
+                                disabled: True
+                                
+                            MDButton:
+                                style: "elevated"
+                                text: "Delete Selected"
+                                size_hint_x: None
+                                width: dp(140)
+                                height: dp(44)
+                                font_size: "16sp"
+                                theme_bg_color: "Custom"
+                                md_bg_color: (0.8, 0.2, 0.2, 1)
+                                disabled: True
+                                
+                            Widget:  # Spacer
+                                size_hint_x: 1
+                                
+                            MDLabel:
+                                id: selection_count_label
+                                text: "0 selected"
+                                font_size: "16sp"
+                                size_hint_x: None
+                                width: dp(100)
+
+                # Table Header - Enhanced for tablets
+                MDCard:
+                    padding: dp(16)  # Increased padding
+                    size_hint_y: None
+                    height: dp(60)  # Increased height for tablets
+                    elevation: 1
+                    md_bg_color: app.theme_cls.primary_color
+                    
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        spacing: dp(8)  # Increased spacing
+                        
+                        # Selection checkbox for "select all"
+                        MDCheckbox:
+                            id: select_all_checkbox
+                            size_hint_x: None
+                            width: dp(48)  # Tablet touch target
+                            pos_hint: {"center_y": 0.5}
+                            on_active: root.on_select_all(self.active)
+                        
+                        MDLabel:
+                            text: "Respondent ID"
+                            size_hint_x: 0.18
+                            font_style: "Body"
+                            font_size: "16sp"  # Larger font for tablets
+                            halign: "left"
+                            theme_text_color: "Primary"
+                            
+                        MDLabel:
+                            text: "Name"
+                            size_hint_x: 0.18
+                            font_style: "Body"
+                            font_size: "16sp"
+                            halign: "left"
+                            theme_text_color: "Primary"
+                            
+                        MDLabel:
+                            text: "Project"
+                            size_hint_x: 0.18
+                            font_style: "Body"
+                            font_size: "16sp"
+                            halign: "left"
+                            theme_text_color: "Primary"
+                            
+                        MDLabel:
+                            text: "Responses"
+                            size_hint_x: 0.1
+                            font_style: "Body"
+                            font_size: "16sp"
+                            halign: "center"
+                            theme_text_color: "Primary"
+                            
+                        MDLabel:
+                            text: "Last Response"
+                            size_hint_x: 0.18
+                            font_style: "Body"
+                            font_size: "16sp"
+                            halign: "center"
+                            theme_text_color: "Primary"
+                            
+                        MDLabel:
+                            text: "Actions"
+                            size_hint_x: 0.18
+                            font_style: "Body"
+                            font_size: "16sp"
+                            halign: "center"
+                            theme_text_color: "Primary"
+
+                # Scrollable content area - Enhanced for tablets
+                MDScrollView:
+                    MDBoxLayout:
+                        id: responses_grid
+                        orientation: "vertical"
+                        spacing: dp(4)  # Increased spacing between rows
+                        padding: [0, dp(12), 0, dp(12)]  # Increased padding
+                        adaptive_height: True
+                        
+            # Right Panel (Detail View) - Only visible on tablets in landscape
+            MDCard:
+                id: detail_panel
+                size_hint_x: 0  # Hidden by default, will be shown on tablets
+                elevation: 2
+                padding: dp(20)
+                orientation: "vertical"
+                spacing: dp(16)
+                
+                MDLabel:
+                    text: "Response Details"
+                    font_style: "Label"
+                    font_size: "20sp"
+                    size_hint_y: None
+                    height: dp(40)
+                    
+                MDScrollView:
+                    id: detail_scroll
+                    
+                    MDBoxLayout:
+                        id: detail_content
+                        orientation: "vertical"
+                        spacing: dp(12)
+                        adaptive_height: True
+                        padding: dp(16)
+                        
+                        MDLabel:
+                            text: "Select a respondent to view their responses"
+                            halign: "center"
+                            font_size: "16sp"
+                            theme_text_color: "Secondary"
+
+        # Loading spinner - Larger for tablets
+        MDCircularProgressIndicator:
+            id: spinner
+            size_hint: None, None
+            size: dp(56), dp(56)  # Larger spinner for tablets
+            pos_hint: {'center_x': .5, 'center_y': .5}
+            active: False 
