@@ -3,25 +3,30 @@
 ========================================
 
 📊 Summary:
-  • Total files scanned: 55
-  • Python files: 40
-  • KV files: 15
-  • Files changed: 12
+  • Total files scanned: 5675
+  • Python files: 5626
+  • KV files: 49
+  • Files changed: 17
   • Errors: 0
 
 ✅ Files modified:
-  • C:\Users\USER\Desktop\Dev_Projects\data_collect\gui\kivymd_2_0_fixer.py
-  • C:\Users\USER\Desktop\Dev_Projects\data_collect\gui\widgets\form_fields.py
-  • C:\Users\USER\Desktop\Dev_Projects\data_collect\gui\widgets\response_fields.py
-  • C:\Users\USER\Desktop\Dev_Projects\data_collect\gui\kv\analytics.kv
-  • C:\Users\USER\Desktop\Dev_Projects\data_collect\gui\kv\collect_data.kv
-  • C:\Users\USER\Desktop\Dev_Projects\data_collect\gui\kv\dashboard.kv
-  • C:\Users\USER\Desktop\Dev_Projects\data_collect\gui\kv\form_builder.kv
-  • C:\Users\USER\Desktop\Dev_Projects\data_collect\gui\kv\login.kv
-  • C:\Users\USER\Desktop\Dev_Projects\data_collect\gui\kv\projects.kv
-  • C:\Users\USER\Desktop\Dev_Projects\data_collect\gui\kv\responses.kv
-  • C:\Users\USER\Desktop\Dev_Projects\data_collect\gui\kv\signup.kv
-  • C:\Users\USER\Desktop\Dev_Projects\data_collect\gui\kv\sync.kv
+  • C:\Users\eazil\OneDrive\Desktop\McGill Projects\data_collect\gui\kivymd_2_0_fixer.py
+  • C:\Users\eazil\OneDrive\Desktop\McGill Projects\data_collect\gui\venv\Lib\site-packages\kivymd\uix\dialog\dialog.py
+  • C:\Users\eazil\OneDrive\Desktop\McGill Projects\data_collect\gui\venv\Lib\site-packages\kivymd\uix\snackbar\snackbar.py
+  • C:\Users\eazil\OneDrive\Desktop\McGill Projects\data_collect\gui\venv\Lib\site-packages\kivymd\uix\tab\tab.py
+  • C:\Users\eazil\OneDrive\Desktop\McGill Projects\data_collect\gui\venv\Lib\site-packages\kivymd\uix\pickers\timepicker\timepicker.py
+  • C:\Users\eazil\OneDrive\Desktop\McGill Projects\data_collect\gui\kv\analytics.kv
+  • C:\Users\eazil\OneDrive\Desktop\McGill Projects\data_collect\gui\kv\collect_data.kv
+  • C:\Users\eazil\OneDrive\Desktop\McGill Projects\data_collect\gui\kv\dashboard.kv
+  • C:\Users\eazil\OneDrive\Desktop\McGill Projects\data_collect\gui\kv\form_builder.kv
+  • C:\Users\eazil\OneDrive\Desktop\McGill Projects\data_collect\gui\kv\login.kv
+  • C:\Users\eazil\OneDrive\Desktop\McGill Projects\data_collect\gui\kv\projects.kv
+  • C:\Users\eazil\OneDrive\Desktop\McGill Projects\data_collect\gui\kv\responses.kv
+  • C:\Users\eazil\OneDrive\Desktop\McGill Projects\data_collect\gui\kv\signup.kv
+  • C:\Users\eazil\OneDrive\Desktop\McGill Projects\data_collect\gui\kv\sync.kv
+  • C:\Users\eazil\OneDrive\Desktop\McGill Projects\data_collect\gui\venv\Lib\site-packages\kivymd\uix\sliverappbar\sliverappbar.kv
+  • C:\Users\eazil\OneDrive\Desktop\McGill Projects\data_collect\gui\venv\Lib\site-packages\kivymd\uix\pickers\datepicker\datepicker.kv
+  • C:\Users\eazil\OneDrive\Desktop\McGill Projects\data_collect\gui\venv\Lib\site-packages\kivymd\uix\pickers\timepicker\timepicker.kv
 
 🔧 Common fixes applied:
   • MDProgressBar → MDCircularProgressIndicator

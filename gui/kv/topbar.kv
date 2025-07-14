@@ -61,4 +61,4 @@
             size_hint: None, None
             size: (dp(44), dp(44)) if Window.width > 600 else (dp(36), dp(36))
             user_font_size: "24sp" if Window.width > 600 else "20sp"
-            on_release: root.logout()
+            on_release: root.show_logout_dialog()

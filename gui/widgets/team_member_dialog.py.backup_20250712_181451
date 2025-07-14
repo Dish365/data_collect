@@ -1,7 +1,7 @@
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
-from kivymd.uix.button import MDButton, MDIconButton
+from kivymd.uix.button import MDButton
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.list import MDList, MDListItem, MDListItemHeadlineText, MDListItemLeadingIcon, MDListItemTrailingIcon
 from kivymd.uix.card import MDCard
@@ -9,9 +9,8 @@ from kivy.uix.scrollview import ScrollView
 from kivy.metrics import dp
 from kivy.clock import Clock
 from kivy.core.window import Window
-from kivy.properties import StringProperty, ObjectProperty
 import threading
-import traceback
+import traceback  # Add traceback for better error logging
 
 
 class AutocompleteTextField(MDTextField):
@@ -40,7 +39,7 @@ class AutocompleteTextField(MDTextField):
 
 class TeamMemberDialog:
     def __init__(self, dashboard_service, project_id=None, callback=None):
-        print("Initializing TeamMemberDialog...")
+        print("Initializing TeamMemberDialog...")  # Debug log
         try:
             self.dashboard_service = dashboard_service
             self.project_id = project_id
@@ -52,7 +51,7 @@ class TeamMemberDialog:
             self.search_results = []
             self.selected_user = None
             
-            # Initialize UI components
+            # Initialize UI components to None
             self.project_label = None
             self.members_list = None
             self.email_field = None
@@ -61,42 +60,47 @@ class TeamMemberDialog:
             self.user_dropdown = None
             self.user_dropdown_list = None
             self.user_dropdown_card = None
-            self.selected_user_label = None
+            self.selected_user_label = None  # Added initialization
             
             # Bind to window size changes
             Window.bind(on_resize=self.on_window_resize)
             
-            print("Creating dialog...")
+            print("Creating dialog...")  # Debug log
             self.create_dialog()
-            print("Dialog created successfully")
+            print("Dialog created successfully")  # Debug log
             
         except Exception as e:
             print(f"Error in TeamMemberDialog initialization: {e}")
-            print(f"Traceback: {traceback.format_exc()}")
+            print(f"Traceback: {traceback.format_exc()}")  # Print full traceback
             raise e
     
     def on_window_resize(self, instance, width, height):
         """Handle window resize events"""
         if self.dialog:
             # Update dialog size based on window size
-            dialog_height = min(height * 0.9, dp(700))
-            self.dialog.size_hint = (0.85, None)
+            dialog_height = min(height * 0.9, dp(800))  # Max 800dp or 90% of window height
             self.dialog.height = dialog_height
+            
+            # Update content height
+            if hasattr(self.dialog, 'content_cls'):
+                content_height = dialog_height - dp(100)  # Account for padding and buttons
+                self.dialog.content_cls.height = content_height
 
     def create_dialog(self):
         """Create the team member management dialog"""
         try:
-            print("Starting dialog creation...")
+            print("Starting dialog creation...")  # Debug log
 
-            # Create main container
-            main_container = MDBoxLayout(
+            # Main content layout (inside ScrollView)
+            content = MDBoxLayout(
                 orientation="vertical",
-                size_hint=(1, 1),
+                spacing=dp(10),
                 padding=dp(15),
-                spacing=dp(10)
+                size_hint_y=None,
+                height=dp(500)  # Set a minimum height to ensure content is visible
             )
 
-            # Title
+            # Title (since we can't use dialog title parameter)
             title_label = MDLabel(
                 text="Team Members",
                 theme_text_color="Primary",
@@ -105,7 +109,8 @@ class TeamMemberDialog:
                 font_size="24sp",
                 halign="center"
             )
-            main_container.add_widget(title_label)
+            content.add_widget(title_label)
+            print(f"Added title label, content height: {content.height}")
 
             # Subtitle
             subtitle_label = MDLabel(
@@ -116,7 +121,7 @@ class TeamMemberDialog:
                 font_size="16sp",
                 halign="center"
             )
-            main_container.add_widget(subtitle_label)
+            content.add_widget(subtitle_label)
 
             # Project info
             self.project_label = MDLabel(
@@ -127,7 +132,7 @@ class TeamMemberDialog:
                 font_size="14sp",
                 halign="left"
             )
-            main_container.add_widget(self.project_label)
+            content.add_widget(self.project_label)
 
             # Current members section
             members_section_label = MDLabel(
@@ -138,26 +143,25 @@ class TeamMemberDialog:
                 font_size="16sp",
                 halign="left"
             )
-            main_container.add_widget(members_section_label)
+            content.add_widget(members_section_label)
 
             # Members list in scrollable container
             members_scroll = ScrollView(
                 size_hint=(1, None),
-                height=dp(120),
-                do_scroll_x=False
+                height=dp(120)
             )
             self.members_list = MDList()
             
-            # Add a placeholder member item
+            # Add a placeholder member item to test visibility
             placeholder_item = MDListItem(
+                MDListItemHeadlineText(text="Loading members..."),
                 size_hint_y=None,
                 height=dp(48)
             )
-            placeholder_item.add_widget(MDListItemHeadlineText(text="Loading members..."))
             self.members_list.add_widget(placeholder_item)
             
             members_scroll.add_widget(self.members_list)
-            main_container.add_widget(members_scroll)
+            content.add_widget(members_scroll)
 
             # Add member section
             add_section_label = MDLabel(
@@ -168,14 +172,15 @@ class TeamMemberDialog:
                 font_size="16sp",
                 halign="left"
             )
-            main_container.add_widget(add_section_label)
+            content.add_widget(add_section_label)
 
             # User search with autocomplete
             user_search_layout = MDBoxLayout(
                 orientation="vertical",
                 spacing=dp(5),
                 size_hint_y=None,
-                height=dp(120)
+                height=dp(120),
+                adaptive_height=False
             )
 
             # Autocomplete text field
@@ -195,18 +200,17 @@ class TeamMemberDialog:
                 size_hint_y=None,
                 height=dp(0),
                 elevation=3,
-                radius=[dp(5)],
+                radius=[5],
                 md_bg_color=[1, 1, 1, 1]
             )
             dropdown_scroll = ScrollView(
-                size_hint=(1, 1),
-                do_scroll_x=False
+                size_hint=(1, 1)
             )
             self.user_dropdown_list = MDList()
             dropdown_scroll.add_widget(self.user_dropdown_list)
             self.user_dropdown_card.add_widget(dropdown_scroll)
             user_search_layout.add_widget(self.user_dropdown_card)
-            main_container.add_widget(user_search_layout)
+            content.add_widget(user_search_layout)
 
             # Selected user display
             self.selected_user_label = MDLabel(
@@ -214,12 +218,11 @@ class TeamMemberDialog:
                 theme_text_color="Primary",
                 size_hint_y=None,
                 height=dp(0),
-                font_size="14sp",
-                halign="left"
+                font_size="14sp"
             )
-            main_container.add_widget(self.selected_user_label)
+            content.add_widget(self.selected_user_label)
 
-            # Role selection
+            # Role selection with buttons
             role_label = MDLabel(
                 text="Role:",
                 theme_text_color="Primary",
@@ -228,36 +231,40 @@ class TeamMemberDialog:
                 font_size="14sp",
                 halign="left"
             )
-            main_container.add_widget(role_label)
+            content.add_widget(role_label)
 
             role_layout = MDBoxLayout(
                 orientation="horizontal",
                 spacing=dp(5),
                 size_hint_y=None,
-                height=dp(40)
+                height=dp(40),
+                adaptive_height=False
             )
             roles = ["viewer", "member", "analyst", "collaborator"]
             for role in roles:
                 btn = MDButton(
+                    style="text",
                     text=role.title(),
                     size_hint_x=None,
-                    width=dp(80),
+                    width=dp(70),
                     height=dp(35),
                     on_release=lambda x, r=role: self.select_role(r)
                 )
                 self.role_buttons[role] = btn
                 role_layout.add_widget(btn)
             self.update_role_buttons()
-            main_container.add_widget(role_layout)
+            content.add_widget(role_layout)
 
             # Action buttons
             button_layout = MDBoxLayout(
                 orientation="horizontal",
                 spacing=dp(10),
                 size_hint_y=None,
-                height=dp(45)
+                height=dp(45),
+                adaptive_height=False
             )
             add_button = MDButton(
+                style="elevated",
                 text="Add Member",
                 size_hint_x=None,
                 width=dp(100),
@@ -265,8 +272,8 @@ class TeamMemberDialog:
                 on_release=self.add_member
             )
             button_layout.add_widget(add_button)
-            
             refresh_button = MDButton(
+                style="text",
                 text="Refresh",
                 size_hint_x=None,
                 width=dp(80),
@@ -274,38 +281,65 @@ class TeamMemberDialog:
                 on_release=self.refresh_data
             )
             button_layout.add_widget(refresh_button)
-            
-            # Spacer
-            button_layout.add_widget(MDLabel())
-            
+            content.add_widget(button_layout)
+            print(f"Finished adding all content, final content height: {content.height}")
+
+            # Wrap content in a ScrollView
+            scroll = ScrollView(
+                size_hint=(1, 1),
+                do_scroll_x=False,
+                bar_width=dp(10),
+                scroll_type=['bars', 'content']
+            )
+            scroll.add_widget(content)
+
+            # Bottom bar for close button
+            button_container = MDBoxLayout(
+                orientation="horizontal",
+                size_hint_y=None,
+                height=dp(60),
+                padding=[dp(20), dp(10)],
+                spacing=dp(10)
+            )
+            button_container.add_widget(MDLabel())  # Spacer
             close_button = MDButton(
-                text="Close",
+                style="text",
+                text="CLOSE",
+                theme_text_color="Primary",
+                on_release=self.close_dialog,
                 size_hint_x=None,
                 width=dp(80),
-                height=dp(40),
-                on_release=self.close_dialog
+                height=dp(40)
             )
-            button_layout.add_widget(close_button)
-            
-            main_container.add_widget(button_layout)
+            button_container.add_widget(close_button)
 
-            # Create dialog using KivyMD 2.0+ API
+            # Main dialog container
+            main_container = MDBoxLayout(
+                orientation="vertical",
+                size_hint=(1, 1),
+                padding=0,
+                spacing=0
+            )
+            main_container.add_widget(scroll)
+            main_container.add_widget(button_container)
+
+            # Create dialog using new KivyMD 2.0+ API
             self.dialog = MDDialog(
                 size_hint=(0.85, None),
-                height=min(Window.height * 0.8, dp(650)),
+                height=min(Window.height * 0.75, dp(650)),
                 radius=[dp(10)],
                 elevation=8
             )
             self.dialog.add_widget(main_container)
 
-            print("MDDialog created successfully")
+            print("MDDialog created successfully")  # Debug log
 
             # Load initial data
             self.load_initial_data()
 
         except Exception as e:
             print(f"Error creating team member dialog: {e}")
-            print(f"Traceback: {traceback.format_exc()}")
+            print(f"Traceback: {traceback.format_exc()}")  # Print full traceback
             raise e
     
     def search_users(self, query):
@@ -326,9 +360,6 @@ class TeamMemberDialog:
     
     def update_user_dropdown(self, users):
         """Update the user dropdown with search results"""
-        if not self.user_dropdown_list or not self.user_dropdown_card:
-            return
-            
         self.search_results = users
         self.user_dropdown_list.clear_widgets()
         
@@ -337,32 +368,29 @@ class TeamMemberDialog:
             return
         
         # Show dropdown
-        max_height = min(len(users) * dp(48), dp(200))
+        max_height = min(len(users) * dp(48), dp(200))  # Max 200dp height
         self.user_dropdown_card.height = max_height
         
         for user in users:
             user_item = MDListItem(
-                size_hint_y=None,
-                height=dp(48),
+                MDListItemHeadlineText(
+                    text=user['display_text']
+                ),
                 on_release=lambda x, u=user: self.select_user(u)
             )
-            user_item.add_widget(MDListItemHeadlineText(text=user['display_text']))
             self.user_dropdown_list.add_widget(user_item)
     
     def hide_dropdown(self):
         """Hide the user dropdown"""
-        if self.user_dropdown_card and self.user_dropdown_list:
-            self.user_dropdown_card.height = dp(0)
-            self.user_dropdown_list.clear_widgets()
+        self.user_dropdown_card.height = dp(0)
+        self.user_dropdown_list.clear_widgets()
     
     def select_user(self, user):
         """Handle user selection from dropdown"""
         self.selected_user = user
-        if self.email_field:
-            self.email_field.text = user['email']
-        if self.selected_user_label:
-            self.selected_user_label.text = f"Selected: {user['display_text']}"
-            self.selected_user_label.height = dp(30)
+        self.email_field.text = user['email']
+        self.selected_user_label.text = f"Selected: {user['display_text']}"
+        self.selected_user_label.height = dp(30)
         self.hide_dropdown()
     
     def select_role(self, role):
@@ -376,7 +404,7 @@ class TeamMemberDialog:
             if role == self.selected_role:
                 btn.md_bg_color = [0.2, 0.6, 1, 1]  # Blue for selected
             else:
-                btn.md_bg_color = [0.8, 0.8, 0.8, 1]  # Gray for unselected
+                btn.md_bg_color = [0.5, 0.5, 0.5, 0.3]  # Gray for unselected
     
     def load_initial_data(self):
         """Load initial data"""
@@ -431,25 +459,28 @@ class TeamMemberDialog:
     
     def update_members_list(self, members):
         """Update the members list display"""
-        if not self.members_list:
-            return
-            
         self.current_members = members
-        self.members_list.clear_widgets()
+        if self.members_list:
+            self.members_list.clear_widgets()
         
         if not members:
-            empty_item = MDListItem(
+            empty_label = MDLabel(
+                text="No team members yet",
+                theme_text_color="Hint",
                 size_hint_y=None,
-                height=dp(48)
+                height=dp(40),
+                halign="center",
+                font_size="16sp"  # Explicit font size
             )
-            empty_item.add_widget(MDListItemHeadlineText(text="No team members yet"))
-            self.members_list.add_widget(empty_item)
+            if self.members_list:
+                self.members_list.add_widget(empty_label)
             return
         
         for member in members:
             try:
                 member_item = self.create_member_item(member)
-                self.members_list.add_widget(member_item)
+                if self.members_list:
+                    self.members_list.add_widget(member_item)
             except Exception as e:
                 print(f"Error creating member item: {e}")
     
@@ -465,24 +496,28 @@ class TeamMemberDialog:
             if is_creator:
                 item_text += " [Owner]"
             
-            # Create list item
+            # Create base list item
             item = MDListItem(
                 size_hint_y=None,
                 height=dp(48)
             )
             
             # Add user icon
-            item.add_widget(MDListItemLeadingIcon(icon="account"))
+            item.add_widget(MDListItemLeadingIcon(
+                icon="account"
+            ))
             
             # Add headline text
-            item.add_widget(MDListItemHeadlineText(text=item_text))
+            item.add_widget(MDListItemHeadlineText(
+                text=item_text
+            ))
             
             # Add remove button (only if not creator)
             if not is_creator:
                 remove_btn = MDListItemTrailingIcon(
-                    icon="delete",
-                    on_release=lambda x, m=member: self.remove_member(m)
+                    icon="delete"
                 )
+                remove_btn.bind(on_release=lambda x, m=member: self.remove_member(m))
                 item.add_widget(remove_btn)
             
             return item
@@ -494,7 +529,9 @@ class TeamMemberDialog:
                 size_hint_y=None,
                 height=dp(48)
             )
-            fallback_item.add_widget(MDListItemHeadlineText(text="Error loading member"))
+            fallback_item.add_widget(MDListItemHeadlineText(
+                text="Error loading member"
+            ))
             return fallback_item
     
     def add_member(self, *args):
@@ -534,9 +571,8 @@ class TeamMemberDialog:
             if self.email_field:
                 self.email_field.text = ""
             self.selected_user = None
-            if self.selected_user_label:
-                self.selected_user_label.text = ""
-                self.selected_user_label.height = dp(0)
+            self.selected_user_label.text = ""
+            self.selected_user_label.height = dp(0)
             self.hide_dropdown()
             self.load_project_members()  # Refresh the list
     
@@ -574,15 +610,15 @@ class TeamMemberDialog:
     def open(self):
         """Open the dialog"""
         try:
-            print("Attempting to open dialog...")
+            print("Attempting to open dialog...")  # Debug log
             if self.dialog:
                 self.dialog.open()
-                print("Dialog opened successfully")
+                print("Dialog opened successfully")  # Debug log
             else:
-                print("Dialog is None, cannot open")
+                print("Dialog is None, cannot open")  # Debug log
         except Exception as e:
             print(f"Error opening dialog: {e}")
-            print(f"Traceback: {traceback.format_exc()}")
+            print(f"Traceback: {traceback.format_exc()}")  # Print full traceback
     
     def close_dialog(self, *args):
         """Close the dialog"""
@@ -592,7 +628,7 @@ class TeamMemberDialog:
                 Window.unbind(on_resize=self.on_window_resize)
                 
                 # Clear any pending search timer
-                if hasattr(self, 'email_field') and self.email_field and hasattr(self.email_field, 'search_timer') and self.email_field.search_timer:
+                if hasattr(self, 'email_field') and self.email_field and self.email_field.search_timer:
                     self.email_field.search_timer.cancel()
                 
                 # Dismiss dialog
@@ -613,4 +649,4 @@ class TeamMemberDialog:
                 
         except Exception as e:
             print(f"Error closing dialog: {e}")
-            print(f"Traceback: {traceback.format_exc()}") 
+            print(f"Traceback: {traceback.format_exc()}")  # Print full traceback 

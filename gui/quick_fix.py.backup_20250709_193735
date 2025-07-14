@@ -106,7 +106,7 @@ def main():
         print(f"\n📋 Changes made:")
         print(f"  • mode: \"rectangle\" → mode: \"outlined\"")
         print(f"  • mode: \'rectangle\' → mode: \'outlined\'")
-        print(f"  • mode: "outlined" → mode: \"outlined\"")
+        print(f"  • mode: rectangle → mode: \"outlined\"")
         
         print(f"\n💡 Next steps:")
         print(f"1. Test your application: python main.py")

@@ -3,7 +3,7 @@ from kivy.lang import Builder
 from kivymd.app import MDApp
 from utils.toast import toast
 from kivymd.uix.dialog import MDDialog
-from kivymd.uix.button import MDButton
+from kivymd.uix.button import MDButton, MDButtonText
 from kivy.core.window import Window
 from widgets.responsive_layout import ResponsiveHelper
 
@@ -53,49 +53,73 @@ class TopBar(MDBoxLayout):
         if hasattr(self.ids, 'user_name'):
             self.ids.user_name.text = app.user_display_name
     
-    def logout(self):
+    def show_logout_dialog(self):
         """Show logout confirmation dialog"""
         if not self.logout_dialog:
-            self.logout_dialog = MDDialog(
-                title="Confirm Logout",
-                text="Are you sure you want to logout? All unsaved data will be lost.",
-                buttons=[
-                    MDButton(
-                        style="text",
-                        text="CANCEL",
-                        on_release=self._dismiss_logout_dialog
-                    ),
-                    MDButton(
-                        style="elevated",
-                        text="LOGOUT",
-                        on_release=self._confirm_logout
-                    ),
-                ],
+            # Create dialog content
+            from kivymd.uix.boxlayout import MDBoxLayout
+            from kivymd.uix.label import MDLabel
+            
+            content = MDBoxLayout(
+                orientation="vertical",
+                spacing="12dp",
+                size_hint_y=None,
+                height="100dp"
             )
+            
+            content.add_widget(MDLabel(
+                text="Are you sure you want to logout?",
+                theme_text_color="Primary",
+                halign="center"
+            ))
+            
+            # Create buttons
+            cancel_button = MDButton(
+                MDButtonText(text="CANCEL"),
+                style="text",
+                on_release=self.close_logout_dialog
+            )
+            
+            logout_button = MDButton(
+                MDButtonText(text="LOGOUT"),
+                style="elevated",
+                on_release=self.handle_logout
+            )
+            
+            self.logout_dialog = MDDialog(
+                auto_dismiss=False
+            )
+            self.logout_dialog.add_widget(content)
+            
+            # Add buttons to dialog
+            button_layout = MDBoxLayout(
+                orientation="horizontal",
+                spacing="8dp",
+                size_hint_y=None,
+                height="48dp",
+                adaptive_width=True,
+                pos_hint={"center_x": 0.5}
+            )
+            button_layout.add_widget(cancel_button)
+            button_layout.add_widget(logout_button)
+            
+            content.add_widget(button_layout)
+            
         self.logout_dialog.open()
     
-    def _dismiss_logout_dialog(self, instance):
-        """Dismiss the logout confirmation dialog"""
+    def close_logout_dialog(self, *args):
+        """Close the logout dialog"""
         if self.logout_dialog:
             self.logout_dialog.dismiss()
     
-    def _confirm_logout(self, instance):
-        """Handle confirmed logout"""
+    def handle_logout(self, *args):
+        """Handle logout action"""
         if self.logout_dialog:
             self.logout_dialog.dismiss()
-        
         app = MDApp.get_running_app()
-        
-        # Logout from auth service
         app.auth_service.logout()
-        app.user_display_name = "Guest"
-        
-        # Show logout message
-        toast("Logged out successfully")
-        
-        # Navigate back to login screen
-        app.root.transition.direction = "right"
         app.root.current = "login"
+        toast("Logged out successfully")
         
     def on_kv_post(self, base_widget):
         """Called after KV file is loaded"""

@@ -1,0 +1,197 @@
+#:kivy 2.0.0
+#:import dp kivy.metrics.dp
+
+<AutocompleteTextField@MDTextField>:
+    # Custom autocomplete text field
+
+<TeamMembersScreen>:
+    name: "team_members"
+    md_bg_color: app.theme_cls.bg_normal
+    
+    MDBoxLayout:
+        orientation: "vertical"
+        spacing: dp(0)
+        md_bg_color: app.theme_cls.bg_normal
+
+        # Top Bar - Consistent with other screens
+        TopBar:
+            id: top_bar
+            size_hint_y: None
+            height: dp(56)
+
+        # Main content layout
+        MDBoxLayout:
+            orientation: "vertical"
+            padding: dp(16)
+            spacing: dp(12)
+            md_bg_color: app.theme_cls.bg_normal
+
+            # Header Section
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_y: None
+                height: dp(80)
+                spacing: dp(5)
+
+                MDLabel:
+                    text: "Team Members"
+                    theme_text_color: "Primary"
+                    font_style: "Label"
+                    bold: True
+                    size_hint_y: None
+                    height: dp(40)
+                    halign: "center"
+                    font_size: "24sp"
+
+                MDLabel:
+                    text: "Manage your project team members"
+                    theme_text_color: "Secondary"
+                    font_style: "Label"
+                    size_hint_y: None
+                    height: dp(30)
+                    halign: "center"
+                    font_size: "16sp"
+
+            # Project Info
+            MDLabel:
+                id: project_label
+                text: "Loading projects..."
+                theme_text_color: "Secondary"
+                size_hint_y: None
+                height: dp(30)
+                font_style: "Label"
+                font_size: "14sp"
+
+            # Current Members Section
+            MDLabel:
+                text: "Current Team Members"
+                theme_text_color: "Primary"
+                font_style: "Label"
+                bold: True
+                size_hint_y: None
+                height: dp(40)
+                font_size: "18sp"
+
+            MDCard:
+                size_hint_y: None
+                height: dp(200)
+                elevation: 2
+                radius: [dp(8)]
+                md_bg_color: app.theme_cls.surface_color
+                padding: dp(8)
+
+                ScrollView:
+                    id: members_scroll
+                    do_scroll_x: False
+                    
+                    MDList:
+                        id: members_list
+                        spacing: dp(4)
+
+            # Add Member Section
+            MDLabel:
+                text: "Add New Member"
+                theme_text_color: "Primary"
+                font_style: "Label"
+                bold: True
+                size_hint_y: None
+                height: dp(40)
+                font_size: "18sp"
+
+            # Search and Add Member Card
+            MDCard:
+                size_hint_y: None
+                height: dp(280)
+                elevation: 2
+                radius: [dp(8)]
+                md_bg_color: app.theme_cls.surface_color
+                padding: dp(16)
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    spacing: dp(12)
+
+                    # Search Box
+                    AutocompleteTextField:
+                        id: email_field
+                        hint_text: "Search users by name, username, or email"
+                        helper_text: "Start typing to search for users"
+                        helper_text_mode: "on_focus"
+                        size_hint_y: None
+                        height: dp(56)
+
+                    # Dropdown for search results
+                    MDCard:
+                        id: user_dropdown_card
+                        size_hint_y: None
+                        height: dp(0)
+                        elevation: 3
+                        radius: [dp(5)]
+                        md_bg_color: app.theme_cls.surface_color
+                        padding: dp(4)
+
+                        ScrollView:
+                            do_scroll_x: False
+                            MDList:
+                                id: user_dropdown_list
+                                spacing: dp(2)
+
+                    # Selected user display
+                    MDLabel:
+                        id: selected_user_label
+                        text: ""
+                        theme_text_color: "Primary"
+                        size_hint_y: None
+                        height: dp(0)
+                        font_style: "Label"
+                        font_size: "14sp"
+
+                    # Role Selection
+                    MDLabel:
+                        text: "Select Role:"
+                        theme_text_color: "Primary"
+                        size_hint_y: None
+                        height: dp(30)
+                        font_style: "Label"
+                        font_size: "16sp"
+
+                    MDBoxLayout:
+                        id: role_layout
+                        orientation: "horizontal"
+                        spacing: dp(8)
+                        size_hint_y: None
+                        height: dp(40)
+
+                    # Action Buttons
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        spacing: dp(12)
+                        size_hint_y: None
+                        height: dp(48)
+
+                        MDButton:
+                            text: "Add Member"
+                            on_release: root.add_member()
+                            size_hint_x: None
+                            width: dp(120)
+                            style: "elevated"
+                            md_bg_color: app.theme_cls.primary_color
+
+                        MDButton:
+                            text: "Refresh"
+                            on_release: root.refresh_data()
+                            size_hint_x: None
+                            width: dp(100)
+                            style: "elevated"
+                            md_bg_color: app.theme_cls.primary_color
+
+        # Bottom Navigation - Removed back button since TopBar provides navigation
+        MDBoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: dp(56)
+            spacing: dp(12)
+            padding: [0, dp(8)]
+
+            Widget:
+                # Spacer to center any additional buttons if needed 

@@ -1,0 +1,209 @@
+#:import MDButton kivymd.uix.button.MDButton
+#:import MDTabsPrimary kivymd.uix.tab.MDTabsPrimary
+<AnalyticsScreen>:
+    name: 'analytics'
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        spacing: 0  # Increased spacing for tablets
+
+        # Responsive Top Bar - Larger for tablets
+        TopBar:
+            id: top_bar
+            size_hint_y: None
+            height: dp(64)  # Increased from dp(56) for tablets
+
+        # Main content area (scrollable)
+        MDScrollView:
+            id: main_scroll_view
+            size_hint_y: 1
+            bar_width: dp(8)
+            MDBoxLayout:
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+
+                # Header Section
+                MDCard:
+                    size_hint_x: 1
+                    size_hint_y: None
+                    height: dp(90)
+                    elevation: 1
+
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        spacing: dp(16)
+                        padding: dp(20)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        adaptive_height: True
+
+                        # Project Selection Row
+                        MDBoxLayout:
+                            orientation: 'horizontal'
+                            spacing: dp(16)
+                            size_hint_y: None
+                            height: dp(48)
+                            adaptive_height: True
+
+                            MDLabel:
+                                text: "Project:"
+                                size_hint_x: None
+                                width: dp(80)
+                                theme_text_color: "Primary"
+                                font_style: "Body"
+                                font_size: "16sp"
+                                halign: "left"
+                                valign: "center"
+                                text_size: self.size
+
+                            MDButton:
+                                style: "elevated"
+                                id: project_selector
+                                text: "Select Project for Analysis"
+                                size_hint_x: 1
+                                height: dp(48)
+                                font_size: "14sp"
+                                on_release: root.open_project_menu()
+
+                            MDIconButton:
+                                icon: "refresh"
+                                size_hint_x: None
+                                width: dp(48)
+                                height: dp(48)
+                                theme_icon_color: "Primary"
+                                on_release: root.refresh_analysis()
+
+                # Quick Stats Row (outside MDCard)
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: dp(140)
+                    padding: [0, 0, 0, 0]
+
+                    MDScrollView:
+                        id: stats_scroll_view
+                        do_scroll_x: False
+                        do_scroll_y: True
+                        effect_cls: "ScrollEffect"
+                        size_hint_y: None
+                        height: dp(120)
+
+                        MDGridLayout:
+                            id: stats_container
+                            cols: 4
+                            spacing: dp(24)
+                            padding: [0, dp(8)]
+                            size_hint_x: 1
+                            adaptive_height: True
+                            size_hint_y: None
+                            height: self.minimum_height
+
+        # Loading Spinner - Larger for tablets
+        MDCircularProgressIndicator:
+            id: loading_spinner
+            size_hint: None, None
+            size: dp(56), dp(56)  # Larger spinner for tablets
+            pos_hint: {'center_x': .5, 'center_y': .5}
+            active: root.is_loading
+            
+        # Main Analytics Content - Simplified tab approach
+        MDCard:
+            size_hint_y: 1
+            elevation: 1
+            padding: dp(16)
+            
+            MDBoxLayout:
+                orientation: 'vertical'
+                spacing: dp(16)
+                
+                # Tab Selection Buttons
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    spacing: dp(8)
+                    size_hint_y: None
+                    height: dp(48)
+                    
+                    MDButton:
+                        id: auto_detection_tab_btn
+                        text: "Auto-Detection"
+                        style: "elevated"
+                        size_hint_x: 1
+                        height: dp(48)
+                        font_size: "14sp"
+                        on_release: root.switch_to_tab("auto_detection")
+                        
+                    MDButton:
+                        id: descriptive_tab_btn
+                        text: "Descriptive"
+                        style: "elevated"
+                        size_hint_x: 1
+                        height: dp(48)
+                        font_size: "14sp"
+                        on_release: root.switch_to_tab("descriptive")
+                        
+                    MDButton:
+                        id: inferential_tab_btn
+                        text: "Inferential"
+                        style: "elevated"
+                        size_hint_x: 1
+                        height: dp(48)
+                        font_size: "14sp"
+                        on_release: root.switch_to_tab("inferential")
+                        
+                    MDButton:
+                        id: qualitative_tab_btn
+                        text: "Qualitative"
+                        style: "elevated"
+                        size_hint_x: 1
+                        height: dp(48)
+                        font_size: "14sp"
+                        on_release: root.switch_to_tab("qualitative")
+                
+                # Tab Content Area
+                MDBoxLayout:
+                    id: tab_content_area
+                    orientation: 'vertical'
+                    spacing: dp(16)
+                    padding: dp(20)
+                    
+                    MDLabel:
+                        id: tab_content_label
+                        text: "Select a project and analysis type above to begin"
+                        halign: "center"
+                        theme_text_color: "Secondary"
+                        font_style: "Body"
+                        font_size: "16sp"
+
+        # Bottom Action Bar - Tablet optimized
+        MDBoxLayout:
+            orientation: 'horizontal'
+            spacing: dp(20)  # Increased spacing
+            size_hint_y: None
+            height: dp(64)  # Increased height for tablets
+            padding: [dp(20), dp(12)]  # Increased padding
+            
+            MDButton:
+                style: "elevated"
+                text: "Export Results"
+                size_hint_x: 1
+                height: dp(52)  # Tablet-friendly height
+                font_size: "16sp"  # Larger font
+                on_release: root.export_results()
+                disabled: not root.analysis_results
+                
+            MDButton:
+                style: "elevated"
+                text: "Analysis Config"
+                size_hint_x: 1
+                height: dp(52)
+                font_size: "16sp"
+                on_release: root.show_analysis_config()
+                
+            MDIconButton:
+                icon: "help-circle"
+                size_hint_x: None
+                width: dp(52)  # Larger touch target
+                user_font_size: "28sp"  # Larger icon
+                theme_icon_color: "Primary"
+                

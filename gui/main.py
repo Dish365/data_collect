@@ -27,6 +27,7 @@ from screens.form_builder import FormBuilderScreen
 from screens.sync import SyncScreen
 from screens.signup import SignUpScreen
 from screens.responses import ResponsesScreen
+from screens.team_members import TeamMembersScreen
 
 from kivy.modules import inspector
 
@@ -98,6 +99,11 @@ class ResearchCollectorApp(MDApp):
         sm.add_widget(FormBuilderScreen(name='form_builder'))
         sm.add_widget(SyncScreen(name='sync'))
         sm.add_widget(ResponsesScreen(name='responses'))
+        # Create a new dashboard service instance for team members screen
+        from services.dashboard_service import DashboardService
+        team_members_dashboard = DashboardService(self.auth_service, self.db_service)
+        team_members_screen = TeamMembersScreen(dashboard_service=team_members_dashboard, name='team_members')
+        sm.add_widget(team_members_screen)
 
         inspector.create_inspector(Window, sm)
         

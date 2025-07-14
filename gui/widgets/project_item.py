@@ -30,7 +30,7 @@ class ProjectItem(MDCard, EventDispatcher):
             size_hint=(None, None),
             size=self.get_date_circle_size(),
             radius=[self.get_date_circle_radius()],
-            md_bg_color=App.get_running_app().theme_cls.primary_light,
+            md_bg_color=App.get_running_app().theme_cls.primary_color,
             ripple_behavior=False,
             elevation=0
         )
@@ -43,15 +43,19 @@ class ProjectItem(MDCard, EventDispatcher):
             spacing=self.get_date_layout_spacing(),
             pos_hint={'center_x': 0.5, 'center_y': 0.5}
         )
+        
+        # Updated font styles for KivyMD 2.0+
         self.day_label = MDLabel(
             halign='center', 
-            font_style="H6" if not self.is_tablet() else "H5",  # Larger font for tablets
-            theme_text_color="Primary"
+            font_size="24sp" if not self.is_tablet() else "28sp",
+            theme_text_color="Custom",
+            text_color=(1, 1, 1, 1)
         )
         self.month_label = MDLabel(
             halign='center', 
-            font_style="Caption" if not self.is_tablet() else "Body2",  # Larger font for tablets
-            theme_text_color="Primary"
+            font_size="14sp" if not self.is_tablet() else "16sp",
+            theme_text_color="Custom",
+            text_color=(1, 1, 1, 1)
         )
         date_layout.add_widget(self.day_label)
         date_layout.add_widget(self.month_label)
@@ -65,28 +69,28 @@ class ProjectItem(MDCard, EventDispatcher):
             pos_hint={'center_y': 0.5},
             spacing=self.get_info_layout_spacing()
         )
+        
+        # Updated font styles for KivyMD 2.0+
         self.name_label = MDLabel(
             text=self.name, 
-            font_style="Subtitle1" if not self.is_tablet() else "H6",  # Larger font for tablets
+            font_size="16sp" if not self.is_tablet() else "20sp",
             adaptive_height=True,
-            font_size=self.get_name_font_size(),
-            text_size=(None, None),  # Will be set dynamically
+            text_size=(None, None),
             halign='left',
             valign='middle',
-            shorten=True,  # Enable text shortening with ellipses
-            shorten_from='right'  # Shorten from the right side
+            shorten=True,
+            shorten_from='right'
         )
         self.desc_label = MDLabel(
             text=self.description, 
-            font_style="Body2" if not self.is_tablet() else "Body1",  # Larger font for tablets
+            font_size="14sp" if not self.is_tablet() else "16sp",
             theme_text_color="Secondary", 
             adaptive_height=True,
-            font_size=self.get_description_font_size(),
-            text_size=(None, None),  # Will be set dynamically
+            text_size=(None, None),
             halign='left',
             valign='middle',
-            shorten=True,  # Enable text shortening with ellipses
-            shorten_from='right'  # Shorten from the right side
+            shorten=True,
+            shorten_from='right'
         )
         info_layout.add_widget(self.name_label)
         info_layout.add_widget(self.desc_label)
@@ -99,17 +103,16 @@ class ProjectItem(MDCard, EventDispatcher):
             pos_hint={'center_y': 0.5}
         )
 
-        # --- Sync Status Label ---
+        # Updated font style for KivyMD 2.0+
         self.sync_status_label = MDLabel(
             text="Unknown",
-            font_style="Caption" if not self.is_tablet() else "Body2",
+            font_size="12sp" if not self.is_tablet() else "14sp",
             halign="right",
             size_hint=(None, None),
             size=self.get_sync_status_size(),
             pos_hint={'center_y': 0.5},
             theme_text_color="Custom",
-            text_color=(0.5, 0.5, 0.5, 1),
-            font_size=self.get_sync_status_font_size()
+            text_color=(0.5, 0.5, 0.5, 1)
         )
         right_layout.add_widget(self.sync_status_label)
         

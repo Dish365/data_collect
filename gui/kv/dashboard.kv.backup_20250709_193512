@@ -1,14 +1,10 @@
 #:import MDButton kivymd.uix.button.MDButton
-#:import Window kivy.core.window.Window
-
 <DashboardScreen>:
     name: "dashboard"
-    md_bg_color: app.theme_cls.bg_normal
 
     MDBoxLayout:
         orientation: 'vertical'
         size_hint: 1, 1
-        md_bg_color: app.theme_cls.bg_normal
 
         # Responsive Top Bar with refresh button - Unified styling
         MDBoxLayout:
@@ -32,13 +28,11 @@
 
         RelativeLayout:
             size_hint: 1, 1
-            md_bg_color: app.theme_cls.bg_normal
             
             # Main content area
             ScrollView:
                 id: main_scroll_view
                 size_hint: 1, 1
-                md_bg_color: app.theme_cls.bg_normal
                 
                 MDBoxLayout:
                     id: content_layout
@@ -48,7 +42,6 @@
                     adaptive_height: True
                     size_hint_y: None
                     height: self.minimum_height
-                    md_bg_color: app.theme_cls.bg_normal
 
                     MDLabel:
                         text: "Research Dashboard"
@@ -66,7 +59,6 @@
                         size_hint_y: None
                         height: self.minimum_height
                         spacing: dp(16)
-                        md_bg_color: app.theme_cls.bg_normal
                         
                         # Stats will be arranged responsively based on screen size
                         # Portrait: 2x2 grid, Landscape tablet: 4x1 row
@@ -77,7 +69,6 @@
                             height: self.minimum_height
                             spacing: dp(16)
                             cols: 1  # Changed from 2 to 1 for narrow window safety
-                            md_bg_color: app.theme_cls.bg_normal
 
                             StatCard:
                                 id: total_responses_card
@@ -136,7 +127,6 @@
                         size_hint_y: None
                         height: self.minimum_height
                         spacing: dp(16)
-                        md_bg_color: app.theme_cls.bg_normal
                         
                         MDGridLayout:
                             id: actions_grid
@@ -150,7 +140,6 @@
                             # Ensure uniform column widths
                             cols_minimum: {0: dp(120), 1: dp(120), 2: dp(120)}
                             size_hint_x: 1
-                            md_bg_color: app.theme_cls.bg_normal
                             
                             MDButton:
                                 style: "elevated"
@@ -160,8 +149,7 @@
                                 font_size: "16sp"
                                 elevation: 2
                                 md_bg_color: app.theme_cls.primary_color
-                                theme_text_color: "Custom"
-                                text_color: 1, 1, 1, 1
+                                theme_text_color: "Primary"
                                 # Enhanced interactive effects
                                 ripple_scale: 1.2
                                 elevation_press_anim: True
@@ -175,8 +163,7 @@
                                 font_size: "16sp"
                                 elevation: 2
                                 md_bg_color: app.theme_cls.primary_color
-                                theme_text_color: "Custom"
-                                text_color: 1, 1, 1, 1
+                                theme_text_color: "Primary"
                                 # Enhanced interactive effects
                                 ripple_scale: 1.2
                                 elevation_press_anim: True
@@ -190,8 +177,7 @@
                                 font_size: "16sp"
                                 elevation: 2
                                 md_bg_color: app.theme_cls.primary_color
-                                theme_text_color: "Custom"
-                                text_color: 1, 1, 1, 1
+                                theme_text_color: "Primary"
                                 # Enhanced interactive effects
                                 ripple_scale: 1.2
                                 elevation_press_anim: True
@@ -205,8 +191,7 @@
                                 font_size: "16sp"
                                 elevation: 2
                                 md_bg_color: app.theme_cls.primary_color
-                                theme_text_color: "Custom"
-                                text_color: 1, 1, 1, 1
+                                theme_text_color: "Primary"
                                 # Enhanced interactive effects
                                 ripple_scale: 1.2
                                 elevation_press_anim: True
@@ -220,8 +205,7 @@
                                 font_size: "16sp"
                                 elevation: 2
                                 md_bg_color: app.theme_cls.primary_color
-                                theme_text_color: "Custom"
-                                text_color: 1, 1, 1, 1
+                                theme_text_color: "Primary"
                                 # Enhanced interactive effects
                                 ripple_scale: 1.2
                                 elevation_press_anim: True
@@ -235,8 +219,7 @@
                                 font_size: "16sp"
                                 elevation: 2
                                 md_bg_color: app.theme_cls.primary_color
-                                theme_text_color: "Custom"
-                                text_color: 1, 1, 1, 1
+                                theme_text_color: "Primary"
                                 # Enhanced interactive effects
                                 ripple_scale: 1.2
                                 elevation_press_anim: True
@@ -257,7 +240,6 @@
                         adaptive_height: True
                         size_hint_y: None
                         height: self.minimum_height
-                        md_bg_color: app.theme_cls.bg_normal
 
             # Loading spinner
             MDCircularProgressIndicator:
