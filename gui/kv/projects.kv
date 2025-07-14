@@ -3,9 +3,11 @@
 
 <ProjectsScreen>:
     name: "projects"
+    md_bg_color: 1, 1, 1, 1
 
     MDBoxLayout:
         orientation: "vertical"
+        md_bg_color: 1, 1, 1, 1
         spacing: dp(12)
 
         # Responsive TopBar - Larger for tablets
@@ -55,13 +57,11 @@
                                 on_release:
                                     root.manager.transition.direction = "right"
                                     root.manager.current = "dashboard"
-                                theme_icon_color: "Custom"
                                 icon_color: 0, 0, 0, 1
                                 pos_hint: {"center_y": 0.5}
 
                             MDLabel:
                                 text: "Projects"
-                                font_style: "Title"
                                 font_size: "24sp" if Window.width > 600 else "20sp"
                                 pos_hint: {"center_y": 0.5}
                                 size_hint_x: None
@@ -76,25 +76,25 @@
 
                             MDTextField:
                                 id: search_field
-                                hint_text: "Search projects by name..."
+                                mode: "outlined"
                                 size_hint_x: 0.65 if Window.width > 600 else 0.6
                                 height: dp(56) if Window.width > 600 else dp(48)
                                 font_size: "16sp" if Window.width > 600 else "14sp"
                                 pos_hint: {"center_y": 0.5}
-                                mode: "outlined"
                                 on_text: root.search_projects(self.text)
+                                text: ""
+                                MDTextFieldHintText:
+                                    text: "Search projects by name..."
 
                             MDButton:
-                                style: "elevated"
-                                text: "New Project"
-                                on_release: root.open_project_dialog()
+                                on_release: root.create_new_project()
                                 md_bg_color: app.theme_cls.primary_color
-                                text_color: 1, 1, 1, 1
                                 size_hint_x: None
                                 width: dp(140) if Window.width > 600 else dp(120)
                                 height: dp(56) if Window.width > 600 else dp(48)
-                                font_size: "16sp" if Window.width > 600 else "14sp"
                                 pos_hint: {"center_y": 0.5}
+                                MDButtonText:
+                                    text: "New Project"
 
                             MDIconButton:
                                 icon: "refresh"
@@ -120,45 +120,57 @@
                             pos_hint: {"center_y": 0.5}
 
                         MDButton:
-                            style: "elevated"
                             id: filter_all_btn
-                            text: "All Projects"
                             size_hint_x: None
                             width: dp(120) if Window.width > 600 else dp(100)
                             height: dp(48) if Window.width > 600 else dp(40)
                             font_size: "14sp" if Window.width > 600 else "12sp"
                             md_bg_color: app.theme_cls.primary_color
                             on_release: root.filter_projects("all")
+                            MDButtonText:
+                                text: "All Projects"
+                                bold: True
+                                theme_text_color: "Custom"
+                                text_color: 1, 1, 1, 1
 
                         MDButton:
-                            style: "elevated"
                             id: filter_recent_btn
-                            text: "Recent"
                             size_hint_x: None
                             width: dp(100) if Window.width > 600 else dp(80)
                             height: dp(48) if Window.width > 600 else dp(40)
                             font_size: "14sp" if Window.width > 600 else "12sp"
                             on_release: root.filter_projects("recent")
+                            MDButtonText:
+                                text: "Recent"
+                                bold: True
+                                theme_text_color: "Custom"
+                                text_color: 0, 0, 0, 1
 
                         MDButton:
-                            style: "elevated"
                             id: filter_synced_btn
-                            text: "Synced"
                             size_hint_x: None
                             width: dp(100) if Window.width > 600 else dp(80)
                             height: dp(48) if Window.width > 600 else dp(40)
                             font_size: "14sp" if Window.width > 600 else "12sp"
                             on_release: root.filter_projects("synced")
+                            MDButtonText:
+                                text: "Synced"
+                                bold: True
+                                theme_text_color: "Custom"
+                                text_color: 0, 0, 0, 1
 
                         MDButton:
-                            style: "elevated"
                             id: filter_pending_btn
-                            text: "Pending"
                             size_hint_x: None
                             width: dp(100) if Window.width > 600 else dp(80)
                             height: dp(48) if Window.width > 600 else dp(40)
                             font_size: "14sp" if Window.width > 600 else "12sp"
                             on_release: root.filter_projects("pending")
+                            MDButtonText:
+                                text: "Pending"
+                                bold: True
+                                theme_text_color: "Custom"
+                                text_color: 0, 0, 0, 1
 
                         Widget:  # Spacer
                             size_hint_x: 1

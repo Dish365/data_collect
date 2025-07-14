@@ -193,19 +193,18 @@ class BaseFormField(MDCard):
         )
         self.question_number_label = MDLabel(
             text=f"Question {self.question_number}",
-            font_style="Subtitle1",
-            theme_text_color="Primary",
-            bold=True,
+            font_size=values['font_size_main'],
+            halign="left",
             size_hint_x=None,
             width=dp(120),
-            font_size=values['font_size_main']
+            theme_text_color="Primary"
         )
         self.response_type_label = MDLabel(
             text=self.get_response_type_display(),
-            font_style="Caption",
-            theme_text_color="Secondary",
+            font_size=values['font_size_small'],
             halign="right",
-            font_size=values['font_size_small']
+            size_hint_x=1,
+            theme_text_color="Secondary"
         )
         self.header_card.add_widget(self.question_number_label)
         self.header_card.add_widget(self.response_type_label)
@@ -224,12 +223,11 @@ class BaseFormField(MDCard):
         
         self.question_label = MDLabel(
             text="Question Text",
-            font_style="Body1",
-            theme_text_color="Primary",
-            bold=True,
+            font_size=values['font_size_secondary'],
+            halign="left",
             size_hint_y=None,
             height=dp(28),
-            font_size=values['font_size_secondary']
+            theme_text_color="Primary"
         )
         question_section.add_widget(self.question_label)
         
@@ -267,12 +265,11 @@ class BaseFormField(MDCard):
         
         self.response_label = MDLabel(
             text="Response Input",
-            font_style="Body1",
-            theme_text_color="Secondary",
-            bold=True,
+            font_size=values['font_size_secondary'],
+            halign="left",
             size_hint_y=None,
             height=dp(28),
-            font_size=values['font_size_secondary']
+            theme_text_color="Secondary"
         )
         response_section.add_widget(self.response_label)
         self.add_widget(response_section)
@@ -353,13 +350,15 @@ class BaseFormField(MDCard):
         spacer = MDBoxLayout(size_hint_x=1)
         self.delete_container.add_widget(spacer)
         self.delete_button = MDButton(
-            style="elevated",
-            text="Delete Question",
-            md_bg_color=(1, 0.3, 0.3, 1),
             on_release=lambda x: self.parent.remove_widget(self),
             size_hint=(None, None),
             size=(dp(140), values['button_height']),
-            font_size=values['font_size_small']
+            children=[
+                MDButtonText(
+                    text="Delete Question",
+                    bold=True
+                )
+            ]
         )
         self.delete_container.add_widget(self.delete_button)
         self.add_widget(self.delete_container)
@@ -584,11 +583,8 @@ class SingleChoiceField(BaseFormField):
         self.options_label = MDLabel(
             text="Options:",
             size_hint_x=0.4,
-            font_style="Subtitle2",
-            theme_text_color="Primary",
             font_size="14sp",
-            halign="left",
-            valign="middle"
+            halign="left"
         )
         self.add_option_btn = MDButton(
             style="elevated",
@@ -758,11 +754,8 @@ class MultipleChoiceField(BaseFormField):
         self.options_label = MDLabel(
             text="Options:",
             size_hint_x=0.4,
-            font_style="Subtitle2",
-            theme_text_color="Primary",
             font_size="14sp",
-            halign="left",
-            valign="middle"
+            halign="left"
         )
         self.add_option_btn = MDButton(
             style="elevated",
@@ -917,10 +910,8 @@ class RatingScaleField(BaseFormField):
         self.current_value = self.min_value
         self.value_label = MDLabel(
             text=f"Rating: {self.current_value}",
-            theme_text_color="Secondary",
-            font_style="Body1",
-            size_hint_y=None,
-            height=dp(30)
+            font_size="16sp",
+            halign="left"
         )
         self.slider = MDSlider(
             min=self.min_value,
@@ -1220,11 +1211,10 @@ class LocationPickerField(BaseFormField):
         # GPS status/accuracy info
         self.gps_info_label = MDLabel(
             text="",
-            font_style="Caption",
-            theme_text_color="Secondary",
+            font_size="12sp",
             size_hint_y=None,
             height=dp(20),
-            font_size="12sp"
+            halign="left"
         )
         
         self.add_widget(self.location_input)
@@ -1915,11 +1905,10 @@ class FileUploadField(BaseFormField):
         # File type info
         self.info_label = MDLabel(
             text="Supported: PDF, DOC, XLS, TXT, images (max 50MB)",
-            font_style="Caption",
-            theme_text_color="Secondary",
+            font_size="12sp",
             size_hint_y=None,
             height=dp(20),
-            font_size="12sp"
+            halign="left"
         )
         
         self.add_widget(self.file_display)
@@ -2009,7 +1998,6 @@ class DigitalSignatureField(BaseFormField):
             text="Signature Area\n(Tap 'Capture Signature' to sign)",
             halign="center",
             valign="center",
-            theme_text_color="Secondary",
             font_size="14sp"
         )
         self.signature_area.add_widget(self.signature_placeholder)

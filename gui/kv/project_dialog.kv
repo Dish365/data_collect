@@ -1,28 +1,48 @@
 <ProjectDialog>:
-    orientation: 'vertical'
-    spacing: dp(20)
-    padding: dp(24)
-    size_hint_y: None
-    height: dp(220)
+    MDBoxLayout:
+        orientation: 'vertical'
+        spacing: dp(16)
+        padding: dp(24)
 
-    MDTextField:
-        id: name_field
-        hint_text: "Project Name"
-        required: True
-        size_hint_y: None
-        height: dp(56)
-        font_size: "16sp"
-        mode: "outlined"
+        MDLabel:
+            text: "Project Name"
+            font_size: "16sp"
+            bold: True
+            halign: "left"
+            size_hint_y: None
+            height: self.texture_size[1] + dp(8)
 
-    MDTextField:
-        id: desc_field
-        hint_text: "Project Description (Optional)"
-        multiline: True
-        size_hint_y: None
-        height: dp(120)
-        font_size: "16sp"
-        mode: "outlined"
+        MDTextField:
+            id: name_field
+            mode: "outlined"
+            size_hint_y: None
+            height: dp(56)
+            font_size: "16sp"
+            MDTextFieldHintText:
+                text: "Project Name"
 
-    Widget:
-        size_hint_y: None
-        height: dp(8)
+        Widget:
+            size_hint_y: None
+            height: dp(8)
+
+        MDLabel:
+            text: "Project Description (Optional)"
+            font_size: "16sp"
+            bold: True
+            halign: "left"
+            size_hint_y: None
+            height: self.texture_size[1] + dp(8)
+
+        MDTextField:
+            id: desc_field
+            multiline: True
+            mode: "outlined"
+            size_hint_y: None
+            height: dp(120)
+            font_size: "16sp"
+            MDTextFieldHintText:
+                text: "Project Description (Optional)"
+
+        Widget:
+            size_hint_y: None
+            height: dp(8)

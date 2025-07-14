@@ -214,33 +214,24 @@ class AnalyticsScreen(Screen):
     def update_tab_buttons(self):
         """Update the visual state of tab buttons"""
         try:
-            # Get app theme colors
             app = App.get_running_app()
             primary_color = app.theme_cls.primary_color
             surface_color = getattr(app.theme_cls, 'surface_color', (0.98, 0.98, 0.98, 1))
-            
-            # Button IDs and corresponding tab names
             buttons = {
                 'auto_detection_tab_btn': 'auto_detection',
                 'descriptive_tab_btn': 'descriptive',
                 'inferential_tab_btn': 'inferential',
                 'qualitative_tab_btn': 'qualitative'
             }
-            
-            # Update button styles based on current tab
             for btn_id, tab_name in buttons.items():
                 if hasattr(self.ids, btn_id):
                     button = getattr(self.ids, btn_id)
                     if tab_name == self.current_tab:
-                        # Active tab styling
                         button.md_bg_color = primary_color
-                        button.theme_text_color = "Custom"
                         button.text_color = (1, 1, 1, 1)  # White text
                     else:
-                        # Inactive tab styling
                         button.md_bg_color = surface_color
-                        button.theme_text_color = "Primary"
-                        
+                        button.text_color = (0, 0, 0, 1)  # Black text
         except Exception as e:
             print(f"Error updating tab buttons: {e}")
 
@@ -258,7 +249,6 @@ class AnalyticsScreen(Screen):
                 text="Please select a project above to view analysis options",
                 halign="center",
                 theme_text_color="Secondary",
-                font_style="Body",
                 font_size="16sp"
             ))
             return

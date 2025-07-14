@@ -5,8 +5,8 @@ from kivy.lang import Builder
 from kivy.clock import Clock
 from kivy.core.window import Window
 from utils.toast import toast
-from kivymd.uix.dialog import MDDialog
-from kivymd.uix.button import MDButton
+from kivymd.uix.dialog import MDDialog, MDDialogHeadlineText, MDDialogSupportingText, MDDialogButtonContainer, MDDialogContentContainer
+from kivymd.uix.button import MDButton, MDButtonText
 from kivymd.uix.label import MDLabel
 from kivy.app import App
 
@@ -18,6 +18,7 @@ from services.project_service import ProjectService
 
 import threading
 from datetime import datetime
+import traceback
 
 Builder.load_file("kv/projects.kv")
 
@@ -155,18 +156,15 @@ class ProjectsScreen(Screen):
             "synced": "filter_synced_btn",
             "pending": "filter_pending_btn"
         }
-        
         for filter_name, button_id in filter_buttons.items():
             if hasattr(self.ids, button_id):
                 button = getattr(self.ids, button_id)
                 if filter_name == active_filter:
-                    # Active button styling
                     button.md_bg_color = App.get_running_app().theme_cls.primary_color
-                    button.theme_text_color = "Primary"
+                    button.text_color = (1, 1, 1, 1)  # White text
                 else:
-                    # Inactive button styling
                     button.md_bg_color = [0.9, 0.9, 0.9, 1]  # Light gray
-                    button.theme_text_color = "Secondary"
+                    button.text_color = (0, 0, 0, 1)  # Black text
     
     def apply_current_filter(self):
         """Apply the current filter to projects data"""
@@ -470,90 +468,52 @@ class ProjectsScreen(Screen):
 
     def open_project_dialog(self, is_edit=False, existing_data=None):
         try:
-            # Always create a new content widget to avoid state issues
+            print("Opening project dialog...")
             content = ProjectDialog()
-
             if is_edit and existing_data:
                 content.set_data(**existing_data)
                 self.current_project_id = existing_data.get('id')
             else:
-                # This is a new project
                 self.current_project_id = None
-            
-            # Create tablet-optimized dialog buttons
-            save_button = self.create_tablet_dialog_button(
-                text="SAVE",
+
+            # Save button (initially disabled if name is empty)
+            save_button = MDButton(
+                MDButtonText(text="Save"),
+                style="filled",
                 on_release=self.save_project,
                 md_bg_color=App.get_running_app().theme_cls.primary_color,
-                disabled=True,
-                is_primary=True
+                disabled=not bool(content.ids.name_field.text.strip()),
             )
-            cancel_button = self.create_tablet_dialog_button(
-                text="CANCEL",
+            cancel_button = MDButton(
+                MDButtonText(text="Cancel"),
+                style="text",
                 on_release=lambda x: self.dialog.dismiss(),
-                is_primary=False
             )
-            
-            # Enhanced dialog with tablet sizing
-            try:
-                category = ResponsiveHelper.get_screen_size_category()
-                
-                # Set dialog size based on device category
-                if category == "large_tablet":
-                    dialog_width = 0.5  # 50% of screen width
-                elif category == "tablet":
-                    dialog_width = 0.6  # 60% of screen width
-                elif category == "small_tablet":
-                    dialog_width = 0.7  # 70% of screen width
-                else:  # phone
-                    dialog_width = 0.85  # 85% of screen width
-                    
-            except Exception as e:
-                print(f"Error determining dialog width: {e}")
-                dialog_width = 0.8  # Default width
-            
-            self.dialog = MDDialog(
-                title="Edit Project" if is_edit else "New Project",
-                type="custom",
-                content_cls=content,
-                buttons=[save_button, cancel_button],
-                size_hint_x=dialog_width,
-                auto_dismiss=False  # Prevent accidental dismissal
-            )
-            
-            # Enhanced validation with real-time feedback
+
             def on_name_change(instance, value):
                 is_valid = content.validate_name()
                 save_button.disabled = not is_valid
-                
-                # Visual feedback for tablets
-                try:
-                    if category in ["tablet", "large_tablet"]:
-                        # Add subtle visual feedback for tablet users
-                        if is_valid:
-                            save_button.md_bg_color = App.get_running_app().theme_cls.primary_color
-                        else:
-                            save_button.md_bg_color = [0.7, 0.7, 0.7, 1]  # Grayed out
-                except Exception as e:
-                    print(f"Error applying visual feedback: {e}")
-            
-            def on_desc_change(instance, value):
-                content.validate_description()
-            
-            # Bind validation events
-            content.ids.name_field.bind(text=on_name_change)
-            content.ids.desc_field.bind(text=on_desc_change)
-            
-            # Set initial state
-            initial_valid = bool(content.ids.name_field.text.strip())
-            save_button.disabled = not initial_valid
-            
-            self.dialog.open()
+                if is_valid:
+                    save_button.md_bg_color = App.get_running_app().theme_cls.primary_color
+                else:
+                    save_button.md_bg_color = [0.7, 0.7, 0.7, 1]
 
+            content.ids.name_field.bind(text=on_name_change)
+
+            self.dialog = MDDialog(
+                MDDialogHeadlineText(text="Edit Project" if is_edit else "New Project"),
+                MDDialogContentContainer(content),
+                MDDialogButtonContainer(
+                    cancel_button,
+                    save_button
+                ),
+                auto_dismiss=False
+            )
+            self.dialog.open()
         except Exception as e:
-            print(f"Error opening project dialog: {str(e)}")
-            err_msg = str(e)
-            Clock.schedule_once(lambda dt: toast(f"Error opening dialog: {err_msg}"))
+            print("Error opening project dialog:")
+            traceback.print_exc()
+            toast("Error opening project dialog")
 
     def save_project(self, instance):
         """Save project with enhanced validation and tablet UX"""
@@ -713,23 +673,37 @@ class ProjectsScreen(Screen):
             self.show_loader(True, "Deleting project...")
             self._execute_api_call(self.project_service.delete_project, project_id)
             delete_dialog.dismiss()
-
-        delete_dialog = MDDialog(
-            title="Delete Project?",
-            text="This action cannot be undone.",
-            buttons=[
-                MDButton(
-                    style="elevated",
+        cancel_button = MDButton(
+            style="filled",
+            on_release=lambda x: delete_dialog.dismiss(),
+            children=[
+                MDButtonText(
                     text="CANCEL",
-                    on_release=lambda x: delete_dialog.dismiss(),
-                ),
-                MDButton(
-                    style="elevated",
+                    bold=True,
+                    theme_text_color="Custom",
+                    text_color=(1, 1, 1, 1)
+                )
+            ]
+        )
+        delete_button = MDButton(
+            style="filled",
+            on_release=confirm_delete,
+            children=[
+                MDButtonText(
                     text="DELETE",
-                    md_bg_color=(1, 0, 0, 1),
-                    on_release=confirm_delete,
-                ),
-            ],
+                    bold=True,
+                    theme_text_color="Custom",
+                    text_color=(1, 1, 1, 1)
+                )
+            ]
+        )
+        delete_dialog = MDDialog(
+            MDDialogHeadlineText(text="Delete Project?"),
+            MDDialogSupportingText(text="This action cannot be undone."),
+            MDDialogButtonContainer(
+                cancel_button,
+                delete_button
+            )
         )
         delete_dialog.open()
 
@@ -738,5 +712,10 @@ class ProjectsScreen(Screen):
         form_builder_screen = self.manager.get_screen('form_builder')
         form_builder_screen.project_id = project_id
 
-    def create_new_project(self, instance):
-        self.open_project_dialog()
+    def create_new_project(self, instance=None):
+        print("Creating new project...")
+        try:
+            self.open_project_dialog()
+        except Exception as e:
+            print(f"Error creating new project: {e}")
+            toast("Error opening project dialog")

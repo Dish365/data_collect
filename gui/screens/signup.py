@@ -12,7 +12,6 @@ import json
 Builder.load_file("kv/signup.kv")
 
 class SignUpScreen(MDScreen):
-    is_registering = BooleanProperty(False)
     password_visible = BooleanProperty(False)
     confirm_password_visible = BooleanProperty(False)
     
@@ -112,7 +111,7 @@ class SignUpScreen(MDScreen):
             return {}
     
     def signup(self):
-        """Handle signup with spinner and proper validation"""
+        """Handle signup with global loading and proper validation"""
         try:
             # Get form data safely
             form_data = self.get_form_data()
@@ -126,11 +125,11 @@ class SignUpScreen(MDScreen):
                 toast(validation_result['message'])
                 return
             
-            # Start registration process
-            self.is_registering = True
+            # Show global loading
+            app = MDApp.get_running_app()
+            app.show_global_loading("Creating account...")
             
             # Get auth service and register
-            app = MDApp.get_running_app()
             app.auth_service.register(
                 username=form_data['username'],
                 email=form_data['email'],
@@ -145,7 +144,8 @@ class SignUpScreen(MDScreen):
             
         except Exception as e:
             print(f"Error during signup: {e}")
-            self.is_registering = False
+            app = MDApp.get_running_app()
+            app.hide_global_loading()
             toast("An error occurred during registration. Please try again.")
     
     def _validate_form(self, username, first_name, last_name, email, institution, password, confirm_password):
@@ -217,11 +217,11 @@ class SignUpScreen(MDScreen):
     def _on_registration_complete(self, result):
         """Handle registration completion"""
         try:
-            # Stop spinner
-            self.is_registering = False
+            # Hide global loading
+            app = MDApp.get_running_app()
+            app.hide_global_loading()
             
             if result.get('success'):
-                app = MDApp.get_running_app()
                 data = result.get('data', {})
                 token = data.get('token')
                 user = data.get('user')
@@ -293,13 +293,12 @@ class SignUpScreen(MDScreen):
         except Exception as e:
             print(f"Error navigating to login: {e}")
     
-    def on_enter(self):
-        """Called when screen is entered"""
+        def on_enter(self):
+            """Called when screen is entered"""
         try:
             # Clear previous input and errors to show placeholders
             self.clear_all_fields()
-                
-            self.is_registering = False
+            
             self.password_visible = False
             self.confirm_password_visible = False
             

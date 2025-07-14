@@ -1,5 +1,6 @@
 #:import MDButton kivymd.uix.button.MDButton
 <ResponsesScreen>:
+    md_bg_color: 1, 1, 1, 1
     name: "responses"
 
     MDBoxLayout:
@@ -47,22 +48,19 @@
                             MDLabel:
                                 id: total_respondents_label
                                 text: "Total Respondents: Loading..."
-                                font_style: "Body"
-                                font_size: "18sp"  # Larger font for tablets
+                                font_size: "18sp"
                                 size_hint_x: 0.33
                                 
                             MDLabel:
                                 id: total_responses_label
                                 text: "Total Responses: Loading..."
-                                font_style: "Body"
-                                font_size: "18sp"  # Larger font for tablets
+                                font_size: "18sp"
                                 size_hint_x: 0.33
                                 
                             MDLabel:
                                 id: avg_responses_label
                                 text: "Avg per Respondent: Loading..."
-                                font_style: "Body"
-                                font_size: "18sp"  # Larger font for tablets
+                                font_size: "18sp"
                                 size_hint_x: 0.34
 
                         # Controls Row - Tablet optimized with larger touch targets
@@ -91,8 +89,7 @@
 
                                 MDLabel:
                                     text: "Survey Responses"
-                                    font_style: "Label"
-                                    font_size: "22sp"  # Larger font for tablets
+                                    font_size: "22sp"
                                     pos_hint: {"center_y": 0.5}
                                     size_hint_x: None
                                     width: dp(200)  # Slightly wider
@@ -106,13 +103,15 @@
 
                                 MDTextField:
                                     id: search_field
-                                    hint_text: "Search by ID, name, or project..."
+                                    mode: "outlined"
                                     size_hint_x: 0.8
                                     height: dp(52)  # Tablet-friendly height
                                     font_size: "16sp"  # Larger font
                                     pos_hint: {"center_y": 0.5}
-                                    mode: "outlined"
                                     on_text: root.search_respondents(self.text)
+                                    text: ""
+                                    MDTextFieldHintText:
+                                        text: "Search by ID, name, or project..."
 
                                 MDIconButton:
                                     icon: "refresh"
@@ -131,7 +130,6 @@
                             height: dp(52)  # Tablet-friendly height
                             
                             MDButton:
-                                style: "elevated"
                                 text: "Export Selected"
                                 size_hint_x: None
                                 width: dp(140)
@@ -140,13 +138,11 @@
                                 disabled: True
                                 
                             MDButton:
-                                style: "elevated"
                                 text: "Delete Selected"
                                 size_hint_x: None
                                 width: dp(140)
                                 height: dp(44)
                                 font_size: "16sp"
-                                theme_bg_color: "Custom"
                                 md_bg_color: (0.8, 0.2, 0.2, 1)
                                 disabled: True
                                 
@@ -183,50 +179,38 @@
                         MDLabel:
                             text: "Respondent ID"
                             size_hint_x: 0.18
-                            font_style: "Body"
                             font_size: "16sp"  # Larger font for tablets
                             halign: "left"
-                            theme_text_color: "Primary"
                             
                         MDLabel:
                             text: "Name"
                             size_hint_x: 0.18
-                            font_style: "Body"
                             font_size: "16sp"
                             halign: "left"
-                            theme_text_color: "Primary"
                             
                         MDLabel:
                             text: "Project"
                             size_hint_x: 0.18
-                            font_style: "Body"
                             font_size: "16sp"
                             halign: "left"
-                            theme_text_color: "Primary"
                             
                         MDLabel:
                             text: "Responses"
                             size_hint_x: 0.1
-                            font_style: "Body"
                             font_size: "16sp"
                             halign: "center"
-                            theme_text_color: "Primary"
                             
                         MDLabel:
                             text: "Last Response"
                             size_hint_x: 0.18
-                            font_style: "Body"
                             font_size: "16sp"
                             halign: "center"
-                            theme_text_color: "Primary"
                             
                         MDLabel:
                             text: "Actions"
                             size_hint_x: 0.18
-                            font_style: "Body"
                             font_size: "16sp"
                             halign: "center"
-                            theme_text_color: "Primary"
 
                 # Scrollable content area - Enhanced for tablets
                 MDScrollView:

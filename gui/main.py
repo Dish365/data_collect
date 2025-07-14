@@ -15,6 +15,7 @@ from kivymd.app import MDApp
 from kivy.properties import StringProperty
 from kivy.clock import Clock
 from kivy.metrics import dp
+from widgets.loading_overlay import LoadingOverlay
 
 
 # Import screens
@@ -38,6 +39,7 @@ from services.form_service import FormService
 
 class ResearchCollectorApp(MDApp):
     user_display_name = StringProperty("Guest")
+    global_loading = None
 
     def build(self):
         # Modern, sleek theme configuration for KivyMD 2.0
@@ -57,6 +59,7 @@ class ResearchCollectorApp(MDApp):
         # Custom modern color scheme using hex colors
         self.theme_cls.primary_color = "#1976D2"  # Modern blue
         self.theme_cls.accent_color = "#00E5FF"   # Cyan accent
+        self.theme_cls.my_blue = (0, 0.6, 1, 1)   # Custom blue for global use
         
         # Modern background colors
         try:
@@ -98,6 +101,9 @@ class ResearchCollectorApp(MDApp):
         sm.add_widget(FormBuilderScreen(name='form_builder'))
         sm.add_widget(SyncScreen(name='sync'))
         sm.add_widget(ResponsesScreen(name='responses'))
+
+        # Initialize global loading overlay
+        self.global_loading = LoadingOverlay()
 
         inspector.create_inspector(Window, sm)
         
@@ -342,6 +348,22 @@ class ResearchCollectorApp(MDApp):
                 self.user_display_name = "User"
         else:
             self.user_display_name = "Guest"
+    
+    def show_global_loading(self, message="Loading..."):
+        """Show the global loading overlay"""
+        try:
+            if self.global_loading:
+                self.global_loading.show(message)
+        except Exception as e:
+            print(f"Error showing global loading: {e}")
+    
+    def hide_global_loading(self):
+        """Hide the global loading overlay"""
+        try:
+            if self.global_loading:
+                self.global_loading.hide()
+        except Exception as e:
+            print(f"Error hiding global loading: {e}")
 
     def on_pause(self):
         # Handle app pause (Android)

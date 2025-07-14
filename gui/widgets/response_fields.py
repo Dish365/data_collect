@@ -155,11 +155,11 @@ class TextResponseField(BaseResponseField):
         
         self.text_input = MDTextField(
             hint_text=self.hint_text,
+            mode="outlined",
             multiline=self.multiline,
             size_hint_y=None,
             height=values['input_height'],
-            font_size=values['font_size_secondary'],
-            mode="outlined"
+            font_size=values['font_size_secondary']
         )
         self.text_input.bind(text=self._on_text_change)
         self.add_widget(self.text_input)
@@ -200,11 +200,11 @@ class NumericResponseField(BaseResponseField):
         
         self.numeric_input = MDTextField(
             hint_text=self.hint_text,
+            mode="outlined",
             input_filter=None,  # We'll do our own filtering
             size_hint_y=None,
             height=values['input_height'],
-            font_size=values['font_size_secondary'],
-            mode="outlined"
+            font_size=values['font_size_secondary']
         )
         # Override insert_text for strict filtering
         if self.decimal:
@@ -331,8 +331,7 @@ class ChoiceResponseField(BaseResponseField):
             label = MDLabel(
                 text=option,
                 font_size=values['font_size_secondary'],
-                theme_text_color="Primary",
-                valign='middle'
+                halign='left',
             )
             checkbox.bind(active=self.on_option_selected)
             self.checkboxes.append(checkbox)
@@ -416,8 +415,7 @@ class ScaleResponseField(BaseResponseField):
         self.value_label = MDLabel(
             text=str(self.current_value),
             halign='center',
-            font_size=values['font_size_main'],
-            bold=True
+            font_size=values['font_size_main']
         )
         
         # Slider
@@ -439,12 +437,12 @@ class ScaleResponseField(BaseResponseField):
         min_label = MDLabel(
             text=str(self.min_value),
             font_size=values['font_size_small'],
-            theme_text_color="Secondary"
+            halign='left'
         )
         max_label = MDLabel(
             text=str(self.max_value),
             font_size=values['font_size_small'],
-            theme_text_color="Secondary"
+            halign='right'
         )
         
         labels_container.add_widget(min_label)
@@ -508,7 +506,7 @@ class DateResponseField(BaseResponseField):
         self.date_label = MDLabel(
             text="Select date",
             font_size=values['font_size_secondary'],
-            theme_text_color="Secondary"
+            halign='left'
         )
         
         self.date_button = MDButton(
@@ -594,7 +592,7 @@ class DateTimeResponseField(BaseResponseField):
         self.date_label = MDLabel(
             text="Select date",
             font_size=values['font_size_secondary'],
-            theme_text_color="Secondary"
+            halign='left'
         )
         
         self.date_button = MDButton(
@@ -620,7 +618,7 @@ class DateTimeResponseField(BaseResponseField):
         self.time_label = MDLabel(
             text="Select time",
             font_size=values['font_size_secondary'],
-            theme_text_color="Secondary"
+            halign='left'
         )
         
         self.time_button = MDButton(
@@ -735,7 +733,7 @@ class FileResponseField(BaseResponseField):
         self.file_label = MDLabel(
             text="No file selected",
             font_size=values['font_size_secondary'],
-            theme_text_color="Secondary"
+            halign='left'
         )
         
         # Buttons container

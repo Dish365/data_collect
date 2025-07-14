@@ -7,11 +7,11 @@ from kivy.core.window import Window
 from kivy.clock import Clock
 from widgets.forgot_password_popup import ForgotPasswordPopup
 from widgets.responsive_layout import ResponsiveHelper
+from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
 
 Builder.load_file("kv/login.kv")
 
 class LoginScreen(MDScreen):
-    is_authenticating = BooleanProperty(False)
     password_visible = BooleanProperty(False)
     
     def __init__(self, **kwargs):
@@ -87,7 +87,7 @@ class LoginScreen(MDScreen):
             print("Error updating password field:", e)
     
     def login(self):
-        """Handle login with spinner and proper error handling"""
+        """Handle login with global loading and proper error handling"""
         try:
             user = self.ids.username.text.strip()
             pwd = self.ids.password.text.strip()
@@ -95,31 +95,53 @@ class LoginScreen(MDScreen):
             # Validate input
             is_valid, error_message = self.validate_input(user, pwd)
             if not is_valid:
-                toast(error_message)
+                MDSnackbar(
+                    MDSnackbarText(text=error_message),
+                    y=24,
+                    pos_hint={"center_x": 0.5},
+                    size_hint_x=0.8,
+                    md_bg_color="#F44336",  # Red for error
+                    duration=2.5,
+                ).open()
                 return
             
-            # Start authentication process
-            self.is_authenticating = True
+            # Show global loading
+            app = MDApp.get_running_app()
+            app.show_global_loading("Authenticating...")
             
             # Get auth service and authenticate
-            app = MDApp.get_running_app()
             app.auth_service.authenticate(user, pwd, self._on_auth_complete)
             
         except Exception as e:
             print(f"Error during login: {e}")
-            self.is_authenticating = False
-            toast("An error occurred during login. Please try again.")
+            app = MDApp.get_running_app()
+            app.hide_global_loading()
+            MDSnackbar(
+                MDSnackbarText(text="An error occurred during login. Please try again."),
+                y=24,
+                pos_hint={"center_x": 0.5},
+                size_hint_x=0.8,
+                md_bg_color="#F44336",  # Red for error
+                duration=2.5,
+            ).open()
     
     def _on_auth_complete(self, result):
         """Handle authentication completion"""
         try:
-            # Stop spinner
-            self.is_authenticating = False
+            # Hide global loading
+            app = MDApp.get_running_app()
+            app.hide_global_loading()
             
             if result.get('success'):
                 # Authentication successful
-                toast("Login successful!")
-                app = MDApp.get_running_app()
+                MDSnackbar(
+                    MDSnackbarText(text="Login successful!"),
+                    y=24,
+                    pos_hint={"center_x": 0.5},
+                    size_hint_x=0.8,
+                    md_bg_color="#4CAF50",  # Green for success
+                    duration=2.5,
+                ).open()
                 
                 # Use the new login handler that properly sets up user context
                 app.handle_successful_login()
@@ -130,22 +152,72 @@ class LoginScreen(MDScreen):
                 
                 # Show appropriate error message
                 if error_type == 'invalid_credentials':
-                    toast("Invalid username or password")
+                    MDSnackbar(
+                        MDSnackbarText(text="Invalid username or password"),
+                        y=24,
+                        pos_hint={"center_x": 0.5},
+                        size_hint_x=0.8,
+                        md_bg_color="#F44336",  # Red for error
+                        duration=2.5,
+                    ).open()
                 elif error_type == 'network_unavailable':
-                    toast("No network connection. Please check your internet connection.")
+                    MDSnackbar(
+                        MDSnackbarText(text="No network connection. Please check your internet connection."),
+                        y=24,
+                        pos_hint={"center_x": 0.5},
+                        size_hint_x=0.8,
+                        md_bg_color="#F44336",  # Red for error
+                        duration=2.5,
+                    ).open()
                 elif error_type == 'timeout':
-                    toast("Request timed out. Please try again.")
+                    MDSnackbar(
+                        MDSnackbarText(text="Request timed out. Please try again."),
+                        y=24,
+                        pos_hint={"center_x": 0.5},
+                        size_hint_x=0.8,
+                        md_bg_color="#F44336",  # Red for error
+                        duration=2.5,
+                    ).open()
                 elif error_type == 'connection_error':
-                    toast("Connection failed. Please check your internet connection.")
+                    MDSnackbar(
+                        MDSnackbarText(text="Connection failed. Please check your internet connection."),
+                        y=24,
+                        pos_hint={"center_x": 0.5},
+                        size_hint_x=0.8,
+                        md_bg_color="#F44336",  # Red for error
+                        duration=2.5,
+                    ).open()
                 elif error_type == 'server_error':
-                    toast(f"Server error: {message}")
+                    MDSnackbar(
+                        MDSnackbarText(text=f"Server error: {message}"),
+                        y=24,
+                        pos_hint={"center_x": 0.5},
+                        size_hint_x=0.8,
+                        md_bg_color="#F44336",  # Red for error
+                        duration=2.5,
+                    ).open()
                 else:
-                    toast(f"Login failed: {message}")
+                    MDSnackbar(
+                        MDSnackbarText(text=f"Login failed: {message}"),
+                        y=24,
+                        pos_hint={"center_x": 0.5},
+                        size_hint_x=0.8,
+                        md_bg_color="#F44336",  # Red for error
+                        duration=2.5,
+                    ).open()
                     
         except Exception as e:
             print(f"Error handling auth completion: {e}")
-            self.is_authenticating = False
-            toast("An error occurred. Please try again.")
+            app = MDApp.get_running_app()
+            app.hide_global_loading()
+            MDSnackbar(
+                MDSnackbarText(text="An error occurred. Please try again."),
+                y=24,
+                pos_hint={"center_x": 0.5},
+                size_hint_x=0.8,
+                md_bg_color="#F44336",  # Red for error
+                duration=2.5,
+            ).open()
     
     def on_signup(self):
         """Navigate to signup screen"""
@@ -172,7 +244,6 @@ class LoginScreen(MDScreen):
             # Clear previous input and errors to show placeholders
             self.clear_all_fields()
             
-            self.is_authenticating = False
             self.password_visible = False
             
             # Update responsive elements with slight delay

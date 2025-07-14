@@ -22,14 +22,12 @@
                 # Header
                 MDLabel:
                     text: "Pending Sync Items"
-                    font_style: "Title"
                     size_hint_y: None
                     height: self.texture_size[1] + dp(10)
                     halign: "left"
 
                 # Sync All Button
                 MDButton:
-                    style: "elevated"
                     id: sync_all_button
                     text: "Sync All Pending Items"
                     size_hint_x: 1
@@ -67,7 +65,6 @@
                 # Pending Items List
                 MDLabel:
                     text: "Pending Items"
-                    font_style: "Body"
                     halign: "left"
                     size_hint_y: None
                     height: self.texture_size[1] + dp(10)

@@ -3,11 +3,16 @@ from kivy.lang import Builder
 from kivy.metrics import dp
 from kivy.clock import Clock
 
-Builder.load_file("kv/project_dialog.kv")
+try:
+    Builder.load_file("kv/project_dialog.kv")
+    print("ProjectDialog KV file loaded successfully")
+except Exception as e:
+    print(f"Error loading ProjectDialog KV file: {e}")
 
 class ProjectDialog(MDBoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        print("ProjectDialog initialized")
         
         # Apply responsive sizing after initialization
         Clock.schedule_once(self.apply_responsive_sizing, 0.1)

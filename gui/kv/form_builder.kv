@@ -1,5 +1,6 @@
 #:import MDButton kivymd.uix.button.MDButton
 <FormBuilderScreen>:
+    md_bg_color: 1, 1, 1, 1
     FloatLayout:
         MDBoxLayout:
             orientation: 'vertical'
@@ -35,8 +36,6 @@
 
                     MDLabel:
                         text: "Project:"
-                        font_style: "Body"
-                        theme_text_color: "Primary"
                         font_size: "16sp"
                         size_hint_x: None
                         width: dp(80)
@@ -57,8 +56,6 @@
 
                     MDLabel:
                         text: "Build professional forms with customizable question types"
-                        font_style: "Body"
-                        theme_text_color: "Secondary"
                         font_size: "14sp"
 
             # Main Content Area - Properly sized to fill available space
@@ -86,17 +83,12 @@
 
                         MDLabel:
                             text: "Question Types"
-                            font_style: "Label"
-                            bold: True
-                            theme_text_color: "Primary"
                             font_size: "18sp"
                             size_hint_y: None
                             height: dp(24)
 
                         MDLabel:
                             text: "Choose question types to build your form"
-                            font_style: "Label"
-                            theme_text_color: "Secondary"
                             font_size: "12sp"
                             size_hint_y: None
                             height: dp(18)
@@ -138,15 +130,10 @@
 
                                     MDLabel:
                                         text: "Text Responses"
-                                        font_style: "Body"
-                                        bold: True
-                                        theme_text_color: "Primary"
-                                        font_size: "16sp"  # Larger font for tablets
+                                        font_size: "16sp"
 
                                 # Text Response Buttons - Tablet optimized
                                 MDButton:
-                                    style: "elevated"
-                                    text: "Short Text"
                                     on_release: root.add_question('text_short')
                                     size_hint_y: None
                                     height: dp(48)  # Tablet-friendly touch target
@@ -155,8 +142,6 @@
                                     elevation: 1
 
                                 MDButton:
-                                    style: "elevated"
-                                    text: "Long Text"
                                     on_release: root.add_question('text_long')
                                     size_hint_y: None
                                     height: dp(48)  # Tablet-friendly touch target
@@ -186,31 +171,26 @@
 
                                     MDLabel:
                                         text: "Numeric Responses"
-                                        font_style: "Body"
-                                        bold: True
-                                        theme_text_color: "Primary"
-                                        font_size: "16sp"  # Larger font for tablets
+                                        font_size: "16sp"
 
                                 # Numeric Response Buttons - Tablet optimized
                                 MDButton:
-                                    style: "elevated"
-                                    text: "Number (Integer)"
                                     on_release: root.add_question('numeric_integer')
                                     size_hint_y: None
                                     height: dp(48)  # Tablet-friendly touch target
                                     md_bg_color: 1, 0.6, 0.2, 1
-                                    font_size: "15sp"  # Larger font for tablets
                                     elevation: 1
+                                    MDButtonText:
+                                        text: "Number (Integer)"
 
                                 MDButton:
-                                    style: "elevated"
-                                    text: "Number (Decimal)"
                                     on_release: root.add_question('numeric_decimal')
                                     size_hint_y: None
                                     height: dp(48)  # Tablet-friendly touch target
                                     md_bg_color: 1, 0.6, 0.2, 1
-                                    font_size: "15sp"  # Larger font for tablets
                                     elevation: 1
+                                    MDButtonText:
+                                        text: "Number (Decimal)"
 
                             # CHOICE RESPONSES SECTION
                             MDBoxLayout:
@@ -234,15 +214,10 @@
 
                                     MDLabel:
                                         text: "Choice Responses"
-                                        font_style: "Body"
-                                        bold: True
-                                        theme_text_color: "Primary"
-                                        font_size: "15sp"  # Smaller font
+                                        font_size: "15sp"
 
                                 # Choice Response Buttons
                                 MDButton:
-                                    style: "elevated"
-                                    text: "Single Choice"
                                     on_release: root.add_question('choice_single')
                                     size_hint_y: None
                                     height: dp(36)
@@ -251,8 +226,6 @@
                                     elevation: 1
 
                                 MDButton:
-                                    style: "elevated"
-                                    text: "Multiple Choice"
                                     on_release: root.add_question('choice_multiple')
                                     size_hint_y: None
                                     height: dp(36)
@@ -289,8 +262,6 @@
 
                                 # Date & Time Buttons
                                 MDButton:
-                                    style: "elevated"
-                                    text: "Date"
                                     on_release: root.add_question('date')
                                     size_hint_y: None
                                     height: dp(36)
@@ -299,8 +270,6 @@
                                     elevation: 1
 
                                 MDButton:
-                                    style: "elevated"
-                                    text: "Date & Time"
                                     on_release: root.add_question('datetime')
                                     size_hint_y: None
                                     height: dp(36)
@@ -337,8 +306,6 @@
 
                                 # Location Buttons
                                 MDButton:
-                                    style: "elevated"
-                                    text: "GPS Location"
                                     on_release: root.add_question('geopoint')
                                     size_hint_y: None
                                     height: dp(36)
@@ -347,8 +314,6 @@
                                     elevation: 1
 
                                 MDButton:
-                                    style: "elevated"
-                                    text: "GPS Area"
                                     on_release: root.add_question('geoshape')
                                     size_hint_y: None
                                     height: dp(36)
@@ -385,44 +350,40 @@
 
                                 # Media Buttons
                                 MDButton:
-                                    style: "elevated"
-                                    text: "Photo/Image"
                                     on_release: root.add_question('image')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.2, 0.8, 0.8, 1
-                                    font_size: "13sp"
                                     elevation: 1
+                                    MDButtonText:
+                                        text: "Photo/Image"
 
                                 MDButton:
-                                    style: "elevated"
-                                    text: "Audio Recording"
                                     on_release: root.add_question('audio')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.2, 0.8, 0.8, 1
-                                    font_size: "13sp"
                                     elevation: 1
+                                    MDButtonText:
+                                        text: "Audio Recording"
 
                                 MDButton:
-                                    style: "elevated"
-                                    text: "Video Recording"
                                     on_release: root.add_question('video')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.2, 0.8, 0.8, 1
-                                    font_size: "13sp"
                                     elevation: 1
+                                    MDButtonText:
+                                        text: "Video Recording"
 
                                 MDButton:
-                                    style: "elevated"
-                                    text: "File Upload"
                                     on_release: root.add_question('file')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.2, 0.8, 0.8, 1
-                                    font_size: "13sp"
                                     elevation: 1
+                                    MDButtonText:
+                                        text: "File Upload"
 
                             # SPECIAL SECTION
                             MDBoxLayout:
@@ -453,34 +414,31 @@
 
                                 # Special Buttons
                                 MDButton:
-                                    style: "elevated"
-                                    text: "Digital Signature"
                                     on_release: root.add_question('signature')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.4, 0.4, 0.4, 1
-                                    font_size: "13sp"
                                     elevation: 1
+                                    MDButtonText:
+                                        text: "Digital Signature"
 
                                 MDButton:
-                                    style: "elevated"
-                                    text: "Barcode/QR Code"
                                     on_release: root.add_question('barcode')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.4, 0.4, 0.4, 1
-                                    font_size: "13sp"
                                     elevation: 1
+                                    MDButtonText:
+                                        text: "Barcode/QR Code"
 
                                 MDButton:
-                                    style: "elevated"
-                                    text: "Rating Scale"
                                     on_release: root.add_question('scale_rating')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.4, 0.4, 0.4, 1
-                                    font_size: "13sp"
                                     elevation: 1
+                                    MDButtonText:
+                                        text: "Rating Scale"
 
                 # Right Panel - Form Canvas
                 MDCard:
@@ -577,26 +535,18 @@
                     size_hint_x: 1
 
                 MDButton:
-                    style: "elevated"
                     text: "Save Form"
-                    icon: "content-save"
-                    md_bg_color: 0.27, 0.65, 0.27, 1
-                    font_size: "14sp"
+                    on_release: root.save_form()
                     size_hint: None, None
                     size: dp(120), dp(40)
                     elevation: 2
-                    on_release: root.save_form()
 
                 MDButton:
-                    style: "elevated"
                     text: "Preview"
-                    icon: "eye"
-                    md_bg_color: 0.4, 0.4, 0.9, 1
-                    font_size: "14sp"
+                    on_release: root.preview_questions()
                     size_hint: None, None
                     size: dp(100), dp(40)
                     elevation: 2
-                    on_release: root.preview_questions()
 
                 Widget:
                     size_hint_x: 1

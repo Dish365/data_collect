@@ -4,7 +4,7 @@ from widgets.form_fields import create_form_field
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDButton
 from kivymd.uix.label import MDLabel
-from kivymd.uix.dialog import MDDialog
+from kivymd.uix.dialog import MDDialog, MDDialogHeadlineText, MDDialogButtonContainer
 from kivy.clock import Clock
 from kivy.properties import StringProperty, ListProperty
 from kivy.app import App
@@ -207,14 +207,10 @@ class FormBuilderScreen(Screen):
             
             help_label = MDLabel(
                 text="No projects found!\n\nTo create forms, you need to have at least one project.\nGo to the Projects page to create a new project first.",
-                halign="center",
-                theme_text_color="Secondary",
-                size_hint_y=None,
-                height=dp(120)
+                halign="center"
             )
             
             go_to_projects_btn = MDButton(
-        style="elevated",
                 text="Go to Projects",
                 size_hint=(None, None),
                 size=(dp(150), dp(40)),
@@ -665,13 +661,22 @@ class FormBuilderScreen(Screen):
                 preview_layout.add_widget(question_card)
 
         dialog = MDDialog(
-            title="Form Preview",
-            type="custom",
-            content_cls=preview_layout,
-            buttons=[
+            MDDialogHeadlineText(text="Form Preview"),
+            preview_layout,
+            MDDialogButtonContainer(
                 MDButton(
-        style="elevated",text="Close", on_release=lambda x: dialog.dismiss())
-            ],
+                    style="filled",
+                    on_release=lambda x: dialog.dismiss(),
+                    children=[
+                        MDButtonText(
+                            text="Close",
+                            bold=True,
+                            theme_text_color="Custom",
+                            text_color=(1, 1, 1, 1)
+                        )
+                    ]
+                )
+            ),
             auto_dismiss=True,
         )
         dialog.open()

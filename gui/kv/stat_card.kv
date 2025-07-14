@@ -33,29 +33,27 @@
 
             # Value label (main number)
             MDLabel:
+                id: value_label
                 text: root.value
-                font_style: "Label"
-                bold: True
-                adaptive_height: True
+                font_size: "24sp"
+                halign: "center"
                 size_hint_y: None
-                height: self.texture_size[1]
-                theme_text_color: "Primary"
+                height: dp(32)
                 
             # Title label
             MDLabel:
+                id: title_label
                 text: root.title
-                font_style: "Body"
-                adaptive_height: True
+                font_size: "16sp"
+                halign: "center"
                 size_hint_y: None
-                height: self.texture_size[1]
-                theme_text_color: "Secondary"
+                height: dp(24)
                 
             # Note label (additional info)
             MDLabel:
-                text: root.note
-                font_style: "Label"
-                adaptive_height: True
+                id: subtitle_label
+                text: root.subtitle
+                font_size: "12sp"
+                halign: "center"
                 size_hint_y: None
-                height: self.texture_size[1] if self.text else 0
-                theme_text_color: "Hint"
-                opacity: 1 if self.text else 0 
+                height: dp(16) 

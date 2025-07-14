@@ -17,6 +17,7 @@ class StatCard(MDCard):
     value = StringProperty("0")
     icon = StringProperty("chart-line")
     note = StringProperty("")  # Add note property for KV file
+    subtitle = StringProperty("")  # Add subtitle property to fix AttributeError
     
     def __init__(self, title="", value="0", icon="chart-line", note="", **kwargs):
         # Set properties before calling super().__init__

@@ -1,11 +1,11 @@
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.lang import Builder
 from kivymd.app import MDApp
-from utils.toast import toast
-from kivymd.uix.dialog import MDDialog
-from kivymd.uix.button import MDButton
+from kivymd.uix.dialog import MDDialog, MDDialogHeadlineText, MDDialogSupportingText, MDDialogButtonContainer
+from kivymd.uix.button import MDButton, MDButtonText
 from kivy.core.window import Window
 from widgets.responsive_layout import ResponsiveHelper
+from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
 
 Builder.load_file("kv/topbar.kv")
 
@@ -56,21 +56,45 @@ class TopBar(MDBoxLayout):
     def logout(self):
         """Show logout confirmation dialog"""
         if not self.logout_dialog:
+            from kivy.uix.widget import Widget
+            cancel_button = MDButton(
+                MDButtonText(
+                    text="Cancel",
+                    bold=True,
+                    theme_text_color="Custom",
+                    text_color=(1, 1, 1, 1)
+                ),
+                style="filled",
+                on_release=self._dismiss_logout_dialog,
+                md_bg_color=(0.4, 0.4, 0.8, 1),
+            )
+            logout_button = MDButton(
+                MDButtonText(
+                    text="Yes",
+                    bold=True,
+                    theme_text_color="Custom",
+                    text_color=(1, 1, 1, 1)
+                ),
+                style="filled",
+                on_release=self._confirm_logout,
+                md_bg_color=(1, 0, 0, 1),
+            )
+            button_container = MDDialogButtonContainer(
+                MDBoxLayout(
+                    Widget(),
+                    cancel_button,
+                    logout_button,
+                    Widget(),
+                    orientation="horizontal",
+                    spacing="12dp",
+                    size_hint_x=1,
+                    pos_hint={"center_x": 0.5}
+                )
+            )
             self.logout_dialog = MDDialog(
-                title="Confirm Logout",
-                text="Are you sure you want to logout? All unsaved data will be lost.",
-                buttons=[
-                    MDButton(
-                        style="text",
-                        text="CANCEL",
-                        on_release=self._dismiss_logout_dialog
-                    ),
-                    MDButton(
-                        style="elevated",
-                        text="LOGOUT",
-                        on_release=self._confirm_logout
-                    ),
-                ],
+                MDDialogHeadlineText(text="Confirm Logout"),
+                MDDialogSupportingText(text="Are you sure you want to logout? All unsaved data will be lost."),
+                button_container,
             )
         self.logout_dialog.open()
     
@@ -83,19 +107,28 @@ class TopBar(MDBoxLayout):
         """Handle confirmed logout"""
         if self.logout_dialog:
             self.logout_dialog.dismiss()
-        
         app = MDApp.get_running_app()
-        
-        # Logout from auth service
-        app.auth_service.logout()
-        app.user_display_name = "Guest"
-        
-        # Show logout message
-        toast("Logged out successfully")
-        
-        # Navigate back to login screen
-        app.root.transition.direction = "right"
-        app.root.current = "login"
+        try:
+            # Logout from auth service
+            if hasattr(app, "auth_service") and app.auth_service:
+                app.auth_service.logout()
+            app.user_display_name = "Guest"
+            MDSnackbar(
+                MDSnackbarText(text="Logged out successfully"),
+                y=24,
+                pos_hint={"center_x": 0.5},
+                size_hint_x=0.8,
+                md_bg_color="#4CAF50",  # Green for success
+                duration=2.5,
+            ).open()
+            # Navigate back to login screen
+            if hasattr(app, "root") and hasattr(app.root, "current"):
+                app.root.transition.direction = "right"
+                app.root.current = "login"
+            else:
+                print("Error: app.root or app.root.current not found")
+        except Exception as e:
+            print(f"Logout error: {e}")
         
     def on_kv_post(self, base_widget):
         """Called after KV file is loaded"""

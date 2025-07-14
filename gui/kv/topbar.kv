@@ -1,5 +1,3 @@
-#:import Window kivy.core.window.Window
-
 <TopBar>:
     size_hint_y: None
     height: dp(64) if Window.width > 600 else dp(56)
@@ -20,23 +18,26 @@
 
     MDLabel:
         id: top_title
-        text: "Dashboard"
+        text: "Admin Dashboard"
         font_style: "Label"
         theme_text_color: "Custom"
         text_color: 1, 1, 1, 1
         font_size: "20sp" if Window.width > 600 else "18sp"
         size_hint_x: 1
+        halign: "left"
+        valign: "middle"
         pos_hint: {"center_y": 0.5}
 
     MDBoxLayout:
         orientation: 'horizontal'
         adaptive_size: True
-        pos_hint: {"center_y": 0.5}
         spacing: dp(12) if Window.width > 600 else dp(8)
+        pos_hint: {"center_y": 0.5}
+        padding: 0
 
         MDIconButton:
             icon: "account-circle-outline"
-            theme_text_color: "Custom"
+            theme_icon_color: "Custom"
             icon_color: 1, 1, 1, 1
             pos_hint: {"center_y": 0.5}
             size_hint: None, None
@@ -54,11 +55,12 @@
             pos_hint: {"center_y": 0.5}
 
         MDIconButton:
+            id: logout_button
             icon: "logout"
             theme_icon_color: "Custom"
-            icon_color: 1, 1, 1, 1
+            icon_color: 1, 1, 1, 1  # ← Fix color mismatch
             pos_hint: {"center_y": 0.5}
             size_hint: None, None
             size: (dp(44), dp(44)) if Window.width > 600 else (dp(36), dp(36))
-            user_font_size: "24sp" if Window.width > 600 else "20sp"
+            user_font_size: "24sp"
             on_release: root.logout()

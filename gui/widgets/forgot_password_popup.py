@@ -61,7 +61,7 @@ class ForgotPasswordPopup(Popup):
     
     def _show_token_dialog(self, message):
         """Show development token dialog"""
-        from kivymd.uix.dialog import MDDialog
+        from kivymd.uix.dialog import MDDialog, MDDialogHeadlineText, MDDialogButtonContainer
         from kivymd.uix.button import MDButton, MDIconButton
         from kivymd.uix.textfield import MDTextField
         from kivymd.uix.boxlayout import MDBoxLayout
@@ -139,16 +139,37 @@ class ForgotPasswordPopup(Popup):
             app.auth_service.reset_password_with_token(token, new_pass, confirm_pass, self._on_reset_complete)
             dialog.dismiss()
         
-        dialog = MDDialog(
-            title="Reset Password",
-            type="custom",
-            content_cls=content,
-            buttons=[
-                MDButton(
-        style="text",text="Cancel", on_release=lambda x: dialog.dismiss()),
-                MDButton(
-        style="text",text="Reset Password", on_release=lambda x: reset_password())
+        cancel_button = MDButton(
+            style="filled",
+            on_release=lambda x: dialog.dismiss(),
+            children=[
+                MDButtonText(
+                    text="Cancel",
+                    bold=True,
+                    theme_text_color="Custom",
+                    text_color=(1, 1, 1, 1)
+                )
             ]
+        )
+        reset_button = MDButton(
+            style="filled",
+            on_release=lambda x: reset_password(),
+            children=[
+                MDButtonText(
+                    text="Reset Password",
+                    bold=True,
+                    theme_text_color="Custom",
+                    text_color=(1, 1, 1, 1)
+                )
+            ]
+        )
+        dialog = MDDialog(
+            MDDialogHeadlineText(text="Reset Password"),
+            content,
+            MDDialogButtonContainer(
+                cancel_button,
+                reset_button
+            )
         )
         
         dialog.open()

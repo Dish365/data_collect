@@ -8,6 +8,7 @@ from kivymd.uix.selectioncontrol import MDSwitch
 from kivy.metrics import dp
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
+from kivymd.uix.button import MDButtonText
 
 
 class QuestionBlock(MDCard):
@@ -48,11 +49,15 @@ class QuestionBlock(MDCard):
         )
 
         self.type_button = MDButton(
-        style="elevated",
-            text=self.answer_type,
             on_release=self.open_menu,
             size_hint=(None, None),
-            size=(dp(160), dp(36))
+            size=(dp(160), dp(36)),
+            children=[
+                MDButtonText(
+                    text=self.answer_type,
+                    bold=True
+                )
+            ]
         )
 
         # Top row: question + type
@@ -81,7 +86,6 @@ class QuestionBlock(MDCard):
         )
         footer.add_widget(Widget())  # spacer
         footer.add_widget(MDButton(
-        style="elevated",
             text="Delete Question",
             md_bg_color=(1, 0.3, 0.3, 1),
             on_release=lambda x: self.parent.remove_widget(self),
@@ -102,14 +106,14 @@ class QuestionBlock(MDCard):
 
     def set_answer_type(self, answer_type):
         self.answer_type = answer_type
-        self.type_button.text = answer_type
+        self.type_button.children[0].text = answer_type
         self.answer_area.clear_widgets()
 
         if answer_type == "Short Answer":
             self.answer_area.add_widget(MDTextField(hint_text="Short answer preview", mode="outlined"))
 
         elif answer_type == "Long Answer":
-            self.answer_area.add_widget(MDTextField(hint_text="Long answer preview", multiline=True, mode="outlined"))
+            self.answer_area.add_widget(MDTextField(hint_text="Long answer preview", mode="outlined", multiline=True))
 
         elif answer_type == "Multiple Choice":
             self.options_widgets = []
@@ -121,7 +125,6 @@ class QuestionBlock(MDCard):
             self.add_option()
 
             add_option_btn = MDButton(
-        style="elevated",
                 text="Add Option",
                 size_hint=(None, None),
                 size=(dp(120), dp(36)),
@@ -184,20 +187,20 @@ class QuestionBlock(MDCard):
         from kivymd.uix.label import MDLabel
 
         preview = MDBoxLayout(orientation="vertical", spacing=dp(8))
-        preview.add_widget(MDLabel(text=self.question_input.text, font_style="Subtitle1"))
+        preview.add_widget(MDLabel(text=self.question_input.text, font_size="18sp", halign="left"))
 
         if self.answer_type == "Short Answer":
             preview.add_widget(MDTextField(hint_text="Short answer", mode="outlined"))
 
         elif self.answer_type == "Long Answer":
-            preview.add_widget(MDTextField(hint_text="Long answer", multiline=True, mode="outlined"))
+            preview.add_widget(MDTextField(hint_text="Long answer", mode="outlined", multiline=True))
 
         elif self.answer_type == "Multiple Choice":
             option_class = MDCheckbox 
             for opt in self.options_widgets:
                 row = MDBoxLayout(orientation="horizontal", spacing=dp(8), size_hint_y=None, height=dp(40))
                 row.add_widget(option_class(size_hint=(None, None), size=(dp(36), dp(36))))
-                row.add_widget(MDLabel(text=opt.text))
+                row.add_widget(MDLabel(text=opt.text, font_size="15sp", halign="left"))
                 preview.add_widget(row)
 
         return preview

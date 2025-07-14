@@ -3,7 +3,7 @@ from kivy.metrics import dp
 from kivy.lang import Builder
 from kivy.clock import Clock
 from utils.toast import toast
-from kivymd.uix.dialog import MDDialog
+from kivymd.uix.dialog import MDDialog, MDDialogHeadlineText, MDDialogSupportingText, MDDialogButtonContainer
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDButton
 from kivymd.uix.label import MDLabel
@@ -28,7 +28,6 @@ class ResponseDetailDialog(MDBoxLayout):
         # Respondent info header
         header = MDLabel(
             text=f"Responses from {respondent_data.get('display_name', 'Unknown')}",
-            font_style="Title",
             size_hint_y=None,
             height=dp(40)
         )
@@ -37,7 +36,6 @@ class ResponseDetailDialog(MDBoxLayout):
         # Project info
         project_info = MDLabel(
             text=f"Project: {respondent_data.get('project_name', 'Unknown')}",
-            font_style="Body",
             size_hint_y=None,
             height=dp(30)
         )
@@ -75,21 +73,18 @@ class ResponseDetailDialog(MDBoxLayout):
                 
                 question_label = MDLabel(
                     text=f"Q{i+1}: {response.get('question_text', 'Unknown Question')}",
-                    font_style="Body",
                     size_hint_y=None,
                     height=dp(25)
                 )
                 
                 answer_label = MDLabel(
                     text=f"Answer: {response.get('response_value', 'No answer')}",
-                    font_style="Body",
                     size_hint_y=None,
                     height=dp(25)
                 )
                 
                 time_label = MDLabel(
                     text=f"Collected: {response.get('collected_at_formatted', 'Unknown time')}",
-                    font_style="Label",
                     size_hint_y=None,
                     height=dp(20)
                 )
@@ -140,8 +135,7 @@ class ResponseItem(MDCard):
         respondent_id_label = MDLabel(
             text=respondent_id_text,
             size_hint_x=0.18,
-            font_style="Body",
-            font_size="16sp",  # Larger font for tablets
+            font_size="16sp",
             halign="left"
         )
         respondent_id_label.bind(size=respondent_id_label.setter('text_size'))
@@ -150,8 +144,7 @@ class ResponseItem(MDCard):
         name_label = MDLabel(
             text=display_name,
             size_hint_x=0.18,
-            font_style="Body",
-            font_size="16sp",  # Larger font for tablets
+            font_size="16sp",
             halign="left"
         )
         name_label.bind(size=name_label.setter('text_size'))
@@ -160,8 +153,7 @@ class ResponseItem(MDCard):
         project_label = MDLabel(
             text=project_name,
             size_hint_x=0.18,
-            font_style="Body",
-            font_size="16sp",  # Larger font for tablets
+            font_size="16sp",
             halign="left"
         )
         project_label.bind(size=project_label.setter('text_size'))
@@ -170,8 +162,7 @@ class ResponseItem(MDCard):
         count_label = MDLabel(
             text=str(response_count),
             size_hint_x=0.1,
-            font_style="Body",
-            font_size="16sp",  # Larger font for tablets
+            font_size="16sp",
             halign="center"
         )
         
@@ -179,8 +170,7 @@ class ResponseItem(MDCard):
         date_label = MDLabel(
             text=last_response,
             size_hint_x=0.18,
-            font_style="Body",
-            font_size="16sp",  # Larger font for tablets
+            font_size="16sp",
             halign="center"
         )
         date_label.bind(size=date_label.setter('text_size'))
@@ -223,12 +213,10 @@ class ResponseItem(MDCard):
             
             # View Button
             view_button = MDButton(
-                style="text",
                 text="View",
                 size_hint_x=None,
                 width=button_width,
                 height=button_height,
-                theme_text_color="Custom",
                 text_color=(0.2, 0.6, 1, 1),  # Blue
                 font_size=font_size,
                 on_release=self.view_responses
@@ -236,12 +224,10 @@ class ResponseItem(MDCard):
             
             # Edit Button
             edit_button = MDButton(
-                style="text",
                 text="Edit",
                 size_hint_x=None,
                 width=button_width,
                 height=button_height,
-                theme_text_color="Custom",
                 text_color=(1, 0.6, 0.2, 1),  # Orange
                 font_size=font_size,
                 on_release=self.edit_respondent
@@ -249,13 +235,11 @@ class ResponseItem(MDCard):
             
             # Delete Button
             delete_button = MDButton(
-                style="text",
                 text="Delete",
                 size_hint_x=None,
                 width=button_width,
                 height=button_height,
                 font_size=font_size,
-                theme_text_color="Custom",
                 text_color=(0.8, 0.2, 0.2, 1),
                 on_release=self.delete_respondent
             )
@@ -273,33 +257,27 @@ class ResponseItem(MDCard):
         """Create original action buttons as fallback"""
         # View Button
         view_button = MDButton(
-            style="text",
             text="View",
             size_hint_x=None,
             width=dp(50),
-            theme_text_color="Custom",
             text_color=(0.2, 0.6, 1, 1),  # Blue
             on_release=self.view_responses
         )
         
         # Edit Button
         edit_button = MDButton(
-            style="text",
             text="Edit",
             size_hint_x=None,
             width=dp(50),
-            theme_text_color="Custom",
             text_color=(1, 0.6, 0.2, 1),  # Orange
             on_release=self.edit_respondent
         )
         
         # Delete Button
         delete_button = MDButton(
-            style="text",
             text="Del",
             size_hint_x=None,
             width=dp(40),
-            theme_text_color="Custom",
             text_color=(0.8, 0.2, 0.2, 1),
             on_release=self.delete_respondent
         )
@@ -932,21 +910,27 @@ class ResponsesScreen(Screen):
         """Show the response detail dialog"""
         try:
             content = ResponseDetailDialog(respondent_data)
-            
-            self.detail_dialog = MDDialog(
-                title="Response Details",
-                type="custom",
-                content_cls=content,
-                buttons=[
-                    MDButton(
+            close_button = MDButton(
+                style="filled",
+                on_release=lambda x: self.detail_dialog.dismiss(),
+                children=[
+                    MDButtonText(
                         text="CLOSE",
-                        on_release=lambda x: self.detail_dialog.dismiss()
+                        bold=True,
+                        theme_text_color="Custom",
+                        text_color=(1, 1, 1, 1)
                     )
-                ],
+                ]
+            )
+            self.detail_dialog = MDDialog(
+                MDDialogHeadlineText(text="Response Details"),
+                content,
+                MDDialogButtonContainer(
+                    close_button
+                ),
                 size_hint=(0.9, 0.8)
             )
             self.detail_dialog.open()
-            
         except Exception as e:
             print(f"Error showing dialog: {e}")
             toast("Error displaying response details")
@@ -981,6 +965,7 @@ class ResponsesScreen(Screen):
             name_field = MDTextField(
                 hint_text="Name (optional)",
                 text=respondent_data.get('name', ''),
+                mode="outlined",
                 size_hint_y=None,
                 height=dp(40)
             )
@@ -989,6 +974,7 @@ class ResponsesScreen(Screen):
             email_field = MDTextField(
                 hint_text="Email (optional)",
                 text=respondent_data.get('email', ''),
+                mode="outlined",
                 size_hint_y=None,
                 height=dp(40)
             )
@@ -997,6 +983,7 @@ class ResponsesScreen(Screen):
             phone_field = MDTextField(
                 hint_text="Phone (optional)",
                 text=respondent_data.get('phone', ''),
+                mode="outlined",
                 size_hint_y=None,
                 height=dp(40)
             )
@@ -1040,20 +1027,37 @@ class ResponsesScreen(Screen):
                 self._update_respondent(respondent_data['id'], updated_data)
                 self.edit_dialog.dismiss()
             
-            self.edit_dialog = MDDialog(
-                title="Edit Respondent",
-                type="custom",
-                content_cls=content,
-                buttons=[
-                    MDButton(
+            cancel_button = MDButton(
+                style="filled",
+                on_release=lambda x: self.edit_dialog.dismiss(),
+                children=[
+                    MDButtonText(
                         text="CANCEL",
-                        on_release=lambda x: self.edit_dialog.dismiss()
-                    ),
-                    MDButton(
-                        text="SAVE",
-                        on_release=save_changes
+                        bold=True,
+                        theme_text_color="Custom",
+                        text_color=(1, 1, 1, 1)
                     )
-                ],
+                ]
+            )
+            save_button = MDButton(
+                style="filled",
+                on_release=save_changes,
+                children=[
+                    MDButtonText(
+                        text="SAVE",
+                        bold=True,
+                        theme_text_color="Custom",
+                        text_color=(1, 1, 1, 1)
+                    )
+                ]
+            )
+            self.edit_dialog = MDDialog(
+                MDDialogHeadlineText(text="Edit Respondent"),
+                content,
+                MDDialogButtonContainer(
+                    cancel_button,
+                    save_button
+                ),
                 size_hint=(0.8, None)
             )
             self.edit_dialog.open()
@@ -1071,31 +1075,39 @@ class ResponsesScreen(Screen):
                 size_hint_y=None,
                 height=dp(100)
             )
-            
-            def confirm_delete(instance):
-                self._delete_respondent(respondent_data['id'])
-                self.delete_dialog.dismiss()
-            
-            self.delete_dialog = MDDialog(
-                title="Confirm Delete",
-                type="custom",
-                content_cls=content,
-                buttons=[
-                    MDButton(
+            cancel_button = MDButton(
+                style="filled",
+                on_release=lambda x: self.delete_dialog.dismiss(),
+                children=[
+                    MDButtonText(
                         text="CANCEL",
-                        on_release=lambda x: self.delete_dialog.dismiss()
-                    ),
-                    MDButton(
-                        text="DELETE",
-                        theme_bg_color="Custom",
-                        md_bg_color=(0.8, 0.2, 0.2, 1),
-                        on_release=confirm_delete
+                        bold=True,
+                        theme_text_color="Custom",
+                        text_color=(1, 1, 1, 1)
                     )
-                ],
-                size_hint=(0.8, None)
+                ]
+            )
+            delete_button = MDButton(
+                style="filled",
+                on_release=confirm_delete,
+                children=[
+                    MDButtonText(
+                        text="DELETE",
+                        bold=True,
+                        theme_text_color="Custom",
+                        text_color=(1, 1, 1, 1)
+                    )
+                ]
+            )
+            self.delete_dialog = MDDialog(
+                MDDialogHeadlineText(text="Confirm Delete"),
+                content,
+                MDDialogButtonContainer(
+                    cancel_button,
+                    delete_button
+                )
             )
             self.delete_dialog.open()
-            
         except Exception as e:
             print(f"Error showing delete dialog: {e}")
             toast("Error opening delete dialog")

@@ -1,7 +1,7 @@
-from kivymd.uix.dialog import MDDialog
+from kivymd.uix.dialog import MDDialog, MDDialogHeadlineText, MDDialogButtonContainer
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
-from kivymd.uix.button import MDButton
+from kivymd.uix.button import MDButton, MDButtonText
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.list import MDList, MDListItem, MDListItemHeadlineText, MDListItemLeadingIcon, MDListItemTrailingIcon
 from kivymd.uix.card import MDCard
@@ -191,7 +191,6 @@ class TeamMemberDialog:
             roles = ["viewer", "member", "analyst", "collaborator"]
             for role in roles:
                 btn = MDButton(
-        style="text",
                     text=role.title(),
                     size_hint_x=None,
                     width=dp(80),
@@ -211,40 +210,48 @@ class TeamMemberDialog:
                 size_hint_y=None,
                 height=dp(50)
             )
-            
             add_button = MDButton(
-        style="elevated",
-                text="Add Member",
+                children=[
+                    MDButtonText(
+                        text="Add Member",
+                        bold=True
+                    )
+                ],
                 size_hint_x=None,
                 width=dp(120),
                 on_release=self.add_member
             )
             button_layout.add_widget(add_button)
-            
             refresh_button = MDButton(
-        style="text",
-                text="Refresh",
+                children=[
+                    MDButtonText(
+                        text="Refresh",
+                        bold=True
+                    )
+                ],
                 size_hint_x=None,
                 width=dp(100),
                 on_release=self.refresh_data
             )
             button_layout.add_widget(refresh_button)
-            
             content.add_widget(button_layout)
-            
             # Create dialog
-            self.dialog = MDDialog(
-                title="Team Members",
-                type="custom",
-                content_cls=content,
-                size_hint=(0.9, 0.9),  # Increased size for better autocomplete display
-                buttons=[
-                    MDButton(
-        style="text",
+            close_button = MDButton(
+                children=[
+                    MDButtonText(
                         text="CLOSE",
-                        on_release=self.close_dialog
+                        bold=True
                     )
-                ]
+                ],
+                on_release=self.close_dialog
+            )
+            self.dialog = MDDialog(
+                MDDialogHeadlineText(text="Team Members"),
+                content,
+                MDDialogButtonContainer(
+                    close_button
+                ),
+                size_hint=(0.9, 0.9)
             )
             
             # Load initial data

@@ -483,7 +483,6 @@ class DataCollectionScreen(Screen):
                 text=str(index + 1),
                 halign='center',
                 valign='center',
-                theme_text_color="Custom",
                 text_color=(1, 1, 1, 1),
                 bold=True,
                 font_size=font_sizes["text"]
@@ -505,7 +504,7 @@ class DataCollectionScreen(Screen):
             question_label = MDLabel(
                 text=q_text,
                 font_style="Subtitle1",
-                theme_text_color="Primary",
+                text_color=App.get_running_app().theme_cls.primary_color,
                 size_hint_y=None,
                 height=header_height,
                 font_size=font_sizes["title"],
@@ -610,7 +609,6 @@ class DataCollectionScreen(Screen):
             error_label = MDLabel(
                 text=f"[b]Error loading question {index+1}[/b]\n{str(e)}",
                 markup=True,
-                theme_text_color="Custom",
                 text_color=(0.8, 0.2, 0.2, 1),
                 halign="left",
                 valign="middle"
@@ -620,7 +618,7 @@ class DataCollectionScreen(Screen):
             tb_label = MDLabel(
                 text=traceback.format_exc(),
                 font_size="10sp",
-                theme_text_color="Secondary",
+                text_color=App.get_running_app().theme_cls.secondary_color,
                 halign="left",
                 valign="top",
                 opacity=0.5,
@@ -712,7 +710,7 @@ class DataCollectionScreen(Screen):
 
                     label = MDLabel(
                         text=opt_text,
-                        theme_text_color="Primary",
+                        text_color=App.get_running_app().theme_cls.primary_color,
                         size_hint_x=1,
                         pos_hint={'center_y': 0.5},
                         font_size=font_sizes["text"]
@@ -749,8 +747,7 @@ class DataCollectionScreen(Screen):
             
             error_label = MDLabel(
                 text="Error creating choice field",
-                theme_text_color="Custom",
-                text_color=(0.8, 0.2, 0.2, 1),
+                text_color=App.get_running_app().theme_cls.custom_colors['error'],
                 font_size="14sp"
             )
             error_box.add_widget(error_label)
@@ -777,7 +774,7 @@ class DataCollectionScreen(Screen):
             label = MDLabel(
                 text=str(i),
                 halign='center',
-                theme_text_color="Secondary",
+                text_color=App.get_running_app().theme_cls.secondary_color,
                 font_size=font_sizes["hint"]
             )
             labels_box.add_widget(label)
@@ -796,7 +793,7 @@ class DataCollectionScreen(Screen):
         value_label = MDLabel(
             text="3",
             halign='center',
-            theme_text_color="Primary",
+            text_color=App.get_running_app().theme_cls.primary_color,
             size_hint_y=None,
             height=dp(20),
             font_size=font_sizes["text"],
@@ -824,7 +821,6 @@ class DataCollectionScreen(Screen):
         )
         
         placeholder_button = MDButton(
-        style="elevated",
             text="📷 Photo Upload (Coming Soon)",
             size_hint_y=None,
             height=touch_targets["button"],
@@ -836,7 +832,7 @@ class DataCollectionScreen(Screen):
         note_label = MDLabel(
             text="Photo upload functionality will be available in future updates",
             font_style="Caption",
-            theme_text_color="Secondary",
+            text_color=App.get_running_app().theme_cls.secondary_color,
             halign='center',
             font_size=font_sizes["hint"]
         )
@@ -1000,7 +996,7 @@ class DataCollectionScreen(Screen):
                         width=dp(24),
                         halign='center',
                         font_size="12sp",
-                        theme_text_color="Secondary"
+                        text_color=App.get_running_app().theme_cls.secondary_color
                     )
                     
                     # Question text (truncated)
@@ -1008,7 +1004,7 @@ class DataCollectionScreen(Screen):
                     text_label = MDLabel(
                         text=text,
                         font_size="11sp",
-                        theme_text_color="Primary"
+                        text_color=App.get_running_app().theme_cls.primary_color
                     )
                     
                     # Question type indicator
@@ -1312,91 +1308,59 @@ class DataCollectionScreen(Screen):
                 print(f"Error clearing widget for question type {q_type}: {e}")
 
     def _show_empty_state(self, title="No form loaded", message="Select a project above to load its data collection form"):
-        """Enhanced empty state display for tablets"""
+        """Show empty state with enhanced tablet styling"""
         try:
-            # Clear existing widgets
+            # Clear existing content
             self.ids.form_canvas.clear_widgets()
             
-            # Hide form controls
-            self.hide_form_controls()
-            
-            # Create tablet-optimized empty state
-            from widgets.responsive_layout import ResponsiveHelper
-            category = ResponsiveHelper.get_screen_size_category()
-            
-            if category in ["large_tablet", "tablet"]:
-                card_height = dp(350)
-                icon_size = "72sp"
-                title_size = "24sp"
-                message_size = "18sp"
-                padding = dp(40)
-            elif category == "small_tablet":
-                card_height = dp(300)
-                icon_size = "64sp"
-                title_size = "20sp" 
-                message_size = "16sp"
-                padding = dp(32)
-            else:  # phone
-                card_height = dp(250)
-                icon_size = "56sp"
-                title_size = "18sp"
-                message_size = "14sp"
-                padding = dp(24)
-            
-            empty_state = MDCard(
+            # Create enhanced empty state card
+            empty_card = MDCard(
                 orientation='vertical',
                 spacing=dp(20),
                 size_hint_y=None,
-                height=card_height,
+                height=dp(300),
                 elevation=1,
-                padding=padding,
-                radius=[dp(12)]
+                padding=dp(32)
             )
-            empty_state.id = 'empty_state'
             
-            # Spacer
-            empty_state.add_widget(Widget(size_hint_y=None, height=dp(20)))
+            # Add spacing widget
+            empty_card.add_widget(Widget(size_hint_y=None, height=dp(20)))
             
-            # Icon
-            icon_label = MDLabel(
+            # Add emoji icon
+            emoji_label = MDLabel(
                 text="📋",
                 halign="center",
-                font_size=icon_size,
+                font_size="64sp",
                 size_hint_y=None,
-                height=dp(80),
-                theme_text_color="Hint"
+                height=dp(80)
             )
-            empty_state.add_widget(icon_label)
+            empty_card.add_widget(emoji_label)
             
-            # Title
+            # Add title
             title_label = MDLabel(
                 text=title,
-                font_style="H5",
-                theme_text_color="Hint",
                 halign="center",
-                font_size=title_size,
-                bold=True
+                font_size="22sp"
             )
-            empty_state.add_widget(title_label)
+            empty_card.add_widget(title_label)
             
-            # Message
+            # Add message
             message_label = MDLabel(
                 text=message,
-                font_style="Body1",
-                theme_text_color="Hint",
                 halign="center",
-                font_size=message_size,
-                text_size=(None, None)
+                font_size="16sp",
+                text_size=(self.width, None)
             )
-            empty_state.add_widget(message_label)
+            empty_card.add_widget(message_label)
             
-            # Spacer
-            empty_state.add_widget(Widget(size_hint_y=None, height=dp(20)))
+            # Add spacing widget
+            empty_card.add_widget(Widget(size_hint_y=None, height=dp(20)))
             
-            self.ids.form_canvas.add_widget(empty_state)
+            # Add to form canvas
+            self.ids.form_canvas.add_widget(empty_card)
             
         except Exception as e:
-            print(f"Error showing enhanced empty state: {e}")
+            print(f"Error showing empty state: {e}")
             # Fallback to basic empty state
             self.ids.form_canvas.clear_widgets()
 
