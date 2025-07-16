@@ -1,0 +1,110 @@
+#:import MDCard kivymd.uix.card.MDCard
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDLabel kivymd.uix.label.MDLabel
+#:import MDIconButton kivymd.uix.button.MDIconButton
+#:import dp kivy.metrics.dp
+
+<ProjectItem>:
+    # Main container with horizontal layout
+    MDBoxLayout:
+        orientation: "horizontal"
+        spacing: root.spacing
+        padding: 0, 0
+        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+        
+        # Date Circle
+        MDCard:
+            id: date_circle
+            size_hint: None, None
+            size: root.get_date_circle_size()
+            radius: [root.get_date_circle_radius()]
+            ripple_behavior: False
+            md_bg_color: 0.0, 0.0, 1.0, 1
+            elevation: 2
+            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+            padding: root.get_date_circle_padding()
+            
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint: 1, 1
+                padding: 0, dp(0)
+                spacing: root.get_date_layout_spacing()
+                pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                
+                MDLabel:
+                    id: day_label
+                    halign: "center"
+                    font_size: "24sp" if not root.is_tablet() else "28sp"
+                    theme_text_color: "Custom"
+                    text_color: 1, 1, 1, 1
+                    pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                    bold: True
+                    text: "--"
+                
+                MDLabel:
+                    id: month_label
+                    halign: "center"
+                    font_size: "14sp" if not root.is_tablet() else "16sp"
+                    theme_text_color: "Custom"
+                    text_color: 1, 1, 1, 1
+                    pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                    bold: True
+                    text: "---"
+        
+        # Project Info
+        MDBoxLayout:
+            orientation: "vertical"
+            adaptive_height: True
+            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+            spacing: root.get_info_layout_spacing()
+            
+            MDLabel:
+                id: name_label
+                text: root.name
+                font_size: root.get_name_font_size()
+                adaptive_height: True
+                text_size: None, None
+                halign: "center"
+                valign: "middle"
+                shorten: True
+                shorten_from: "right"
+                pos_hint: {"center_x": 0.5, "center_y": 0.5}
+            
+            MDLabel:
+                id: desc_label
+                text: root.description
+                font_size: root.get_description_font_size()
+                theme_text_color: "Secondary"
+                adaptive_height: True
+                text_size: None, None
+                halign: "center"
+                valign: "middle"
+                shorten: True
+                shorten_from: "right"
+                pos_hint: {"center_x": 0.5, "center_y": 0.5}
+        
+        # Right Aligned Items
+        MDBoxLayout:
+            adaptive_width: True
+            spacing: root.get_right_layout_spacing()
+            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+            
+            MDLabel:
+                id: sync_status_label
+                text: "Unknown"
+                font_size: root.get_sync_status_font_size()
+                halign: "center"
+                size_hint: None, None
+                size: root.get_sync_status_size()
+                pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                theme_text_color: "Custom"
+                text_color: 0.5, 0.5, 0.5, 1
+            
+            MDIconButton:
+                id: menu_button
+                icon: "dots-vertical"
+                size_hint: None, None
+                size: root.get_menu_button_size()
+                user_font_size: root.get_menu_icon_size()
+                on_release: root.open_menu(self)
+                pos_hint: {"center_x": 0.5, "center_y": 0.5} 
