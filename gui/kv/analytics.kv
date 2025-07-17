@@ -2,7 +2,6 @@
 #:import MDTabsPrimary kivymd.uix.tab.MDTabsPrimary
 <AnalyticsScreen>:
     name: 'analytics'
-    md_bg_color: 1, 1, 1, 1
 
     MDBoxLayout:
         orientation: 'vertical'
@@ -51,24 +50,28 @@
                                 text: "Project:"
                                 size_hint_x: None
                                 width: dp(80)
+                                theme_text_color: "Primary"
+                                font_style: "Body"
                                 font_size: "16sp"
                                 halign: "left"
                                 valign: "center"
                                 text_size: self.size
 
                             MDButton:
+                                style: "elevated"
                                 id: project_selector
+                                text: "Select Project for Analysis"
                                 size_hint_x: 1
                                 height: dp(48)
+                                font_size: "14sp"
                                 on_release: root.open_project_menu()
-                                MDButtonText:
-                                    text: "Select Project for Analysis"
 
                             MDIconButton:
                                 icon: "refresh"
                                 size_hint_x: None
                                 width: dp(48)
                                 height: dp(48)
+                                theme_icon_color: "Primary"
                                 on_release: root.refresh_analysis()
 
                 # Quick Stats Row (outside MDCard)
@@ -123,35 +126,39 @@
                     
                     MDButton:
                         id: auto_detection_tab_btn
+                        text: "Auto-Detection"
+                        style: "elevated"
                         size_hint_x: 1
                         height: dp(48)
+                        font_size: "14sp"
                         on_release: root.switch_to_tab("auto_detection")
-                        MDButtonText:
-                            text: "Auto-Detection"
                         
                     MDButton:
                         id: descriptive_tab_btn
+                        text: "Descriptive"
+                        style: "elevated"
                         size_hint_x: 1
                         height: dp(48)
+                        font_size: "14sp"
                         on_release: root.switch_to_tab("descriptive")
-                        MDButtonText:
-                            text: "Descriptive"
                         
                     MDButton:
                         id: inferential_tab_btn
+                        text: "Inferential"
+                        style: "elevated"
                         size_hint_x: 1
                         height: dp(48)
+                        font_size: "14sp"
                         on_release: root.switch_to_tab("inferential")
-                        MDButtonText:
-                            text: "Inferential"
                         
                     MDButton:
                         id: qualitative_tab_btn
+                        text: "Qualitative"
+                        style: "elevated"
                         size_hint_x: 1
                         height: dp(48)
+                        font_size: "14sp"
                         on_release: root.switch_to_tab("qualitative")
-                        MDButtonText:
-                            text: "Qualitative"
                 
                 # Tab Content Area
                 MDBoxLayout:
@@ -164,34 +171,41 @@
                         id: tab_content_label
                         text: "Select a project and analysis type above to begin"
                         halign: "center"
+                        theme_text_color: "Secondary"
+                        font_style: "Body"
                         font_size: "16sp"
 
         # Bottom Action Bar - Tablet optimized
         MDBoxLayout:
             orientation: 'horizontal'
-            spacing: dp(20)  # Increased spacing
+            spacing: dp(20)
             size_hint_y: None
-            height: dp(64)  # Increased height for tablets
-            padding: [dp(20), dp(12)]  # Increased padding
-            
+            height: dp(64) if root.analysis_results else 0  # Hide when no results
+            opacity: 1 if root.analysis_results else 0
+            md_bg_color: app.theme_cls.surfaceColor
+            padding: [dp(20), dp(12)]
+
             MDButton:
+                style: "elevated"
+                text: "Export Results"
                 size_hint_x: 1
                 height: dp(52)
+                font_size: "16sp"
                 on_release: root.export_results()
                 disabled: not root.analysis_results
-                MDButtonText:
-                    text: "Export Results"
-                
+            
             MDButton:
+                style: "elevated"
+                text: "Analysis Config"
                 size_hint_x: 1
                 height: dp(52)
+                font_size: "16sp"
                 on_release: root.show_analysis_config()
-                MDButtonText:
-                    text: "Analysis Config"
-                
+            
             MDIconButton:
                 icon: "help-circle"
                 size_hint_x: None
                 width: dp(52)
                 user_font_size: "28sp"
+                theme_icon_color: "Primary"
                 

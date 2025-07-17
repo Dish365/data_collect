@@ -2,7 +2,7 @@ from kivy.uix.screenmanager import Screen
 from kivy.metrics import dp
 from widgets.form_fields import create_form_field
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDButton
+from kivymd.uix.button import MDButton, MDButtonText
 from kivymd.uix.label import MDLabel
 from kivymd.uix.dialog import MDDialog, MDDialogHeadlineText, MDDialogButtonContainer
 from kivy.clock import Clock
@@ -192,7 +192,8 @@ class FormBuilderScreen(Screen):
             self.project_list = []
             self.project_map = {}
             if hasattr(self.ids, 'project_spinner'):
-                self.ids.project_spinner.text = 'No Projects Available'
+                # Update button text
+                self.ids.project_spinner.children[0].text = 'No Projects Available'
             self.project_id = None
             self.ids.form_canvas.clear_widgets()
             
@@ -211,11 +212,15 @@ class FormBuilderScreen(Screen):
             )
             
             go_to_projects_btn = MDButton(
-                text="Go to Projects",
                 size_hint=(None, None),
                 size=(dp(150), dp(40)),
                 pos_hint={'center_x': 0.5},
-                on_release=lambda x: setattr(self.manager, 'current', 'projects')
+                on_release=lambda x: setattr(self.manager, 'current', 'projects'),
+                children=[
+                    MDButtonText(
+                        text="Go to Projects"
+                    )
+                ]
             )
             
             help_layout.add_widget(help_label)
@@ -228,7 +233,8 @@ class FormBuilderScreen(Screen):
         self.project_list = [p['name'] for p in projects]
         self.project_map = {p['name']: p['id'] for p in projects}
         if hasattr(self.ids, 'project_spinner'):
-            self.ids.project_spinner.text = 'Select Project'
+            # Update button text
+            self.ids.project_spinner.children[0].text = 'Select Project'
         self.project_id = None
         self.ids.form_canvas.clear_widgets()
         
@@ -244,7 +250,6 @@ class FormBuilderScreen(Screen):
         menu_items = [
             {
                 "text": name,
-                "viewclass": "OneLineListItem",
                 "on_release": lambda x=name: self.on_project_selected(None, x)
             }
             for name in self.project_list
@@ -265,7 +270,8 @@ class FormBuilderScreen(Screen):
             if text == 'Select Project' or text not in self.project_map:
                 self.project_id = None
                 if hasattr(self.ids, 'project_spinner'):
-                    self.ids.project_spinner.text = 'Select Project'
+                    # Update button text
+                    self.ids.project_spinner.children[0].text = 'Select Project'
                 self.ids.form_canvas.clear_widgets()
                 self.update_question_count()
                 self.update_empty_state()
@@ -273,7 +279,8 @@ class FormBuilderScreen(Screen):
             
             self.project_id = self.project_map[text]
             if hasattr(self.ids, 'project_spinner'):
-                self.ids.project_spinner.text = text
+                # Update button text
+                self.ids.project_spinner.children[0].text = text
             
             # Update top bar title to show selected project
             if hasattr(self.ids, 'top_bar'):
@@ -407,37 +414,37 @@ class FormBuilderScreen(Screen):
                 # Add spacing
                 empty_state.add_widget(MDBoxLayout(size_hint_y=None, height=dp(40)))
                 
-                # Add icon (using icon-like label since MDIcon might not be available)
-                icon_label = MDLabel(
-                    text="📋",
-                    font_size="48sp",
-                    halign="center",
-                    size_hint_y=None,
-                    height=dp(64)
+                # Add icon using MDIcon instead of MDLabel
+                from kivymd.uix.button import MDIconButton
+                icon = MDIconButton(
+                    icon="clipboard-text-outline",
+                    pos_hint={'center_x': 0.5},
+                    size_hint=(None, None),
+                    size=(dp(64), dp(64))
                 )
-                empty_state.add_widget(icon_label)
+                empty_state.add_widget(icon)
                 
-                # Add title
+                # Add title with updated font style
                 title_label = MDLabel(
                     text="No questions added yet",
-                    font_style="H6",
                     theme_text_color="Hint",
                     halign="center",
                     font_size="18sp",
                     size_hint_y=None,
-                    height=dp(32)
+                    height=dp(32),
+                    role="medium"  # Use role instead of font_style
                 )
                 empty_state.add_widget(title_label)
                 
-                # Add description
+                # Add description with updated font style
                 desc_label = MDLabel(
                     text="Select question types from the left panel to start building your form",
-                    font_style="Body2",
                     theme_text_color="Hint",
                     halign="center",
                     font_size="14sp",
                     size_hint_y=None,
-                    height=dp(40)
+                    height=dp(40),
+                    role="small"  # Use role instead of font_style
                 )
                 empty_state.add_widget(desc_label)
                 

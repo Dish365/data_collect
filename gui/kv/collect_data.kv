@@ -1,4 +1,5 @@
 #:import MDButton kivymd.uix.button.MDButton
+#:import ProgressBar kivy.uix.progressbar.ProgressBar
 <DataCollectionScreen>:
     md_bg_color: 1, 1, 1, 1
     MDBoxLayout:
@@ -50,7 +51,7 @@
                     Widget:  # Spacer
                         size_hint_x: 1
 
-                    # Project Selection Section
+                    # Project Selection Section - Fixed with proper button
                     MDBoxLayout:
                         orientation: 'horizontal'
                         spacing: dp(12)
@@ -64,26 +65,33 @@
                             font_size: "16sp"  # Larger font
                             pos_hint: {"center_y": 0.5}
 
-                        MDDropDownItem:
+                        MDButton:
                             id: project_spinner
                             text: 'Select Project'
                             on_release: root.open_project_menu()
                             pos_hint: {'center_y': 0.5}
                             size_hint_x: None
-                            width: dp(220)  # Wider for tablets
-                            height: dp(44)  # Tablet touch target
-                            font_size: '16sp'  # Larger font
-                            md_bg_color: app.theme_cls.primary_color
+                            width: dp(240)  # Wider for tablets
+                            height: dp(48)  # Larger tablet touch target
+                            elevation: 2  # Add shadow for visibility
                             radius: [8, 8, 8, 8]
+                            md_bg_color: [0.2, 0.6, 1.0, 1.0]  # Blue background
+                            MDButtonText:
+                                text: root.ids.project_spinner.text if hasattr(root.ids, 'project_spinner') else 'Select Project'
+                                text_color: [1, 1, 1, 1]  # White text
+                                font_size: '16sp'
+                                bold: True
 
-        # Enhanced Header Section - Tablet optimized (now more compact)
+        # Progress Section - Only show when form is loaded
         MDCard:
+            id: progress_section
             elevation: 2
             padding: dp(12)  # Reduced padding
             spacing: dp(8)   # Reduced spacing
             size_hint_y: None
             height: dp(72)   # Reduced height for compactness
             md_bg_color: 1, 1, 1, 1
+            opacity: 0  # Hidden until form loads
 
             MDBoxLayout:
                 orientation: 'vertical'
@@ -109,12 +117,12 @@
                             font_size: "14sp"
                             pos_hint: {"center_y": 0.5}
 
-                        MDCircularProgressIndicator:
+                        ProgressBar:
                             id: form_progress
                             value: 0
                             max: 100
                             size_hint_y: None
-                            height: dp(8)
+                            height: dp(6)
                             pos_hint: {"center_y": 0.5}
 
                         MDLabel:
@@ -232,6 +240,7 @@
 
         # Enhanced Footer with Submit Button and Actions
         MDCard:
+            id: form_actions
             orientation: 'horizontal'
             size_hint_y: None
             height: dp(80)  # Increased height for tablets
@@ -240,6 +249,7 @@
             elevation: 3  # Higher elevation for prominence
             md_bg_color: 1, 1, 1, 1
             pos_hint: {'center_x': 0.5}
+            opacity: 0  # Hidden until form loads
 
             # Left side actions
             MDBoxLayout:

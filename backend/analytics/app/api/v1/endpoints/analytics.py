@@ -55,10 +55,10 @@ async def get_data_characteristics(
         if df.empty:
             # Provide more information about why no data was found
             try:
-                # Check if project exists
+                # Check if project exists using GUI table structure
                 conn = AnalyticsUtils.get_django_db_connection()
                 cursor = conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM projects_project WHERE id = ?", (project_id,))
+                cursor.execute("SELECT COUNT(*) FROM projects WHERE id = ?", (project_id,))
                 project_exists = cursor.fetchone()[0] > 0
                 conn.close()
                 
@@ -145,6 +145,12 @@ async def analyze_project_data(
             results['analyses']['text'] = AnalyticsUtils.run_basic_text_analysis(
                 df, characteristics.get('text_variables', [])
             )
+        
+        elif analysis_type == "inferential":
+            results['analyses']['inferential'] = AnalyticsUtils.run_inferential_analysis(df, characteristics)
+        
+        elif analysis_type == "qualitative":
+            results['analyses']['qualitative'] = AnalyticsUtils.run_qualitative_analysis(df, characteristics)
         
         else:
             return AnalyticsUtils.format_api_response(

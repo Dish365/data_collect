@@ -1,4 +1,5 @@
 #:import MDButton kivymd.uix.button.MDButton
+
 <FormBuilderScreen>:
     md_bg_color: 1, 1, 1, 1
     FloatLayout:
@@ -40,13 +41,18 @@
                         size_hint_x: None
                         width: dp(80)
                         halign: "left"
+                        role: "medium"  # Updated font style
 
-                    MDDropDownItem:
+                    MDButton:
                         id: project_spinner
                         text: 'Select Project'
                         on_release: root.open_project_menu()
                         size_hint_x: 1
                         font_size: '16sp'
+                        style: "elevated"
+                        elevation: 1
+                        MDButtonText:
+                            text: "Select Project"
 
                 # Description Row
                 MDBoxLayout:
@@ -57,6 +63,7 @@
                     MDLabel:
                         text: "Build professional forms with customizable question types"
                         font_size: "14sp"
+                        role: "small"  # Updated font style
 
             # Main Content Area - Properly sized to fill available space
             MDBoxLayout:
@@ -86,12 +93,14 @@
                             font_size: "18sp"
                             size_hint_y: None
                             height: dp(24)
+                            role: "medium"  # Updated font style
 
                         MDLabel:
                             text: "Choose question types to build your form"
                             font_size: "12sp"
                             size_hint_y: None
                             height: dp(18)
+                            role: "small"  # Updated font style
 
                     # Scrollable Question Types - Expand to fill remaining space
                     MDScrollView:
@@ -131,6 +140,7 @@
                                     MDLabel:
                                         text: "Text Responses"
                                         font_size: "16sp"
+                                        role: "medium"  # Updated font style
 
                                 # Text Response Buttons - Tablet optimized
                                 MDButton:
@@ -140,6 +150,8 @@
                                     md_bg_color: 0.2, 0.6, 1, 1
                                     font_size: "15sp"  # Larger font for tablets
                                     elevation: 1
+                                    MDButtonText:
+                                        text: "Short Text"
 
                                 MDButton:
                                     on_release: root.add_question('text_long')
@@ -148,6 +160,8 @@
                                     md_bg_color: 0.2, 0.6, 1, 1
                                     font_size: "15sp"  # Larger font for tablets
                                     elevation: 1
+                                    MDButtonText:
+                                        text: "Long Text"
 
                             # NUMERIC RESPONSES SECTION
                             MDBoxLayout:
@@ -172,6 +186,7 @@
                                     MDLabel:
                                         text: "Numeric Responses"
                                         font_size: "16sp"
+                                        role: "medium"  # Updated font style
 
                                 # Numeric Response Buttons - Tablet optimized
                                 MDButton:
@@ -215,6 +230,7 @@
                                     MDLabel:
                                         text: "Choice Responses"
                                         font_size: "15sp"
+                                        role: "medium"  # Updated font style
 
                                 # Choice Response Buttons
                                 MDButton:
@@ -224,6 +240,8 @@
                                     md_bg_color: 0.8, 0.4, 0.2, 1
                                     font_size: "13sp"
                                     elevation: 1
+                                    MDButtonText:
+                                        text: "Single Choice"
 
                                 MDButton:
                                     on_release: root.add_question('choice_multiple')
@@ -232,6 +250,8 @@
                                     md_bg_color: 0.8, 0.4, 0.2, 1
                                     font_size: "13sp"
                                     elevation: 1
+                                    MDButtonText:
+                                        text: "Multiple Choice"
 
                             # DATE & TIME SECTION
                             MDBoxLayout:
@@ -255,8 +275,7 @@
 
                                     MDLabel:
                                         text: "Date & Time"
-                                        font_style: "Body"
-                                        bold: True
+                                        role: "medium"  # Updated font style
                                         theme_text_color: "Primary"
                                         font_size: "15sp"  # Smaller font
 
@@ -268,6 +287,8 @@
                                     md_bg_color: 0.2, 0.7, 0.4, 1
                                     font_size: "13sp"
                                     elevation: 1
+                                    MDButtonText:
+                                        text: "Date"
 
                                 MDButton:
                                     on_release: root.add_question('datetime')
@@ -276,6 +297,8 @@
                                     md_bg_color: 0.2, 0.7, 0.4, 1
                                     font_size: "13sp"
                                     elevation: 1
+                                    MDButtonText:
+                                        text: "Date & Time"
 
                             # LOCATION & GPS SECTION
                             MDBoxLayout:
@@ -299,8 +322,7 @@
 
                                     MDLabel:
                                         text: "Location & GPS"
-                                        font_style: "Body"
-                                        bold: True
+                                        role: "medium"  # Updated font style
                                         theme_text_color: "Primary"
                                         font_size: "15sp"
 
@@ -312,6 +334,8 @@
                                     md_bg_color: 0.6, 0.2, 0.8, 1
                                     font_size: "13sp"
                                     elevation: 1
+                                    MDButtonText:
+                                        text: "GPS Location"
 
                                 MDButton:
                                     on_release: root.add_question('geoshape')
@@ -320,6 +344,8 @@
                                     md_bg_color: 0.6, 0.2, 0.8, 1
                                     font_size: "13sp"
                                     elevation: 1
+                                    MDButtonText:
+                                        text: "GPS Area"
 
                             # MEDIA SECTION
                             MDBoxLayout:
@@ -343,8 +369,7 @@
 
                                     MDLabel:
                                         text: "Media & Files"
-                                        font_style: "Body"
-                                        bold: True
+                                        role: "medium"  # Updated font style
                                         theme_text_color: "Primary"
                                         font_size: "15sp"
 
@@ -407,8 +432,7 @@
 
                                     MDLabel:
                                         text: "Special Types"
-                                        font_style: "Body"
-                                        bold: True
+                                        role: "medium"  # Updated font style
                                         theme_text_color: "Primary"
                                         font_size: "15sp"
 
@@ -457,8 +481,7 @@
 
                         MDLabel:
                             text: "Form Questions"
-                            font_style: "Label"
-                            bold: True
+                            role: "medium"  # Updated font style
                             theme_text_color: "Primary"
                             font_size: "18sp"
                             size_hint_y: None
@@ -466,7 +489,7 @@
 
                         MDLabel:
                             text: "Add questions from the left panel to build your form"
-                            font_style: "Body"
+                            role: "small"  # Updated font style
                             theme_text_color: "Secondary"
                             font_size: "14sp"
                             size_hint_y: None
@@ -535,18 +558,20 @@
                     size_hint_x: 1
 
                 MDButton:
-                    text: "Save Form"
                     on_release: root.save_form()
                     size_hint: None, None
                     size: dp(120), dp(40)
                     elevation: 2
+                    MDButtonText:
+                        text: "Save Form"
 
                 MDButton:
-                    text: "Preview"
                     on_release: root.preview_questions()
                     size_hint: None, None
                     size: dp(100), dp(40)
                     elevation: 2
+                    MDButtonText:
+                        text: "Preview"
 
                 Widget:
                     size_hint_x: 1
@@ -571,7 +596,7 @@
 
             MDLabel:
                 text: "Processing..."
-                font_style: "Body"
+                role: "small"  # Updated font style
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
                 halign: "center"
