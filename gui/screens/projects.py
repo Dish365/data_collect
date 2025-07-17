@@ -4,6 +4,7 @@ from kivy.metrics import dp
 from kivy.lang import Builder
 from kivy.clock import Clock
 from kivy.core.window import Window
+from kivy.uix.widget import Widget
 from utils.toast import toast
 from kivymd.uix.dialog import (
     MDDialog,
@@ -248,10 +249,10 @@ class ProjectsScreen(Screen):
             from kivymd.uix.menu import MDDropdownMenu
             
             menu_items = [
-                {"text": "Name (A-Z)", "viewclass": "OneLineListItem", "on_release": lambda: self.sort_projects("name")},
-                {"text": "Newest First", "viewclass": "OneLineListItem", "on_release": lambda: self.sort_projects("date_new")},
-                {"text": "Oldest First", "viewclass": "OneLineListItem", "on_release": lambda: self.sort_projects("date_old")},
-                {"text": "Sync Status", "viewclass": "OneLineListItem", "on_release": lambda: self.sort_projects("status")},
+                {"text": "Name (A-Z)", "viewclass": "MDListItem", "on_release": lambda: self.sort_projects("name")},
+                {"text": "Newest First", "viewclass": "MDListItem", "on_release": lambda: self.sort_projects("date_new")},
+                {"text": "Oldest First", "viewclass": "MDListItem", "on_release": lambda: self.sort_projects("date_old")},
+                {"text": "Sync Status", "viewclass": "MDListItem", "on_release": lambda: self.sort_projects("status")},
             ]
             
             self.sort_menu = MDDropdownMenu(
@@ -290,7 +291,10 @@ class ProjectsScreen(Screen):
             icon = "view-grid" if self.is_grid_view else "view-list"
             self.ids.view_toggle_btn.icon = icon
         
-        # For now, we'll just show a toast - grid/list styling can be enhanced later
+        # Refresh the UI to show the new view mode
+        self.refresh_projects_ui()
+        
+        # Show user feedback
         view_mode = "Grid" if self.is_grid_view else "List"
         toast(f"Switched to {view_mode} view")
         
@@ -524,6 +528,7 @@ class ProjectsScreen(Screen):
                     content
                 ),
                 MDDialogButtonContainer(
+                    Widget(),
                     MDButton(
                         MDButtonText(text="Cancel"),
                         style="outlined",
@@ -535,7 +540,7 @@ class ProjectsScreen(Screen):
                         id="save_button",
                         on_release=self.save_project
                     ),
-                    spacing="8dp"
+                    spacing="8dp",
                 ),
             )
             self.dialog.open()
@@ -766,21 +771,36 @@ class ProjectsScreen(Screen):
             
         # Create dialog using latest KivyMD approach
         delete_dialog = MDDialog(
-            title="Delete Project?",
-            text="This action cannot be undone.",
-            buttons=[
+            MDDialogHeadlineText(
+                text="Delete Project?"
+            ),
+            MDDialogContentContainer(
+                MDLabel(
+                    text="This action cannot be undone.",
+                    size_hint_y=None,
+                    height=dp(48),
+                    halign='center',
+                    theme_text_color="Error"
+                )
+            ),
+            MDDialogButtonContainer(
+                
                 MDButton(
-                    text="CANCEL",
-                    on_release=cancel_delete,
-                    style="text"
+                    MDButtonText(text="Cancel"),
+                    style="outlined",
+                    on_release=cancel_delete
                 ),
                 MDButton(
-                    text="DELETE",
-                    on_release=confirm_delete,
+                    MDButtonText(text="Delete"),
                     style="filled",
+                    on_release=confirm_delete,
                     md_bg_color=(0.8, 0.2, 0.2, 1)  # Red color for delete
-                )
-            ]
+                ),
+                Widget(),
+                spacing="8dp",
+                size_hint_y=None,
+                    
+            )
         )
         delete_dialog.open()
 
