@@ -1,4 +1,5 @@
 #:import MDButton kivymd.uix.button.MDButton
+#:import MDCard kivymd.uix.card.MDCard
 <DashboardScreen>:
     name: "dashboard"
     md_bg_color: 1, 1, 1, 1
@@ -118,106 +119,139 @@
                         size_hint_y: None
                         height: self.texture_size[1] + dp(16)
 
-                    # Responsive Dashboard Tools Grid - Improved spacing and alignment
+                    # Redesigned Dashboard Tools - Grouped by Function
                     MDBoxLayout:
-                        id: actions_container
+                        id: tools_container
                         orientation: 'vertical'
                         adaptive_height: True
                         size_hint_y: None
                         height: self.minimum_height
                         spacing: dp(16)
                         
-                        MDGridLayout:
-                            id: actions_grid
-                            adaptive_height: True
+                        # Project Management Group
+                        MDCard:
+                            id: project_management_card
+                            orientation: "vertical"
+                            padding: dp(16)
+                            spacing: dp(12)
+                            elevation: 2
                             size_hint_y: None
                             height: self.minimum_height
-                            spacing: dp(16)  # Increased spacing for better visual separation
-                            cols: 2  # Default 2 columns, will be updated by Python
-                            row_default_height: dp(60)  # Consistent button height
-                            row_force_default: True
-                            # Ensure uniform column widths
-                            cols_minimum: {0: dp(120), 1: dp(120), 2: dp(120)}
-                            size_hint_x: 1
+                            
+                            MDLabel:
+                                text: "Project Management"
+                                theme_text_color: "Secondary"
+                                font_style: "Title"
+                                size_hint_y: None
+                                height: self.texture_size[1]
+                            
+                            MDGridLayout:
+                                cols: 2
+                                adaptive_height: True
+                                spacing: dp(12)
+                                size_hint_y: None
+                                height: self.minimum_height
+                                
+                                MDButton:
+                                    id: projects_btn
+                                    style: "outlined"
+                                    size_hint_x: 1
+                                    on_release: root.navigate_to("projects")
+                                    MDButtonText:
+                                        text: "Projects"
+                                    MDButtonIcon:
+                                        icon: "folder"
+                                
+                                MDButton:
+                                    id: team_members_btn
+                                    style: "outlined"
+                                    size_hint_x: 1
+                                    on_release: root.open_team_management()
+                                    MDButtonText:
+                                        text: "Team Members"
+                                    MDButtonIcon:
+                                        icon: "account-group"
+                        
+                        # Data Collection Group
+                        MDCard:
+                            id: data_collection_card
+                            orientation: "vertical"
+                            padding: dp(16)
+                            spacing: dp(12)
+                            elevation: 2
+                            size_hint_y: None
+                            height: self.minimum_height
+                            
+                            MDLabel:
+                                text: "Data Collection"
+                                theme_text_color: "Secondary"
+                                font_style: "Title"
+                                size_hint_y: None
+                                height: self.texture_size[1]
+                            
+                            MDGridLayout:
+                                cols: 2
+                                adaptive_height: True
+                                spacing: dp(12)
+                                size_hint_y: None
+                                height: self.minimum_height
+                                
+                                MDButton:
+                                    id: collect_data_btn
+                                    style: "outlined"
+                                    size_hint_x: 1
+                                    on_release: root.navigate_to("data_collection")
+                                    MDButtonText:
+                                        text: "Collect Data"
+                                    MDButtonIcon:
+                                        icon: "form-textbox"
+                                
+                                MDButton:
+                                    id: form_builder_btn
+                                    style: "outlined"
+                                    size_hint_x: 1
+                                    on_release: root.navigate_to("form_builder")
+                                    MDButtonText:
+                                        text: "Form Builder"
+                                    MDButtonIcon:
+                                        icon: "form-textbox"
+                                
+                                MDButton:
+                                    id: sync_status_btn
+                                    style: "outlined"
+                                    size_hint_x: 1
+                                    on_release: root.navigate_to("sync")
+                                    MDButtonText:
+                                        text: "Sync Status"
+                                    MDButtonIcon:
+                                        icon: "cloud-sync"
+                        
+                        # Data Analysis Group
+                        MDCard:
+                            id: data_analysis_card
+                            orientation: "vertical"
+                            padding: dp(16)
+                            spacing: dp(12)
+                            elevation: 2
+                            size_hint_y: None
+                            height: self.minimum_height
+                            
+                            MDLabel:
+                                text: "Data Analysis"
+                                theme_text_color: "Secondary"
+                                font_style: "Title"
+                                size_hint_y: None
+                                height: self.texture_size[1]
                             
                             MDButton:
-                                id: projects_btn
-                                style: "filled"
-                                size_hint_x: 1
-                                md_bg_color: app.theme_cls.my_blue
-                                elevation: 0
-                                on_press: root.navigate_to("projects")
-                                MDButtonText:
-                                    text: "Projects"
-                                    bold: True
-                                    theme_text_color: "Custom"
-                                    text_color: 1, 1, 1, 1
-
-                            MDButton:
-                                id: collect_data_btn
-                                style: "filled"
-                                size_hint_x: 1
-                                md_bg_color: app.theme_cls.my_blue
-                                elevation: 0
-                                on_press: root.navigate_to("data_collection")
-                                MDButtonText:
-                                    text: "Collect Data"
-                                    bold: True
-                                    theme_text_color: "Custom"
-                                    text_color: 1, 1, 1, 1
-
-                            MDButton:
                                 id: analytics_btn
-                                style: "filled"
+                                style: "outlined"
                                 size_hint_x: 1
-                                md_bg_color: app.theme_cls.my_blue
-                                elevation: 0
-                                on_press: root.navigate_to("analytics")
+                                on_release: root.navigate_to("analytics")
                                 MDButtonText:
                                     text: "Analytics"
-                                    bold: True
-                                    theme_text_color: "Custom"
-                                    text_color: 1, 1, 1, 1
-
-                            MDButton:
-                                id: form_builder_btn
-                                style: "filled"
-                                size_hint_x: 1
-                                md_bg_color: app.theme_cls.my_blue
-                                elevation: 0
-                                on_press: root.navigate_to("form_builder")
-                                MDButtonText:
-                                    text: "Form Builder"
-                                    bold: True
-                                    theme_text_color: "Custom"
-                                    text_color: 1, 1, 1, 1
-
-                            MDButton:
-                                id: team_members_btn
-                                style: "filled"
-                                size_hint_x: 1
-                                md_bg_color: app.theme_cls.my_blue
-                                elevation: 0
-                                on_press: root.open_team_management()
-                                MDButtonText:
-                                    text: "Team Members"
-                                    bold: True
-                                    theme_text_color: "Custom"
-                                    text_color: 1, 1, 1, 1
-
-                            MDButton:
-                                id: sync_status_btn
-                                text: "Sync Status"
-                                size_hint: 1, None
-                                height: dp(60)
-                                font_size: "16sp"
-                                elevation: 2
-                                md_bg_color: app.theme_cls.primary_color
-                                text_color: [1, 1, 1, 1]
-                                # Enhanced interactive effects
-                                ripple_scale: 1.2
-                                elevation_press_anim: True
-                                on_press: root.navigate_to("sync")
+                                MDButtonIcon:
+                                    icon: "chart-bar"
 
                     MDLabel:
                         text: "Recent Activity"

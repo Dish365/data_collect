@@ -5,7 +5,14 @@ from kivy.lang import Builder
 from kivy.clock import Clock
 from kivy.core.window import Window
 from utils.toast import toast
-from kivymd.uix.dialog import MDDialog
+from kivymd.uix.dialog import (
+    MDDialog,
+    MDDialogIcon,
+    MDDialogHeadlineText,
+    MDDialogSupportingText,
+    MDDialogButtonContainer,
+    MDDialogContentContainer,
+)
 from kivymd.uix.button import MDButton, MDButtonText
 from kivymd.uix.label import MDLabel
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -510,12 +517,26 @@ class ProjectsScreen(Screen):
             content.ids.name_field.bind(text=on_name_change)
 
             self.dialog = MDDialog(
-                title="Edit Project" if is_edit else "New Project",
-                type="custom",
-                content_cls=content,
-                auto_dismiss=False,
-                size_hint=(0.9, None),
-                height=content.height + dp(40) if hasattr(content, 'height') else None  # Minimal extra space
+                MDDialogHeadlineText(
+                    text="Edit Project" if is_edit else "New Project",
+                ),
+                MDDialogContentContainer(
+                    content
+                ),
+                MDDialogButtonContainer(
+                    MDButton(
+                        MDButtonText(text="Cancel"),
+                        style="outlined",
+                        on_release=lambda x: self.dialog.dismiss()
+                    ),
+                    MDButton(
+                        MDButtonText(text="Save"),
+                        style="filled",
+                        id="save_button",
+                        on_release=self.save_project
+                    ),
+                    spacing="8dp"
+                ),
             )
             self.dialog.open()
         except Exception as e:

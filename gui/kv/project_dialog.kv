@@ -1,13 +1,12 @@
 #:import Window kivy.core.window.Window
 
 <ProjectDialog>:
+    adaptive_height: True
     MDBoxLayout:
         orientation: 'vertical'
-        spacing: dp(16)
-        padding: dp(24)
+        spacing: dp(8)
         size_hint_y: None
         height: self.minimum_height
-        md_bg_color: 1, 1, 1, 1  # Ensure white background
 
         # Project Name Section
         MDBoxLayout:
@@ -43,9 +42,6 @@
                 height: dp(16)
                 opacity: 0.7
 
-        Widget:
-            size_hint_y: None
-            height: dp(8)
 
         # Project Description Section
         MDBoxLayout:
@@ -67,7 +63,7 @@
                 multiline: True
                 mode: "outlined"
                 size_hint_y: None
-                height: dp(120)
+                height: dp(56)
                 font_size: "16sp"
                 MDTextFieldHintText:
                     text: "Describe your project (optional)"
@@ -82,50 +78,6 @@
                 height: dp(16)
                 opacity: 0.7
 
-        Widget:
-            size_hint_y: None
-            height: dp(16)
+       
 
-        # Buttons Section - Centered and properly styled
-        MDBoxLayout:
-            orientation: 'horizontal'
-            spacing: dp(16)
-            size_hint_y: None
-            height: dp(56) if Window.width > 600 else dp(48)
-            pos_hint: {'center_x': 0.5}
-            size_hint_x: None
-            width: dp(280)  # Fixed width for centering
-            pos_hint: {'center_x': 0.5}
-
-            MDButton:
-                id: cancel_button
-                style: "outlined"
-                size_hint_x: None
-                width: dp(120)
-                height: dp(56) if Window.width > 600 else dp(48)
-                pos_hint: {"center_x": 0.5}
-                elevation: 0
-                md_bg_color: 1, 1, 1, 1  # White background
-                line_color: app.theme_cls.primary_color  # Blue outline
-                MDButtonText:
-                    text: "Cancel"
-                    bold: True
-                    theme_text_color: "Primary"
-                    font_size: "16sp" if Window.width > 600 else "14sp"
-
-            MDButton:
-                id: save_button
-                style: "filled"
-                size_hint_x: None
-                width: dp(120)
-                height: dp(56) if Window.width > 600 else dp(48)
-                pos_hint: {"center_x": 0.5}
-                disabled: True
-                md_bg_color: 0.7, 0.7, 0.7, 1  # Gray when disabled
-                elevation: 0
-                MDButtonText:
-                    text: "Save"
-                    bold: True
-                    theme_text_color: "Custom"
-                    text_color: 1, 1, 1, 1  # White text
-                    font_size: "16sp" if Window.width > 600 else "14sp"
+       
