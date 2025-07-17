@@ -24,8 +24,8 @@ class FormService:
 
     def load_questions(self, project_id):
         """Loads questions for a project, from API if online, otherwise from local DB."""
-        # Try fetching from API first - use the correct endpoint
-        response = self.auth_service.make_authenticated_request(f'api/forms/questions/?project_id={project_id}')
+        # Try fetching from API first - use the correct endpoint with large page size to get all questions
+        response = self.auth_service.make_authenticated_request(f'api/forms/questions/?project_id={project_id}&page_size=100')
 
         conn = self.db_service.get_db_connection()
         try:

@@ -378,6 +378,10 @@ class Response(models.Model):
         """Override save to update respondent's last_response_at and process data"""
         is_new = self.pk is None
         
+        # Auto-populate response_type from question if not set
+        if not self.response_type and self.question:
+            self.response_type = self.question.get_expected_response_type()
+        
         # Auto-populate structured fields based on response type
         self._process_response_data()
         
@@ -487,12 +491,14 @@ class Response(models.Model):
         """Validate response against question's and response type's validation rules"""
         validation_errors = []
         
-        # Check if required question has a response
-        if self.question.is_required and not self.is_complete():
-            validation_errors.append("Response is required for this question")
+        # Use question's validation method if available
+        if self.question:
+            is_valid, error_message = self.question.validate_response_value(self.response_value)
+            if not is_valid:
+                validation_errors.append(error_message)
         
-        # Response type specific validation
-        if self.response_type.validation_schema:
+        # Additional response type specific validation
+        if self.response_type and self.response_type.validation_schema:
             schema = self.response_type.validation_schema
             
             # Numeric validation
@@ -506,13 +512,6 @@ class Response(models.Model):
             if self.response_type.data_type == 'text' and self.response_value:
                 if 'max_length' in schema and len(self.response_value) > schema['max_length']:
                     validation_errors.append(f"Text must be at most {schema['max_length']} characters")
-            
-            # Choice validation
-            if self.response_type.supports_options and self.question.options:
-                valid_options = [str(opt) for opt in self.question.options]
-                for selection in self.choice_selections:
-                    if str(selection) not in valid_options:
-                        validation_errors.append(f"'{selection}' is not a valid option")
         
         # Store validation results
         self.validation_errors = validation_errors if validation_errors else None

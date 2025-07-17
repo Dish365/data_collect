@@ -2,8 +2,8 @@ from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response as DRFResponse
 from django.db.models import Count, Avg, Max
-from core.utils.viewsets import BaseModelViewSet
-from core.utils.filters import ResponseFilter
+from django_core.utils.viewsets import BaseModelViewSet
+from django_core.utils.filters import ResponseFilter
 from .models import Response, Respondent
 from .serializers import ResponseSerializer, RespondentSerializer
 

@@ -2,8 +2,8 @@ from django.shortcuts import render
 from rest_framework import viewsets, permissions, status, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from core.utils.viewsets import BaseModelViewSet
-from core.utils.filters import QuestionFilter
+from django_core.utils.viewsets import BaseModelViewSet
+from django_core.utils.filters import QuestionFilter
 from .models import Question
 from .serializers import QuestionSerializer
 

@@ -4,8 +4,8 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from core.utils.viewsets import BaseModelViewSet
-from core.utils.filters import ProjectFilter
+from django_core.utils.viewsets import BaseModelViewSet
+from django_core.utils.filters import ProjectFilter
 from .models import Project, ProjectMember
 from .serializers import (
     ProjectSerializer, 

@@ -852,11 +852,14 @@ class DataCollectionScreen(Screen):
                 except Exception as e:
                     print(f"Error in answer change callback: {e}")
             print(f"[DEBUG] Binding main answer event for field id={id(container.response_field)} q_id={q_id}, q_type={q_type}, has response_field: {hasattr(container, 'response_field')}")
-            # Only bind for non-text fields now
+            
+            # Handle different response field types
             if q_type in ['choice', 'choice_single', 'choice_multiple']:
                 if hasattr(container, 'response_field') and container.response_field:
-                    for cb, opt in container.response_field:
-                        cb.bind(active=on_answer_change)
+                    # ChoiceResponseField has checkboxes list
+                    if hasattr(container.response_field, 'checkboxes'):
+                        for checkbox in container.response_field.checkboxes:
+                            checkbox.bind(active=on_answer_change)
             elif q_type == 'scale':
                 if hasattr(container, 'response_field') and container.response_field:
                     container.response_field.bind(value=on_answer_change)
@@ -895,7 +898,9 @@ class DataCollectionScreen(Screen):
                         is_answered = bool(value) if not isinstance(value, str) else bool(value.strip())
             elif q_type in ('choice', 'choice_single', 'choice_multiple'):
                 if hasattr(widget, 'response_field') and widget.response_field:
-                    is_answered = any(cb.active for cb, opt in widget.response_field)
+                    # ChoiceResponseField has a get_value() method that returns selected values
+                    value = widget.response_field.get_value()
+                    is_answered = bool(value) if value else False
             elif q_type == 'scale':
                 if hasattr(widget, 'response_field') and widget.response_field:
                     # Consider scale answered if value is not None

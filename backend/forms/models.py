@@ -97,3 +97,130 @@ class Question(models.Model):
     def can_user_access(self, user):
         """Check if a user can access this question"""
         return self.project.can_user_access(user)
+    
+    def get_expected_response_type(self):
+        """Get the expected ResponseType for this question"""
+        from responses.models import ResponseType
+        
+        # Map question response_type to ResponseType name
+        type_mapping = {
+            'text_short': 'text_short',
+            'text_long': 'text_long',
+            'numeric_integer': 'numeric_integer',
+            'numeric_decimal': 'numeric_decimal',
+            'scale_rating': 'scale_rating',
+            'choice_single': 'choice_single',
+            'choice_multiple': 'choice_multiple',
+            'date': 'date',
+            'datetime': 'datetime',
+            'geopoint': 'geopoint',
+            'geoshape': 'geoshape',
+            'image': 'image',
+            'audio': 'audio',
+            'video': 'video',
+            'file': 'file',
+            'signature': 'signature',
+            'barcode': 'barcode',
+            # Legacy mappings
+            'numeric': 'numeric_integer',
+            'text': 'text_short',
+            'choice': 'choice_multiple',
+            'scale': 'scale_rating',
+            'location': 'geopoint',
+        }
+        
+        response_type_name = type_mapping.get(self.response_type, 'text_short')
+        try:
+            return ResponseType.objects.get(name=response_type_name)
+        except ResponseType.DoesNotExist:
+            # Fallback to default
+            return ResponseType.objects.get(name='text_short')
+    
+    def validate_response_value(self, response_value):
+        """Validate a response value against this question's rules"""
+        if not response_value and self.is_required:
+            return False, "This question is required"
+        
+        if not response_value:
+            return True, None  # Empty response is valid for non-required questions
+        
+        # Type-specific validation
+        if self.response_type in ['choice_single', 'choice_multiple', 'choice']:
+            if not self.options:
+                return False, "Question has no options defined"
+            
+            if self.response_type == 'choice_single':
+                if response_value not in self.options:
+                    return False, f"'{response_value}' is not a valid option"
+            else:  # multiple choice
+                if isinstance(response_value, str):
+                    choices = [c.strip() for c in response_value.split(',')]
+                elif isinstance(response_value, list):
+                    choices = response_value
+                else:
+                    choices = [str(response_value)]
+                
+                for choice in choices:
+                    if choice not in self.options:
+                        return False, f"'{choice}' is not a valid option"
+        
+        # Numeric validation
+        elif self.response_type in ['numeric_integer', 'numeric_decimal', 'scale_rating', 'numeric', 'scale']:
+            try:
+                value = float(response_value)
+                if self.validation_rules:
+                    min_val = self.validation_rules.get('min_value')
+                    max_val = self.validation_rules.get('max_value')
+                    if min_val is not None and value < min_val:
+                        return False, f"Value must be at least {min_val}"
+                    if max_val is not None and value > max_val:
+                        return False, f"Value must be at most {max_val}"
+            except (ValueError, TypeError):
+                return False, "Value must be a number"
+        
+        # Text validation
+        elif self.response_type in ['text_short', 'text_long', 'text']:
+            if self.validation_rules:
+                max_length = self.validation_rules.get('max_length')
+                if max_length and len(str(response_value)) > max_length:
+                    return False, f"Text must be at most {max_length} characters"
+        
+        return True, None
+    
+    def get_default_response_data(self):
+        """Get default response data structure for this question type"""
+        if self.response_type in ['choice_single', 'choice_multiple', 'choice']:
+            return {
+                'response_value': '',
+                'choice_selections': [],
+                'structured_data': {'selected_options': []}
+            }
+        elif self.response_type in ['numeric_integer', 'numeric_decimal', 'scale_rating', 'numeric', 'scale']:
+            return {
+                'response_value': '',
+                'numeric_value': None,
+                'structured_data': {'numeric_value': None}
+            }
+        elif self.response_type in ['date', 'datetime']:
+            return {
+                'response_value': '',
+                'datetime_value': None,
+                'structured_data': {'datetime_value': None}
+            }
+        elif self.response_type in ['geopoint', 'geoshape', 'location']:
+            return {
+                'response_value': '',
+                'geo_data': None,
+                'structured_data': {'geo_data': None}
+            }
+        elif self.response_type in ['image', 'audio', 'video', 'file', 'signature']:
+            return {
+                'response_value': '',
+                'media_files': [],
+                'structured_data': {'media_files': []}
+            }
+        else:  # text types
+            return {
+                'response_value': '',
+                'structured_data': {'text_value': ''}
+            }
