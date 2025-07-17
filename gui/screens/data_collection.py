@@ -20,7 +20,6 @@ import json
 import threading
 import uuid
 
-from widgets.loading_overlay import LoadingOverlay
 from widgets.top_bar import TopBar
 
 Builder.load_file("kv/collect_data.kv")
@@ -41,9 +40,6 @@ class DataCollectionScreen(Screen):
         self.answered_questions = set()
         self.total_questions = 0
         self.progress_value = 0.0
-        
-        # Initialize loading overlay
-        self.loading_overlay = LoadingOverlay()
 
     def on_enter(self):
         self.clear_current_form()  # Clear form and reset progress on screen enter
@@ -205,13 +201,14 @@ class DataCollectionScreen(Screen):
             for project in api_projects:
                 cursor.execute("""
                     INSERT OR REPLACE INTO projects 
-                    (id, name, description, user_id, sync_status, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    (id, name, description, user_id, created_by, sync_status, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     project.get('id'),
                     project.get('name'),
                     project.get('description', ''),
                     user_id,
+                    user_id,  # created_by should be the same as user_id
                     'synced',
                     project.get('created_at'),
                     project.get('updated_at')
@@ -237,6 +234,9 @@ class DataCollectionScreen(Screen):
             self.ids.project_spinner.text = 'No Projects Available'
             self._show_empty_state("No projects found", "Go to the Projects page to create a new project first.")
             self._update_submit_button()
+            # Hide progress section
+            self.ids.progress_section.opacity = 0
+            self.ids.form_actions.opacity = 0
             return
             
         self.project_list = [p['name'] for p in projects]
@@ -246,26 +246,49 @@ class DataCollectionScreen(Screen):
         self.ids.project_spinner.text = 'Select Project'
         self.ids.form_canvas.clear_widgets()
         self._update_submit_button()
+        # Hide progress section
+        self.ids.progress_section.opacity = 0
+        self.ids.form_actions.opacity = 0
         
         print(f"Loaded {len(projects)} projects for user {user_id}")
 
     def open_project_menu(self):
+        try:
+            if self.project_menu:
+                self.project_menu.dismiss()
+                
+            if not self.project_list:
+                toast("No projects available")
+                return
+                
+            menu_items = []
+            for name in self.project_list:
+                menu_items.append({
+                    "text": name,
+                    "height": dp(48),  # Ensure proper height
+                    "on_release": lambda x=name: self.select_project_from_menu(x)
+                })
+            
+            # Create dropdown with better sizing
+            self.project_menu = MDDropdownMenu(
+                caller=self.ids.project_spinner,
+                items=menu_items,
+                width_mult=3,  # Reduced width multiplier
+                max_height=dp(300),  # Increased max height
+                elevation=4,  # Add elevation for visibility
+                border_margin=dp(4)  # Add margin for visibility
+            )
+            self.project_menu.open()
+            
+        except Exception as e:
+            print(f"Error opening project menu: {e}")
+            toast(f"Error opening project menu: {str(e)}")
+    
+    def select_project_from_menu(self, project_name):
+        """Handle project selection from dropdown menu"""
         if self.project_menu:
             self.project_menu.dismiss()
-        menu_items = [
-            {
-                "text": name,
-                "viewclass": "MDListItem",
-                "on_release": lambda x=name: self.on_project_selected(None, x)
-            }
-            for name in self.project_list
-        ]
-        self.project_menu = MDDropdownMenu(
-            caller=self.ids.project_spinner,
-            items=menu_items,
-            width_mult=4
-        )
-        self.project_menu.open()
+        self.on_project_selected(None, project_name)
 
     def on_project_selected(self, spinner, text):
         """Handle project selection with comprehensive error handling"""
@@ -281,14 +304,17 @@ class DataCollectionScreen(Screen):
                 self.ids.project_spinner.text = 'Select Project'
                 self.ids.form_canvas.clear_widgets()
                 self._update_submit_button()
+                # Hide progress section
+                self.ids.progress_section.opacity = 0
+                self.ids.form_actions.opacity = 0
                 return
                 
             self.project_id = self.project_map[text]
             self.ids.project_spinner.text = text
             self.current_respondent_id = None
             
-            # Show loading overlay
-            self.loading_overlay.show("Loading form...")
+            # Show loading message instead of overlay for now
+            toast("Loading form...")
             
             print(f"Loading form for project ID: {self.project_id}")
             self.load_form()
@@ -305,8 +331,11 @@ class DataCollectionScreen(Screen):
             self.ids.project_spinner.text = 'Select Project'
             self.ids.form_canvas.clear_widgets()
             self._update_submit_button()
-            # Hide loading overlay on error
-            self.loading_overlay.hide()
+            # Hide progress section
+            self.ids.progress_section.opacity = 0
+            self.ids.form_actions.opacity = 0
+            # Show error toast
+            pass
 
     def load_form(self):
         """Load the form questions for the selected project with tablet optimizations"""
@@ -382,8 +411,8 @@ class DataCollectionScreen(Screen):
             self._show_empty_state("Error loading form", str(e))
         finally:
             self._is_loading_form = False
-            # Hide loading overlay
-            self.loading_overlay.hide()
+            # Loading complete message
+            toast("Form loaded")
 
     def create_tablet_question_widget(self, q, index):
         """Create tablet-optimized UI widget for a question"""
@@ -479,12 +508,12 @@ class DataCollectionScreen(Screen):
                 elevation=1
             )
             
-            number_label = MDLabel(
+            from kivy.uix.label import Label
+            number_label = Label(
                 text=str(index + 1),
                 halign='center',
                 valign='center',
-                text_color=(1, 1, 1, 1),
-                bold=True,
+                color=(1, 1, 1, 1),
                 font_size=font_sizes["text"]
             )
             number_card.add_widget(number_label)
@@ -501,15 +530,15 @@ class DataCollectionScreen(Screen):
             container.answer_status = status_indicator  # Store reference for updates
 
             # Enhanced question text with better typography
-            question_label = MDLabel(
+            question_label = Label(
                 text=q_text,
-                font_style="TitleMedium",
-                theme_text_color="Primary",
+                color=[0.2, 0.6, 1.0, 1.0],  # Blue color
                 size_hint_y=None,
                 height=header_height,
                 font_size=font_sizes["title"],
                 text_size=(None, None),
-                valign='center'
+                valign='center',
+                halign='left'
             )
 
             header.add_widget(number_card)
@@ -606,25 +635,16 @@ class DataCollectionScreen(Screen):
                 md_bg_color=[1, 0.8, 0.8, 1],
                 elevation=0
             )
-            error_label = MDLabel(
-                text=f"[b]Error loading question {index+1}[/b]\n{str(e)}",
-                markup=True,
-                theme_text_color="Error",
+            # Create simple error widget without problematic attributes
+            from kivy.uix.label import Label
+            error_label = Label(
+                text=f"Error loading question {index+1}: {str(e)}",
+                color=(0.8, 0.2, 0.2, 1),
                 halign="left",
-                valign="middle"
+                valign="middle",
+                text_size=(dp(300), None)
             )
             error_card.add_widget(error_label)
-            # Add a hidden label with the traceback for copy-paste
-            tb_label = MDLabel(
-                text=traceback.format_exc(),
-                font_style="BodySmall",
-                theme_text_color="Secondary",
-                halign="left",
-                valign="top",
-                opacity=0.5,
-                shorten=False
-            )
-            error_card.add_widget(tb_label)
             return error_card
 
     def create_tablet_text_field(self, q_type, font_sizes, touch_targets):
@@ -646,7 +666,7 @@ class DataCollectionScreen(Screen):
             height=touch_targets["button"] * 2 if q_type == 'long_text' else touch_targets["button"],
             font_size=font_sizes["text"],
             line_color_focus=App.get_running_app().theme_cls.primary_color,
-            line_color_normal=[0.77, 0.77, 0.77, 1]
+            line_color_normal=[0.7, 0.7, 0.7, 1]
         )
         
         # Add visual feedback for content
@@ -710,7 +730,7 @@ class DataCollectionScreen(Screen):
 
                     label = MDLabel(
                         text=opt_text,
-                        theme_text_color="Primary",
+                        text_color=App.get_running_app().theme_cls.primary_color,
                         size_hint_x=1,
                         pos_hint={'center_y': 0.5},
                         font_size=font_sizes["text"]
@@ -771,11 +791,12 @@ class DataCollectionScreen(Screen):
         )
         
         for i in range(1, 6):
-            label = MDLabel(
+            from kivy.uix.label import Label
+            label = Label(
                 text=str(i),
                 halign='center',
-                theme_text_color="Secondary",
-                font_style="BodySmall"
+                color=[0.5, 0.5, 0.5, 1],  # Gray color
+                font_size=font_sizes["hint"]
             )
             labels_box.add_widget(label)
         
@@ -793,10 +814,10 @@ class DataCollectionScreen(Screen):
         value_label = MDLabel(
             text="3",
             halign='center',
-            theme_text_color="Primary",
+            text_color=App.get_running_app().theme_cls.primary_color,
             size_hint_y=None,
             height=dp(20),
-            font_style="BodyMedium",
+            font_size=font_sizes["text"],
             bold=True
         )
         
@@ -829,12 +850,14 @@ class DataCollectionScreen(Screen):
             md_bg_color=[0.8, 0.8, 0.8, 1]
         )
         
-        note_label = MDLabel(
+        from kivy.uix.label import Label
+        note_label = Label(
             text="Photo upload functionality will be available in future updates",
-            font_style="BodySmall",
-            theme_text_color="Secondary",
-            halign='center',               
-            font_size=dp(14)
+            color=[0.5, 0.5, 0.5, 1],  # Gray color
+            halign='center',
+            font_size=font_sizes["hint"],
+            text_size=(dp(200), None),
+            valign='center'
         )
         
         photo_box.add_widget(placeholder_button)
@@ -995,16 +1018,16 @@ class DataCollectionScreen(Screen):
                         size_hint_x=None,
                         width=dp(24),
                         halign='center',
-                        font_style="BodySmall",
-                        theme_text_color="Secondary"
+                        font_size="12sp",
+                        text_color=[0.5, 0.5, 0.5, 1]  # Gray color instead of theme secondary_color
                     )
                     
                     # Question text (truncated)
                     text = q_text[:30] + "..." if len(q_text) > 30 else q_text
                     text_label = MDLabel(
                         text=text,
-                        font_style="BodySmall",
-                        theme_text_color="Primary"
+                        font_size="11sp",
+                        text_color=App.get_running_app().theme_cls.primary_color
                     )
                     
                     # Question type indicator

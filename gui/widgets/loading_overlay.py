@@ -17,11 +17,11 @@ class LoadingOverlay(ModalView):
         self.background_color = [0, 0, 0, 0.5]  # Semi-transparent background
         self.auto_dismiss = False  # Prevent dismissal by tapping outside
         
-        # Create the loading card
+        # Create the loading card - smaller size for tablets
         self.loading_card = MDCard(
             orientation='vertical',
             size_hint=(None, None),
-            size=(dp(200), dp(120)),
+            size=(dp(160), dp(100)),  # Reduced size
             pos_hint={'center_x': 0.5, 'center_y': 0.5},
             elevation=8,
             radius=[dp(12)],
@@ -31,24 +31,24 @@ class LoadingOverlay(ModalView):
         # Create the content layout
         content_layout = MDBoxLayout(
             orientation='vertical',
-            spacing=dp(16),
-            padding=dp(20),
+            spacing=dp(12),  # Reduced spacing
+            padding=dp(16),  # Reduced padding
             size_hint=(1, 1)
         )
         
-        # Add progress indicator
+        # Add progress indicator - smaller size
         self.spinner = MDCircularProgressIndicator(
             size_hint=(None, None),
-            size=(dp(40), dp(40)),
+            size=(dp(32), dp(32)),  # Smaller spinner
             pos_hint={'center_x': 0.5}
         )
         
-        # Add message label
+        # Add message label - smaller font
         self.message_label = MDLabel(
             text=self.message,
             halign='center',
             theme_text_color="Primary",
-            font_size="16sp"
+            font_size="14sp"  # Smaller font
         )
         
         # Add widgets to layout

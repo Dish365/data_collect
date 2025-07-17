@@ -3,8 +3,6 @@ from kivy.metrics import dp
 from kivy.uix.widget import Widget
 from kivymd.uix.button import MDButton
 from kivymd.uix.slider import MDSlider
-from kivymd.uix.pickers.datepicker import MDDatePicker
-from kivymd.uix.pickers.timepicker import MDTimePicker
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.selectioncontrol import MDCheckbox
@@ -13,6 +11,17 @@ from kivy.core.window import Window
 import datetime
 import uuid
 from kivymd.uix.snackbar import MDSnackbar
+
+# Try to import date/time pickers with fallback
+try:
+    from kivymd.uix.pickers.datepicker import MDDatePicker
+    from kivymd.uix.pickers.timepicker import MDTimePicker
+    PICKERS_AVAILABLE = True
+except ImportError:
+    print("Warning: Date/Time pickers not available in this KivyMD version")
+    MDDatePicker = None
+    MDTimePicker = None
+    PICKERS_AVAILABLE = False
 
 # Base response field class - only handles response input
 class BaseResponseField(MDCard):
@@ -531,9 +540,26 @@ class DateResponseField(BaseResponseField):
             self.date_button.font_size = values['font_size_secondary']
     
     def show_date_picker(self, instance):
+        if not PICKERS_AVAILABLE or MDDatePicker is None:
+            # Fallback to simple text input
+            self.show_date_input_fallback()
+            return
+        
         date_dialog = MDDatePicker()
         date_dialog.bind(on_save=self.set_date)
         date_dialog.open()
+    
+    def show_date_input_fallback(self):
+        """Fallback method when date picker is not available"""
+        from kivymd.uix.snackbar import MDSnackbar
+        MDSnackbar(
+            MDLabel(
+                text="Please enter date manually in YYYY-MM-DD format",
+            ),
+            y=dp(24),
+            pos_hint={"center_x": 0.5},
+            size_hint_x=0.8,
+        ).open()
     
     def set_date(self, instance, date_obj, *args):
         self.selected_date = date_obj
@@ -651,14 +677,34 @@ class DateTimeResponseField(BaseResponseField):
             self.time_button.font_size = values['font_size_secondary']
     
     def show_date_picker(self, instance):
+        if not PICKERS_AVAILABLE or MDDatePicker is None:
+            self.show_datetime_input_fallback()
+            return
+        
         date_dialog = MDDatePicker()
         date_dialog.bind(on_save=self.set_date)
         date_dialog.open()
     
     def show_time_picker(self, instance):
+        if not PICKERS_AVAILABLE or MDTimePicker is None:
+            self.show_datetime_input_fallback()
+            return
+        
         time_dialog = MDTimePicker()
         time_dialog.bind(time=self.set_time)
         time_dialog.open()
+    
+    def show_datetime_input_fallback(self):
+        """Fallback method when datetime picker is not available"""
+        from kivymd.uix.snackbar import MDSnackbar
+        MDSnackbar(
+            MDLabel(
+                text="Please enter datetime manually in YYYY-MM-DD HH:MM format",
+            ),
+            y=dp(24),
+            pos_hint={"center_x": 0.5},
+            size_hint_x=0.8,
+        ).open()
     
     def set_date(self, instance, date_obj, *args):
         if self.selected_datetime:

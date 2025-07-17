@@ -16,23 +16,22 @@ class AnalyticsUtils:
     
     @staticmethod
     def get_django_db_connection():
-        """Get connection to Django SQLite database."""
-        # Path to Django database - go up from backend/analytics/app/utils/shared.py to backend/
-        current_file = Path(__file__)
-        backend_dir = current_file.parent.parent.parent.parent  # Go up to backend/
-        db_path = backend_dir / "db.sqlite3"
+        """Get connection to GUI SQLite database."""
+        # Path to GUI database - look for research_data.db in user's home directory
+        from pathlib import Path
+        import os
         
-        # Alternative paths to try
+        # Try multiple locations for the GUI database
         alternative_paths = [
-            backend_dir / "db.sqlite3",  # backend/db.sqlite3 (most likely)
-            backend_dir.parent / "db.sqlite3",  # data_collect/db.sqlite3 (project root)
-            backend_dir / "analytics" / "analytics.db",  # analytics backend's own DB (fallback)
+            Path.home() / "research_data.db",  # Default GUI location
+            Path(__file__).parent.parent.parent.parent / "research_data.db",  # backend/research_data.db
+            Path(__file__).parent.parent.parent.parent.parent / "research_data.db",  # project root
         ]
         
         # Try to find the database file
         for path in alternative_paths:
             if path.exists():
-                print(f"Found Django database at: {path}")
+                print(f"Found GUI database at: {path}")
                 conn = sqlite3.connect(str(path))
                 conn.row_factory = sqlite3.Row
                 return conn
@@ -40,20 +39,20 @@ class AnalyticsUtils:
         # If no database found, provide helpful error message
         searched_paths = "\n".join([f"  - {path}" for path in alternative_paths])
         raise FileNotFoundError(
-            f"Django database not found. Searched paths:\n{searched_paths}\n"
-            f"Current file location: {current_file}\n"
-            f"Please ensure the Django database exists."
+            f"GUI database not found. Searched paths:\n{searched_paths}\n"
+            f"Please ensure the GUI database exists by running the GUI application first."
         )
     
     @staticmethod
     def get_project_data(project_id: str) -> pd.DataFrame:
-        """Get project data as DataFrame from Django database."""
+        """Get project data as DataFrame from GUI database."""
         conn = AnalyticsUtils.get_django_db_connection()
         
         try:
+            # Updated query to use GUI table names (responses, questions)
             query = """
                 SELECT 
-                    r.id as response_id,
+                    r.response_id,
                     r.respondent_id,
                     r.response_value,
                     r.response_metadata,
@@ -61,8 +60,8 @@ class AnalyticsUtils:
                     q.question_text,
                     q.question_type,
                     q.options
-                FROM responses_response r
-                JOIN forms_question q ON r.question_id = q.id
+                FROM responses r
+                JOIN questions q ON r.question_id = q.id
                 WHERE r.project_id = ?
                 ORDER BY r.respondent_id, q.order_index
             """
@@ -96,26 +95,26 @@ class AnalyticsUtils:
         try:
             cursor = conn.cursor()
             
-            # Get response count
+            # Get response count - updated to use GUI table names
             cursor.execute("""
                 SELECT COUNT(*) as total_responses
-                FROM responses_response 
+                FROM responses 
                 WHERE project_id = ?
             """, (project_id,))
             response_data = cursor.fetchone()
             
-            # Get question count
+            # Get question count - updated to use GUI table names
             cursor.execute("""
                 SELECT COUNT(*) as total_questions
-                FROM forms_question 
+                FROM questions 
                 WHERE project_id = ? 
             """, (project_id,))
             question_data = cursor.fetchone()
             
-            # Get unique respondents
+            # Get unique respondents - updated to use GUI table names
             cursor.execute("""
                 SELECT COUNT(DISTINCT respondent_id) as unique_respondents
-                FROM responses_response 
+                FROM responses 
                 WHERE project_id = ?
             """, (project_id,))
             respondent_data = cursor.fetchone()
@@ -281,10 +280,14 @@ class AnalyticsUtils:
         return recommendations
     
     @staticmethod
-    def run_basic_text_analysis(df: pd.DataFrame, text_columns: List[str] = None) -> Dict[str, Any]:
+    def run_basic_text_analysis(df: pd.DataFrame, text_columns: Optional[List[str]] = None) -> Dict[str, Any]:
         """Run basic text analysis."""
         if text_columns is None:
             text_columns = df.select_dtypes(include=['object']).columns.tolist()
+        
+        # Ensure text_columns is a list at this point
+        if text_columns is None:
+            text_columns = []
         
         results = {
             'text_analysis': {},
@@ -309,7 +312,7 @@ class AnalyticsUtils:
         return results
     
     @staticmethod
-    def format_api_response(status: str, data: Any, message: str = None) -> Dict[str, Any]:
+    def format_api_response(status: str, data: Any, message: Optional[str] = None) -> Dict[str, Any]:
         """Format standardized API response."""
         response = {
             'status': status,
@@ -329,4 +332,101 @@ class AnalyticsUtils:
             status='error',
             data=None,
             message=f"Error in {context}: {str(error)}"
-        ) 
+        )
+    
+    @staticmethod
+    def run_inferential_analysis(df: pd.DataFrame, characteristics: Dict[str, Any]) -> Dict[str, Any]:
+        """Run inferential statistical analysis."""
+        try:
+            results = {
+                'analysis_type': 'inferential',
+                'sample_size': characteristics.get('sample_size', 0),
+                'tests_performed': [],
+                'analysis_timestamp': datetime.now().isoformat()
+            }
+            
+            numeric_vars = characteristics.get('numeric_variables', [])
+            categorical_vars = characteristics.get('categorical_variables', [])
+            
+            # Basic inferential tests based on available data
+            if len(numeric_vars) >= 2:
+                # Correlation analysis
+                correlation_matrix = df[numeric_vars].corr()
+                results['correlation_analysis'] = correlation_matrix.to_dict()
+                results['tests_performed'].append('correlation')
+            
+            if len(categorical_vars) >= 1 and len(numeric_vars) >= 1:
+                # Group comparisons
+                results['group_comparisons'] = {}
+                for cat_var in categorical_vars[:2]:  # Limit to 2 categorical variables
+                    groups = df[cat_var].value_counts()
+                    if len(groups) >= 2:
+                        results['group_comparisons'][cat_var] = {
+                            'groups': groups.to_dict(),
+                            'analysis': 'Basic group statistics available'
+                        }
+                        results['tests_performed'].append(f'group_analysis_{cat_var}')
+            
+            # Summary
+            results['summary'] = f"Completed {len(results['tests_performed'])} inferential analyses"
+            
+            return results
+            
+        except Exception as e:
+            return {
+                'error': f'Inferential analysis failed: {str(e)}',
+                'analysis_timestamp': datetime.now().isoformat()
+            }
+    
+    @staticmethod
+    def run_qualitative_analysis(df: pd.DataFrame, characteristics: Dict[str, Any]) -> Dict[str, Any]:
+        """Run qualitative data analysis."""
+        try:
+            results = {
+                'analysis_type': 'qualitative',
+                'sample_size': characteristics.get('sample_size', 0),
+                'methods_applied': [],
+                'analysis_timestamp': datetime.now().isoformat()
+            }
+            
+            text_vars = characteristics.get('text_variables', [])
+            categorical_vars = characteristics.get('categorical_variables', [])
+            
+            # Text analysis for qualitative data
+            if text_vars:
+                results['text_analysis'] = {}
+                for text_var in text_vars[:3]:  # Limit to 3 text variables
+                    if text_var in df.columns:
+                        text_data = df[text_var].dropna()
+                        if len(text_data) > 0:
+                            results['text_analysis'][text_var] = {
+                                'response_count': len(text_data),
+                                'average_length': text_data.str.len().mean(),
+                                'unique_responses': text_data.nunique(),
+                                'sample_responses': text_data.head(3).tolist()
+                            }
+                            results['methods_applied'].append(f'content_analysis_{text_var}')
+            
+            # Categorical pattern analysis
+            if categorical_vars:
+                results['categorical_patterns'] = {}
+                for cat_var in categorical_vars[:3]:  # Limit to 3 categorical variables
+                    if cat_var in df.columns:
+                        categories = df[cat_var].value_counts()
+                        results['categorical_patterns'][cat_var] = {
+                            'categories': categories.to_dict(),
+                            'diversity_index': categories.nunique(),
+                            'dominant_category': categories.index[0] if len(categories) > 0 else None
+                        }
+                        results['methods_applied'].append(f'categorical_analysis_{cat_var}')
+            
+            # Summary
+            results['summary'] = f"Applied {len(results['methods_applied'])} qualitative methods"
+            
+            return results
+            
+        except Exception as e:
+            return {
+                'error': f'Qualitative analysis failed: {str(e)}',
+                'analysis_timestamp': datetime.now().isoformat()
+            } 
