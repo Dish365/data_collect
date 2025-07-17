@@ -1227,12 +1227,12 @@ class AnalyticsScreen(Screen):
             else:
                     print("Backend unavailable, using local descriptive analysis")
                 
-                results = self.analytics_service.run_descriptive_analysis(
-                    self.current_project_id
-                )
-                Clock.schedule_once(
-                    lambda dt: self._display_descriptive_results(results), 0
-                )
+                    results = self.analytics_service.run_descriptive_analysis(
+                        self.current_project_id
+                    )
+                    Clock.schedule_once(
+                        lambda dt: self._display_descriptive_results(results), 0
+                    )
         except Exception as e:
             print(f"Error in descriptive analysis: {e}")
             import traceback
@@ -1722,12 +1722,12 @@ class AnalyticsScreen(Screen):
             # Statistics
             statistics = component.get('statistics', {})
             summary_text = f"Responses: {statistics.get('total_responses', 0)} | Unique: {statistics.get('unique_values', 0)}"
-                summary_label = MDLabel(
-                    text=summary_text,
-                    theme_text_color="Secondary",
+            summary_label = MDLabel(
+                text=summary_text,
+                theme_text_color="Secondary",
                 font_size="14sp",
-                    size_hint_y=None,
-                    height=dp(24)
+                size_hint_y=None,
+                height=dp(24)
                 )
             card.add_widget(summary_label)
             
@@ -1735,7 +1735,7 @@ class AnalyticsScreen(Screen):
             top_categories = statistics.get('top_categories', [])
             if top_categories:
                 categories_text = " | ".join([f"{cat}: {count}" for cat, count in top_categories[:3]])
-                    categories_label = MDLabel(
+                categories_label = MDLabel(
                     text=f"Top categories: {categories_text}",
                         theme_text_color="Secondary",
                         font_size="14sp",
@@ -1823,24 +1823,24 @@ class AnalyticsScreen(Screen):
             from kivymd.uix.label import MDLabel
             from kivymd.uix.button import MDButton
             
-        card = MDCard(
-            orientation="vertical",
-            padding=dp(16),
-            spacing=dp(8),
-            size_hint_y=None,
-                height=dp(120),
-                elevation=2,
-                md_bg_color=(1, 0.95, 0.95, 1)  # Light red
-            )
-            
-            # Title
-            title_label = MDLabel(
-                text=f"❌ {component.get('title', 'Error')}",
-                theme_text_color="Error",
-                font_size="16sp",
+            card = MDCard(
+                orientation="vertical",
+                padding=dp(16),
+                spacing=dp(8),
                 size_hint_y=None,
-                height=dp(24)
-            )
+                    height=dp(120),
+                    elevation=2,
+                    md_bg_color=(1, 0.95, 0.95, 1)  # Light red
+                )
+                
+                # Title
+            title_label = MDLabel(
+                    text=f"❌ {component.get('title', 'Error')}",
+                    theme_text_color="Error",
+                    font_size="16sp",
+                    size_hint_y=None,
+                    height=dp(24)
+                )
             card.add_widget(title_label)
             
             # Error message
@@ -1864,11 +1864,12 @@ class AnalyticsScreen(Screen):
             )
             card.add_widget(help_button)
         
-        return card
-
+            return card
         except Exception as e:
             print(f"Error creating error widget: {e}")
             return None
+
+        
 
     def create_info_widget(self, component):
         """Create info display widget"""
