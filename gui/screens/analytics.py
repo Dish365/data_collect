@@ -168,7 +168,7 @@ class AnalyticsScreen(Screen):
         for project in self.project_list:
             menu_items.append({
                 "text": f"{project['name']} ({project['response_count']} responses)",
-                "viewclass": "OneLineListItem",
+                "viewclass": "MDListItem",
                 "on_release": lambda x=project: self.select_project(x)
             })
             
@@ -568,7 +568,7 @@ class AnalyticsScreen(Screen):
                 
                 title_label = MDLabel(
                     text=str(title).strip(),
-                    font_style="Caption",
+                    font_style="LabelMedium",
                     theme_text_color="Secondary",
                     halign="center",
                     size_hint_y=None,
@@ -577,7 +577,7 @@ class AnalyticsScreen(Screen):
                 
                 value_label = MDLabel(
                     text=str(value).strip(),
-                    font_style="H6",
+                    font_style="TitleLarge",
                     theme_text_color="Primary", 
                     halign="center",
                     size_hint_y=None,

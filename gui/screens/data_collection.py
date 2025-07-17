@@ -255,7 +255,7 @@ class DataCollectionScreen(Screen):
         menu_items = [
             {
                 "text": name,
-                "viewclass": "OneLineListItem",
+                "viewclass": "MDListItem",
                 "on_release": lambda x=name: self.on_project_selected(None, x)
             }
             for name in self.project_list
@@ -503,8 +503,8 @@ class DataCollectionScreen(Screen):
             # Enhanced question text with better typography
             question_label = MDLabel(
                 text=q_text,
-                font_style="Subtitle1",
-                text_color=App.get_running_app().theme_cls.primary_color,
+                font_style="TitleMedium",
+                theme_text_color="Primary",
                 size_hint_y=None,
                 height=header_height,
                 font_size=font_sizes["title"],
@@ -609,7 +609,7 @@ class DataCollectionScreen(Screen):
             error_label = MDLabel(
                 text=f"[b]Error loading question {index+1}[/b]\n{str(e)}",
                 markup=True,
-                text_color=(0.8, 0.2, 0.2, 1),
+                theme_text_color="Error",
                 halign="left",
                 valign="middle"
             )
@@ -617,8 +617,8 @@ class DataCollectionScreen(Screen):
             # Add a hidden label with the traceback for copy-paste
             tb_label = MDLabel(
                 text=traceback.format_exc(),
-                font_size="10sp",
-                text_color=App.get_running_app().theme_cls.secondary_color,
+                font_style="BodySmall",
+                theme_text_color="Secondary",
                 halign="left",
                 valign="top",
                 opacity=0.5,
@@ -646,7 +646,7 @@ class DataCollectionScreen(Screen):
             height=touch_targets["button"] * 2 if q_type == 'long_text' else touch_targets["button"],
             font_size=font_sizes["text"],
             line_color_focus=App.get_running_app().theme_cls.primary_color,
-            line_color_normal=[0.7, 0.7, 0.7, 1]
+            line_color_normal=[0.77, 0.77, 0.77, 1]
         )
         
         # Add visual feedback for content
@@ -710,7 +710,7 @@ class DataCollectionScreen(Screen):
 
                     label = MDLabel(
                         text=opt_text,
-                        text_color=App.get_running_app().theme_cls.primary_color,
+                        theme_text_color="Primary",
                         size_hint_x=1,
                         pos_hint={'center_y': 0.5},
                         font_size=font_sizes["text"]
@@ -774,8 +774,8 @@ class DataCollectionScreen(Screen):
             label = MDLabel(
                 text=str(i),
                 halign='center',
-                text_color=App.get_running_app().theme_cls.secondary_color,
-                font_size=font_sizes["hint"]
+                theme_text_color="Secondary",
+                font_style="BodySmall"
             )
             labels_box.add_widget(label)
         
@@ -793,10 +793,10 @@ class DataCollectionScreen(Screen):
         value_label = MDLabel(
             text="3",
             halign='center',
-            text_color=App.get_running_app().theme_cls.primary_color,
+            theme_text_color="Primary",
             size_hint_y=None,
             height=dp(20),
-            font_size=font_sizes["text"],
+            font_style="BodyMedium",
             bold=True
         )
         
@@ -831,10 +831,10 @@ class DataCollectionScreen(Screen):
         
         note_label = MDLabel(
             text="Photo upload functionality will be available in future updates",
-            font_style="Caption",
-            text_color=App.get_running_app().theme_cls.secondary_color,
-            halign='center',
-            font_size=font_sizes["hint"]
+            font_style="BodySmall",
+            theme_text_color="Secondary",
+            halign='center',               
+            font_size=dp(14)
         )
         
         photo_box.add_widget(placeholder_button)
@@ -995,16 +995,16 @@ class DataCollectionScreen(Screen):
                         size_hint_x=None,
                         width=dp(24),
                         halign='center',
-                        font_size="12sp",
-                        text_color=App.get_running_app().theme_cls.secondary_color
+                        font_style="BodySmall",
+                        theme_text_color="Secondary"
                     )
                     
                     # Question text (truncated)
                     text = q_text[:30] + "..." if len(q_text) > 30 else q_text
                     text_label = MDLabel(
                         text=text,
-                        font_size="11sp",
-                        text_color=App.get_running_app().theme_cls.primary_color
+                        font_style="BodySmall",
+                        theme_text_color="Primary"
                     )
                     
                     # Question type indicator

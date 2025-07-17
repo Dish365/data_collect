@@ -28,6 +28,8 @@ class ResponseDetailDialog(MDBoxLayout):
         # Respondent info header
         header = MDLabel(
             text=f"Responses from {respondent_data.get('display_name', 'Unknown')}",
+            font_style="TitleMedium",
+            theme_text_color="Primary",
             size_hint_y=None,
             height=dp(40)
         )
@@ -36,6 +38,8 @@ class ResponseDetailDialog(MDBoxLayout):
         # Project info
         project_info = MDLabel(
             text=f"Project: {respondent_data.get('project_name', 'Unknown')}",
+            font_style="BodyMedium",
+            theme_text_color="Secondary",
             size_hint_y=None,
             height=dp(30)
         )
@@ -55,6 +59,8 @@ class ResponseDetailDialog(MDBoxLayout):
         if not responses:
             no_responses = MDLabel(
                 text="No responses found for this respondent",
+                font_style="BodyMedium",
+                theme_text_color="Secondary",
                 halign="center",
                 size_hint_y=None,
                 height=dp(40)
@@ -73,18 +79,24 @@ class ResponseDetailDialog(MDBoxLayout):
                 
                 question_label = MDLabel(
                     text=f"Q{i+1}: {response.get('question_text', 'Unknown Question')}",
+                    font_style="BodyMedium",
+                    theme_text_color="Primary",
                     size_hint_y=None,
                     height=dp(25)
                 )
                 
                 answer_label = MDLabel(
                     text=f"Answer: {response.get('response_value', 'No answer')}",
+                    font_style="BodyMedium",
+                    theme_text_color="Secondary",
                     size_hint_y=None,
                     height=dp(25)
                 )
                 
                 time_label = MDLabel(
                     text=f"Collected: {response.get('collected_at_formatted', 'Unknown time')}",
+                    font_style="LabelMedium",
+                    theme_text_color="Hint",
                     size_hint_y=None,
                     height=dp(20)
                 )
@@ -664,7 +676,8 @@ class ResponsesScreen(Screen):
             return MDLabel(
                 text="No responses found. Start collecting data to see respondents here.",
                 halign="center",
-                font_style="Body",
+                font_style="BodyMedium",
+                theme_text_color="Secondary",
                 font_size=font_size,
                 size_hint_y=None,
                 height=label_height
@@ -676,7 +689,8 @@ class ResponsesScreen(Screen):
             return MDLabel(
                 text="No responses found. Start collecting data to see respondents here.",
                 halign="center",
-                font_style="Body",
+                font_style="BodyMedium",
+                theme_text_color="Secondary",
                 size_hint_y=None,
                 height=dp(60)
             )
@@ -758,7 +772,8 @@ class ResponsesScreen(Screen):
             
             name_label = MDLabel(
                 text=f"Respondent: {respondent_data.get('display_name', 'Unknown')}",
-                font_style="Title",
+                font_style="TitleMedium",
+                theme_text_color="Primary",
                 font_size="18sp",
                 size_hint_y=None,
                 height=dp(30)
@@ -766,7 +781,8 @@ class ResponsesScreen(Screen):
             
             project_label = MDLabel(
                 text=f"Project: {respondent_data.get('project_name', 'Unknown')}",
-                font_style="Body",
+                font_style="BodyMedium",
+                theme_text_color="Secondary",
                 font_size="16sp",
                 size_hint_y=None,
                 height=dp(25)
@@ -774,7 +790,8 @@ class ResponsesScreen(Screen):
             
             id_label = MDLabel(
                 text=f"ID: {respondent_data.get('respondent_id', 'Unknown')}",
-                font_style="Body",
+                font_style="BodyMedium",
+                theme_text_color="Hint",
                 font_size="14sp",
                 size_hint_y=None,
                 height=dp(25)
@@ -790,7 +807,8 @@ class ResponsesScreen(Screen):
             if not responses:
                 no_responses = MDLabel(
                     text="No responses found for this respondent",
-                    halign="center",
+                    font_style="BodyMedium",
+                    theme_text_color="Secondary",
                     font_size="16sp",
                     size_hint_y=None,
                     height=dp(40)
@@ -834,7 +852,8 @@ class ResponsesScreen(Screen):
             
             question_label = MDLabel(
                 text=f"Q{question_number}: {response.get('question_text', 'Unknown Question')}",
-                font_style="Body",
+                font_style="BodyMedium",
+                theme_text_color="Primary",
                 font_size=font_sizes["question"],
                 size_hint_y=None,
                 height=dp(30)
@@ -842,7 +861,8 @@ class ResponsesScreen(Screen):
             
             answer_label = MDLabel(
                 text=f"Answer: {response.get('response_value', 'No answer')}",
-                font_style="Body",
+                font_style="BodyMedium",
+                theme_text_color="Secondary",
                 font_size=font_sizes["answer"],
                 size_hint_y=None,
                 height=dp(30),
@@ -851,7 +871,8 @@ class ResponsesScreen(Screen):
             
             time_label = MDLabel(
                 text=f"Collected: {response.get('collected_at_formatted', 'Unknown time')}",
-                font_style="Label",
+                font_style="LabelMedium",
+                theme_text_color="Hint",
                 font_size=font_sizes["time"],
                 size_hint_y=None,
                 height=dp(25)
@@ -881,21 +902,21 @@ class ResponsesScreen(Screen):
         
         question_label = MDLabel(
             text=f"Q{question_number}: {response.get('question_text', 'Unknown Question')}",
-            font_style="Body",
+            font_style="BodyMedium",
             size_hint_y=None,
             height=dp(25)
         )
         
         answer_label = MDLabel(
             text=f"Answer: {response.get('response_value', 'No answer')}",
-            font_style="Body",
+            font_style="BodyMedium",
             size_hint_y=None,
             height=dp(25)
         )
         
         time_label = MDLabel(
             text=f"Collected: {response.get('collected_at_formatted', 'Unknown time')}",
-            font_style="Label",
+            font_style="LabelMedium",
             size_hint_y=None,
             height=dp(20)
         )
@@ -1012,7 +1033,7 @@ class ResponsesScreen(Screen):
             checkbox_layout.add_widget(anonymous_checkbox)
             checkbox_layout.add_widget(checkbox_label)
             
-            content.add_widget(MDLabel(text=f"Edit Respondent: {respondent_data.get('respondent_id', 'Unknown')}", font_style="Title"))
+            content.add_widget(MDLabel(text=f"Edit Respondent: {respondent_data.get('respondent_id', 'Unknown')}", font_style="TitleMedium"))
             content.add_widget(name_field)
             content.add_widget(email_field)
             content.add_widget(phone_field)

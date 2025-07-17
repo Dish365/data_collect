@@ -405,7 +405,7 @@ class ProjectsScreen(Screen):
                 size_hint_y=None,
                 height=height,
                 halign='center',
-                font_size=font_size,
+                font_style="BodyMedium",
                 theme_text_color="Secondary"
             )
             self.ids.projects_grid.add_widget(empty_label)

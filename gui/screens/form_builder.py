@@ -207,6 +207,8 @@ class FormBuilderScreen(Screen):
             
             help_label = MDLabel(
                 text="No projects found!\n\nTo create forms, you need to have at least one project.\nGo to the Projects page to create a new project first.",
+                font_style="BodyMedium",
+                theme_text_color="Secondary",
                 halign="center"
             )
             
@@ -244,7 +246,7 @@ class FormBuilderScreen(Screen):
         menu_items = [
             {
                 "text": name,
-                "viewclass": "OneLineListItem",
+                "viewclass": "MDListItem",
                 "on_release": lambda x=name: self.on_project_selected(None, x)
             }
             for name in self.project_list
@@ -408,38 +410,36 @@ class FormBuilderScreen(Screen):
                 empty_state.add_widget(MDBoxLayout(size_hint_y=None, height=dp(40)))
                 
                 # Add icon (using icon-like label since MDIcon might not be available)
-                icon_label = MDLabel(
-                    text="📋",
-                    font_size="48sp",
-                    halign="center",
-                    size_hint_y=None,
-                    height=dp(64)
-                )
-                empty_state.add_widget(icon_label)
+                # icon_label = MDIcon(
+                #     text="📋",
+                #     font_size="48sp",
+                #     halign="center",
+                #     size_hint_y=None,
+                #     height=dp(64)
+                # )
+                # empty_state.add_widget(icon_label)
                 
-                # Add title
-                title_label = MDLabel(
-                    text="No questions added yet",
-                    font_style="H6",
-                    theme_text_color="Hint",
-                    halign="center",
-                    font_size="18sp",
-                    size_hint_y=None,
-                    height=dp(32)
-                )
-                empty_state.add_widget(title_label)
+                # # Add title
+                # title_label = MDLabel(
+                #     text="No questions added yet",
+                #     font_style="TitleMedium",
+                #     theme_text_color="Secondary",
+                #     halign="center",
+                #     size_hint_y=None,
+                #     height=dp(32)
+                # )
+                # empty_state.add_widget(title_label)
                 
-                # Add description
-                desc_label = MDLabel(
-                    text="Select question types from the left panel to start building your form",
-                    font_style="Body2",
-                    theme_text_color="Hint",
-                    halign="center",
-                    font_size="14sp",
-                    size_hint_y=None,
-                    height=dp(40)
-                )
-                empty_state.add_widget(desc_label)
+                # # Add description
+                # desc_label = MDLabel(
+                #     text="Select question types from the left panel to start building your form",
+                #     font_style="BodyMedium",
+                #     theme_text_color="Secondary",
+                #     halign="center",
+                #     size_hint_y=None,
+                #     height=dp(40)
+                # )
+                # empty_state.add_widget(desc_label)
                 
                 self.ids.form_canvas.add_widget(empty_state)
         else:
@@ -614,7 +614,7 @@ class FormBuilderScreen(Screen):
 
         preview_layout = MDBoxLayout(orientation="vertical", spacing=dp(16), padding=dp(16), adaptive_height=True)
         if not questions:
-            preview_layout.add_widget(MDLabel(text="No questions to preview.", font_style="Subtitle1"))
+            preview_layout.add_widget(MDLabel(text="No questions to preview.", font_style="BodyMedium", theme_text_color="Secondary"))
         else:
             for q in questions:
                 # Question card
@@ -634,29 +634,29 @@ class FormBuilderScreen(Screen):
                 allow_multiple = q.get('allow_multiple', False)
                 
                 # Question header
-                header = MDLabel(text=f"Question {q_number}: {q_text}", font_style="Subtitle1", bold=True)
-                type_label = MDLabel(text=f"Type: {q_type}", font_style="Caption", theme_text_color="Secondary")
+                header = MDLabel(text=f"Question {q_number}: {q_text}", font_style="TitleMedium", theme_text_color="Primary", bold=True)
+                type_label = MDLabel(text=f"Type: {q_type}", font_style="BodySmall", theme_text_color="Secondary")
                 
                 question_card.add_widget(header)
                 question_card.add_widget(type_label)
                 
                 if options:
-                    options_label = MDLabel(text="Options:", font_style="Body2")
+                    options_label = MDLabel(text="Options:", font_style="BodyMedium", theme_text_color="Primary")
                     question_card.add_widget(options_label)
                     for opt in options:
-                        question_card.add_widget(MDLabel(text=f"• {opt}", font_style="Body2"))
+                        question_card.add_widget(MDLabel(text=f"• {opt}", font_style="BodySmall", theme_text_color="Secondary"))
                     if allow_multiple:
-                        question_card.add_widget(MDLabel(text="(Multiple answers allowed)", font_style="Caption"))
+                        question_card.add_widget(MDLabel(text="(Multiple answers allowed)", font_style="BodySmall", theme_text_color="Hint"))
                 elif q_type in ["GPS Location", "Photo/Image", "Audio Recording", "Barcode/QR Code"]:
-                    question_card.add_widget(MDLabel(text=f"[{q_type} input field]", font_style="Body2"))
+                    question_card.add_widget(MDLabel(text=f"[{q_type} input field]", font_style="BodySmall", theme_text_color="Secondary"))
                 elif "Number" in q_type:
-                    question_card.add_widget(MDLabel(text=f"[{q_type} input field]", font_style="Body2"))
+                    question_card.add_widget(MDLabel(text=f"[{q_type} input field]", font_style="BodySmall", theme_text_color="Secondary"))
                 elif "Date" in q_type:
-                    question_card.add_widget(MDLabel(text=f"[{q_type} picker]", font_style="Body2"))
+                    question_card.add_widget(MDLabel(text=f"[{q_type} picker]", font_style="BodySmall", theme_text_color="Secondary"))
                 elif "Rating" in q_type:
-                    question_card.add_widget(MDLabel(text="[Rating scale 1-5]", font_style="Body2"))
+                    question_card.add_widget(MDLabel(text="[Rating scale 1-5]", font_style="BodySmall", theme_text_color="Secondary"))
                 else:
-                    question_card.add_widget(MDLabel(text="[Text input field]", font_style="Body2"))
+                    question_card.add_widget(MDLabel(text="[Text input field]", font_style="BodySmall", theme_text_color="Secondary"))
                     
                 preview_layout.add_widget(question_card)
 
