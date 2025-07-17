@@ -11,6 +11,7 @@
         spacing: root.spacing
         padding: 0, 0
         pos_hint: {"center_x": 0.5, "center_y": 0.5}
+        style: "outlined"
         
         # Date Circle
         MDCard:
@@ -19,8 +20,9 @@
             size: root.get_date_circle_size()
             radius: [root.get_date_circle_radius()]
             ripple_behavior: False
-            md_bg_color: 0.0, 1.0, 1.0, 1
+            md_bg_color: 0.2, 0.6, 1.0, 1.0  # Use a more standard blue color
             elevation: 2
+            style: "filled"
             pos_hint: {"center_x": 0.5, "center_y": 0.5}
             padding: root.get_date_circle_padding()
             

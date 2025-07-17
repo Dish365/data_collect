@@ -58,13 +58,14 @@ class TopBar(MDBoxLayout):
         if not self.logout_dialog:
             from kivy.uix.widget import Widget
             cancel_button = MDButton(
+                
                 MDButtonText(
                     text="Cancel",
                     bold=True,
                     theme_text_color="Custom",
-                    text_color=(1, 1, 1, 1)
+                    text_color=(1, 0, 0, 1)
                 ),
-                style="filled",
+                style="outlined",
                 on_release=self._dismiss_logout_dialog,
                 md_bg_color=(0.4, 0.4, 0.8, 1),
             )

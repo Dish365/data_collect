@@ -2,7 +2,7 @@ from kivy.uix.screenmanager import Screen
 from kivy.metrics import dp
 from widgets.form_fields import create_form_field
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDButton, MDButtonText
+from kivymd.uix.button import MDButton
 from kivymd.uix.label import MDLabel
 from kivymd.uix.dialog import MDDialog
 from kivy.clock import Clock
@@ -212,15 +212,11 @@ class FormBuilderScreen(Screen):
             )
             
             go_to_projects_btn = MDButton(
+                text="Go to Projects",
                 size_hint=(None, None),
                 size=(dp(150), dp(40)),
                 pos_hint={'center_x': 0.5},
-                on_release=lambda x: setattr(self.manager, 'current', 'projects'),
-                children=[
-                    MDButtonText(
-                        text="Go to Projects"
-                    )
-                ]
+                on_release=lambda x: setattr(self.manager, 'current', 'projects')
             )
             
             help_layout.add_widget(help_label)

@@ -350,15 +350,10 @@ class BaseFormField(MDCard):
         spacer = MDBoxLayout(size_hint_x=1)
         self.delete_container.add_widget(spacer)
         self.delete_button = MDButton(
+            text="Delete Question",
             on_release=lambda x: self.parent.remove_widget(self),
             size_hint=(None, None),
-            size=(dp(140), values['button_height']),
-            children=[
-                MDButtonText(
-                    text="Delete Question",
-                    bold=True
-                )
-            ]
+            size=(dp(140), values['button_height'])
         )
         self.delete_container.add_widget(self.delete_button)
         self.add_widget(self.delete_container)
