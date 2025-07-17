@@ -332,7 +332,7 @@ class AnalyticsUtils:
             status='error',
             data=None,
             message=f"Error in {context}: {str(error)}"
-        )
+        ) 
     
     @staticmethod
     def run_inferential_analysis(df: pd.DataFrame, characteristics: Dict[str, Any]) -> Dict[str, Any]:
