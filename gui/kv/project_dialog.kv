@@ -1,48 +1,83 @@
+#:import Window kivy.core.window.Window
+
 <ProjectDialog>:
+    adaptive_height: True
     MDBoxLayout:
         orientation: 'vertical'
-        spacing: dp(16)
-        padding: dp(24)
+        spacing: dp(8)
+        size_hint_y: None
+        height: self.minimum_height
 
-        MDLabel:
-            text: "Project Name"
-            font_size: "16sp"
-            bold: True
-            halign: "left"
+        # Project Name Section
+        MDBoxLayout:
+            orientation: 'vertical'
+            spacing: dp(8)
             size_hint_y: None
-            height: self.texture_size[1] + dp(8)
+            height: self.minimum_height
 
-        MDTextField:
-            id: name_field
-            mode: "outlined"
-            size_hint_y: None
-            height: dp(56)
-            font_size: "16sp"
-            MDTextFieldHintText:
+            MDLabel:
                 text: "Project Name"
+                font_size: "16sp"
+                bold: True
+                halign: "left"
+                size_hint_y: None
+                height: self.texture_size[1] + dp(4)
 
-        Widget:
-            size_hint_y: None
-            height: dp(8)
+            MDTextField:
+                id: name_field
+                mode: "outlined"
+                size_hint_y: None
+                height: dp(56)
+                font_size: "16sp"
+                MDTextFieldHintText:
+                    text: "Enter project name"
 
-        MDLabel:
-            text: "Project Description (Optional)"
-            font_size: "16sp"
-            bold: True
-            halign: "left"
-            size_hint_y: None
-            height: self.texture_size[1] + dp(8)
+            # Character counter for name
+            MDLabel:
+                text: root.name_char_count
+                font_size: "12sp"
+                halign: "right"
+                theme_text_color: "Secondary"
+                size_hint_y: None
+                height: dp(16)
+                opacity: 0.7
 
-        MDTextField:
-            id: desc_field
-            multiline: True
-            mode: "outlined"
+
+        # Project Description Section
+        MDBoxLayout:
+            orientation: 'vertical'
+            spacing: dp(8)
             size_hint_y: None
-            height: dp(120)
-            font_size: "16sp"
-            MDTextFieldHintText:
+            height: self.minimum_height
+
+            MDLabel:
                 text: "Project Description (Optional)"
+                font_size: "16sp"
+                bold: True
+                halign: "left"
+                size_hint_y: None
+                height: self.texture_size[1] + dp(4)
 
-        Widget:
-            size_hint_y: None
-            height: dp(8)
+            MDTextField:
+                id: desc_field
+                multiline: True
+                mode: "outlined"
+                size_hint_y: None
+                height: dp(56)
+                font_size: "16sp"
+                MDTextFieldHintText:
+                    text: "Describe your project (optional)"
+
+            # Character counter for description
+            MDLabel:
+                text: root.desc_char_count
+                font_size: "12sp"
+                halign: "right"
+                theme_text_color: "Secondary"
+                size_hint_y: None
+                height: dp(16)
+                opacity: 0.7
+
+       
+
+       

@@ -3,7 +3,7 @@ from kivy.metrics import dp
 from kivy.lang import Builder
 from kivy.clock import Clock
 from utils.toast import toast
-from kivymd.uix.dialog import MDDialog, MDDialogHeadlineText, MDDialogSupportingText, MDDialogButtonContainer
+from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDButton
 from kivymd.uix.label import MDLabel
@@ -923,11 +923,12 @@ class ResponsesScreen(Screen):
                 ]
             )
             self.detail_dialog = MDDialog(
-                MDDialogHeadlineText(text="Response Details"),
-                content,
-                MDDialogButtonContainer(
+                title="Response Details",
+                type="custom",
+                content_cls=content,
+                buttons=[
                     close_button
-                ),
+                ],
                 size_hint=(0.9, 0.8)
             )
             self.detail_dialog.open()
@@ -1052,12 +1053,13 @@ class ResponsesScreen(Screen):
                 ]
             )
             self.edit_dialog = MDDialog(
-                MDDialogHeadlineText(text="Edit Respondent"),
-                content,
-                MDDialogButtonContainer(
+                title="Edit Respondent",
+                type="custom",
+                content_cls=content,
+                buttons=[
                     cancel_button,
                     save_button
-                ),
+                ],
                 size_hint=(0.8, None)
             )
             self.edit_dialog.open()
@@ -1100,12 +1102,13 @@ class ResponsesScreen(Screen):
                 ]
             )
             self.delete_dialog = MDDialog(
-                MDDialogHeadlineText(text="Confirm Delete"),
-                content,
-                MDDialogButtonContainer(
+                title="Confirm Delete",
+                type="custom",
+                content_cls=content,
+                buttons=[
                     cancel_button,
                     delete_button
-                )
+                ]
             )
             self.delete_dialog.open()
         except Exception as e:

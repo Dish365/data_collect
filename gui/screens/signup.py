@@ -287,9 +287,9 @@ class SignUpScreen(MDScreen):
     def on_login(self):
         """Navigate to login screen"""
         try:
-            if not self.is_registering:
-                self.manager.transition.direction = "right"
-                self.manager.current = "login"
+            
+            self.manager.transition.direction = "right"
+            self.manager.current = "login"
         except Exception as e:
             print(f"Error navigating to login: {e}")
     

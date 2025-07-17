@@ -1,5 +1,22 @@
 #:import MDButton kivymd.uix.button.MDButton
+#:import MDChip kivymd.uix.chip.MDChip
+#:import MDChipText kivymd.uix.chip.MDChipText
 #:import Window kivy.core.window.Window
+
+# Custom chip styles
+<ActiveFilterChip@MDChip>:
+    md_bg_color: 0.0, 0.0, 1.0, 1
+    MDChipText:
+        theme_text_color: "Custom"
+        text_color: 1, 1, 1, 1
+        bold: True
+
+<InactiveFilterChip@MDChip>:
+    md_bg_color: 0.9, 0.9, 0.9, 1
+    MDChipText:
+        theme_text_color: "Custom"
+        text_color: 0, 0, 0, 1
+        bold: True
 
 <ProjectsScreen>:
     name: "projects"
@@ -28,7 +45,7 @@
                 padding: dp(24) if Window.width > 600 else dp(16)
                 spacing: dp(20) if Window.width > 600 else dp(16)
                 size_hint_y: None
-                height: dp(160) if Window.width > 600 else dp(140)
+                height: dp(180) if Window.width > 600 else dp(160)
                 elevation: 2
 
                 MDBoxLayout:
@@ -119,54 +136,57 @@
                             width: dp(60) if Window.width > 600 else dp(50)
                             pos_hint: {"center_y": 0.5}
 
-                        MDButton:
+                        MDChip:
                             id: filter_all_btn
                             size_hint_x: None
                             width: dp(120) if Window.width > 600 else dp(100)
                             height: dp(48) if Window.width > 600 else dp(40)
                             font_size: "14sp" if Window.width > 600 else "12sp"
-                            md_bg_color: app.theme_cls.primary_color
+                            md_bg_color: 0.0, 0.0, 1.0, 1
                             on_release: root.filter_projects("all")
-                            MDButtonText:
+                            MDChipText:
                                 text: "All Projects"
                                 bold: True
                                 theme_text_color: "Custom"
                                 text_color: 1, 1, 1, 1
 
-                        MDButton:
+                        MDChip:
                             id: filter_recent_btn
                             size_hint_x: None
                             width: dp(100) if Window.width > 600 else dp(80)
                             height: dp(48) if Window.width > 600 else dp(40)
                             font_size: "14sp" if Window.width > 600 else "12sp"
+                            md_bg_color: 0.9, 0.9, 0.9, 1
                             on_release: root.filter_projects("recent")
-                            MDButtonText:
+                            MDChipText:
                                 text: "Recent"
                                 bold: True
                                 theme_text_color: "Custom"
                                 text_color: 0, 0, 0, 1
 
-                        MDButton:
+                        MDChip:
                             id: filter_synced_btn
                             size_hint_x: None
                             width: dp(100) if Window.width > 600 else dp(80)
                             height: dp(48) if Window.width > 600 else dp(40)
                             font_size: "14sp" if Window.width > 600 else "12sp"
+                            md_bg_color: 0.9, 0.9, 0.9, 1
                             on_release: root.filter_projects("synced")
-                            MDButtonText:
+                            MDChipText:
                                 text: "Synced"
                                 bold: True
                                 theme_text_color: "Custom"
                                 text_color: 0, 0, 0, 1
 
-                        MDButton:
+                        MDChip:
                             id: filter_pending_btn
                             size_hint_x: None
                             width: dp(100) if Window.width > 600 else dp(80)
                             height: dp(48) if Window.width > 600 else dp(40)
                             font_size: "14sp" if Window.width > 600 else "12sp"
+                            md_bg_color: 0.9, 0.9, 0.9, 1
                             on_release: root.filter_projects("pending")
-                            MDButtonText:
+                            MDChipText:
                                 text: "Pending"
                                 bold: True
                                 theme_text_color: "Custom"

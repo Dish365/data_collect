@@ -4,7 +4,7 @@ from widgets.form_fields import create_form_field
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDButton, MDButtonText
 from kivymd.uix.label import MDLabel
-from kivymd.uix.dialog import MDDialog, MDDialogHeadlineText, MDDialogButtonContainer
+from kivymd.uix.dialog import MDDialog
 from kivy.clock import Clock
 from kivy.properties import StringProperty, ListProperty
 from kivy.app import App
@@ -668,22 +668,16 @@ class FormBuilderScreen(Screen):
                 preview_layout.add_widget(question_card)
 
         dialog = MDDialog(
-            MDDialogHeadlineText(text="Form Preview"),
-            preview_layout,
-            MDDialogButtonContainer(
+            title="Form Preview",
+            type="custom",
+            content_cls=preview_layout,
+            buttons=[
                 MDButton(
-                    style="filled",
+                    text="Close",
                     on_release=lambda x: dialog.dismiss(),
-                    children=[
-                        MDButtonText(
-                            text="Close",
-                            bold=True,
-                            theme_text_color="Custom",
-                            text_color=(1, 1, 1, 1)
-                        )
-                    ]
+                    style="filled"
                 )
-            ),
+            ],
             auto_dismiss=True,
         )
         dialog.open()

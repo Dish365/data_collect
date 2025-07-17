@@ -63,8 +63,6 @@ class DashboardScreen(MDScreen):
             # Force all grids to re-layout
             if hasattr(self.ids, 'stats_grid'):
                 self.ids.stats_grid.do_layout()
-            if hasattr(self.ids, 'actions_grid'):
-                self.ids.actions_grid.do_layout()
             if hasattr(self.ids, 'content_layout'):
                 self.ids.content_layout.do_layout()
                 
@@ -538,37 +536,28 @@ class DashboardScreen(MDScreen):
                 # CLINICAL DECISION TREE - SUPER CONSERVATIVE FOR NARROW WINDOWS
                 if window_width < 700:  # Very narrow - FORCE single column (increased from 600)
                     stats_cols = 1
-                    actions_cols = 1
                     print("CLINICAL: FORCING single column for very narrow window")
                 elif window_width < 1200:  # Narrow - FORCE single column for stats (increased from 1000)
                     stats_cols = 1
-                    actions_cols = 2
                     print("CLINICAL: FORCING single stats column for narrow window")
                 elif window_width < 1600:  # Medium - 2 columns max (increased from 1400)
                     stats_cols = min(2, max_possible_cols)
-                    actions_cols = 2
                     print("CLINICAL: Using 2 columns max for medium window")
-                else:  # Wide - use calculated columns but cap at 3 for actions
+                else:  # Wide - use calculated columns
                     if is_landscape and category in ["tablet", "large_tablet"]:
                         stats_cols = min(4, max_possible_cols)
-                        actions_cols = 3  # Max 3 columns for actions for better visual balance
                     else:
                         stats_cols = min(2, max_possible_cols)
-                        actions_cols = 2
                     print("CLINICAL: Using calculated columns for wide window")
                 
                 # SAFETY CHECK - Never allow more columns than fit
                 stats_cols = min(stats_cols, max_possible_cols, 4)
                 stats_cols = max(stats_cols, 1)  # Never less than 1
                 
-                actions_cols = min(actions_cols, 3)  # Cap actions at 3 columns for better visual balance
-                actions_cols = max(actions_cols, 1)
-                
-                print(f" Using {stats_cols} stats columns, {actions_cols} action columns")
+                print(f"CLINICAL: Using {stats_cols} stats columns")
                 
                 # Apply the calculated columns immediately
                 self.set_stats_grid_columns(stats_cols)
-                self.set_actions_grid_columns(actions_cols)
                 
                 # Update card sizes based on available space
                 self.update_card_sizes(stats_cols, window_width, category)
@@ -577,7 +566,6 @@ class DashboardScreen(MDScreen):
             print(f"CLINICAL ERROR in responsive layout: {e}")
             # EMERGENCY FALLBACK - Force single column
             self.set_stats_grid_columns(1)
-            self.set_actions_grid_columns(1)
 
     def update_card_sizes(self, cols, window_width, category):
         """Update StatCard sizes based on layout and screen size"""
@@ -648,24 +636,4 @@ class DashboardScreen(MDScreen):
         except Exception as e:
             print(f"CLINICAL ERROR setting stats grid columns: {e}")
     
-    def set_actions_grid_columns(self, cols):
-        """Set the number of columns for the actions grid with clinical precision"""
-        try:
-            if hasattr(self.ids, 'actions_grid'):
-                self.ids.actions_grid.cols = cols
-                print(f"CLINICAL: Actions grid columns set to {cols}")
-                
-                # Update button heights based on columns for better visual balance
-                button_height = dp(60) if cols <= 2 else dp(55)
-                self.ids.actions_grid.row_default_height = button_height
-                
-                # Force grid to re-layout immediately
-                if hasattr(self.ids.actions_grid, 'do_layout'):
-                    self.ids.actions_grid.do_layout()
-                
-                # Force container to re-layout as well
-                if hasattr(self.ids, 'actions_container'):
-                    self.ids.actions_container.do_layout()
-                    
-        except Exception as e:
-            print(f"CLINICAL ERROR setting actions grid columns: {e}") 
+ 

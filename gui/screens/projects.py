@@ -5,9 +5,17 @@ from kivy.lang import Builder
 from kivy.clock import Clock
 from kivy.core.window import Window
 from utils.toast import toast
-from kivymd.uix.dialog import MDDialog, MDDialogHeadlineText, MDDialogSupportingText, MDDialogButtonContainer, MDDialogContentContainer
+from kivymd.uix.dialog import (
+    MDDialog,
+    MDDialogIcon,
+    MDDialogHeadlineText,
+    MDDialogSupportingText,
+    MDDialogButtonContainer,
+    MDDialogContentContainer,
+)
 from kivymd.uix.button import MDButton, MDButtonText
 from kivymd.uix.label import MDLabel
+from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.app import App
 
 from widgets.project_dialog import ProjectDialog
@@ -56,6 +64,16 @@ class ProjectsScreen(Screen):
         
         # Initialize responsive layout
         self.update_responsive_layout()
+        
+        # Set initial filter state to "all" and update button states
+        self.current_filter = "all"
+        
+        # Update button states immediately and then schedule another update
+        try:
+            self.update_filter_button_states("all")
+        except:
+            pass
+        Clock.schedule_once(lambda dt: self.update_filter_button_states("all"), 0.5)
         
         self.check_and_sync_projects()
 
@@ -149,7 +167,7 @@ class ProjectsScreen(Screen):
         self.refresh_projects_ui()
     
     def update_filter_button_states(self, active_filter):
-        """Update the visual state of filter buttons"""
+        """Update the visual state of filter chips"""
         filter_buttons = {
             "all": "filter_all_btn",
             "recent": "filter_recent_btn", 
@@ -158,13 +176,19 @@ class ProjectsScreen(Screen):
         }
         for filter_name, button_id in filter_buttons.items():
             if hasattr(self.ids, button_id):
-                button = getattr(self.ids, button_id)
+                chip = getattr(self.ids, button_id)
                 if filter_name == active_filter:
-                    button.md_bg_color = App.get_running_app().theme_cls.primary_color
-                    button.text_color = (1, 1, 1, 1)  # White text
+                    # Active chip - blue background with white text
+                    chip.md_bg_color = (0.0, 0.0, 1.0, 1)  # Pure blue
+                    # Update text color to white
+                    if hasattr(chip, 'ids') and hasattr(chip.ids, 'chip_text'):
+                        chip.ids.chip_text.text_color = (1, 1, 1, 1)
                 else:
-                    button.md_bg_color = [0.9, 0.9, 0.9, 1]  # Light gray
-                    button.text_color = (0, 0, 0, 1)  # Black text
+                    # Inactive chip - light gray background with black text
+                    chip.md_bg_color = [0.9, 0.9, 0.9, 1]  # Light gray
+                    # Update text color to black
+                    if hasattr(chip, 'ids') and hasattr(chip.ids, 'chip_text'):
+                        chip.ids.chip_text.text_color = (0, 0, 0, 1)
     
     def apply_current_filter(self):
         """Apply the current filter to projects data"""
@@ -476,38 +500,43 @@ class ProjectsScreen(Screen):
             else:
                 self.current_project_id = None
 
-            # Save button (initially disabled if name is empty)
-            save_button = MDButton(
-                MDButtonText(text="Save"),
-                style="filled",
-                on_release=self.save_project,
-                md_bg_color=App.get_running_app().theme_cls.primary_color,
-                disabled=not bool(content.ids.name_field.text.strip()),
-            )
-            cancel_button = MDButton(
-                MDButtonText(text="Cancel"),
-                style="text",
-                on_release=lambda x: self.dialog.dismiss(),
-            )
+            # Store the content reference for later access
+            self.dialog_content = content
 
+            # Set up button callbacks
+            content.set_save_callback(self.save_project)
+            content.set_cancel_callback(lambda x: self.dialog.dismiss())
+
+            # Also bind to text changes for immediate feedback
             def on_name_change(instance, value):
-                is_valid = content.validate_name()
-                save_button.disabled = not is_valid
-                if is_valid:
-                    save_button.md_bg_color = App.get_running_app().theme_cls.primary_color
-                else:
-                    save_button.md_bg_color = [0.7, 0.7, 0.7, 1]
+                # Trigger validation check
+                content.validate_name()
+                # Update button state
+                content.on_validation_change(None, None)
 
             content.ids.name_field.bind(text=on_name_change)
 
             self.dialog = MDDialog(
-                MDDialogHeadlineText(text="Edit Project" if is_edit else "New Project"),
-                MDDialogContentContainer(content),
-                MDDialogButtonContainer(
-                    cancel_button,
-                    save_button
+                MDDialogHeadlineText(
+                    text="Edit Project" if is_edit else "New Project",
                 ),
-                auto_dismiss=False
+                MDDialogContentContainer(
+                    content
+                ),
+                MDDialogButtonContainer(
+                    MDButton(
+                        MDButtonText(text="Cancel"),
+                        style="outlined",
+                        on_release=lambda x: self.dialog.dismiss()
+                    ),
+                    MDButton(
+                        MDButtonText(text="Save"),
+                        style="filled",
+                        id="save_button",
+                        on_release=self.save_project
+                    ),
+                    spacing="8dp"
+                ),
             )
             self.dialog.open()
         except Exception as e:
@@ -517,28 +546,75 @@ class ProjectsScreen(Screen):
 
     def save_project(self, instance):
         """Save project with enhanced validation and tablet UX"""
-        self.show_loader(True, "Saving project...")
         try:
-            # Get data from the dialog's content with validation
-            content = self.dialog.content_cls
+            # Get data from the dialog's content - access the ProjectDialog directly
+            # Since we're using the ProjectDialog as the content, we can access it directly
+            content = self.dialog.children[0].children[0]  # Get the ProjectDialog from the dialog structure
+            
+            # Alternative approach: store the content reference when creating the dialog
+            if hasattr(self, 'dialog_content'):
+                content = self.dialog_content
+            else:
+                # Fallback: try to find the ProjectDialog in the dialog structure
+                for child in self.dialog.children:
+                    if hasattr(child, 'children'):
+                        for grandchild in child.children:
+                            if hasattr(grandchild, 'get_data'):
+                                content = grandchild
+                                break
+                        if hasattr(content, 'get_data'):
+                            break
+            
+            if not content or not hasattr(content, 'get_data'):
+                print("Error: Could not find ProjectDialog content")
+                toast("Error accessing dialog content")
+                return
+                
             project_data = content.get_data()
             
-            # Enhanced validation check
+            # Enhanced validation check with detailed feedback
             if not content.is_valid():
-                Clock.schedule_once(lambda dt: toast("Please check your input and try again"))
-                self.show_loader(False)
+                # Check specific validation issues
+                name_errors = []
+                desc_errors = []
+                
+                if not content.validate_name():
+                    name_errors.append("Project name validation failed")
+                if not content.validate_description():
+                    desc_errors.append("Description validation failed")
+                
+                # Show specific error messages
+                error_messages = []
+                if name_errors:
+                    error_messages.extend(name_errors)
+                if desc_errors:
+                    error_messages.extend(desc_errors)
+                
+                if error_messages:
+                    error_text = "\n".join(error_messages)
+                    Clock.schedule_once(lambda dt: toast(f"Please fix the following issues:\n{error_text}"))
+                else:
+                    Clock.schedule_once(lambda dt: toast("Please check your input and try again"))
                 return
             
             if not project_data.get('is_valid', False):
                 Clock.schedule_once(lambda dt: toast("Project name is required"))
-                self.show_loader(False)
                 return
+
+            # Show loading state
+            self.show_loader(True, "Saving project...")
 
             # Clean data for API call
             api_data = {
-                'name': project_data['name'],
-                'description': project_data['description']
+                'name': project_data['name'].strip(),
+                'description': project_data['description'].strip()
             }
+
+            # Validate data one more time before API call
+            if not api_data['name'] or len(api_data['name']) < 2:
+                Clock.schedule_once(lambda dt: toast("Project name must be at least 2 characters"))
+                self.show_loader(False)
+                return
 
             if self.current_project_id:
                 self._execute_api_call(self.project_service.update_project, self.current_project_id, api_data)
@@ -553,7 +629,18 @@ class ProjectsScreen(Screen):
         except Exception as e:
             print(f"Error in save_project: {str(e)}")
             err_msg = str(e)
-            Clock.schedule_once(lambda dt: toast(f"Error saving project: {err_msg}"))
+            
+            # Provide more user-friendly error messages
+            if "network" in err_msg.lower() or "connection" in err_msg.lower():
+                user_msg = "Network error. Please check your connection and try again."
+            elif "timeout" in err_msg.lower():
+                user_msg = "Request timed out. Please try again."
+            elif "validation" in err_msg.lower():
+                user_msg = "Please check your input and try again."
+            else:
+                user_msg = f"Error saving project: {err_msg}"
+            
+            Clock.schedule_once(lambda dt: toast(user_msg))
             self.show_loader(False)
 
     def _execute_api_call(self, api_func, *args):
@@ -673,37 +760,27 @@ class ProjectsScreen(Screen):
             self.show_loader(True, "Deleting project...")
             self._execute_api_call(self.project_service.delete_project, project_id)
             delete_dialog.dismiss()
-        cancel_button = MDButton(
-            style="filled",
-            on_release=lambda x: delete_dialog.dismiss(),
-            children=[
-                MDButtonText(
-                    text="CANCEL",
-                    bold=True,
-                    theme_text_color="Custom",
-                    text_color=(1, 1, 1, 1)
-                )
-            ]
-        )
-        delete_button = MDButton(
-            style="filled",
-            on_release=confirm_delete,
-            children=[
-                MDButtonText(
-                    text="DELETE",
-                    bold=True,
-                    theme_text_color="Custom",
-                    text_color=(1, 1, 1, 1)
-                )
-            ]
-        )
+            
+        def cancel_delete(instance):
+            delete_dialog.dismiss()
+            
+        # Create dialog using latest KivyMD approach
         delete_dialog = MDDialog(
-            MDDialogHeadlineText(text="Delete Project?"),
-            MDDialogSupportingText(text="This action cannot be undone."),
-            MDDialogButtonContainer(
-                cancel_button,
-                delete_button
-            )
+            title="Delete Project?",
+            text="This action cannot be undone.",
+            buttons=[
+                MDButton(
+                    text="CANCEL",
+                    on_release=cancel_delete,
+                    style="text"
+                ),
+                MDButton(
+                    text="DELETE",
+                    on_release=confirm_delete,
+                    style="filled",
+                    md_bg_color=(0.8, 0.2, 0.2, 1)  # Red color for delete
+                )
+            ]
         )
         delete_dialog.open()
 
