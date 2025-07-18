@@ -716,22 +716,10 @@ class TeamMembersScreen(MDScreen):
                     orientation="vertical",
                     spacing=dp(16),
                     size_hint_y=None,
-                    height=dp(400),  # Increased height to ensure role buttons are visible
+                    height=dp(240),  # Increased height to ensure role buttons are visible
                     padding=dp(16)
                 )
             )
-            
-            # Add title
-            title_label = MDLabel(
-                text="Add New Team Member",
-                theme_text_color="Primary",
-                font_style="Headline",
-                role="small",
-                size_hint_y=None,
-                height=dp(40),
-                font_size="18sp"
-            )
-            content.children[0].add_widget(title_label)
             
             # Add autocomplete field
             self.modal_email_field = AutocompleteTextField(
