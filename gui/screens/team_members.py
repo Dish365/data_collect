@@ -2,6 +2,10 @@ from kivymd.uix.screen import MDScreen
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.button import MDButton
 from kivymd.uix.list import MDList, MDListItem, MDListItemHeadlineText, MDListItemLeadingIcon, MDListItemTrailingIcon
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.label import MDLabel
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.chip import MDChip
 from kivy.metrics import dp
 from kivy.clock import Clock
 from kivy.properties import StringProperty, ObjectProperty
@@ -54,6 +58,10 @@ class TeamMembersScreen(MDScreen):
         self.selected_user = None
         self.selected_role = "member"
         self.role_buttons = {}
+        self.project_dropdown_menu = None
+        self.add_member_dialog = None
+        self.selected_role_modal = "member"
+        self.selected_user_modal = None
         
         print(f"TeamMembersScreen initialized with name: {getattr(self, 'name', 'NO NAME')}")
         
@@ -69,8 +77,13 @@ class TeamMembersScreen(MDScreen):
             
             print("TeamMembersScreen: on_enter called")
             
+            # Load projects and team members when entering the screen
+            self.load_initial_data()
+            
         except Exception as e:
             print(f"Error in team members on_enter: {e}")
+            import traceback
+            print(traceback.format_exc())
     
     def setup_ui(self, dt):
         """Setup UI components after kv file is loaded"""
@@ -79,7 +92,7 @@ class TeamMembersScreen(MDScreen):
             print(f"Available IDs: {list(self.ids.keys()) if hasattr(self, 'ids') else 'No IDs'}")
             
             # Check if we have the basic IDs we need
-            required_ids = ['role_layout', 'email_field', 'members_list', 'project_label']
+            required_ids = ['role_layout', 'email_field', 'members_list', 'project_dropdown_text']
             missing_ids = [id_name for id_name in required_ids if not hasattr(self.ids, id_name) or getattr(self.ids, id_name) is None]
             
             if missing_ids:
@@ -210,65 +223,111 @@ class TeamMembersScreen(MDScreen):
     
     def handle_projects_loaded(self, projects):
         """Handle projects loaded"""
-        self.projects = projects
-        
-        if not projects:
-            if hasattr(self.ids, 'project_label'):
-                self.ids.project_label.text = "No manageable projects found"
-            return
-        
-        # Auto-select project if provided or use first project
-        if self.project_id:
-            selected_project = next((p for p in projects if p['id'] == self.project_id), None)
-            if selected_project:
-                self.selected_project = selected_project
+        try:
+            print(f"Projects loaded: {len(projects) if projects else 0}")
+            self.projects = projects
+            
+            if not projects:
+                if hasattr(self.ids, 'project_dropdown_text'):
+                    self.ids.project_dropdown_text.text = "No manageable projects found"
+                print("No projects available")
+                return
+            
+            # Auto-select project if provided or use first project
+            if self.project_id:
+                selected_project = next((p for p in projects if p['id'] == self.project_id), None)
+                if selected_project:
+                    self.selected_project = selected_project
+                    print(f"Selected provided project: {selected_project.get('name', 'Unknown')}")
+                else:
+                    self.selected_project = projects[0]
+                    print(f"Provided project not found, using first project: {projects[0].get('name', 'Unknown')}")
             else:
                 self.selected_project = projects[0]
-        else:
-            self.selected_project = projects[0]
-        
-        if hasattr(self.ids, 'project_label'):
-            self.ids.project_label.text = f"Project: {self.selected_project['name']}"
-        self.load_project_members()
+                print(f"Using first project: {projects[0].get('name', 'Unknown')}")
+            
+            # Update the dropdown text
+            if hasattr(self.ids, 'project_dropdown_text'):
+                self.ids.project_dropdown_text.text = self.selected_project.get('name', 'Unknown Project')
+                print(f"Updated dropdown text to: {self.selected_project.get('name', 'Unknown Project')}")
+            
+            # Update menu items if menu exists
+            if self.project_dropdown_menu:
+                self.update_menu_items()
+            
+            # Load team members for the selected project
+            print("Loading team members for selected project...")
+            self.load_project_members()
+            
+        except Exception as e:
+            print(f"Error handling projects loaded: {e}")
+            import traceback
+            print(traceback.format_exc())
     
     def load_project_members(self):
         """Load current project members"""
-        if not self.selected_project:
-            return
-        
-        def load_in_thread():
-            try:
-                members = self.dashboard_service.get_project_members(self.selected_project['id'])
-                Clock.schedule_once(lambda dt: self.update_members_list(members))
-            except Exception as e:
-                print(f"Error loading project members: {e}")
-                Clock.schedule_once(lambda dt: self.update_members_list([]))
-        
-        threading.Thread(target=load_in_thread, daemon=True).start()
+        try:
+            if not self.selected_project:
+                print("No project selected, cannot load members")
+                return
+            
+            print(f"Loading members for project: {self.selected_project.get('name', 'Unknown')} (ID: {self.selected_project.get('id', 'Unknown')})")
+            
+            def load_in_thread():
+                try:
+                    members = self.dashboard_service.get_project_members(self.selected_project['id'])
+                    print(f"Loaded {len(members) if members else 0} team members")
+                    Clock.schedule_once(lambda dt: self.update_members_list(members))
+                except Exception as e:
+                    print(f"Error loading project members: {e}")
+                    import traceback
+                    print(traceback.format_exc())
+                    Clock.schedule_once(lambda dt: self.update_members_list([]))
+            
+            threading.Thread(target=load_in_thread, daemon=True).start()
+            
+        except Exception as e:
+            print(f"Error in load_project_members: {e}")
+            import traceback
+            print(traceback.format_exc())
     
     def update_members_list(self, members):
         """Update the members list display"""
-        if not hasattr(self.ids, 'members_list'):
-            return
+        try:
+            if not hasattr(self.ids, 'members_list'):
+                print("Members list widget not found")
+                return
+                
+            print(f"Updating members list with {len(members) if members else 0} members")
+            self.current_members = members
+            self.ids.members_list.clear_widgets()
             
-        self.current_members = members
-        self.ids.members_list.clear_widgets()
-        
-        if not members:
-            empty_item = MDListItem(
-                size_hint_y=None,
-                height=dp(48)
-            )
-            empty_item.add_widget(MDListItemHeadlineText(text="No team members yet"))
-            self.ids.members_list.add_widget(empty_item)
-            return
-        
-        for member in members:
-            try:
-                member_item = self.create_member_item(member)
-                self.ids.members_list.add_widget(member_item)
-            except Exception as e:
-                print(f"Error creating member item: {e}")
+            if not members:
+                print("No members to display, showing empty state")
+                empty_item = MDListItem(
+                    size_hint_y=None,
+                    height=dp(48)
+                )
+                empty_item.add_widget(MDListItemHeadlineText(text="No team members yet"))
+                self.ids.members_list.add_widget(empty_item)
+                return
+            
+            print(f"Adding {len(members)} member items to the list")
+            for member in members:
+                try:
+                    member_item = self.create_member_item(member)
+                    self.ids.members_list.add_widget(member_item)
+                except Exception as e:
+                    print(f"Error creating member item: {e}")
+                    import traceback
+                    print(traceback.format_exc())
+            
+            print("Members list updated successfully")
+            
+        except Exception as e:
+            print(f"Error updating members list: {e}")
+            import traceback
+            print(traceback.format_exc())
     
     def create_member_item(self, member):
         """Create a list item for a team member"""
@@ -383,6 +442,457 @@ class TeamMembersScreen(MDScreen):
     def refresh_data(self, *args):
         """Refresh all data"""
         self.load_initial_data()
+    
+    def show_project_dropdown(self):
+        """Show the project selection dropdown"""
+        try:
+            print(f"Showing project dropdown, projects count: {len(self.projects) if self.projects else 0}")
+            
+            if not self.projects:
+                self.show_message("No projects available")
+                return
+            
+            from kivymd.uix.menu import MDDropdownMenu
+            
+            # Create menu items from projects
+            menu_items = []
+            for i, project in enumerate(self.projects):
+                def make_callback(index):
+                    return lambda x: self.menu_callback(index)
+                from functools import partial
+                menu_items.append({
+                    "text": project.get('name', 'Unknown Project'),
+                    "on_release": partial(self.select_project_by_index, i),
+                })
+            
+            print(f"Created {len(menu_items)} menu items")
+            
+            # Create menu only once if not exists
+            if not self.project_dropdown_menu:
+                print("Creating new dropdown menu")
+                self.project_dropdown_menu = MDDropdownMenu(
+                    caller=self.ids.project_dropdown,
+                    items=menu_items,
+                    position="center",
+                    width_mult=3,
+                )
+            else:
+                print("Updating existing dropdown menu")
+                self.project_dropdown_menu.items = menu_items
+            
+            print("Opening dropdown menu")
+            self.project_dropdown_menu.open()
+            
+        except Exception as e:
+            print(f"Error showing project dropdown: {e}")
+            import traceback
+            print(traceback.format_exc())
+            self.show_message("Error loading project dropdown")
+    
+    def select_project(self, project):
+        """Handle project selection from dropdown"""
+        try:
+            self.selected_project = project
+            self.project_id = project.get('id')
+            
+            # Update dropdown text using the MDDropDownItemText
+            if hasattr(self.ids, 'project_dropdown_text'):
+                self.ids.project_dropdown_text.text = project.get('name', 'Unknown Project')
+            
+            # Close dropdown menu
+            if self.project_dropdown_menu:
+                self.project_dropdown_menu.dismiss()
+            
+            # Load members for the selected project
+            self.load_project_members()
+            
+            # Clear current selection
+            self.selected_user = None
+            if hasattr(self.ids, 'email_field'):
+                self.ids.email_field.text = ""
+            if hasattr(self.ids, 'selected_user_label'):
+                self.ids.selected_user_label.text = ""
+                self.ids.selected_user_label.height = dp(0)
+                
+        except Exception as e:
+            print(f"Error selecting project: {e}")
+            import traceback
+            print(traceback.format_exc())
+            self.show_message("Error selecting project")
+    
+    def menu_callback(self, index):
+        """Handle menu item selection - just print the selected item"""
+        try:
+            if 0 <= index < len(self.projects):
+                project = self.projects[index]
+                print(f"Selected project: {project.get('name', 'Unknown Project')}")
+                
+                # Update the dropdown text
+                if hasattr(self.ids, 'project_dropdown_text') and self.ids.project_dropdown_text:
+                    self.ids.project_dropdown_text.text = project.get('name', 'Unknown Project')
+                
+                # Close the dropdown menu
+                if self.project_dropdown_menu:
+                    self.project_dropdown_menu.dismiss()
+                    
+            else:
+                print(f"Invalid index: {index}")
+                
+        except Exception as e:
+            print(f"Error in menu callback: {e}")
+            import traceback
+            print(traceback.format_exc())
+    
+    def select_project_by_index(self, index):
+        """Handle project selection by index"""
+        try:
+            if 0 <= index < len(self.projects):
+                project = self.projects[index]
+                self.select_project(project)
+        except Exception as e:
+            print(f"Error selecting project by index: {e}")
+            import traceback
+            print(traceback.format_exc())
+            self.show_message("Error selecting project")
+    
+    def update_menu_items(self):
+        """Update the dropdown menu items with current projects"""
+        try:
+            if not self.project_dropdown_menu:
+                return
+                
+            menu_items = []
+            for i, project in enumerate(self.projects):
+                def make_callback(index):
+                    return lambda x: self.select_project_by_index(index)
+                
+                menu_items.append({
+                    "text": project.get('name', 'Unknown Project'),
+                    "on_release": make_callback(i),
+                })
+            
+            self.project_dropdown_menu.items = menu_items
+            
+        except Exception as e:
+            print(f"Error updating menu items: {e}")
+            import traceback
+            print(traceback.format_exc())
+    
+    def open_add_member_modal(self):
+        """Open the Add Member modal dialog"""
+        try:
+            if not self.selected_project:
+                self.show_message("Please select a project first")
+                return
+            
+            # Always create a new dialog to avoid issues
+            self.create_add_member_dialog()
+            
+            # Reset modal state
+            self.selected_user_modal = None
+            self.selected_role_modal = "member"
+            
+            # Clear the autocomplete field
+            if hasattr(self, 'modal_email_field'):
+                self.modal_email_field.text = ""
+            
+            # Update role chips
+            if hasattr(self, 'modal_role_chips'):
+                self.update_modal_role_chips()
+            
+            if self.add_member_dialog:
+                self.add_member_dialog.open()
+            else:
+                print("Error: add_member_dialog is None after creation")
+            
+        except Exception as e:
+            print(f"Error opening add member modal: {e}")
+            import traceback
+            print(traceback.format_exc())
+            
+        except Exception as e:
+            print(f"Error opening add member modal: {e}")
+            import traceback
+            print(traceback.format_exc())
+    
+    def create_add_member_dialog(self):
+        """Create the Add Member modal dialog"""
+        try:
+            # Create content layout
+            content = MDBoxLayout(
+                orientation="vertical",
+                spacing=dp(16),
+                size_hint_y=None,
+                height=dp(300),
+                padding=dp(16)
+            )
+            
+            # Add title
+            title_label = MDLabel(
+                text="Add New Team Member",
+                theme_text_color="Primary",
+                font_style="Headline",
+                role="small",
+                size_hint_y=None,
+                height=dp(40),
+                font_size="18sp"
+            )
+            content.add_widget(title_label)
+            
+            # Add autocomplete field
+            self.modal_email_field = AutocompleteTextField(
+                hint_text="Search users by name, username, or email",
+                size_hint_y=None,
+                height=dp(56),
+                radius=[dp(8)]
+            )
+            self.modal_email_field.autocomplete_callback = self.search_users_modal
+            content.add_widget(self.modal_email_field)
+            
+            # Add dropdown for search results
+            self.modal_dropdown_card = MDBoxLayout(
+                orientation="vertical",
+                size_hint_y=None,
+                height=dp(0),
+                spacing=dp(4)
+            )
+            content.add_widget(self.modal_dropdown_card)
+            
+            # Add role selection
+            role_label = MDLabel(
+                text="Select Role:",
+                theme_text_color="Primary",
+                size_hint_y=None,
+                height=dp(30),
+                font_style="Body",
+                role="medium",
+                font_size="16sp",
+                bold=True
+            )
+            content.add_widget(role_label)
+            
+            # Add role chips
+            self.modal_role_layout = MDBoxLayout(
+                orientation="horizontal",
+                spacing=dp(8),
+                size_hint_y=None,
+                height=dp(40)
+            )
+            content.add_widget(self.modal_role_layout)
+            
+            # Add selected user display
+            self.modal_selected_user_label = MDLabel(
+                text="",
+                theme_text_color="Primary",
+                size_hint_y=None,
+                height=dp(0),
+                font_style="Body",
+                role="small",
+                font_size="14sp"
+            )
+            content.add_widget(self.modal_selected_user_label)
+            
+            # Setup role chips first
+            self.setup_modal_role_chips()
+            
+            # Create dialog
+            self.add_member_dialog = MDDialog(
+                title="",
+                type="custom",
+                content_cls=content,
+                buttons=[
+                    MDButton(
+                        text="Cancel",
+                        style="text",
+                        on_release=lambda x: self.add_member_dialog.dismiss()
+                    ),
+                    MDButton(
+                        text="Add Member",
+                        style="text",
+                        on_release=self.handle_add_member_from_modal
+                    ),
+                ],
+            )
+            
+            print("Add member dialog created successfully")
+            
+        except Exception as e:
+            print(f"Error creating add member dialog: {e}")
+            import traceback
+            print(traceback.format_exc())
+    
+    def setup_modal_role_chips(self):
+        """Setup role selection chips in the modal"""
+        try:
+            if not hasattr(self, 'modal_role_layout'):
+                print("modal_role_layout not found")
+                return
+                
+            roles = ["viewer", "member", "analyst", "collaborator"]
+            self.modal_role_chips = {}
+            
+            # Clear existing chips
+            self.modal_role_layout.clear_widgets()
+            
+            for role in roles:
+                chip = MDChip(
+                    text=role.title(),
+                    size_hint=(None, None),
+                    size=(dp(80), dp(32)),
+                    on_release=lambda x, r=role: self.select_role_modal(r)
+                )
+                self.modal_role_chips[role] = chip
+                self.modal_role_layout.add_widget(chip)
+            
+            # Set default selection
+            self.update_modal_role_chips()
+            print(f"Modal role chips setup complete with {len(roles)} roles")
+            
+        except Exception as e:
+            print(f"Error setting up modal role chips: {e}")
+            import traceback
+            print(traceback.format_exc())
+            
+        except Exception as e:
+            print(f"Error setting up modal role chips: {e}")
+            import traceback
+            print(traceback.format_exc())
+    
+    def select_role_modal(self, role):
+        """Handle role selection in modal"""
+        try:
+            self.selected_role_modal = role
+            self.update_modal_role_chips()
+        except Exception as e:
+            print(f"Error selecting role in modal: {e}")
+    
+    def update_modal_role_chips(self):
+        """Update role chip appearance in modal"""
+        try:
+            if not hasattr(self, 'modal_role_chips') or not self.modal_role_chips:
+                print("modal_role_chips not found or empty")
+                return
+                
+            for role, chip in self.modal_role_chips.items():
+                if role == self.selected_role_modal:
+                    chip.md_bg_color = [0.2, 0.6, 1, 1]  # Blue for selected
+                else:
+                    chip.md_bg_color = [0.8, 0.8, 0.8, 1]  # Gray for unselected
+                    
+            print(f"Updated modal role chips, selected role: {self.selected_role_modal}")
+            
+        except Exception as e:
+            print(f"Error updating modal role chips: {e}")
+            import traceback
+            print(traceback.format_exc())
+    
+    def search_users_modal(self, query):
+        """Search for users in modal"""
+        if not query:
+            self.hide_modal_dropdown()
+            return
+        
+        def search_in_thread():
+            try:
+                users = self.dashboard_service.search_users(query)
+                Clock.schedule_once(lambda dt: self.update_modal_user_dropdown(users))
+            except Exception as e:
+                print(f"Error searching users in modal: {e}")
+                Clock.schedule_once(lambda dt: self.update_modal_user_dropdown([]))
+        
+        threading.Thread(target=search_in_thread, daemon=True).start()
+    
+    def update_modal_user_dropdown(self, users):
+        """Update the user dropdown in modal"""
+        try:
+            # Clear existing widgets
+            self.modal_dropdown_card.clear_widgets()
+            
+            if not users:
+                self.hide_modal_dropdown()
+                return
+            
+            # Show dropdown
+            max_height = min(len(users) * dp(48), dp(200))
+            self.modal_dropdown_card.height = max_height
+            
+            for user in users:
+                user_item = MDListItem(
+                    size_hint_y=None,
+                    height=dp(48),
+                    on_release=lambda x, u=user: self.select_user_modal(u)
+                )
+                user_item.add_widget(MDListItemHeadlineText(text=user['display_text']))
+                self.modal_dropdown_card.add_widget(user_item)
+                
+        except Exception as e:
+            print(f"Error updating modal user dropdown: {e}")
+            import traceback
+            print(traceback.format_exc())
+    
+    def hide_modal_dropdown(self):
+        """Hide the user dropdown in modal"""
+        try:
+            if hasattr(self, 'modal_dropdown_card'):
+                self.modal_dropdown_card.height = dp(0)
+                self.modal_dropdown_card.clear_widgets()
+        except Exception as e:
+            print(f"Error hiding modal dropdown: {e}")
+    
+    def select_user_modal(self, user):
+        """Handle user selection in modal"""
+        try:
+            self.selected_user_modal = user
+            if hasattr(self, 'modal_email_field'):
+                self.modal_email_field.text = user['email']
+            if hasattr(self, 'modal_selected_user_label'):
+                self.modal_selected_user_label.text = f"Selected: {user['display_text']}"
+                self.modal_selected_user_label.height = dp(30)
+            self.hide_modal_dropdown()
+        except Exception as e:
+            print(f"Error selecting user in modal: {e}")
+    
+    def handle_add_member_from_modal(self, *args):
+        """Handle adding member from modal"""
+        try:
+            if not self.selected_project:
+                self.show_message("No project selected")
+                return
+            
+            # Get email from selected user or typed text
+            email = ""
+            if self.selected_user_modal:
+                email = self.selected_user_modal['email']
+            elif hasattr(self, 'modal_email_field') and self.modal_email_field.text.strip():
+                email = self.modal_email_field.text.strip()
+            
+            if not email:
+                self.show_message("Please search and select a user")
+                return
+            
+            # Close modal
+            if self.add_member_dialog:
+                self.add_member_dialog.dismiss()
+            
+            # Add member using existing logic
+            def invite_in_thread():
+                try:
+                    success, message = self.dashboard_service.invite_team_member(
+                        self.selected_project['id'],
+                        email,
+                        self.selected_role_modal
+                    )
+                    Clock.schedule_once(lambda dt: self.handle_invite_result(success, message))
+                except Exception as e:
+                    Clock.schedule_once(lambda dt: self.handle_invite_result(False, str(e)))
+            
+            threading.Thread(target=invite_in_thread, daemon=True).start()
+            
+        except Exception as e:
+            print(f"Error adding member from modal: {e}")
+            import traceback
+            print(traceback.format_exc())
+            self.show_message("Error adding member")
     
     def show_message(self, message):
         """Show a message to the user"""
