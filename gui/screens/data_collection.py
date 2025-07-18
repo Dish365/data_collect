@@ -256,11 +256,11 @@ class DataCollectionScreen(Screen):
         try:
             if self.project_menu:
                 self.project_menu.dismiss()
-                
+            
             if not self.project_list:
                 toast("No projects available")
                 return
-                
+            
             menu_items = []
             for name in self.project_list:
                 menu_items.append({
@@ -279,7 +279,6 @@ class DataCollectionScreen(Screen):
                 border_margin=dp(4)  # Add margin for visibility
             )
             self.project_menu.open()
-            
         except Exception as e:
             print(f"Error opening project menu: {e}")
             toast(f"Error opening project menu: {str(e)}")

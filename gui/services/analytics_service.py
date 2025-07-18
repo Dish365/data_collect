@@ -78,7 +78,7 @@ class AnalyticsService:
             if not project_info:
                 print(f"Project {project_id} not found for user {user_id}")
                 return pd.DataFrame()
-            
+                
             response_count = project_info['response_count'] or 0
             print(f"Getting data for project: {project_info['name']} ({response_count} responses, user: {user_id})")
             
