@@ -1,8 +1,14 @@
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.textfield import MDTextField
-from kivymd.uix.button import MDButton
+from kivymd.uix.button import MDButton, MDButtonText, MDButtonIcon
 from kivymd.uix.list import MDList, MDListItem, MDListItemHeadlineText, MDListItemLeadingIcon, MDListItemTrailingIcon
-from kivymd.uix.dialog import MDDialog
+from kivymd.uix.dialog import (
+    MDDialog, 
+    MDDialogHeadlineText, 
+    MDDialogSupportingText, 
+    MDDialogButtonContainer, 
+    MDDialogContentContainer
+)
 from kivymd.uix.label import MDLabel
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.chip import MDChip
@@ -357,7 +363,7 @@ class TeamMembersScreen(MDScreen):
             if not is_creator:
                 remove_btn = MDListItemTrailingIcon(
                     icon="delete",
-                    on_release=lambda x, m=member: self.remove_member(m)
+                    on_release=lambda x, m=member: self.show_remove_confirmation(m)
                 )
                 item.add_widget(remove_btn)
             
@@ -415,6 +421,91 @@ class TeamMembersScreen(MDScreen):
                 self.ids.selected_user_label.height = dp(0)
             self.hide_dropdown()
             self.load_project_members()  # Refresh the list
+    
+    def show_remove_confirmation(self, member):
+        """Show confirmation dialog before removing team member"""
+        try:
+            username = member.get('username', 'Unknown')
+            email = member.get('email', 'No email')
+            
+            # Create confirmation dialog content
+            content = MDDialogContentContainer(
+                MDBoxLayout(
+                    orientation="vertical",
+                    spacing=dp(16),
+                    size_hint_y=None,
+                    height=dp(100),
+                    padding=dp(16)
+                )
+            )
+            
+            # Add confirmation message
+            content.children[0].add_widget(
+                MDLabel(
+                    text=f"Are you sure you want to remove this team member?",
+                    theme_text_color="Primary",
+                    font_style="Body",
+                    size_hint_y=None,
+                    height=dp(30)
+                )
+            )
+            
+            content.children[0].add_widget(
+                MDLabel(
+                    text=f"{username} ({email})",
+                    theme_text_color="Secondary",
+                    font_style="Body",
+                    size_hint_y=None,
+                    height=dp(30),
+                    bold=True
+                )
+            )
+            
+            # Create buttons
+            cancel_button = MDButton(
+                style="outlined",
+                on_release=lambda x: self.remove_confirmation_dialog.dismiss()
+            )
+            cancel_button.add_widget(MDButtonText(text="Cancel"))
+            
+            confirm_button = MDButton(
+                style="filled",
+                on_release=lambda x: self.confirm_remove_member(member)
+            )
+            confirm_button.add_widget(MDButtonText(text="Remove"))
+            
+            # Create confirmation dialog
+            self.remove_confirmation_dialog = MDDialog(
+                MDDialogHeadlineText(text="Remove Team Member"),
+                MDDialogSupportingText(text="This action cannot be undone."),
+                content,
+                MDDialogButtonContainer(
+                    cancel_button,
+                    confirm_button,
+                )
+            )
+            
+            self.remove_confirmation_dialog.open()
+            
+        except Exception as e:
+            print(f"Error showing remove confirmation: {e}")
+            import traceback
+            print(traceback.format_exc())
+    
+    def confirm_remove_member(self, member):
+        """Confirm and execute team member removal"""
+        try:
+            # Close confirmation dialog
+            if hasattr(self, 'remove_confirmation_dialog'):
+                self.remove_confirmation_dialog.dismiss()
+            
+            # Proceed with removal
+            self.remove_member(member)
+            
+        except Exception as e:
+            print(f"Error confirming member removal: {e}")
+            import traceback
+            print(traceback.format_exc())
     
     def remove_member(self, member):
         """Remove a team member"""
@@ -585,6 +676,8 @@ class TeamMembersScreen(MDScreen):
                 self.show_message("Please select a project first")
                 return
             
+            print("Opening add member modal...")
+            
             # Always create a new dialog to avoid issues
             self.create_add_member_dialog()
             
@@ -596,11 +689,15 @@ class TeamMembersScreen(MDScreen):
             if hasattr(self, 'modal_email_field'):
                 self.modal_email_field.text = ""
             
-            # Update role chips
+            # Update role buttons
             if hasattr(self, 'modal_role_chips'):
+                print(f"Updating modal role buttons, count: {len(self.modal_role_chips)}")
                 self.update_modal_role_chips()
+            else:
+                print("modal_role_chips not found")
             
             if self.add_member_dialog:
+                print("Opening dialog...")
                 self.add_member_dialog.open()
             else:
                 print("Error: add_member_dialog is None after creation")
@@ -609,22 +706,19 @@ class TeamMembersScreen(MDScreen):
             print(f"Error opening add member modal: {e}")
             import traceback
             print(traceback.format_exc())
-            
-        except Exception as e:
-            print(f"Error opening add member modal: {e}")
-            import traceback
-            print(traceback.format_exc())
     
     def create_add_member_dialog(self):
-        """Create the Add Member modal dialog"""
+        """Create the Add Member modal dialog using modern KivyMD format"""
         try:
-            # Create content layout
-            content = MDBoxLayout(
-                orientation="vertical",
-                spacing=dp(16),
-                size_hint_y=None,
-                height=dp(300),
-                padding=dp(16)
+            # Build content dynamically
+            content = MDDialogContentContainer(
+                MDBoxLayout(
+                    orientation="vertical",
+                    spacing=dp(16),
+                    size_hint_y=None,
+                    height=dp(400),  # Increased height to ensure role buttons are visible
+                    padding=dp(16)
+                )
             )
             
             # Add title
@@ -637,7 +731,7 @@ class TeamMembersScreen(MDScreen):
                 height=dp(40),
                 font_size="18sp"
             )
-            content.add_widget(title_label)
+            content.children[0].add_widget(title_label)
             
             # Add autocomplete field
             self.modal_email_field = AutocompleteTextField(
@@ -647,7 +741,7 @@ class TeamMembersScreen(MDScreen):
                 radius=[dp(8)]
             )
             self.modal_email_field.autocomplete_callback = self.search_users_modal
-            content.add_widget(self.modal_email_field)
+            content.children[0].add_widget(self.modal_email_field)
             
             # Add dropdown for search results
             self.modal_dropdown_card = MDBoxLayout(
@@ -656,7 +750,7 @@ class TeamMembersScreen(MDScreen):
                 height=dp(0),
                 spacing=dp(4)
             )
-            content.add_widget(self.modal_dropdown_card)
+            content.children[0].add_widget(self.modal_dropdown_card)
             
             # Add role selection
             role_label = MDLabel(
@@ -669,7 +763,7 @@ class TeamMembersScreen(MDScreen):
                 font_size="16sp",
                 bold=True
             )
-            content.add_widget(role_label)
+            content.children[0].add_widget(role_label)
             
             # Add role chips
             self.modal_role_layout = MDBoxLayout(
@@ -678,7 +772,7 @@ class TeamMembersScreen(MDScreen):
                 size_hint_y=None,
                 height=dp(40)
             )
-            content.add_widget(self.modal_role_layout)
+            content.children[0].add_widget(self.modal_role_layout)
             
             # Add selected user display
             self.modal_selected_user_label = MDLabel(
@@ -690,28 +784,37 @@ class TeamMembersScreen(MDScreen):
                 role="small",
                 font_size="14sp"
             )
-            content.add_widget(self.modal_selected_user_label)
+            content.children[0].add_widget(self.modal_selected_user_label)
             
-            # Setup role chips first
+            # Setup role buttons first
+            print("Setting up modal role buttons...")
             self.setup_modal_role_chips()
+            print(f"Modal role buttons setup complete, layout children: {len(self.modal_role_layout.children)}")
+            print(f"Modal role layout size: {self.modal_role_layout.size}")
+            print(f"Modal role layout pos: {self.modal_role_layout.pos}")
             
-            # Create dialog
+            # Create modern dialog with proper structure
+            # Create buttons first
+            cancel_button = MDButton(
+                style="outlined",
+                on_release=lambda x: self.add_member_dialog.dismiss()
+            )
+            cancel_button.add_widget(MDButtonText(text="Cancel"))
+            
+            add_button = MDButton(
+                style="filled",
+                on_release=self.handle_add_member_from_modal
+            )
+            add_button.add_widget(MDButtonText(text="Add"))
+            
             self.add_member_dialog = MDDialog(
-                title="",
-                type="custom",
-                content_cls=content,
-                buttons=[
-                    MDButton(
-                        text="Cancel",
-                        style="text",
-                        on_release=lambda x: self.add_member_dialog.dismiss()
-                    ),
-                    MDButton(
-                        text="Add Member",
-                        style="text",
-                        on_release=self.handle_add_member_from_modal
-                    ),
-                ],
+                MDDialogHeadlineText(text="Add New Member"),
+                MDDialogSupportingText(text="Search user, assign role and project."),
+                content,
+                MDDialogButtonContainer(
+                    cancel_button,
+                    add_button,
+                )
             )
             
             print("Add member dialog created successfully")
@@ -722,7 +825,7 @@ class TeamMembersScreen(MDScreen):
             print(traceback.format_exc())
     
     def setup_modal_role_chips(self):
-        """Setup role selection chips in the modal"""
+        """Setup role selection buttons in the modal using modern MDButton format"""
         try:
             if not hasattr(self, 'modal_role_layout'):
                 print("modal_role_layout not found")
@@ -731,30 +834,28 @@ class TeamMembersScreen(MDScreen):
             roles = ["viewer", "member", "analyst", "collaborator"]
             self.modal_role_chips = {}
             
-            # Clear existing chips
+            # Clear existing buttons
             self.modal_role_layout.clear_widgets()
             
             for role in roles:
-                chip = MDChip(
-                    text=role.title(),
+                # Create modern button with proper structure
+                btn = MDButton(
+                    style="outlined",
                     size_hint=(None, None),
-                    size=(dp(80), dp(32)),
+                    width=dp(80),
+                    height=dp(36),
                     on_release=lambda x, r=role: self.select_role_modal(r)
                 )
-                self.modal_role_chips[role] = chip
-                self.modal_role_layout.add_widget(chip)
+                btn.add_widget(MDButtonText(text=role.title()))
+                self.modal_role_chips[role] = btn
+                self.modal_role_layout.add_widget(btn)
             
             # Set default selection
             self.update_modal_role_chips()
-            print(f"Modal role chips setup complete with {len(roles)} roles")
+            print(f"Modal role buttons setup complete with {len(roles)} roles")
             
         except Exception as e:
-            print(f"Error setting up modal role chips: {e}")
-            import traceback
-            print(traceback.format_exc())
-            
-        except Exception as e:
-            print(f"Error setting up modal role chips: {e}")
+            print(f"Error setting up modal role buttons: {e}")
             import traceback
             print(traceback.format_exc())
     
@@ -767,22 +868,24 @@ class TeamMembersScreen(MDScreen):
             print(f"Error selecting role in modal: {e}")
     
     def update_modal_role_chips(self):
-        """Update role chip appearance in modal"""
+        """Update role button appearance in modal"""
         try:
             if not hasattr(self, 'modal_role_chips') or not self.modal_role_chips:
                 print("modal_role_chips not found or empty")
                 return
                 
-            for role, chip in self.modal_role_chips.items():
+            for role, btn in self.modal_role_chips.items():
                 if role == self.selected_role_modal:
-                    chip.md_bg_color = [0.2, 0.6, 1, 1]  # Blue for selected
+                    btn.style = "filled"
+                    btn.md_bg_color = [0.2, 0.6, 1, 1]  # Blue for selected
                 else:
-                    chip.md_bg_color = [0.8, 0.8, 0.8, 1]  # Gray for unselected
+                    btn.style = "outlined"
+                    btn.md_bg_color = [0.8, 0.8, 0.8, 1]  # Gray for unselected
                     
-            print(f"Updated modal role chips, selected role: {self.selected_role_modal}")
+            print(f"Updated modal role buttons, selected role: {self.selected_role_modal}")
             
         except Exception as e:
-            print(f"Error updating modal role chips: {e}")
+            print(f"Error updating modal role buttons: {e}")
             import traceback
             print(traceback.format_exc())
     

@@ -1,7 +1,13 @@
-from kivymd.uix.dialog import MDDialog, MDDialogHeadlineText, MDDialogButtonContainer
+from kivymd.uix.dialog import (
+    MDDialog, 
+    MDDialogHeadlineText, 
+    MDDialogSupportingText, 
+    MDDialogButtonContainer, 
+    MDDialogContentContainer
+)
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
-from kivymd.uix.button import MDButton, MDButtonText
+from kivymd.uix.button import MDButton, MDButtonText, MDButtonIcon
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.list import MDList, MDListItem, MDListItemHeadlineText, MDListItemLeadingIcon, MDListItemTrailingIcon
 from kivymd.uix.card import MDCard
@@ -60,15 +66,17 @@ class TeamMemberDialog:
         self.create_dialog()
     
     def create_dialog(self):
-        """Create the team member management dialog"""
+        """Create the team member management dialog using modern KivyMD format"""
         try:
-            # Main content layout
-            content = MDBoxLayout(
-                orientation="vertical",
-                spacing=dp(15),
-                size_hint_y=None,
-                height=dp(600),  # Increased height for autocomplete
-                padding=dp(20)
+            # Build content dynamically
+            content = MDDialogContentContainer(
+                MDBoxLayout(
+                    orientation="vertical",
+                    spacing=dp(15),
+                    size_hint_y=None,
+                    height=dp(600),  # Increased height for autocomplete
+                    padding=dp(20)
+                )
             )
             
             # Title
@@ -79,7 +87,7 @@ class TeamMemberDialog:
                 height=dp(40),
                 font_style="H6"
             )
-            content.add_widget(title_label)
+            content.children[0].add_widget(title_label)
             
             # Project info
             self.project_label = MDLabel(
@@ -88,7 +96,7 @@ class TeamMemberDialog:
                 size_hint_y=None,
                 height=dp(30)
             )
-            content.add_widget(self.project_label)
+            content.children[0].add_widget(self.project_label)
             
             # Current members section
             members_section_label = MDLabel(
@@ -98,7 +106,7 @@ class TeamMemberDialog:
                 height=dp(30),
                 font_style="Subtitle1"
             )
-            content.add_widget(members_section_label)
+            content.children[0].add_widget(members_section_label)
             
             # Members list in scrollable container
             members_scroll = ScrollView(
@@ -108,7 +116,7 @@ class TeamMemberDialog:
             
             self.members_list = MDList()
             members_scroll.add_widget(self.members_list)
-            content.add_widget(members_scroll)
+            content.children[0].add_widget(members_scroll)
             
             # Add member section
             add_section_label = MDLabel(
@@ -118,7 +126,7 @@ class TeamMemberDialog:
                 height=dp(30),
                 font_style="Subtitle1"
             )
-            content.add_widget(add_section_label)
+            content.children[0].add_widget(add_section_label)
             
             # User search with autocomplete
             user_search_layout = MDBoxLayout(
@@ -158,7 +166,7 @@ class TeamMemberDialog:
             self.user_dropdown_card.add_widget(dropdown_scroll)
             
             user_search_layout.add_widget(self.user_dropdown_card)
-            content.add_widget(user_search_layout)
+            content.children[0].add_widget(user_search_layout)
             
             # Selected user display
             self.selected_user_label = MDLabel(
@@ -168,7 +176,7 @@ class TeamMemberDialog:
                 height=dp(0),  # Initially hidden
                 font_style="Body2"
             )
-            content.add_widget(self.selected_user_label)
+            content.children[0].add_widget(self.selected_user_label)
             
             # Role selection with buttons
             role_label = MDLabel(
@@ -177,7 +185,7 @@ class TeamMemberDialog:
                 size_hint_y=None,
                 height=dp(30)
             )
-            content.add_widget(role_label)
+            content.children[0].add_widget(role_label)
             
             role_layout = MDBoxLayout(
                 orientation="horizontal",
@@ -201,7 +209,7 @@ class TeamMemberDialog:
             
             # Set default selected role
             self.update_role_buttons()
-            content.add_widget(role_layout)
+            content.children[0].add_widget(role_layout)
             
             # Action buttons
             button_layout = MDBoxLayout(
@@ -234,32 +242,32 @@ class TeamMemberDialog:
                 on_release=self.refresh_data
             )
             button_layout.add_widget(refresh_button)
-            content.add_widget(button_layout)
-            # Create dialog
+            content.children[0].add_widget(button_layout)
+            
+            # Create modern dialog with proper structure
+            # Create close button first
             close_button = MDButton(
-                children=[
-                    MDButtonText(
-                        text="CLOSE",
-                        bold=True
-                    )
-                ],
+                style="text",
                 on_release=self.close_dialog
             )
+            close_button.add_widget(MDButtonText(text="Close"))
+            
             self.dialog = MDDialog(
                 MDDialogHeadlineText(text="Team Members"),
+                MDDialogSupportingText(text="Manage your project team members and add new ones."),
                 content,
                 MDDialogButtonContainer(
-                    close_button
-                ),
-                size_hint=(0.9, 0.9)
+                    close_button,
+                )
             )
             
             # Load initial data
             self.load_initial_data()
             
         except Exception as e:
-            print(f"Error creating team member dialog: {e}")
-            raise e
+            print(f"Error creating dialog: {e}")
+            import traceback
+            print(traceback.format_exc())
     
     def search_users(self, query):
         """Search for users and update autocomplete dropdown"""
@@ -435,7 +443,7 @@ class TeamMemberDialog:
                 remove_btn = MDListItemTrailingIcon(
                     icon="delete"
                 )
-                remove_btn.bind(on_release=lambda x, m=member: self.remove_member(m))
+                remove_btn.bind(on_release=lambda x, m=member: self.show_remove_confirmation(m))
                 item.add_widget(remove_btn)
             
             return item
@@ -493,6 +501,91 @@ class TeamMemberDialog:
             self.selected_user_label.height = dp(0)
             self.hide_dropdown()
             self.load_project_members()  # Refresh the list
+    
+    def show_remove_confirmation(self, member):
+        """Show confirmation dialog before removing team member"""
+        try:
+            username = member.get('username', 'Unknown')
+            email = member.get('email', 'No email')
+            
+            # Create confirmation dialog content
+            content = MDDialogContentContainer(
+                MDBoxLayout(
+                    orientation="vertical",
+                    spacing=dp(16),
+                    size_hint_y=None,
+                    height=dp(100),
+                    padding=dp(16)
+                )
+            )
+            
+            # Add confirmation message
+            content.children[0].add_widget(
+                MDLabel(
+                    text=f"Are you sure you want to remove this team member?",
+                    theme_text_color="Primary",
+                    font_style="Body",
+                    size_hint_y=None,
+                    height=dp(30)
+                )
+            )
+            
+            content.children[0].add_widget(
+                MDLabel(
+                    text=f"{username} ({email})",
+                    theme_text_color="Secondary",
+                    font_style="Body",
+                    size_hint_y=None,
+                    height=dp(30),
+                    bold=True
+                )
+            )
+            
+            # Create buttons
+            cancel_button = MDButton(
+                style="outlined",
+                on_release=lambda x: self.remove_confirmation_dialog.dismiss()
+            )
+            cancel_button.add_widget(MDButtonText(text="Cancel"))
+            
+            confirm_button = MDButton(
+                style="filled",
+                on_release=lambda x: self.confirm_remove_member(member)
+            )
+            confirm_button.add_widget(MDButtonText(text="Remove"))
+            
+            # Create confirmation dialog
+            self.remove_confirmation_dialog = MDDialog(
+                MDDialogHeadlineText(text="Remove Team Member"),
+                MDDialogSupportingText(text="This action cannot be undone."),
+                content,
+                MDDialogButtonContainer(
+                    cancel_button,
+                    confirm_button,
+                )
+            )
+            
+            self.remove_confirmation_dialog.open()
+            
+        except Exception as e:
+            print(f"Error showing remove confirmation: {e}")
+            import traceback
+            print(traceback.format_exc())
+    
+    def confirm_remove_member(self, member):
+        """Confirm and execute team member removal"""
+        try:
+            # Close confirmation dialog
+            if hasattr(self, 'remove_confirmation_dialog'):
+                self.remove_confirmation_dialog.dismiss()
+            
+            # Proceed with removal
+            self.remove_member(member)
+            
+        except Exception as e:
+            print(f"Error confirming member removal: {e}")
+            import traceback
+            print(traceback.format_exc())
     
     def remove_member(self, member):
         """Remove a team member"""

@@ -45,7 +45,7 @@
                 size_hint_y: None
                 height: self.minimum_height
 
-                # Header Section with refresh button
+                # Header Section with buttons
                 MDBoxLayout:
                     orientation: "horizontal"
                     size_hint_y: None
@@ -57,7 +57,7 @@
                     MDBoxLayout:
                         orientation: "vertical"
                         spacing: dp(5)
-                        size_hint_x: 0.8
+                        size_hint_x: 0.5
 
                         MDLabel:
                             text: "Team Members"
@@ -79,15 +79,41 @@
                             halign: "left"
                             font_size: "16sp"
 
-                    # Refresh button
-                    MDIconButton:
-                        text: ""
-                        icon: "refresh"
-                        size_hint: (None, None)
-                        size: dp(48), dp(48)
-                        on_release: root.refresh_data()
-                        style: "filled"
-                        md_bg_color: app.theme_cls.primary_color
+                    # Spacer to push buttons to the right
+                    Widget:
+                        size_hint_x: 0.1
+
+                    # Action buttons container
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        spacing: dp(8)
+                        size_hint_x: 0.4
+                        size_hint_y: None
+                        height: dp(48)
+
+                        # Add New Member button
+                        MDButton:
+                            on_release: root.open_add_member_modal()
+                            style: "elevated"
+                            size_hint_x: None
+                            width: dp(140)
+                            height: dp(48)
+                            md_bg_color: app.theme_cls.primary_color
+                            radius: [dp(8)]
+                            MDButtonText:
+                                text: "Add Member"
+                                bold: True
+                            MDButtonIcon:
+                                icon: "account-plus"
+
+                        # Refresh button
+                        MDIconButton:
+                            icon: "refresh"
+                            size_hint: (None, None)
+                            size: dp(48), dp(48)
+                            on_release: root.refresh_data()
+                            style: "filled"
+                            md_bg_color: app.theme_cls.primary_color
 
                 # Project Selection Dropdown with enhanced styling
                 MDCard:
@@ -141,7 +167,7 @@
                     height: dp(250)  # Increased height for better visibility
                     elevation: 3
                     radius: [dp(12)]  # Rounded corners
-                    md_bg_color: app.theme_cls.surface_color
+                    md_bg_color: app.theme_cls.bg_light
                     padding: dp(16)
 
                     ScrollView:
@@ -152,24 +178,7 @@
                             id: members_list
                             spacing: dp(8)  # Increased spacing between items
 
-                # Add Member Button with enhanced styling
-                MDBoxLayout:
-                    orientation: "horizontal"
-                    spacing: dp(16)
-                    size_hint_y: None
-                    height: dp(56)
-                    padding: [0, dp(10)]
 
-                    MDButton:
-                        text: "Add New Member"
-                        icon: "account-plus"
-                        on_release: root.open_add_member_modal()
-                        size_hint_x: None
-                        width: dp(200)
-                        height: dp(48)
-                        style: "elevated"
-                        md_bg_color: app.theme_cls.primary_color
-                        radius: [dp(8)]
 
                 # Bottom spacing for better scrolling experience
                 MDBoxLayout:
