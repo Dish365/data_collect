@@ -71,20 +71,14 @@ class AnalyticsScreen(Screen):
 
     def _delayed_init(self, dt):
         """Delayed initialization to ensure all widgets are ready"""
-        # Set top bar title for consistency
+        # Set top bar title
         if hasattr(self.ids, 'top_bar'):
             self.ids.top_bar.set_title("Analytics")
         
         self.setup_analytics_service()
         self.load_projects()
         self.setup_tabs()
-        
-        # Clean up any overlapping widgets
-        self.cleanup_overlapping_widgets()
-        
-        # Initialize responsive layout
         self.update_responsive_layout()
-        
         self.update_quick_stats()
 
     def setup_analytics_service(self):
@@ -96,24 +90,6 @@ class AnalyticsScreen(Screen):
                 app.auth_service,
                 app.db_service
             )
-
-    def cleanup_overlapping_widgets(self):
-        """Clean up any potentially overlapping widgets that could cause text mangling"""
-        try:
-            # Clear stats container to prevent overlapping
-            if hasattr(self.ids, 'stats_container'):
-                stats_container = getattr(self.ids, 'stats_container', None)
-                if stats_container:
-                    stats_container.clear_widgets()
-            
-            # Ensure project selector has clean text
-            if hasattr(self.ids, 'project_selector'):
-                project_selector = getattr(self.ids, 'project_selector', None)
-                if project_selector:
-                    project_selector.text = "Select Project for Analysis"
-                    
-        except Exception as e:
-            print(f"Error cleaning up overlapping widgets: {e}")
 
     def load_projects(self):
         """Load available projects for analysis"""
@@ -211,14 +187,12 @@ class AnalyticsScreen(Screen):
         self.current_project_id = project['id']
         self.current_project_name = project['name']
         
-        # Clear and set project selector text properly
+        # Update project selector text
         if hasattr(self.ids, 'project_selector'):
             self.ids.project_selector.text = project['name']
         
-        # Update quick stats for selected project
+        # Update quick stats and load data characteristics
         self.update_quick_stats()
-        
-        # Load data characteristics for auto-detection
         self.load_project_data_characteristics()
         
         toast(f"Selected project: {project['name']}")
@@ -258,33 +232,39 @@ class AnalyticsScreen(Screen):
             self.load_qualitative()
 
     def update_quick_stats(self):
-        """Update the quick statistics cards with tablet optimization"""
+        """Update the quick statistics cards"""
         if not hasattr(self.ids, 'stats_container'):
             return
+            
         try:
-            stats_container = getattr(self.ids, 'stats_container', None)
-            if not stats_container:
-                return
+            stats_container = self.ids.stats_container
             stats_container.clear_widgets()
-            stats = self.get_project_stats()
+            
             if not self.current_project_id:
                 return
-            # Use a grid layout for 2 cards per row
-            stats_container.cols = 2
+                
+            stats = self.get_project_stats()
+            
             stat_items = [
-                ("Total Responses", stats.get('total_responses', 0), "database", "From your accessible projects"),
-                ("Questions", stats.get('total_questions', 0), "help-circle", "Questions in this project"),
-                ("Completion Rate", f"{stats.get('completion_rate', 0)}%", "check-circle", "Survey completion rate"),
-                ("Last Updated", stats.get('last_updated', 'Never'), "clock", "Most recent update"),
+                ("Total Responses", stats.get('total_responses', 0), "database", "Total survey responses"),
+                ("Questions", stats.get('total_questions', 0), "help-circle", "Questions in project"),
+                ("Completion Rate", f"{stats.get('completion_rate', 0)}%", "check-circle", "Response completion rate"),
+                ("Last Updated", stats.get('last_updated', 'Never'), "clock", "Most recent activity"),
             ]
+            
             from widgets.analytics_stat_card import AnalyticsStatCard
             for label, value, icon, note in stat_items:
                 try:
-                    card = AnalyticsStatCard(title=label, value=str(value), icon=icon, note=note)
-                    if card:
-                        stats_container.add_widget(card)
+                    card = AnalyticsStatCard(
+                        title=label, 
+                        value=str(value), 
+                        icon=icon, 
+                        note=note
+                    )
+                    stats_container.add_widget(card)
                 except Exception as card_error:
-                    print(f"Error creating analytics stat card for {label}: {card_error}")
+                    print(f"Error creating stat card for {label}: {card_error}")
+                    
         except Exception as e:
             print(f"Error updating quick stats: {e}")
 
@@ -294,40 +274,19 @@ class AnalyticsScreen(Screen):
             return {}
             
         try:
-            app = App.get_running_app()
-            conn = app.db_service.get_db_connection()
-            cursor = conn.cursor()
+            # Use analytics service for project stats
+            stats = self.analytics_service.get_project_stats(self.current_project_id)
             
-            # Get response count
-            cursor.execute("""
-                SELECT COUNT(*) as total_responses
-                FROM responses 
-                WHERE project_id = ?
-            """, (self.current_project_id,))
-            response_data = cursor.fetchone()
+            if 'error' in stats:
+                print(f"Error getting project stats: {stats['error']}")
+                return {}
             
-            # Get question count
-            cursor.execute("""
-                SELECT COUNT(*) as total_questions
-                FROM questions 
-                WHERE project_id = ? 
-            """, (self.current_project_id,))
-            question_data = cursor.fetchone()
-            
-            # Calculate completion rate (simplified)
-            cursor.execute("""
-                SELECT COUNT(DISTINCT respondent_id) as unique_respondents
-                FROM responses 
-                WHERE project_id = ?
-            """, (self.current_project_id,))
-            respondent_data = cursor.fetchone()
-            
-            total_responses = response_data['total_responses'] if response_data else 0
-            total_questions = question_data['total_questions'] if question_data else 0
-            unique_respondents = respondent_data['unique_respondents'] if respondent_data else 0
-            
-            # Simple completion rate calculation
+            # Calculate completion rate
             completion_rate = 0
+            total_responses = stats.get('total_responses', 0)
+            total_questions = stats.get('total_questions', 0)
+            unique_respondents = stats.get('unique_respondents', 0)
+            
             if total_questions > 0 and unique_respondents > 0:
                 expected_total = total_questions * unique_respondents
                 completion_rate = min(100, (total_responses / expected_total) * 100) if expected_total > 0 else 0
@@ -343,117 +302,12 @@ class AnalyticsScreen(Screen):
         except Exception as e:
             print(f"Error getting project stats: {e}")
             return {}
-        finally:
-            if 'conn' in locals():
-                conn.close()
-
-    def create_tablet_optimized_stat_card(self, title, value, icon):
-        """Create a tablet-optimized statistics card"""
-        try:
-            from widgets.responsive_layout import ResponsiveHelper
-            from widgets.stat_card import StatCard
-            
-            category = ResponsiveHelper.get_screen_size_category()
-            
-            # Adjust card size based on device category
-            if category in ["tablet", "large_tablet"]:
-                card = StatCard(
-                    title=title, 
-                    value=str(value), 
-                    icon=icon,
-                    size_hint=(None, None),
-                    size=(dp(180), dp(80)),  # Larger for tablets
-                )
-            else:
-                card = StatCard(
-                    title=title, 
-                    value=str(value), 
-                    icon=icon,
-                    size_hint=(None, None),
-                    size=(dp(140), dp(60)),  # Standard size
-                )
-                
-            return card
-            
-        except Exception as e:
-            print(f"Error creating tablet stat card: {e}")
-            # Fallback to original method
-            return self.create_stat_card(title, value, icon)
-
-    def create_stat_card(self, title, value, icon):
-        """Create a statistics card widget"""
-        from widgets.stat_card import StatCard
-        return StatCard(title=title, value=value, icon=icon)
-
-    def create_clean_stat_card(self, title, value, icon):
-        """Create a clean statistics card without overlapping text"""
-        try:
-            from widgets.stat_card import StatCard
-            
-            # Create stat card with clean properties
-            card = StatCard(
-                title=str(title).strip(),
-                value=str(value).strip(), 
-                icon=icon,
-                size_hint=(None, None),
-                size=(dp(160), dp(70))
-            )
-            return card
-            
-        except Exception as e:
-            print(f"Error creating clean stat card: {e}")
-            # Fallback to basic card creation
-            try:
-                from kivymd.uix.card import MDCard
-                from kivymd.uix.label import MDLabel
-                from kivymd.uix.boxlayout import MDBoxLayout
-                
-                card = MDCard(
-                    size_hint=(None, None),
-                    size=(dp(160), dp(70)),
-                    elevation=1,
-                    padding=dp(8)
-                )
-                
-                layout = MDBoxLayout(
-                    orientation='vertical',
-                    spacing=dp(4)
-                )
-                
-                title_label = MDLabel(
-                    text=str(title).strip(),
-                    font_style="Caption",
-                    theme_text_color="Secondary",
-                    halign="center",
-                    size_hint_y=None,
-                    height=dp(20)
-                )
-                
-                value_label = MDLabel(
-                    text=str(value).strip(),
-                    font_style="H6",
-                    theme_text_color="Primary", 
-                    halign="center",
-                    size_hint_y=None,
-                    height=dp(30)
-                )
-                
-                layout.add_widget(title_label)
-                layout.add_widget(value_label)
-                card.add_widget(layout)
-                
-                return card
-                
-            except Exception as fallback_error:
-                print(f"Error creating fallback stat card: {fallback_error}")
-                return None
 
     def load_project_data_characteristics(self):
         """Load data characteristics for auto-detection"""
         if not self.current_project_id:
             return
             
-        # This will be used by auto-detection
         threading.Thread(
             target=self._load_data_characteristics_thread,
             daemon=True
@@ -491,11 +345,24 @@ class AnalyticsScreen(Screen):
         """Background thread for auto-detection"""
         try:
             if self.analytics_service:
+                # Get analysis recommendations
                 recommendations = self.analytics_service.get_analysis_recommendations(
                     self.current_project_id
                 )
+                
+                # Run auto analysis to get actual results
+                analysis_results = self.analytics_service.run_analysis(
+                    self.current_project_id, "auto"
+                )
+                
+                # Combine results
+                combined_results = {
+                    'recommendations': recommendations,
+                    'analysis_results': analysis_results
+                }
+                
                 Clock.schedule_once(
-                    lambda dt: self._display_auto_detection(recommendations), 0
+                    lambda dt: self._display_auto_detection(combined_results), 0
                 )
         except Exception as e:
             print(f"Error in auto-detection: {e}")
@@ -503,24 +370,48 @@ class AnalyticsScreen(Screen):
         finally:
             Clock.schedule_once(lambda dt: self.set_loading(False), 0)
 
-    def _display_auto_detection(self, recommendations):
-        """Display auto-detection recommendations with tablet optimization"""
+    def _display_auto_detection(self, results):
+        """Display auto-detection recommendations"""
         if not hasattr(self.ids, 'auto_detection_content'):
             return
             
         content = self.ids.auto_detection_content
         content.clear_widgets()
         
-        if not recommendations:
-            content.add_widget(MDLabel(
-                text="No analysis recommendations available",
-                halign="center",
-                theme_text_color="Secondary",
-                font_size="16sp"
+        if not results:
+            content.add_widget(self.create_empty_state_widget(
+                "No analysis recommendations available.\nPlease ensure the FastAPI backend is running."
             ))
             return
-            
+        
+        # Check for backend connection errors
+        recommendations = results.get('recommendations', {})
+        analysis_results = results.get('analysis_results', {})
+        
+        if 'error' in recommendations and 'Cannot connect to analytics backend' in recommendations['error']:
+            content.add_widget(self.create_backend_error_widget())
+            return
+        
+        if 'error' in analysis_results and 'Cannot connect to analytics backend' in analysis_results['error']:
+            content.add_widget(self.create_backend_error_widget())
+            return
+        
         # Display recommendations
+        if recommendations and 'error' not in recommendations:
+            self.display_recommendations(content, recommendations)
+        
+        # Display analysis results
+        if analysis_results and 'analyses' in analysis_results:
+            self.display_analysis_results(content, analysis_results['analyses'])
+        
+        # If no valid results, show empty state
+        if not recommendations and not analysis_results:
+            content.add_widget(self.create_empty_state_widget(
+                "No analysis recommendations available at this time."
+            ))
+
+    def display_recommendations(self, content, recommendations):
+        """Display recommendations in content area"""
         for category, recs in recommendations.items():
             if recs and isinstance(recs, list):
                 # Category header
@@ -529,77 +420,32 @@ class AnalyticsScreen(Screen):
                     font_style="H6",
                     theme_text_color="Primary",
                     size_hint_y=None,
-                    height=dp(48),
-                    font_size="20sp"
+                    height=dp(48)
                 )
                 content.add_widget(header)
                 
-                # Recommendations
-                for rec in recs[:3]:  # Show top 3 recommendations
-                    rec_card = self.create_tablet_optimized_recommendation_card(rec)
+                # Show top 3 recommendations
+                for rec in recs[:3]:
+                    rec_card = self.create_recommendation_card(rec)
                     content.add_widget(rec_card)
 
-    def create_tablet_optimized_recommendation_card(self, recommendation):
-        """Create a tablet-optimized recommendation card"""
-        try:
-            from widgets.responsive_layout import ResponsiveHelper
-            
-            category = ResponsiveHelper.get_screen_size_category()
-            
-            # Responsive card sizing
-            if category in ["tablet", "large_tablet"]:
-                card_height = dp(150)
-                button_height = dp(48)
-                font_sizes = {"title": "18sp", "desc": "16sp", "button": "16sp"}
-            else:
-                card_height = dp(120)
-                button_height = dp(36)
-                font_sizes = {"title": "16sp", "desc": "14sp", "button": "14sp"}
-            
-            card = MDCard(
-                orientation="vertical",
-                padding=dp(20),
-                spacing=dp(12),
-                size_hint_y=None,
-                height=card_height,
-                elevation=2
-            )
-            
-            # Recommendation title
-            title = MDLabel(
-                text=recommendation.get('method', 'Unknown Method'),
-                font_style="Subtitle1",
-                theme_text_color="Primary",
-                font_size=font_sizes["title"]
-            )
-            card.add_widget(title)
-            
-            # Recommendation description
-            desc = MDLabel(
-                text=recommendation.get('rationale', 'No description available'),
-                font_style="Body2",
-                theme_text_color="Secondary",
-                font_size=font_sizes["desc"],
-                text_size=(None, None)
-            )
-            card.add_widget(desc)
-            
-            # Action button
-            action_btn = MDRaisedButton(
-                text="Run Analysis",
-                size_hint=(None, None),
-                height=button_height,
-                width=dp(140),
-                font_size=font_sizes["button"]
-            )
-            card.add_widget(action_btn)
-            
-            return card
-            
-        except Exception as e:
-            print(f"Error creating tablet recommendation card: {e}")
-            # Fallback to original method
-            return self.create_recommendation_card(recommendation)
+    def display_analysis_results(self, content, analyses):
+        """Display analysis results in content area"""
+        # Results header
+        results_header = MDLabel(
+            text="Analysis Results",
+            font_style="H6",
+            theme_text_color="Primary",
+            size_hint_y=None,
+            height=dp(48)
+        )
+        content.add_widget(results_header)
+        
+        # Display each analysis result
+        for analysis_type, result in analyses.items():
+            if result and 'error' not in result:
+                analysis_card = self.create_analysis_results_card(analysis_type, result)
+                content.add_widget(analysis_card)
 
     def create_recommendation_card(self, recommendation):
         """Create a recommendation card"""
@@ -612,7 +458,7 @@ class AnalyticsScreen(Screen):
             elevation=2
         )
         
-        # Recommendation title
+        # Title
         title = MDLabel(
             text=recommendation.get('method', 'Unknown Method'),
             font_style="Subtitle1",
@@ -620,7 +466,7 @@ class AnalyticsScreen(Screen):
         )
         card.add_widget(title)
         
-        # Recommendation description
+        # Description
         desc = MDLabel(
             text=recommendation.get('rationale', 'No description available'),
             font_style="Body2",
@@ -633,11 +479,79 @@ class AnalyticsScreen(Screen):
             text="Run Analysis",
             size_hint=(None, None),
             height=dp(36),
-            width=dp(120)
+            width=dp(120),
+            on_release=lambda x: self.run_recommended_analysis(recommendation)
         )
         card.add_widget(action_btn)
         
         return card
+
+    def create_analysis_results_card(self, analysis_type, result):
+        """Create a card to display analysis results"""
+        card = MDCard(
+            orientation="vertical",
+            padding=dp(16),
+            spacing=dp(8),
+            size_hint_y=None,
+            height=dp(150),
+            elevation=2
+        )
+        
+        # Analysis type header
+        header = MDLabel(
+            text=analysis_type.replace('_', ' ').title(),
+            font_style="H6",
+            theme_text_color="Primary"
+        )
+        card.add_widget(header)
+        
+        # Result summary
+        summary_text = self.format_analysis_summary(result)
+        summary_label = MDLabel(
+            text=summary_text,
+            font_style="Body2",
+            theme_text_color="Secondary"
+        )
+        card.add_widget(summary_label)
+        
+        return card
+
+    def format_analysis_summary(self, result):
+        """Format analysis result for display"""
+        if isinstance(result, dict):
+            if 'summary' in result:
+                summary = result['summary']
+                return f"Variables analyzed: {summary.get('variables_analyzed', 'N/A')}"
+            elif 'basic_statistics' in result:
+                stats = result['basic_statistics']
+                return f"Statistics calculated for {len(stats)} variables"
+            elif 'correlation_matrix' in result:
+                corr = result['correlation_matrix']
+                return f"Correlation matrix: {len(corr)} x {len(corr)}"
+            else:
+                return "Analysis completed successfully"
+        return "Analysis completed"
+
+    def create_empty_state_widget(self, message):
+        """Create an empty state widget"""
+        return MDLabel(
+            text=message,
+            halign="center",
+            theme_text_color="Secondary",
+            font_style="Body1"
+        )
+
+    def run_recommended_analysis(self, recommendation):
+        """Run a recommended analysis"""
+        method = recommendation.get('method', '')
+        category = recommendation.get('category', 'descriptive')
+        
+        if category == 'descriptive':
+            self.load_descriptive()
+        elif category == 'qualitative':
+            self.load_qualitative()
+        else:
+            toast(f"Running {method} analysis...")
 
     def load_descriptive(self):
         """Load descriptive analytics"""
@@ -652,8 +566,8 @@ class AnalyticsScreen(Screen):
         """Background thread for descriptive analytics"""
         try:
             if self.analytics_service:
-                results = self.analytics_service.run_descriptive_analysis(
-                    self.current_project_id
+                results = self.analytics_service.run_analysis(
+                    self.current_project_id, "descriptive"
                 )
                 Clock.schedule_once(
                     lambda dt: self._display_descriptive_results(results), 0
@@ -673,45 +587,199 @@ class AnalyticsScreen(Screen):
         content.clear_widgets()
         
         if not results:
-            content.add_widget(MDLabel(
-                text="No descriptive analysis results available",
-                halign="center",
-                theme_text_color="Secondary"
+            content.add_widget(self.create_empty_state_widget(
+                "No descriptive analysis results available.\nPlease ensure the FastAPI backend is running."
             ))
             return
             
-        # Display basic statistics
-        stats_card = self.create_stats_display_card(results)
+        if 'error' in results:
+            error_message = results['error']
+            if 'Cannot connect to analytics backend' in error_message:
+                content.add_widget(self.create_backend_error_widget())
+            else:
+                content.add_widget(self.create_empty_state_widget(
+                    f"Analysis Error: {error_message}"
+                ))
+            return
+            
+        # Display results
+        stats_card = self.create_results_display_card("Descriptive Statistics", results)
         content.add_widget(stats_card)
+    
+    def create_backend_error_widget(self):
+        """Create a widget for backend connection errors"""
+        error_card = MDCard(
+            orientation="vertical",
+            padding=dp(20),
+            spacing=dp(12),
+            size_hint_y=None,
+            height=dp(200),
+            elevation=2,
+            md_bg_color=(1, 0.9, 0.9, 1)  # Light red background
+        )
+        
+        # Error icon and title
+        title_layout = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(8),
+            size_hint_y=None,
+            height=dp(32)
+        )
+        
+        error_icon = MDIconButton(
+            icon="alert-circle",
+            theme_icon_color="Custom",
+            icon_color=(0.8, 0.2, 0.2, 1),
+            disabled=True,
+            size_hint_x=None,
+            width=dp(32)
+        )
+        
+        error_title = MDLabel(
+            text="Analytics Backend Not Available",
+            font_style="H6",
+            theme_text_color="Custom",
+            text_color=(0.8, 0.2, 0.2, 1)
+        )
+        
+        title_layout.add_widget(error_icon)
+        title_layout.add_widget(error_title)
+        error_card.add_widget(title_layout)
+        
+        # Error message
+        error_message = MDLabel(
+            text="The analytics backend is not responding. Please ensure:\n" +
+                 "1. The FastAPI server is running on port 8001\n" +
+                 "2. Run: python backend/fastapi/start_analytics_backend.py\n" +
+                 "3. Check the backend logs for errors",
+            font_style="Body2",
+            theme_text_color="Custom",
+            text_color=(0.6, 0.1, 0.1, 1),
+            size_hint_y=None,
+            height=dp(100)
+        )
+        error_card.add_widget(error_message)
+        
+        # Retry button
+        retry_button = MDRaisedButton(
+            text="Retry Connection",
+            size_hint=(None, None),
+            height=dp(36),
+            width=dp(160),
+            on_release=lambda x: self.load_tab_content()
+        )
+        error_card.add_widget(retry_button)
+        
+        return error_card
 
-    def create_stats_display_card(self, results):
-        """Create statistics display card"""
+    def create_results_display_card(self, title, results):
+        """Create a card to display analysis results"""
         card = MDCard(
             orientation="vertical",
             padding=dp(16),
             spacing=dp(8),
             size_hint_y=None,
-            height=dp(200),
+            height=dp(300),
             elevation=2
         )
         
-        title = MDLabel(
-            text="Basic Statistics",
+        # Title
+        title_label = MDLabel(
+            text=title,
             font_style="H6",
             theme_text_color="Primary"
         )
-        card.add_widget(title)
+        card.add_widget(title_label)
         
-        # Add statistics content
-        stats_text = str(results)  # Simplified for now
-        stats_label = MDLabel(
-            text=stats_text,
-            font_style="Body2",
-            theme_text_color="Secondary"
-        )
-        card.add_widget(stats_label)
+        # Results content - formatted display
+        if isinstance(results, dict):
+            if 'analyses' in results:
+                # Show analysis results
+                analyses = results['analyses']
+                for analysis_type, analysis_data in analyses.items():
+                    if analysis_data and 'error' not in analysis_data:
+                        # Analysis type subheader
+                        subheader = MDLabel(
+                            text=f"• {analysis_type.replace('_', ' ').title()}",
+                            font_style="Subtitle1",
+                            theme_text_color="Primary",
+                            size_hint_y=None,
+                            height=dp(24)
+                        )
+                        card.add_widget(subheader)
+                        
+                        # Analysis details
+                        details_text = self.format_analysis_details(analysis_data)
+                        details_label = MDLabel(
+                            text=details_text,
+                            font_style="Body2",
+                            theme_text_color="Secondary",
+                            size_hint_y=None,
+                            height=dp(60)
+                        )
+                        card.add_widget(details_label)
+            else:
+                # Single analysis result
+                details_text = self.format_analysis_details(results)
+                details_label = MDLabel(
+                    text=details_text,
+                    font_style="Body2",
+                    theme_text_color="Secondary",
+                    size_hint_y=None,
+                    height=dp(200)
+                )
+                card.add_widget(details_label)
+        else:
+            # Fallback to string representation
+            results_text = str(results)[:300] + "..." if len(str(results)) > 300 else str(results)
+            results_label = MDLabel(
+                text=results_text,
+                font_style="Body2",
+                theme_text_color="Secondary"
+            )
+            card.add_widget(results_label)
         
         return card
+    
+    def format_analysis_details(self, analysis_data):
+        """Format analysis data for display"""
+        if not isinstance(analysis_data, dict):
+            return str(analysis_data)
+        
+        formatted_lines = []
+        
+        # Handle different analysis result formats
+        if 'basic_statistics' in analysis_data:
+            stats = analysis_data['basic_statistics']
+            if 'numeric' in stats:
+                formatted_lines.append(f"Numeric variables: {len(stats['numeric'])}")
+            if 'categorical' in stats:
+                formatted_lines.append(f"Categorical variables: {len(stats['categorical'])}")
+        
+        if 'summary' in analysis_data:
+            summary = analysis_data['summary']
+            if 'total_responses' in summary:
+                formatted_lines.append(f"Total responses: {summary['total_responses']}")
+            if 'total_variables' in summary:
+                formatted_lines.append(f"Total variables: {summary['total_variables']}")
+        
+        if 'data_characteristics' in analysis_data:
+            char = analysis_data['data_characteristics']
+            if 'sample_size' in char:
+                formatted_lines.append(f"Sample size: {char['sample_size']}")
+            if 'completeness_score' in char:
+                formatted_lines.append(f"Data completeness: {char['completeness_score']:.1f}%")
+        
+        if 'error' in analysis_data:
+            formatted_lines.append(f"Error: {analysis_data['error']}")
+        
+        if not formatted_lines:
+            # Generic formatting for unknown structures
+            for key, value in analysis_data.items():
+                if isinstance(value, (str, int, float)):
+                    formatted_lines.append(f"{key.replace('_', ' ').title()}: {value}")
+        
+        return "\n".join(formatted_lines[:5]) if formatted_lines else "Analysis completed successfully"
 
     def load_inferential(self):
         """Load inferential statistics"""
@@ -765,32 +833,26 @@ class AnalyticsScreen(Screen):
         toast("Analysis configuration coming soon")
         
     def on_window_resize(self, window, width, height):
+        """Handle window resize"""
         self.update_responsive_layout()
 
     def update_responsive_layout(self):
-        # Responsive columns for stat cards
+        """Update responsive layout based on screen size"""
         try:
             window_width = Window.width
-            min_card_width = 320  # match dashboard style
-            spacing = 24
-            padding = 48  # left+right
-            available_width = window_width - padding
-            max_possible_cols = max(1, int(available_width / (min_card_width + spacing)))
+            
+            # Calculate optimal columns for stats cards
             if window_width < 700:
                 stats_cols = 1
             elif window_width < 1200:
                 stats_cols = 2
-            elif window_width < 1600:
-                stats_cols = min(3, max_possible_cols)
             else:
-                stats_cols = min(4, max_possible_cols)
-            stats_cols = min(stats_cols, 4)
-            stats_cols = max(stats_cols, 1)
+                stats_cols = 4
+                
             if hasattr(self.ids, 'stats_container'):
                 self.ids.stats_container.cols = stats_cols
-                self.ids.stats_container.do_layout()
+                
         except Exception as e:
-            print(f"Error in analytics responsive layout: {e}")
+            print(f"Error in responsive layout: {e}")
             if hasattr(self.ids, 'stats_container'):
-                self.ids.stats_container.cols = 1
-                self.ids.stats_container.do_layout() 
+                self.ids.stats_container.cols = 1 

@@ -107,7 +107,7 @@ class CocoaResponseGenerator:
         
         login_data = {
             "username": "kwofie",
-            "password": "SecurePass123!"
+            "password": "SecurePass354!"
         }
         
         try:

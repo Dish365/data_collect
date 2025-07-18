@@ -16,7 +16,7 @@ def main():
     print("🌟 Cocoa Value Chain Survey Setup")
     print("=" * 50)
     print("This script will:")
-    print("1. Register Manuel Kwofie from McGill University")
+    print("1. Register Emmanuel Kwofie from McGill University")
     print("2. Create a cocoa value chain survey project in Ghana")
     print("3. Build a comprehensive 26-question survey form")
     print("=" * 50)

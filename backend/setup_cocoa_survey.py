@@ -25,16 +25,16 @@ PROJECT_NAME = "Cocoa Value Chain Survey - Ghana 2024"
 
 # User credentials
 USER_DATA = {
-    "username": "kwofie",
+    "username": "amakwofie",
     "email": "manuel.kwofie@mcgill.ca",
-    "password": "SecurePass123!",
-    "password2": "SecurePass123!",
-    "first_name": "Manuel",
+    "password": "SecurePass354!",
+    "password2": "SecurePass354!",
+    "first_name": "Emmanuel",
     "last_name": "Kwofie",
     "profile": {
         "organization": "McGill University",
-        "department": "Agricultural Economics",
-        "role": "Graduate Researcher",
+        "department": "Bioresource Engineering",
+        "role": "Software Engineer",
         "country": "Canada",
         "research_interests": ["Cocoa Value Chain", "Agricultural Development", "Food Security"]
     }

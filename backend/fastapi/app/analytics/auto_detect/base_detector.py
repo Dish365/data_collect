@@ -374,21 +374,21 @@ class StandardizedDataProfiler:
             
             characteristics = DataCharacteristics()
             
-            # Basic structure
-            characteristics.n_observations = len(df)
-            characteristics.n_variables = len(df.columns)
-            characteristics.data_shape = df.shape
+            # Basic structure - ensure native Python types
+            characteristics.n_observations = int(len(df))
+            characteristics.n_variables = int(len(df.columns))
+            characteristics.data_shape = (int(df.shape[0]), int(df.shape[1]))
             
             # Analyze variable types
             characteristics.variable_types = self._analyze_variable_types(df)
             characteristics.type_counts = Counter(characteristics.variable_types.values())
             
-            # Data quality metrics
-            characteristics.missing_percentage = self._calculate_missing_percentage(df)
+            # Data quality metrics - ensure native Python types
+            characteristics.missing_percentage = float(self._calculate_missing_percentage(df))
             characteristics.missing_patterns = self._analyze_missing_patterns(df)
-            characteristics.duplicate_rows = df.duplicated().sum()
+            characteristics.duplicate_rows = int(df.duplicated().sum())
             characteristics.constant_columns = self._find_constant_columns(df)
-            characteristics.completeness_score = 100 - characteristics.missing_percentage
+            characteristics.completeness_score = float(100 - characteristics.missing_percentage)
             
             # Sample characteristics
             characteristics.sample_size_category = self._categorize_sample_size(characteristics.n_observations)
@@ -460,16 +460,31 @@ class StandardizedDataProfiler:
             return DataType.DATETIME
         
         # Check if binary
-        unique_vals = clean_series.unique()
-        if len(unique_vals) == 2:
-            return DataType.BINARY
+        try:
+            unique_vals = clean_series.unique()
+            if len(unique_vals) == 2:
+                return DataType.BINARY
+        except TypeError:
+            # Handle case where values are not hashable (like lists)
+            try:
+                # Convert to string and then get unique values
+                unique_vals = clean_series.astype(str).unique()
+                if len(unique_vals) == 2:
+                    return DataType.BINARY
+            except Exception:
+                # If all else fails, treat as text
+                return DataType.TEXT
         
         # Check if numeric
         if pd.api.types.is_numeric_dtype(clean_series):
-            # Check for continuous vs discrete
-            if len(unique_vals) > 20 or self._has_floating_point_values(clean_series):
-                return DataType.NUMERIC_CONTINUOUS
-            else:
+            try:
+                # Check for continuous vs discrete
+                if len(unique_vals) > 20 or self._has_floating_point_values(clean_series):
+                    return DataType.NUMERIC_CONTINUOUS
+                else:
+                    return DataType.NUMERIC_DISCRETE
+            except Exception:
+                # If there's an error determining continuous vs discrete, default to discrete
                 return DataType.NUMERIC_DISCRETE
         
         # Check if ordinal (ordered categorical)
@@ -477,17 +492,33 @@ class StandardizedDataProfiler:
             return DataType.ORDINAL
         
         # Check if categorical
-        if len(unique_vals) <= 50:
-            return DataType.CATEGORICAL
-        else:
+        try:
+            if len(unique_vals) <= 50:
+                return DataType.CATEGORICAL
+            else:
+                return DataType.TEXT
+        except Exception:
+            # If we can't determine unique values, default to text
             return DataType.TEXT
     
     def _has_floating_point_values(self, series: pd.Series) -> bool:
         """Check if series has floating point values."""
         try:
             sample = series.dropna().iloc[:100]  # Check first 100 non-null values
-            return any(val != int(val) for val in sample if pd.notnull(val) and isinstance(val, (int, float)))
-        except:
+            
+            # Additional safety check for complex data types
+            if not pd.api.types.is_numeric_dtype(sample):
+                return False
+                
+            for val in sample:
+                if pd.notnull(val) and isinstance(val, (int, float)):
+                    try:
+                        if val != int(val):
+                            return True
+                    except (ValueError, OverflowError):
+                        continue
+            return False
+        except Exception:
             return False
     
     def _calculate_missing_percentage(self, df: pd.DataFrame) -> float:
@@ -499,7 +530,7 @@ class StandardizedDataProfiler:
     def _analyze_missing_patterns(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Analyze missing data patterns."""
         missing_counts = df.isnull().sum()
-        missing_vars = missing_counts[missing_counts > 0].to_dict()
+        missing_vars = {col: int(count) for col, count in missing_counts.items() if count > 0}
         
         return {
             'variables_with_missing': missing_vars,
@@ -561,10 +592,10 @@ class StandardizedDataProfiler:
                 if len(series) > 0:
                     value_counts = series.value_counts()
                     summaries[col] = {
-                        'unique_count': len(value_counts),
-                        'most_frequent': value_counts.index[0] if len(value_counts) > 0 else None,
+                        'unique_count': int(len(value_counts)),
+                        'most_frequent': str(value_counts.index[0]) if len(value_counts) > 0 else None,
                         'most_frequent_count': int(value_counts.iloc[0]) if len(value_counts) > 0 else 0,
-                        'least_frequent': value_counts.index[-1] if len(value_counts) > 0 else None,
+                        'least_frequent': str(value_counts.index[-1]) if len(value_counts) > 0 else None,
                         'least_frequent_count': int(value_counts.iloc[-1]) if len(value_counts) > 0 else 0,
                         'mode_frequency': float(value_counts.iloc[0] / len(series)) if len(value_counts) > 0 else 0
                     }
@@ -578,13 +609,13 @@ class StandardizedDataProfiler:
         """Count potential correlation pairs."""
         numeric_cols = df.select_dtypes(include=[np.number]).columns
         n_numeric = len(numeric_cols)
-        return n_numeric * (n_numeric - 1) // 2 if n_numeric >= 2 else 0
+        return int(n_numeric * (n_numeric - 1) // 2) if n_numeric >= 2 else 0
     
     def _count_potential_cross_tabs(self, df: pd.DataFrame) -> int:
         """Count potential cross-tabulation pairs."""
         categorical_cols = df.select_dtypes(include=['object', 'category']).columns
         n_categorical = len(categorical_cols)
-        return n_categorical * (n_categorical - 1) // 2 if n_categorical >= 2 else 0
+        return int(n_categorical * (n_categorical - 1) // 2) if n_categorical >= 2 else 0
     
     def _identify_grouping_variables(self, df: pd.DataFrame) -> List[str]:
         """Identify potential grouping variables."""

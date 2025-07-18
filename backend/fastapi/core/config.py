@@ -10,6 +10,9 @@ class Settings:
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     
+    # Security settings
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
+    
     # CORS settings
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
