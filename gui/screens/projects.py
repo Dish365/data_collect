@@ -299,25 +299,42 @@ class ProjectsScreen(Screen):
         """Show sort options menu"""
         try:
             from kivymd.uix.menu import MDDropdownMenu
-            
+
             menu_items = [
-                {"text": "Name (A-Z)", "viewclass": "MDListItem", "on_release": lambda: self.sort_projects("name")},
-                {"text": "Newest First", "viewclass": "MDListItem", "on_release": lambda: self.sort_projects("date_new")},
-                {"text": "Oldest First", "viewclass": "MDListItem", "on_release": lambda: self.sort_projects("date_old")},
-                {"text": "Sync Status", "viewclass": "MDListItem", "on_release": lambda: self.sort_projects("status")},
+                {
+                    "text": "Name (A-Z)",
+                    "on_release": lambda x="name": self.sort_projects(x),
+                },
+                {
+                    "text": "Newest First",
+                    "on_release": lambda x="date_new": self.sort_projects(x),
+                },
+                {
+                    "text": "Oldest First",
+                    "on_release": lambda x="date_old": self.sort_projects(x),
+                },
+                {
+                    "text": "Sync Status",
+                    "on_release": lambda x="status": self.sort_projects(x),
+                },
             ]
-            
+
             self.sort_menu = MDDropdownMenu(
-                caller=self.ids.view_toggle_btn,  # Use any button as caller
+                caller=self.ids.sort_button,
                 items=menu_items,
-                width_mult=4
+                width_mult=4,
+                position="auto",
             )
             self.sort_menu.open()
-            
+
         except Exception as e:
             print(f"Error showing sort menu: {e}")
-            toast("Sort options coming soon")
-    
+            from kivymd.uix.snackbar import Snackbar
+            Snackbar(
+                text="Sort options coming soon",
+                duration=3
+            ).open()
+
     def sort_projects(self, sort_type):
         """Sort projects by specified type"""
         if self.sort_menu:
@@ -354,10 +371,7 @@ class ProjectsScreen(Screen):
     
     def refresh_projects_ui(self):
         """Refresh the projects UI with current filtered/sorted data"""
-        print(f"=== REFRESH PROJECTS UI ===")
-        print(f"Total projects data: {len(self.projects_data)}")
-        print(f"Filtered projects data: {len(self.filtered_projects_data)}")
-        print(f"Current filter: {self.current_filter}")
+        
         
         # Debug: Print all projects data
         for i, project in enumerate(self.projects_data):
