@@ -17,15 +17,7 @@ Builder.load_file("kv/project_item.kv")
 
 
 class ProjectItem(MDCard, EventDispatcher):
-    """
-    Modern Project Item widget using KivyMD 2.0+ approach
-    
-    This widget displays project information in a card format with:
-    - Date circle showing creation date
-    - Project name and description
-    - Sync status indicator
-    - Options menu for actions
-    """
+
     
     # Properties for data binding
     project_id = StringProperty('')
@@ -66,31 +58,31 @@ class ProjectItem(MDCard, EventDispatcher):
             # Set responsive properties based on device category
             if category == "large_tablet":
                 self.orientation = 'horizontal'
-                self.padding = (dp(16), dp(16), dp(12), dp(16))
-                self.spacing = dp(20)
+                self.padding = (dp(8), dp(8), dp(6), dp(8))
+                self.spacing = dp(12)
                 self.size_hint_y = None
-                self.height = dp(96)
+                self.height = dp(50)
                 self.elevation = 1.2
             elif category == "tablet":
                 self.orientation = 'horizontal'
-                self.padding = (dp(12), dp(12), dp(8), dp(12))
-                self.spacing = dp(16)
+                self.padding = (dp(6), dp(6), dp(4), dp(6))
+                self.spacing = dp(10)
                 self.size_hint_y = None
-                self.height = dp(84)
+                self.height = dp(46)
                 self.elevation = 1.0
             elif category == "small_tablet":
                 self.orientation = 'horizontal'
-                self.padding = (dp(10), dp(10), dp(6), dp(10))
-                self.spacing = dp(14)
+                self.padding = (dp(5), dp(5), dp(3), dp(5))
+                self.spacing = dp(8)
                 self.size_hint_y = None
-                self.height = dp(78)
+                self.height = dp(42)
                 self.elevation = 0.9
             else:  # phone
                 self.orientation = 'horizontal'
-                self.padding = (dp(8), dp(8), dp(4), dp(8))
-                self.spacing = dp(12)
+                self.padding = (dp(4), dp(4), dp(2), dp(4))
+                self.spacing = dp(8)
                 self.size_hint_y = None
-                self.height = dp(72)
+                self.height = dp(38)
                 self.elevation = 0.8
                 
         except Exception as e:

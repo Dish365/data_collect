@@ -4,25 +4,32 @@
 #:import MDIconButton kivymd.uix.button.MDIconButton
 #:import dp kivy.metrics.dp
 
-<ProjectItem>:
-    # Main container with horizontal layout
+<ProjectItem@MDCard>:
+    orientation: "horizontal"
+    padding: root.padding
+    spacing: root.spacing
+    style: "outlined"
+    line_color: 0, 0, 0, 1
+    line_width: 1.5
+    md_bg_color: 1, 1, 1, 1
+    radius: [12]
+    elevation: root.elevation
+    size_hint_y: None
+    height: root.height
+    
+    # Main content container
     MDBoxLayout:
         orientation: "horizontal"
         spacing: root.spacing
         padding: 0, 0
-        pos_hint: {"center_x": 0.5, "center_y": 0.5}
-        style: "outlined"
         
         # Date Circle
-        MDCard:
+        MDBoxLayout:
             id: date_circle
             size_hint: None, None
             size: root.get_date_circle_size()
             radius: [root.get_date_circle_radius()]
-            ripple_behavior: False
-            md_bg_color: 0.2, 0.6, 1.0, 1.0  # Use a more standard blue color
-            elevation: 2
-            style: "filled"
+            md_bg_color: 0.4, 0.7, 1.0, 1.0  # Lighter blue color
             pos_hint: {"center_x": 0.5, "center_y": 0.5}
             padding: root.get_date_circle_padding()
             
@@ -66,11 +73,12 @@
                 font_size: root.get_name_font_size()
                 adaptive_height: True
                 text_size: None, None
-                halign: "center"
+                halign: "left"
                 valign: "middle"
                 shorten: True
                 shorten_from: "right"
                 pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                bold: True
             
             MDLabel:
                 id: desc_label
@@ -79,7 +87,7 @@
                 theme_text_color: "Secondary"
                 adaptive_height: True
                 text_size: None, None
-                halign: "center"
+                halign: "left"
                 valign: "middle"
                 shorten: True
                 shorten_from: "right"

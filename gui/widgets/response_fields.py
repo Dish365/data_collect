@@ -519,11 +519,15 @@ class DateResponseField(BaseResponseField):
         )
         
         self.date_button = MDButton(
-        style="elevated",
-            text="Choose Date",
+            style="elevated",
             size_hint_y=None,
-            height=values['button_height'],
-            font_size=values['font_size_secondary']
+            height=values['button_height']
+        )
+        self.date_button.add_widget(
+            MDButtonText(
+                text="Choose Date",
+                font_size=values['font_size_secondary']
+            )
         )
         self.date_button.bind(on_release=self.show_date_picker)
         
@@ -622,11 +626,15 @@ class DateTimeResponseField(BaseResponseField):
         )
         
         self.date_button = MDButton(
-        style="elevated",
-            text="Date",
+            style="elevated",
             size_hint_y=None,
-            height=values['button_height'],
-            font_size=values['font_size_secondary']
+            height=values['button_height']
+        )
+        self.date_button.add_widget(
+            MDButtonText(
+                text="Date",
+                font_size=values['font_size_secondary']
+            )
         )
         self.date_button.bind(on_release=self.show_date_picker)
         
@@ -648,11 +656,15 @@ class DateTimeResponseField(BaseResponseField):
         )
         
         self.time_button = MDButton(
-        style="elevated",
-            text="Time",
+            style="elevated",
             size_hint_y=None,
-            height=values['button_height'],
-            font_size=values['font_size_secondary']
+            height=values['button_height']
+        )
+        self.time_button.add_widget(
+            MDButtonText(
+                text="Time",
+                font_size=values['font_size_secondary']
+            )
         )
         self.time_button.bind(on_release=self.show_time_picker)
         
@@ -791,20 +803,28 @@ class FileResponseField(BaseResponseField):
         )
         
         self.choose_button = MDButton(
-        style="elevated",
-            text="Choose File",
+            style="elevated",
             size_hint_y=None,
-            height=values['button_height'],
-            font_size=values['font_size_secondary']
+            height=values['button_height']
+        )
+        self.choose_button.add_widget(
+            MDButtonText(
+                text="Choose File",
+                font_size=values['font_size_secondary']
+            )
         )
         self.choose_button.bind(on_release=self.choose_file)
         
         self.clear_button = MDButton(
-        style="elevated",
-            text="Clear",
+            style="elevated",
             size_hint_y=None,
-            height=values['button_height'],
-            font_size=values['font_size_secondary']
+            height=values['button_height']
+        )
+        self.clear_button.add_widget(
+            MDButtonText(
+                text="Clear",
+                font_size=values['font_size_secondary']
+            )
         )
         self.clear_button.bind(on_release=self.clear_file)
         

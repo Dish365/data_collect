@@ -29,7 +29,13 @@ import threading
 from datetime import datetime
 import traceback
 
-Builder.load_file("kv/projects.kv")
+# Load KV file only once to prevent duplicate rule application
+try:
+    Builder.load_file("kv/projects.kv")
+except Exception as e:
+    # If KV file is already loaded, ignore the error
+    if "rule not in self.rulectx" not in str(e):
+        print(f"Error loading projects.kv: {e}")
 
 
 class ProjectsScreen(Screen):
@@ -66,17 +72,20 @@ class ProjectsScreen(Screen):
         # Initialize responsive layout
         self.update_responsive_layout()
         
-        # Set initial filter state to "all" and update button states
+        # Set initial filter state to "all" and update chip states
         self.current_filter = "all"
         
-        # Update button states immediately and then schedule another update
+        # Update filter chip states using latest KivyMD approach
         try:
-            self.update_filter_button_states("all")
+            self.update_filter_chip_states("all")
         except:
             pass
-        Clock.schedule_once(lambda dt: self.update_filter_button_states("all"), 0.5)
+        Clock.schedule_once(lambda dt: self.update_filter_chip_states("all"), 0.5)
         
+        # Load projects first, then apply filter
         self.check_and_sync_projects()
+        
+        # Add a test project item to see if widget creation works
 
     def on_window_resize(self, window, width, height):
         """Handle window resize for responsive layout adjustments"""
@@ -154,12 +163,12 @@ class ProjectsScreen(Screen):
             grid.padding = dp(16)
     
     def filter_projects(self, filter_type):
-        """Filter projects by type"""
+        """Filter projects by type using latest KivyMD filter chip approach"""
         self.current_filter = filter_type
         print(f"Projects: Filtering by {filter_type}")
         
-        # Update button states
-        self.update_filter_button_states(filter_type)
+        # Update filter chip states using the new approach
+        self.update_filter_chip_states(filter_type)
         
         # Apply filter to current projects data
         self.apply_current_filter()
@@ -167,52 +176,95 @@ class ProjectsScreen(Screen):
         # Refresh UI with filtered data
         self.refresh_projects_ui()
     
-    def update_filter_button_states(self, active_filter):
-        """Update the visual state of filter chips"""
-        filter_buttons = {
+    def update_filter_chip_states(self, active_filter):
+        """Update the visual state of filter chips using latest KivyMD approach"""
+        filter_chips = {
             "all": "filter_all_btn",
             "recent": "filter_recent_btn", 
             "synced": "filter_synced_btn",
             "pending": "filter_pending_btn"
         }
-        for filter_name, button_id in filter_buttons.items():
-            if hasattr(self.ids, button_id):
-                chip = getattr(self.ids, button_id)
-                if filter_name == active_filter:
-                    # Active chip - blue background with white text
-                    chip.md_bg_color = (0.0, 0.0, 1.0, 1)  # Pure blue
-                    # Update text color to white
+        
+        for filter_name, chip_id in filter_chips.items():
+            if hasattr(self.ids, chip_id):
+                chip = getattr(self.ids, chip_id)
+                is_active = (filter_name == active_filter)
+                chip.active = is_active
+                
+                # Update colors manually for proper visual feedback
+                if is_active:
+                    # Active chip - blue background
+                    chip.md_bg_color = (0.2, 0.6, 1.0, 1.0)  # Blue color
+                    # Update text color to white for better contrast
                     if hasattr(chip, 'ids') and hasattr(chip.ids, 'chip_text'):
                         chip.ids.chip_text.text_color = (1, 1, 1, 1)
+                        chip.ids.chip_text.theme_text_color = "Custom"
                 else:
-                    # Inactive chip - light gray background with black text
-                    chip.md_bg_color = [0.9, 0.9, 0.9, 1]  # Light gray
+                    # Inactive chip - light blue background
+                    chip.md_bg_color = (0.8, 0.9, 1.0, 1)  # Light blue
                     # Update text color to black
                     if hasattr(chip, 'ids') and hasattr(chip.ids, 'chip_text'):
                         chip.ids.chip_text.text_color = (0, 0, 0, 1)
+                        chip.ids.chip_text.theme_text_color = "Custom"
+    
+    def on_filter_chip_click(self, filter_type):
+        """Handle filter chip clicks - simpler approach using on_release"""
+        print(f"Filter chip {filter_type} clicked!")
+        print(f"Current projects data count: {len(self.projects_data)}")
+        
+        # If clicking the same filter, do nothing (keep it active)
+        if self.current_filter == filter_type:
+            print(f"Filter {filter_type} is already active, no change needed")
+            return
+        
+        # Apply the new filter
+        self.filter_projects(filter_type)
     
     def apply_current_filter(self):
         """Apply the current filter to projects data"""
+        print(f"Applying filter: {self.current_filter}")
+        print(f"Total projects data: {len(self.projects_data)}")
+        
+        # Debug: Print sample project data to understand structure
+        if self.projects_data:
+            sample_project = self.projects_data[0]
+            print(f"Sample project data: {sample_project}")
+            print(f"Sample project keys: {list(sample_project.keys())}")
+        
         if self.current_filter == "all":
             self.filtered_projects_data = self.projects_data.copy()
         elif self.current_filter == "recent":
             # Filter to projects created in last 30 days
             from datetime import datetime, timedelta
             cutoff_date = datetime.now() - timedelta(days=30)
-            self.filtered_projects_data = [
-                p for p in self.projects_data 
-                if self.parse_project_date(p.get('created_at', '')) > cutoff_date
-            ]
+            print(f"Recent filter cutoff date: {cutoff_date}")
+            
+            self.filtered_projects_data = []
+            for p in self.projects_data:
+                created_date = self.parse_project_date(p.get('created_at', ''))
+                print(f"Project '{p.get('name', 'Unknown')}' created: {created_date}")
+                if created_date > cutoff_date:
+                    self.filtered_projects_data.append(p)
+                    
         elif self.current_filter == "synced":
-            self.filtered_projects_data = [
-                p for p in self.projects_data 
-                if p.get('sync_status', '').lower() == 'synced'
-            ]
+            print("Checking sync status for projects:")
+            self.filtered_projects_data = []
+            for p in self.projects_data:
+                sync_status = p.get('sync_status', '').lower()
+                print(f"Project '{p.get('name', 'Unknown')}' sync_status: '{sync_status}'")
+                if sync_status == 'synced':
+                    self.filtered_projects_data.append(p)
+                    
         elif self.current_filter == "pending":
-            self.filtered_projects_data = [
-                p for p in self.projects_data 
-                if p.get('sync_status', '').lower() in ['pending', 'failed']
-            ]
+            print("Checking pending status for projects:")
+            self.filtered_projects_data = []
+            for p in self.projects_data:
+                sync_status = p.get('sync_status', '').lower()
+                print(f"Project '{p.get('name', 'Unknown')}' sync_status: '{sync_status}'")
+                if sync_status in ['pending', 'failed']:
+                    self.filtered_projects_data.append(p)
+        
+        print(f"Filtered projects count: {len(self.filtered_projects_data)}")
         
         # Apply current sort
         self.apply_current_sort()
@@ -302,8 +354,19 @@ class ProjectsScreen(Screen):
     
     def refresh_projects_ui(self):
         """Refresh the projects UI with current filtered/sorted data"""
+        print(f"=== REFRESH PROJECTS UI ===")
+        print(f"Total projects data: {len(self.projects_data)}")
+        print(f"Filtered projects data: {len(self.filtered_projects_data)}")
+        print(f"Current filter: {self.current_filter}")
+        
+        # Debug: Print all projects data
+        for i, project in enumerate(self.projects_data):
+            print(f"Project {i+1}: {project}")
+        
         # Clear current grid
+        print(f"Grid before clearing: {len(self.ids.projects_grid.children)} children")
         self.ids.projects_grid.clear_widgets()
+        print(f"Grid cleared. Grid children count: {len(self.ids.projects_grid.children)}")
         
         # Remove any existing load more button
         if hasattr(self.ids, 'load_more_button') and self.ids.load_more_button.parent:
@@ -311,11 +374,57 @@ class ProjectsScreen(Screen):
         
         # Display filtered projects
         if not self.filtered_projects_data:
+            print("No filtered projects, showing empty state")
             self.show_empty_state()
         else:
-            for project in self.filtered_projects_data:
-                project_item = self.create_tablet_optimized_project_item(project)
-                self.ids.projects_grid.add_widget(project_item)
+            print(f"Adding {len(self.filtered_projects_data)} projects to grid")
+            for i, project in enumerate(self.filtered_projects_data):
+                print(f"Creating project item {i+1}: {project.get('name', 'Unknown')}")
+                
+                try:
+                    # Create actual ProjectItem widget
+                    project_item = self.create_tablet_optimized_project_item(project)
+                    print(f"Project item created successfully: {project_item}")
+                    print(f"Project item size: {project_item.size}, pos: {project_item.pos}")
+                    print(f"Project item visible: {project_item.opacity}, disabled: {project_item.disabled}")
+                    
+                    # Add to grid
+                    self.ids.projects_grid.add_widget(project_item)
+                    print(f"Project item added to grid. Grid children count: {len(self.ids.projects_grid.children)}")
+                    
+                    # Force layout update
+                    self.ids.projects_grid.do_layout()
+                    print(f"Grid layout updated. Grid size: {self.ids.projects_grid.size}")
+                    
+                except Exception as e:
+                    print(f"Error creating project item: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    
+                    # Fallback to simple card if ProjectItem fails
+                    from kivymd.uix.card import MDCard
+                    from kivymd.uix.label import MDLabel
+                    
+                    fallback_card = MDCard(
+                        style="outlined",
+                        line_color=(0.8, 0.8, 0.8, 1),
+                        md_bg_color=(1, 1, 1, 1),
+                        size_hint=(1, None),
+                        height=dp(120),
+                        padding=dp(16)
+                    )
+                    fallback_card.add_widget(
+                        MDLabel(
+                            text=f"Project: {project.get('name', 'Unknown')}",
+                            halign='center',
+                            theme_text_color="Primary"
+                        )
+                    )
+                    self.ids.projects_grid.add_widget(fallback_card)
+                    print(f"Added fallback card. Grid children count: {len(self.ids.projects_grid.children)}")
+        
+        print(f"=== END REFRESH PROJECTS UI ===")
+        print(f"Final grid children count: {len(self.ids.projects_grid.children)}")
     
     def create_tablet_optimized_project_item(self, project):
         """Create a tablet-optimized project item"""
@@ -323,6 +432,7 @@ class ProjectsScreen(Screen):
             from widgets.project_item import ProjectItem
             
             category = ResponsiveHelper.get_screen_size_category()
+            print(f"Creating project item for category: {category}")
             
             # Create project item with responsive sizing
             project_item = ProjectItem(
@@ -333,14 +443,16 @@ class ProjectsScreen(Screen):
                 sync_status=project.get('sync_status', 'unknown')
             )
             
+            print(f"Project item created with name: {project_item.name}")
+            
             # Apply tablet-specific styling if needed
             if category in ["tablet", "large_tablet"]:
-                # Increase padding and spacing for tablets
-                project_item.padding = (dp(12), dp(12), dp(8), dp(12))
-                project_item.spacing = dp(16)
-                project_item.height = dp(140)  # Slightly taller for tablets
+                # Set height to match grid row height for tablets
+                project_item.height = dp(140)
+                print(f"Applied tablet styling: height={project_item.height}")
             else:
-                project_item.height = dp(120)  # Standard height for phones
+                project_item.height = dp(120)  # Match grid row height for phones
+                print(f"Applied phone styling: height={project_item.height}")
             
             # Bind events
             project_item.bind(
@@ -349,10 +461,13 @@ class ProjectsScreen(Screen):
                 on_build_form=lambda instance, pid=project.get('id'): self.go_to_form_builder(pid)
             )
             
+            print(f"Project item ready: size={project_item.size}, visible={project_item.opacity}")
             return project_item
             
         except Exception as e:
             print(f"Error creating tablet project item: {e}")
+            import traceback
+            traceback.print_exc()
             # Fallback to original creation
             return self.create_original_project_item(project)
     
@@ -400,24 +515,25 @@ class ProjectsScreen(Screen):
                 filter_name = filter_names.get(self.current_filter, "projects")
                 message = f"No {filter_name} found. Try a different filter."
             
+            # Use proper KivyMD font styling approach
             empty_label = MDLabel(
                 text=message,
                 size_hint_y=None,
                 height=height,
                 halign='center',
-                font_style="BodyMedium",
                 theme_text_color="Secondary"
             )
             self.ids.projects_grid.add_widget(empty_label)
             
         except Exception as e:
             print(f"Error showing empty state: {e}")
-            # Fallback
+            # Fallback with simple Label to avoid any KivyMD font issues
             empty_label = Label(
                 text="No projects found.",
                 size_hint_y=None,
                 height=dp(100),
-                halign='center'
+                halign='center',
+                color=(0.5, 0.5, 0.5, 1)  # Gray color for secondary text
             )
             self.ids.projects_grid.add_widget(empty_label)
 
@@ -470,15 +586,19 @@ class ProjectsScreen(Screen):
             # Create button with responsive styling
             button = MDButton(
                 style="elevated",
-                text=text,
                 on_release=on_release,
                 size_hint_y=None,
                 height=height,
                 size_hint_x=None,
                 width=width,
-                font_size=font_size,
                 disabled=disabled,
                 **kwargs
+            )
+            button.add_widget(
+                MDButtonText(
+                    text=text,
+                    font_size=font_size
+                )
             )
             
             return button
@@ -486,13 +606,18 @@ class ProjectsScreen(Screen):
         except Exception as e:
             print(f"Error creating tablet dialog button: {e}")
             # Fallback to standard button
-            return MDButton(
+            fallback_button = MDButton(
                 style="elevated",
-                text=text,
                 on_release=on_release,
                 disabled=disabled,
                 **kwargs
             )
+            fallback_button.add_widget(
+                MDButtonText(
+                    text=text
+                )
+            )
+            return fallback_button
 
     def open_project_dialog(self, is_edit=False, existing_data=None):
         try:
@@ -686,25 +811,41 @@ class ProjectsScreen(Screen):
 
         def _load_in_thread():
             try:
+                print(f"=== LOADING PROJECTS ===")
+                print(f"Search query: {search_query}")
+                print(f"Limit: {self.page_limit}, Offset: {self.current_offset}")
+                
                 projects, error = self.project_service.load_projects(
                     search_query=search_query,
                     limit=self.page_limit,
                     offset=self.current_offset
                 )
+                
+                print(f"Projects loaded: {len(projects) if projects else 0}")
+                print(f"Error: {error}")
+                
                 if error:
                     raise Exception(error)
                 
-                self.projects_data.extend(projects)
-                self.current_offset += len(projects)
+                if projects:
+                    print(f"Projects data: {projects}")
+                    self.projects_data.extend(projects)
+                    self.current_offset += len(projects)
+                    print(f"Total projects data now: {len(self.projects_data)}")
+                else:
+                    print("No projects returned from service")
                 
                 Clock.schedule_once(lambda dt: self._update_ui_with_projects(projects, len(projects) < self.page_limit))
             except Exception as e:
                 print(f"Error in load_projects: {str(e)}")
+                import traceback
+                traceback.print_exc()
                 err_msg = str(e)
                 Clock.schedule_once(lambda dt: toast(f"Error loading projects: {err_msg}"))
             finally:
                 self.is_loading = False
                 Clock.schedule_once(lambda dt: self.show_loader(False))
+                print(f"=== END LOADING PROJECTS ===")
 
         threading.Thread(target=_load_in_thread).start()
 
@@ -784,6 +925,7 @@ class ProjectsScreen(Screen):
                 )
             ),
             MDDialogButtonContainer(
+                Widget(),
                 
                 MDButton(
                     MDButtonText(text="Cancel"),
@@ -796,10 +938,9 @@ class ProjectsScreen(Screen):
                     on_release=confirm_delete,
                     md_bg_color=(0.8, 0.2, 0.2, 1)  # Red color for delete
                 ),
-                Widget(),
                 spacing="8dp",
                 size_hint_y=None,
-                    
+                height=dp(48)
             )
         )
         delete_dialog.open()
@@ -809,6 +950,7 @@ class ProjectsScreen(Screen):
         form_builder_screen = self.manager.get_screen('form_builder')
         form_builder_screen.project_id = project_id
 
+    
     def create_new_project(self, instance=None):
         print("Creating new project...")
         try:

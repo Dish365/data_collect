@@ -842,12 +842,16 @@ class DataCollectionScreen(Screen):
         )
         
         placeholder_button = MDButton(
-            text="📷 Photo Upload (Coming Soon)",
             size_hint_y=None,
             height=touch_targets["button"],
-            font_size=font_sizes["text"],
             disabled=True,
             md_bg_color=[0.8, 0.8, 0.8, 1]
+        )
+        placeholder_button.add_widget(
+            MDButtonText(
+                text="📷 Photo Upload (Coming Soon)",
+                font_size=font_sizes["text"]
+            )
         )
         
         from kivy.uix.label import Label

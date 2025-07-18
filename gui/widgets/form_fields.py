@@ -4,7 +4,7 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.selectioncontrol import MDCheckbox
 from kivy.metrics import dp
-from kivymd.uix.button import MDButton, MDIconButton
+from kivymd.uix.button import MDButton, MDIconButton,MDButtonText 
 from kivymd.uix.slider import MDSlider
 
 # Updated imports for KivyMD 2.0.0
@@ -350,10 +350,19 @@ class BaseFormField(MDCard):
         spacer = MDBoxLayout(size_hint_x=1)
         self.delete_container.add_widget(spacer)
         self.delete_button = MDButton(
-            text="Delete Question",
-            on_release=lambda x: self.parent.remove_widget(self),
-            size_hint=(None, None),
-            size=(dp(140), values['button_height'])
+        style="filled",  # or "outlined", "elevated", "text"
+        size_hint=(None, None),
+        size=(dp(140), values['button_height']),
+        on_release=lambda x: self.parent.remove_widget(self)
+        )       
+
+        # Add the text as a child
+        self.delete_button.add_widget(
+            MDButtonText(
+                text="Delete Question",
+                theme_text_color="Custom",
+                text_color=(1, 1, 1, 1)  # white text
+            )
         )
         self.delete_container.add_widget(self.delete_button)
         self.add_widget(self.delete_container)
@@ -583,21 +592,29 @@ class SingleChoiceField(BaseFormField):
         )
         self.add_option_btn = MDButton(
             style="elevated",
-            text="Add Option",
             size_hint_x=None,
             width=dp(90),
             height=dp(32),
-            font_size="12sp",
             on_release=self.add_option
+        )
+        self.add_option_btn.add_widget(
+            MDButtonText(
+                text="Add Option",
+                font_size="12sp"
+            )
         )
         self.remove_option_btn = MDButton(
             style="elevated",
-            text="Remove Last",
             size_hint_x=None,
             width=dp(110),
             height=dp(32),
-            font_size="12sp",
             on_release=self.remove_last_option
+        )
+        self.remove_option_btn.add_widget(
+            MDButtonText(
+                text="Remove Last",
+                font_size="12sp"
+            )
         )
         self.options_header.add_widget(self.options_label)
         self.options_header.add_widget(self.add_option_btn)
@@ -754,21 +771,29 @@ class MultipleChoiceField(BaseFormField):
         )
         self.add_option_btn = MDButton(
             style="elevated",
-            text="Add Option",
             size_hint_x=None,
             width=dp(90),
             height=dp(32),
-            font_size="12sp",
             on_release=self.add_option
+        )
+        self.add_option_btn.add_widget(
+            MDButtonText(
+                text="Add Option",
+                font_size="12sp"
+            )
         )
         self.remove_option_btn = MDButton(
             style="elevated",
-            text="Remove Last",
             size_hint_x=None,
             width=dp(110),
             height=dp(32),
-            font_size="12sp",
             on_release=self.remove_last_option
+        )
+        self.remove_option_btn.add_widget(
+            MDButtonText(
+                text="Remove Last",
+                font_size="12sp"
+            )
         )
         self.options_header.add_widget(self.options_label)
         self.options_header.add_widget(self.add_option_btn)

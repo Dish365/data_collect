@@ -27,6 +27,7 @@
                 elevation: 1
                 md_bg_color: 1, 1, 1, 1
 
+
                 # Project Selection Row - Simplified
                 MDBoxLayout:
                     orientation: 'horizontal'
@@ -79,6 +80,7 @@
                     size_hint: (0.32, 1)
                     size_hint_y: 1  # Stretch vertically
                     elevation: 1
+                    padding: dp(16)
                     md_bg_color: 1, 1, 1, 1
 
                     # Sidebar Header
@@ -90,10 +92,9 @@
 
                         MDLabel:
                             text: "Question Types"
-                            font_size: "18sp"
+                            font_style: "Title"
                             size_hint_y: None
-                            height: dp(24)
-                            role: "medium"  # Updated font style
+                            height: dp(32)
 
                         MDLabel:
                             text: "Choose question types to build your form"
@@ -147,21 +148,27 @@
                                     on_release: root.add_question('text_short')
                                     size_hint_y: None
                                     height: dp(48)  # Tablet-friendly touch target
-                                    md_bg_color: 0.2, 0.6, 1, 1
+                                    container_color: 0.2, 0.6, 1, 1  # Blue
+                                    style: "filled"
                                     font_size: "15sp"  # Larger font for tablets
                                     elevation: 1
+                                    radius: [8, 8, 8, 8]
                                     MDButtonText:
                                         text: "Short Text"
+                                        text_color: 1, 1, 1, 1
 
                                 MDButton:
                                     on_release: root.add_question('text_long')
                                     size_hint_y: None
                                     height: dp(48)  # Tablet-friendly touch target
-                                    md_bg_color: 0.2, 0.6, 1, 1
+                                    container_color: 0.1, 0.5, 0.9, 1  # Darker Blue
+                                    style: "filled"
                                     font_size: "15sp"  # Larger font for tablets
                                     elevation: 1
+                                    radius: [8, 8, 8, 8]
                                     MDButtonText:
                                         text: "Long Text"
+                                        text_color: 1, 1, 1, 1
 
                             # NUMERIC RESPONSES SECTION
                             MDBoxLayout:
@@ -193,19 +200,25 @@
                                     on_release: root.add_question('numeric_integer')
                                     size_hint_y: None
                                     height: dp(48)  # Tablet-friendly touch target
-                                    md_bg_color: 1, 0.6, 0.2, 1
+                                    container_color: 1, 0.6, 0.2, 1  # Orange
+                                    style: "filled"
                                     elevation: 1
+                                    radius: [8, 8, 8, 8]
                                     MDButtonText:
                                         text: "Number (Integer)"
+                                        text_color: 1, 1, 1, 1
 
                                 MDButton:
                                     on_release: root.add_question('numeric_decimal')
                                     size_hint_y: None
                                     height: dp(48)  # Tablet-friendly touch target
-                                    md_bg_color: 1, 0.6, 0.2, 1
+                                    container_color: 0.9, 0.5, 0.1, 1  # Darker Orange
+                                    style: "filled"
                                     elevation: 1
+                                    radius: [8, 8, 8, 8]
                                     MDButtonText:
                                         text: "Number (Decimal)"
+                                        text_color: 1, 1, 1, 1
 
                             # CHOICE RESPONSES SECTION
                             MDBoxLayout:
@@ -237,21 +250,27 @@
                                     on_release: root.add_question('choice_single')
                                     size_hint_y: None
                                     height: dp(36)
-                                    md_bg_color: 0.8, 0.4, 0.2, 1
+                                    container_color: 0.8, 0.4, 0.2, 1  # Brown
+                                    style: "filled"
                                     font_size: "13sp"
                                     elevation: 1
+                                    radius: [8, 8, 8, 8]
                                     MDButtonText:
                                         text: "Single Choice"
+                                        text_color: 1, 1, 1, 1
 
                                 MDButton:
                                     on_release: root.add_question('choice_multiple')
                                     size_hint_y: None
                                     height: dp(36)
-                                    md_bg_color: 0.8, 0.4, 0.2, 1
+                                    container_color: 0.7, 0.3, 0.1, 1  # Darker Brown
+                                    style: "filled"
                                     font_size: "13sp"
                                     elevation: 1
+                                    radius: [8, 8, 8, 8]
                                     MDButtonText:
                                         text: "Multiple Choice"
+                                        text_color: 1, 1, 1, 1
 
                             # DATE & TIME SECTION
                             MDBoxLayout:
@@ -284,21 +303,27 @@
                                     on_release: root.add_question('date')
                                     size_hint_y: None
                                     height: dp(36)
-                                    md_bg_color: 0.2, 0.7, 0.4, 1
+                                    container_color: 0.2, 0.7, 0.4, 1  # Green
+                                    style: "filled"
                                     font_size: "13sp"
                                     elevation: 1
+                                    radius: [8, 8, 8, 8]
                                     MDButtonText:
                                         text: "Date"
+                                        text_color: 1, 1, 1, 1
 
                                 MDButton:
                                     on_release: root.add_question('datetime')
                                     size_hint_y: None
                                     height: dp(36)
-                                    md_bg_color: 0.2, 0.7, 0.4, 1
+                                    container_color: 0.1, 0.6, 0.3, 1  # Darker Green
+                                    style:"filled"
                                     font_size: "13sp"
                                     elevation: 1
+                                    radius: [8, 8, 8, 8]
                                     MDButtonText:
                                         text: "Date & Time"
+                                        text_color: 1, 1, 1, 1
 
                             # LOCATION & GPS SECTION
                             MDBoxLayout:
@@ -331,21 +356,27 @@
                                     on_release: root.add_question('geopoint')
                                     size_hint_y: None
                                     height: dp(36)
-                                    md_bg_color: 0.6, 0.2, 0.8, 1
+                                    container_color: 0.6, 0.2, 0.8, 1  # Purple
+                                    style: "filled"
                                     font_size: "13sp"
                                     elevation: 1
+                                    radius: [8, 8, 8, 8]
                                     MDButtonText:
                                         text: "GPS Location"
+                                        text_color: 1, 1, 1, 1
 
                                 MDButton:
                                     on_release: root.add_question('geoshape')
                                     size_hint_y: None
                                     height: dp(36)
-                                    md_bg_color: 0.6, 0.2, 0.8, 1
+                                    container_color: 0.5, 0.1, 0.7, 1  # Darker Purple
                                     font_size: "13sp"
+                                    style:"filled"
                                     elevation: 1
+                                    radius: [8, 8, 8, 8]
                                     MDButtonText:
                                         text: "GPS Area"
+                                        text_color: 1, 1, 1, 1
 
                             # MEDIA SECTION
                             MDBoxLayout:
@@ -378,37 +409,49 @@
                                     on_release: root.add_question('image')
                                     size_hint_y: None
                                     height: dp(36)
-                                    md_bg_color: 0.2, 0.8, 0.8, 1
+                                    container_color: 0.2, 0.8, 0.8, 1  # Teal
+                                    style: "filled"
                                     elevation: 1
+                                    radius: [8, 8, 8, 8]
                                     MDButtonText:
                                         text: "Photo/Image"
+                                        text_color: 1, 1, 1, 1
 
                                 MDButton:
                                     on_release: root.add_question('audio')
                                     size_hint_y: None
                                     height: dp(36)
-                                    md_bg_color: 0.2, 0.8, 0.8, 1
+                                    container_color: 0.1, 0.7, 0.7, 1  # Darker Teal
+                                    style: "filled"
                                     elevation: 1
+                                    radius: [8, 8, 8, 8]
                                     MDButtonText:
                                         text: "Audio Recording"
+                                        text_color: 1, 1, 1, 1
 
                                 MDButton:
                                     on_release: root.add_question('video')
                                     size_hint_y: None
                                     height: dp(36)
-                                    md_bg_color: 0.2, 0.8, 0.8, 1
+                                    container_color: 0.0, 0.6, 0.6, 1  # Even Darker Teal
+                                    style: "filled"
                                     elevation: 1
+                                    radius: [8, 8, 8, 8]
                                     MDButtonText:
                                         text: "Video Recording"
+                                        text_color: 1, 1, 1, 1
 
                                 MDButton:
                                     on_release: root.add_question('file')
                                     size_hint_y: None
                                     height: dp(36)
-                                    md_bg_color: 0.2, 0.8, 0.8, 1
+                                    container_color: 0.3, 0.9, 0.9, 1  # Lighter Teal
+                                    style: "filled"
                                     elevation: 1
+                                    radius: [8, 8, 8, 8]
                                     MDButtonText:
                                         text: "File Upload"
+                                        text_color: 0, 0, 0, 1
 
                             # SPECIAL SECTION
                             MDBoxLayout:
@@ -441,28 +484,34 @@
                                     on_release: root.add_question('signature')
                                     size_hint_y: None
                                     height: dp(36)
-                                    md_bg_color: 0.4, 0.4, 0.4, 1
+                                    md_bg_color: 0.4, 0.4, 0.4, 1  # Gray
                                     elevation: 1
+                                    radius: [8, 8, 8, 8]
                                     MDButtonText:
                                         text: "Digital Signature"
+                                        text_color: 1, 1, 1, 1
 
                                 MDButton:
                                     on_release: root.add_question('barcode')
                                     size_hint_y: None
                                     height: dp(36)
-                                    md_bg_color: 0.4, 0.4, 0.4, 1
+                                    md_bg_color: 0.3, 0.3, 0.3, 1  # Darker Gray
                                     elevation: 1
+                                    radius: [8, 8, 8, 8]
                                     MDButtonText:
                                         text: "Barcode/QR Code"
+                                        text_color: 1, 1, 1, 1
 
                                 MDButton:
                                     on_release: root.add_question('scale_rating')
                                     size_hint_y: None
                                     height: dp(36)
-                                    md_bg_color: 0.4, 0.4, 0.4, 1
+                                    md_bg_color: 0.5, 0.5, 0.5, 1  # Lighter Gray
                                     elevation: 1
+                                    radius: [8, 8, 8, 8]
                                     MDButtonText:
                                         text: "Rating Scale"
+                                        text_color: 1, 1, 1, 1
 
                 # Right Panel - Form Canvas
                 MDCard:
@@ -471,6 +520,7 @@
                     size_hint_y: 1  # Stretch vertically
                     elevation: 1
                     md_bg_color: 1, 1, 1, 1
+                    padding: dp(16)
 
                     # Form Canvas Header - Simplified
                     MDBoxLayout:
@@ -481,9 +531,8 @@
 
                         MDLabel:
                             text: "Form Questions"
-                            role: "medium"  # Updated font style
                             theme_text_color: "Primary"
-                            font_size: "18sp"
+                            font_style: "Title"
                             size_hint_y: None
                             height: dp(24)
 
@@ -552,7 +601,8 @@
                 padding: [dp(20), dp(8)]
                 spacing: dp(16)
                 elevation: 2
-                md_bg_color: 1, 1, 1, 1
+                style:"elevated"
+                md_bg_color: 1, 0.5, 0, 1
 
                 Widget:
                     size_hint_x: 1
@@ -562,6 +612,7 @@
                     size_hint: None, None
                     size: dp(120), dp(40)
                     elevation: 2
+                    style:'filled'
                     MDButtonText:
                         text: "Save Form"
 
@@ -570,36 +621,11 @@
                     size_hint: None, None
                     size: dp(100), dp(40)
                     elevation: 2
+                    style:"outlined"
                     MDButtonText:
                         text: "Preview"
 
                 Widget:
                     size_hint_x: 1
 
-        # Loading Overlay (floats above content, does not affect layout)
-        MDBoxLayout:
-            id: loading_overlay
-            orientation: 'vertical'
-            md_bg_color: 0, 0, 0, 0.3
-            size_hint: 1, 1
-            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-            opacity: 0
-
-            Widget:
-
-            MDCircularProgressIndicator:
-                id: spinner
-                size_hint: None, None
-                size: dp(48), dp(48)
-                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-                active: False
-
-            MDLabel:
-                text: "Processing..."
-                role: "small"  # Updated font style
-                theme_text_color: "Custom"
-                text_color: 1, 1, 1, 1
-                halign: "center"
-                font_size: "16sp"
-
-            Widget:
+       

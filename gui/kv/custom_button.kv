@@ -1,0 +1,23 @@
+#:import MDButton kivymd.uix.button.MDButton
+#:import MDButtonText kivymd.uix.button.MDButtonText
+#:import MDButtonIcon kivymd.uix.button.MDButtonIcon
+#:import dp kivy.metrics.dp
+
+<CustomButton>:
+    # Button icon (if provided)
+    MDButtonIcon:
+        id: button_icon
+        icon: root.button_icon
+        theme_icon_color: "Custom"
+        icon_color: root.text_color
+        opacity: 1 if root.button_icon else 0
+    
+    # Button text using latest KivyMD approach
+    MDButtonText:
+        id: button_text
+        text: root.button_text
+        font_size: root.font_size
+        theme_text_color: "Custom"
+        text_color: root.text_color
+        bold: root.bold
+        italic: root.italic 

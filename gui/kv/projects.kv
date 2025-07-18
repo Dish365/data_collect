@@ -4,19 +4,10 @@
 #:import Window kivy.core.window.Window
 
 # Custom chip styles
-<ActiveFilterChip@MDChip>:
-    md_bg_color: 0.0, 0.0, 1.0, 1
-    MDChipText:
-        theme_text_color: "Custom"
-        text_color: 1, 1, 1, 1
-        bold: True
-
-<InactiveFilterChip@MDChip>:
-    md_bg_color: 0.9, 0.9, 0.9, 1
-    MDChipText:
-        theme_text_color: "Custom"
-        text_color: 0, 0, 0, 1
-        bold: True
+<FilterChip@MDChip>:
+    type: "filter"
+    theme_bg_color: "Custom"
+    md_bg_color: 0.8, 0.9, 1.0, 1
 
 <ProjectsScreen>:
     name: "projects"
@@ -105,13 +96,18 @@
 
                             MDButton:
                                 on_release: root.create_new_project()
-                                md_bg_color: app.theme_cls.primary_color
+                                pos_hint: {'center_y': 0.5}
                                 size_hint_x: None
                                 width: dp(140) if Window.width > 600 else dp(120)
                                 height: dp(56) if Window.width > 600 else dp(48)
-                                pos_hint: {"center_y": 0.5}
+                                elevation: 2
+                                radius: [8, 8, 8, 8]
+                                style: 'filled'
                                 MDButtonText:
                                     text: "New Project"
+                                    text_color: [1, 1, 1, 1]  # White text
+                                    font_size: '16sp'
+                                    bold: True
 
                             MDIconButton:
                                 icon: "refresh"
@@ -136,61 +132,45 @@
                             width: dp(60) if Window.width > 600 else dp(50)
                             pos_hint: {"center_y": 0.5}
 
-                        MDChip:
+                        FilterChip:
                             id: filter_all_btn
                             size_hint_x: None
                             width: dp(120) if Window.width > 600 else dp(100)
                             height: dp(48) if Window.width > 600 else dp(40)
-                            font_size: "14sp" if Window.width > 600 else "12sp"
-                            md_bg_color: 0.0, 0.0, 1.0, 1
-                            on_release: root.filter_projects("all")
+                            active: True
+                            on_release: root.on_filter_chip_click("all")
                             MDChipText:
-                                text: "All Projects"
-                                bold: True
-                                theme_text_color: "Custom"
-                                text_color: 1, 1, 1, 1
+                                text: "All"
 
-                        MDChip:
+                        FilterChip:
                             id: filter_recent_btn
                             size_hint_x: None
                             width: dp(100) if Window.width > 600 else dp(80)
                             height: dp(48) if Window.width > 600 else dp(40)
-                            font_size: "14sp" if Window.width > 600 else "12sp"
-                            md_bg_color: 0.9, 0.9, 0.9, 1
-                            on_release: root.filter_projects("recent")
+                            active: False
+                            on_release: root.on_filter_chip_click("recent")
                             MDChipText:
                                 text: "Recent"
-                                bold: True
-                                theme_text_color: "Custom"
-                                text_color: 0, 0, 0, 1
 
-                        MDChip:
+                        FilterChip:
                             id: filter_synced_btn
                             size_hint_x: None
                             width: dp(100) if Window.width > 600 else dp(80)
                             height: dp(48) if Window.width > 600 else dp(40)
-                            font_size: "14sp" if Window.width > 600 else "12sp"
-                            md_bg_color: 0.9, 0.9, 0.9, 1
-                            on_release: root.filter_projects("synced")
+                            active: False
+                            on_release: root.on_filter_chip_click("synced")
                             MDChipText:
                                 text: "Synced"
-                                bold: True
-                                theme_text_color: "Custom"
-                                text_color: 0, 0, 0, 1
 
-                        MDChip:
+                        FilterChip:
                             id: filter_pending_btn
                             size_hint_x: None
                             width: dp(100) if Window.width > 600 else dp(80)
                             height: dp(48) if Window.width > 600 else dp(40)
-                            font_size: "14sp" if Window.width > 600 else "12sp"
-                            md_bg_color: 0.9, 0.9, 0.9, 1
-                            on_release: root.filter_projects("pending")
+                            active: False
+                            on_release: root.on_filter_chip_click("pending")
                             MDChipText:
                                 text: "Pending"
-                                bold: True
-                                theme_text_color: "Custom"
-                                text_color: 0, 0, 0, 1
 
                         Widget:  # Spacer
                             size_hint_x: 1
