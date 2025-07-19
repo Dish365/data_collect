@@ -18,6 +18,7 @@ from kivy.properties import StringProperty, ObjectProperty
 from kivy.lang import Builder
 from widgets.top_bar import TopBar
 from kivymd.uix.widget import Widget
+from kivymd.uix.button import MDIconButton
 import threading
 import traceback
 import os
@@ -351,7 +352,8 @@ class TeamMembersScreen(MDScreen):
             # Create list item
             item = MDListItem(
                 size_hint_y=None,
-                height=dp(48)
+                height=dp(56),
+               
             )
             
             # Add user icon
@@ -362,9 +364,14 @@ class TeamMembersScreen(MDScreen):
             
             # Add remove button (only if not creator)
             if not is_creator:
-                remove_btn = MDListItemTrailingIcon(
-                    icon="delete",
-                    on_release=lambda x, m=member: self.show_remove_confirmation(m)
+                from functools import partial
+                remove_btn = MDIconButton(
+                        icon="delete",
+                        style="standard",
+                        on_release=partial(self.show_remove_confirmation, member),
+                        size_hint=(None, None),
+                        size=(dp(40), dp(40)),
+                        pos_hint={"center_y": 0.5}
                 )
                 item.add_widget(remove_btn)
             
@@ -422,8 +429,9 @@ class TeamMembersScreen(MDScreen):
                 self.ids.selected_user_label.height = dp(0)
             self.hide_dropdown()
             self.load_project_members()  # Refresh the list
-    
-    def show_remove_confirmation(self, member):
+
+    def show_remove_confirmation(self, member, *args):
+        print(f"Showing remove confirmation for member: {member}")
         """Show confirmation dialog before removing team member"""
         try:
             username = member.get('username', 'Unknown')
