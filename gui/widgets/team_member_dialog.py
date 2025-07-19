@@ -128,12 +128,13 @@ class TeamMemberDialog:
             )
             content.children[0].add_widget(add_section_label)
             
-            # User search with autocomplete
-            user_search_layout = MDBoxLayout(
-                orientation="vertical",
-                spacing=dp(5),
+            # User search with autocomplete - using relative layout for floating dropdown
+            from kivy.uix.relativelayout import RelativeLayout
+            
+            # Create a relative layout container for the search field and floating dropdown
+            search_container = RelativeLayout(
                 size_hint_y=None,
-                adaptive_height=True
+                height=dp(56)  # Height of text field only
             )
             
             # Autocomplete text field
@@ -145,16 +146,17 @@ class TeamMemberDialog:
                 height=dp(56),
                 autocomplete_callback=self.search_users
             )
-            user_search_layout.add_widget(self.email_field)
+            search_container.add_widget(self.email_field)
             
-            # Dropdown card for search results (initially hidden)
+            # Floating dropdown card for search results (initially hidden)
             self.user_dropdown_card = MDCard(
                 orientation="vertical",
                 size_hint_y=None,
                 height=dp(0),  # Initially hidden
-                elevation=3,
-                radius=[5],
-                md_bg_color=[1, 1, 1, 1]
+                elevation=8,  # Higher elevation for floating effect
+                radius=[8],
+                md_bg_color=[1, 1, 1, 1],
+                pos_hint={'x': 0, 'top': 0}  # Position at top of container
             )
             
             dropdown_scroll = ScrollView(
@@ -165,8 +167,10 @@ class TeamMemberDialog:
             dropdown_scroll.add_widget(self.user_dropdown_list)
             self.user_dropdown_card.add_widget(dropdown_scroll)
             
-            user_search_layout.add_widget(self.user_dropdown_card)
-            content.children[0].add_widget(user_search_layout)
+            # Add dropdown to the search container
+            search_container.add_widget(self.user_dropdown_card)
+            
+            content.children[0].add_widget(search_container)
             
             # Selected user display
             self.selected_user_label = MDLabel(
@@ -199,25 +203,34 @@ class TeamMemberDialog:
             roles = ["viewer", "member", "analyst", "collaborator"]
             for role in roles:
                 btn = MDButton(
-                    text=role.title(),
+                    children=[
+                        MDButtonText(
+                            text=role.title()
+                        )
+                    ],
                     size_hint_x=None,
                     width=dp(80),
                     on_release=lambda x, r=role: self.select_role(r)
                 )
                 self.role_buttons[role] = btn
-                role_layout.add_widget(btn)
+                role_layout.add_widget(btn) 
             
             # Set default selected role
             self.update_role_buttons()
             content.children[0].add_widget(role_layout)
             
-            # Action buttons
+            # Action buttons - moved to the right
             button_layout = MDBoxLayout(
                 orientation="horizontal",
                 spacing=dp(10),
                 size_hint_y=None,
                 height=dp(50)
             )
+            
+            # Spacer to push buttons to the right
+            spacer = MDBoxLayout(size_hint_x=1)
+            button_layout.add_widget(spacer)
+            
             add_button = MDButton(
                 children=[
                     MDButtonText(
@@ -298,6 +311,17 @@ class TeamMemberDialog:
         max_height = min(len(users) * dp(48), dp(200))  # Max 200dp height
         self.user_dropdown_card.height = max_height
         
+        # Position dropdown below the text field using relative layout
+        if self.email_field and self.user_dropdown_card:
+            # Position dropdown below the text field
+            self.user_dropdown_card.pos_hint = {
+                'x': 0,
+                'top': 1  # Position at bottom of container (below text field)
+            }
+            
+            # Set dropdown width to match text field
+            self.user_dropdown_card.size_hint_x = 1  # Full width of container
+        
         for user in users:
             user_item = MDListItem(
                 MDListItemHeadlineText(
@@ -311,6 +335,8 @@ class TeamMemberDialog:
         """Hide the user dropdown"""
         self.user_dropdown_card.height = dp(0)
         self.user_dropdown_list.clear_widgets()
+        # Reset position when hiding
+        self.user_dropdown_card.pos_hint = {'x': 0, 'top': 0}
     
     def select_user(self, user):
         """Handle user selection from dropdown"""
@@ -330,8 +356,16 @@ class TeamMemberDialog:
         for role, btn in self.role_buttons.items():
             if role == self.selected_role:
                 btn.md_bg_color = [0.2, 0.6, 1, 1]  # Blue for selected
+                # Ensure text is white for selected role
+                for child in btn.children:
+                    if isinstance(child, MDButtonText):
+                        child.text_color = [1, 1, 1, 1]  # White text
             else:
                 btn.md_bg_color = [0.5, 0.5, 0.5, 0.3]  # Gray for unselected
+                # Reset text color for unselected roles
+                for child in btn.children:
+                    if isinstance(child, MDButtonText):
+                        child.text_color = [0, 0, 0, 1]  # Black text
     
     def load_initial_data(self):
         """Load initial data"""

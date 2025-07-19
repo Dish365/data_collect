@@ -17,6 +17,7 @@ from kivy.clock import Clock
 from kivy.properties import StringProperty, ObjectProperty
 from kivy.lang import Builder
 from widgets.top_bar import TopBar
+from kivymd.uix.widget import Widget
 import threading
 import traceback
 import os
@@ -800,8 +801,13 @@ class TeamMembersScreen(MDScreen):
                 MDDialogSupportingText(text="Search user, assign role and project."),
                 content,
                 MDDialogButtonContainer(
+                    Widget(),
                     cancel_button,
                     add_button,
+                    orientation="horizontal",
+                    spacing="12dp",  # Add space between buttons
+                    size_hint_y=None,
+                    height=dp(48)
                 )
             )
             
@@ -863,12 +869,16 @@ class TeamMembersScreen(MDScreen):
                 return
                 
             for role, btn in self.modal_role_chips.items():
+                if btn.children:
+                    text_widget = btn.children[0]
+                
                 if role == self.selected_role_modal:
                     btn.style = "filled"
-                    btn.md_bg_color = [0.2, 0.6, 1, 1]  # Blue for selected
+                    text_widget.text_color = "white"  # White text for selected
                 else:
                     btn.style = "outlined"
                     btn.md_bg_color = [0.8, 0.8, 0.8, 1]  # Gray for unselected
+                    text_widget.text_color = "black"  # Black text for unselected
                     
             print(f"Updated modal role buttons, selected role: {self.selected_role_modal}")
             
