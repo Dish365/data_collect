@@ -25,7 +25,7 @@ PROJECT_NAME = "Cocoa Value Chain Survey - Ghana 2024"
 
 # User credentials
 USER_DATA = {
-    "username": "amakwofie",
+    "username": "amankrah",
     "email": "manuel.kwofie@mcgill.ca",
     "password": "SecurePass354!",
     "password2": "SecurePass354!",

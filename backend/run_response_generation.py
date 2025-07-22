@@ -18,7 +18,7 @@ def main():
     print("🌟 Cocoa Survey Response Generation")
     print("=" * 50)
     print("This script will:")
-    print("1. Login as Emmanuel Kwofie (kwofie)")
+    print("1. Login as Emmanuel Kwofie (amankrah)")
     print("2. Find the Cocoa Value Chain Survey project")
     print("3. Generate 30 realistic Ghanaian farmers")
     print("4. Create responses to all 26 survey questions")

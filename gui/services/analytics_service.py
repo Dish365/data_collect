@@ -6,7 +6,7 @@ from typing import Dict, List, Any, Optional
 
 
 class AnalyticsService:
-    """Service for handling analytics operations and backend communication"""
+    """Enhanced service for handling comprehensive analytics operations and backend communication"""
     
     def __init__(self, auth_service, db_service):
         self.auth_service = auth_service
@@ -15,6 +15,11 @@ class AnalyticsService:
         self.cache = {}  # Simple caching mechanism
         self.session = requests.Session()
         self._setup_session_headers()
+        self.available_analysis_types = [
+            'auto', 'descriptive', 'basic', 'comprehensive', 'distribution', 
+            'categorical', 'outlier', 'missing', 'temporal', 'geospatial', 
+            'quality', 'correlation', 'text'
+        ]
         
     def _setup_session_headers(self):
         """Setup session headers for analytics requests"""
@@ -31,7 +36,11 @@ class AnalyticsService:
             if method == 'GET':
                 response = self.session.get(url, timeout=30)
             elif method == 'POST':
-                response = self.session.post(url, json=data, timeout=60)
+                if data:
+                    response = self.session.post(url, json=data, timeout=60)
+                else:
+                    # POST request without JSON body (query parameters only)
+                    response = self.session.post(url, timeout=60)
             else:
                 raise ValueError(f"Unsupported HTTP method: {method}")
                 
@@ -47,7 +56,20 @@ class AnalyticsService:
             else:
                 try:
                     error_detail = response.json()
-                    return {'error': error_detail.get('detail', f'HTTP {response.status_code}')}
+                    error_msg = error_detail.get('detail', f'HTTP {response.status_code}')
+                    
+                    # Enhanced error handling for validation errors
+                    if response.status_code == 422 and isinstance(error_detail.get('detail'), list):
+                        validation_errors = error_detail['detail']
+                        error_messages = []
+                        for error in validation_errors:
+                            if isinstance(error, dict):
+                                location = ' -> '.join(map(str, error.get('loc', [])))
+                                message = error.get('msg', 'Unknown error')
+                                error_messages.append(f"{location}: {message}")
+                        error_msg = f"Validation error: {'; '.join(error_messages)}"
+                    
+                    return {'error': error_msg}
                 except:
                     return {'error': f'HTTP {response.status_code}: {response.text}'}
                 
@@ -59,6 +81,8 @@ class AnalyticsService:
             return {'error': f'Network error: {str(e)}'}
         except Exception as e:
             return {'error': f'Request error: {str(e)}'}
+
+    # === Core Analytics Methods ===
 
     def get_project_stats(self, project_id: str) -> Dict:
         """Get basic project statistics from analytics backend"""
@@ -135,60 +159,230 @@ class AnalyticsService:
         except Exception as e:
             return {'error': f'Error getting analysis recommendations: {str(e)}'}
 
-    def run_analysis(self, project_id: str, analysis_type: str = "auto", analysis_config: Dict = None) -> Dict:
-        """Run analysis using the analytics backend"""
+    def get_available_analysis_types(self) -> Dict:
+        """Get all available analysis types from backend"""
         try:
-            # Prepare request data
-            request_data = {'analysis_type': analysis_type}
-            if analysis_config:
-                request_data.update(analysis_config)
+            result = self._make_analytics_request('analysis-types')
+            return result
+        except Exception as e:
+            return {'error': f'Error getting analysis types: {str(e)}'}
+
+    def get_analytics_endpoints(self) -> Dict:
+        """Get all available analytics endpoints"""
+        try:
+            result = self._make_analytics_request('endpoints')
+            return result
+        except Exception as e:
+            return {'error': f'Error getting endpoints: {str(e)}'}
+
+    # === Comprehensive Analysis Methods ===
+
+    def run_analysis(self, project_id: str, analysis_type: str = "auto", 
+                    target_variables: Optional[List[str]] = None) -> Dict:
+        """Run comprehensive analysis using the analytics backend"""
+        try:
+            # Send as query parameters only - no JSON body
+            import urllib.parse
             
-            # Make request to backend
-            result = self._make_analytics_request(f'project/{project_id}/analyze', method='POST', data=request_data)
+            params = [('analysis_type', analysis_type)]
+            if target_variables and isinstance(target_variables, list):
+                for var in target_variables:
+                    params.append(('target_variables', var))
+            elif target_variables:
+                params.append(('target_variables', target_variables))
+            
+            url = f"project/{project_id}/analyze"
+            if params:
+                query_string = urllib.parse.urlencode(params)
+                url = f"{url}?{query_string}"
+            
+            # Make POST request with no body (query parameters only)
+            result = self._make_analytics_request(url, method='POST')
             
             return result
             
         except Exception as e:
             return {'error': f'Analysis failed: {str(e)}'}
 
-    def run_descriptive_analysis(self, project_id: str, analysis_config: Dict = None) -> Dict:
-        """Run descriptive statistical analysis"""
+    def run_basic_statistics(self, project_id: str, variables: Optional[List[str]] = None) -> Dict:
+        """Run basic statistical analysis"""
         try:
-            request_data = {'analysis_type': 'descriptive'}
-            if analysis_config:
-                request_data.update(analysis_config)
+            import urllib.parse
             
-            result = self._make_analytics_request(f'project/{project_id}/analyze', method='POST', data=request_data)
+            params = []
+            if variables and isinstance(variables, list):
+                for var in variables:
+                    params.append(('variables', var))
+            elif variables:
+                params.append(('variables', variables))
             
+            url = f'project/{project_id}/analyze/basic-statistics'
+            if params:
+                query_string = urllib.parse.urlencode(params)
+                url = f"{url}?{query_string}"
+            
+            result = self._make_analytics_request(url, method='POST')
             return result
+            
+        except Exception as e:
+            return {'error': f'Basic statistics failed: {str(e)}'}
+
+    def run_distribution_analysis(self, project_id: str, variables: Optional[List[str]] = None) -> Dict:
+        """Run distribution analysis"""
+        try:
+            import urllib.parse
+            
+            params = []
+            if variables and isinstance(variables, list):
+                for var in variables:
+                    params.append(('variables', var))
+            elif variables:
+                params.append(('variables', variables))
+            
+            url = f'project/{project_id}/analyze/distributions'
+            if params:
+                query_string = urllib.parse.urlencode(params)
+                url = f"{url}?{query_string}"
+            
+            result = self._make_analytics_request(url, method='POST')
+            return result
+            
+        except Exception as e:
+            return {'error': f'Distribution analysis failed: {str(e)}'}
+
+    def run_categorical_analysis(self, project_id: str, variables: Optional[List[str]] = None) -> Dict:
+        """Run categorical analysis"""
+        try:
+            import urllib.parse
+            
+            params = []
+            if variables and isinstance(variables, list):
+                for var in variables:
+                    params.append(('variables', var))
+            elif variables:
+                params.append(('variables', variables))
+            
+            url = f'project/{project_id}/analyze/categorical'
+            if params:
+                query_string = urllib.parse.urlencode(params)
+                url = f"{url}?{query_string}"
+            
+            result = self._make_analytics_request(url, method='POST')
+            return result
+            
+        except Exception as e:
+            return {'error': f'Categorical analysis failed: {str(e)}'}
+
+    def run_outlier_analysis(self, project_id: str, variables: Optional[List[str]] = None, 
+                           methods: Optional[List[str]] = None) -> Dict:
+        """Run outlier detection analysis"""
+        try:
+            request_data = {}
+            if variables:
+                request_data['variables'] = variables
+            if methods:
+                request_data['methods'] = methods
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/outliers', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Outlier analysis failed: {str(e)}'}
+
+    def run_missing_data_analysis(self, project_id: str) -> Dict:
+        """Run missing data analysis"""
+        try:
+            result = self._make_analytics_request(f'project/{project_id}/analyze/missing-data', 
+                                                method='POST')
+            return result
+            
+        except Exception as e:
+            return {'error': f'Missing data analysis failed: {str(e)}'}
+
+    def run_data_quality_analysis(self, project_id: str) -> Dict:
+        """Run data quality analysis"""
+        try:
+            result = self._make_analytics_request(f'project/{project_id}/analyze/data-quality', 
+                                                method='POST')
+            return result
+            
+        except Exception as e:
+            return {'error': f'Data quality analysis failed: {str(e)}'}
+
+    def run_temporal_analysis(self, project_id: str, date_column: str, 
+                            value_columns: Optional[List[str]] = None) -> Dict:
+        """Run temporal analysis"""
+        try:
+            request_data = {'date_column': date_column}
+            if value_columns:
+                request_data['value_columns'] = value_columns
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/temporal', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Temporal analysis failed: {str(e)}'}
+
+    def run_geospatial_analysis(self, project_id: str, lat_column: str, lon_column: str) -> Dict:
+        """Run geospatial analysis"""
+        try:
+            request_data = {'lat_column': lat_column, 'lon_column': lon_column}
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/geospatial', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Geospatial analysis failed: {str(e)}'}
+
+    def generate_comprehensive_report(self, project_id: str, include_plots: bool = False) -> Dict:
+        """Generate comprehensive analytics report"""
+        try:
+            request_data = {'include_plots': include_plots}
+            
+            result = self._make_analytics_request(f'project/{project_id}/generate-report', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Report generation failed: {str(e)}'}
+
+    # === Legacy Methods for Backward Compatibility ===
+
+    def run_descriptive_analysis(self, project_id: str, analysis_config: Dict = None) -> Dict:
+        """Run descriptive statistical analysis (legacy wrapper)"""
+        try:
+            target_variables = None
+            if analysis_config and 'variables' in analysis_config:
+                target_variables = analysis_config['variables']
+            
+            return self.run_analysis(project_id, "descriptive", target_variables)
             
         except Exception as e:
             return {'error': f'Descriptive analysis failed: {str(e)}'}
 
     def run_correlation_analysis(self, project_id: str, analysis_config: Dict = None) -> Dict:
-        """Run correlation analysis"""
+        """Run correlation analysis (legacy wrapper)"""
         try:
-            request_data = {'analysis_type': 'correlation'}
-            if analysis_config:
-                request_data.update(analysis_config)
+            target_variables = None
+            if analysis_config and 'variables' in analysis_config:
+                target_variables = analysis_config['variables']
             
-            result = self._make_analytics_request(f'project/{project_id}/analyze', method='POST', data=request_data)
-            
-            return result
+            return self.run_analysis(project_id, "correlation", target_variables)
             
         except Exception as e:
             return {'error': f'Correlation analysis failed: {str(e)}'}
 
     def run_text_analysis(self, project_id: str, analysis_config: Dict = None) -> Dict:
-        """Run text analysis"""
+        """Run text analysis (legacy wrapper)"""
         try:
-            request_data = {'analysis_type': 'text'}
-            if analysis_config:
-                request_data.update(analysis_config)
+            target_variables = None
+            if analysis_config and 'variables' in analysis_config:
+                target_variables = analysis_config['variables']
             
-            result = self._make_analytics_request(f'project/{project_id}/analyze', method='POST', data=request_data)
-            
-            return result
+            return self.run_analysis(project_id, "text", target_variables)
             
         except Exception as e:
             return {'error': f'Text analysis failed: {str(e)}'}
@@ -210,13 +404,11 @@ class AnalyticsService:
     def run_qualitative_analysis(self, project_id: str, analysis_config: Dict) -> Dict:
         """Run qualitative text analysis"""
         try:
-            request_data = {'analysis_type': 'qualitative'}
-            if analysis_config:
-                request_data.update(analysis_config)
+            target_variables = None
+            if analysis_config and 'variables' in analysis_config:
+                target_variables = analysis_config['variables']
             
-            result = self._make_analytics_request(f'project/{project_id}/analyze', method='POST', data=request_data)
-            
-            return result
+            return self.run_analysis(project_id, "text", target_variables)
             
         except Exception as e:
             return {'error': f'Qualitative analysis failed: {str(e)}'}
@@ -235,6 +427,74 @@ class AnalyticsService:
             
         except Exception as e:
             return {'error': f'Custom analysis failed: {str(e)}'}
+
+    # === Data Selection Methods ===
+
+    def get_project_variables(self, project_id: str) -> Dict:
+        """Get available variables for a project"""
+        try:
+            characteristics = self.get_data_characteristics(project_id)
+            if 'error' in characteristics:
+                return characteristics
+            
+            # Extract characteristics data
+            char_data = characteristics.get('characteristics', characteristics)
+            
+            variables = {
+                'all_variables': [],
+                'numeric_variables': char_data.get('numeric_variables', []),
+                'categorical_variables': char_data.get('categorical_variables', []),
+                'text_variables': char_data.get('text_variables', []),
+                'datetime_variables': char_data.get('datetime_variables', []),
+                'variable_count': char_data.get('variable_count', 0),
+                'sample_size': char_data.get('sample_size', 0)
+            }
+            
+            # Combine all variables
+            variables['all_variables'] = (
+                variables['numeric_variables'] + 
+                variables['categorical_variables'] + 
+                variables['text_variables'] + 
+                variables['datetime_variables']
+            )
+            
+            return variables
+            
+        except Exception as e:
+            return {'error': f'Error getting project variables: {str(e)}'}
+
+    def get_variable_details(self, project_id: str, variable_name: str) -> Dict:
+        """Get detailed information about a specific variable"""
+        try:
+            # This would require additional backend endpoint
+            # For now, return basic info from characteristics
+            characteristics = self.get_data_characteristics(project_id)
+            if 'error' in characteristics:
+                return characteristics
+            
+            char_data = characteristics.get('characteristics', characteristics)
+            
+            # Determine variable type
+            variable_type = 'unknown'
+            if variable_name in char_data.get('numeric_variables', []):
+                variable_type = 'numeric'
+            elif variable_name in char_data.get('categorical_variables', []):
+                variable_type = 'categorical'
+            elif variable_name in char_data.get('text_variables', []):
+                variable_type = 'text'
+            elif variable_name in char_data.get('datetime_variables', []):
+                variable_type = 'datetime'
+            
+            return {
+                'variable_name': variable_name,
+                'variable_type': variable_type,
+                'sample_size': char_data.get('sample_size', 0)
+            }
+            
+        except Exception as e:
+            return {'error': f'Error getting variable details: {str(e)}'}
+
+    # === Utility Methods ===
 
     def check_backend_health(self) -> Dict:
         """Check if analytics backend is available"""

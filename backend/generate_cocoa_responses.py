@@ -103,10 +103,10 @@ class CocoaResponseGenerator:
     
     def login_user(self) -> bool:
         """Login with existing user credentials"""
-        print("🔑 Logging in user: kwofie...")
+        print("🔑 Logging in user: amankrah...")
         
         login_data = {
-            "username": "kwofie",
+            "username": "amankrah",
             "password": "SecurePass354!"
         }
         
