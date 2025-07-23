@@ -11,7 +11,7 @@
     MDBoxLayout:
         id: main_content
         orientation: 'vertical'
-        spacing: dp(20)
+        spacing: dp(24)  # Increased from dp(20) to dp(24) for more breathing room
         padding: [dp(24), dp(20), dp(24), dp(20)]  # Tablet-friendly padding
         
         # Top Navigation Bar - Optimized for tablets
@@ -91,12 +91,12 @@
             id: stats_card
             orientation: 'vertical'
             size_hint_y: None
-            height: dp(180)  # Taller for tablet stats
+            height: dp(264)  # Increased by 10% from dp(240) to dp(264)
             elevation: 2
             md_bg_color: 0.98, 0.99, 1.0, 1
             radius: [12, 12, 12, 12]
             padding: [dp(20), dp(16), dp(20), dp(16)]
-            spacing: dp(12)
+            spacing: dp(16)  # Increased from dp(12) to dp(16)
             
             MDLabel:
                 text: "📈 Project Overview"
@@ -104,14 +104,14 @@
                 theme_text_color: "Primary"
                 bold: True
                 size_hint_y: None
-                height: dp(32)
+                height: dp(56)  # Increased from dp(52) to dp(56)
             
             GridLayout:
                 id: stats_container
                 cols: 4  # Default for tablets, adjusted dynamically
-                spacing: dp(16)
+                spacing: dp(20)  # Increased from dp(16) to dp(20)
                 size_hint_y: None
-                height: dp(120)
+                height: dp(176)  # Increased proportionally by 10% from dp(160) to dp(176)
         
         # Main Content Tabs - Enhanced for tablets
         MDTabs:
@@ -151,10 +151,10 @@
                     MDBoxLayout:
                         id: descriptive_content
                         orientation: 'vertical'
-                        spacing: dp(20)
+                        spacing: dp(32)  # Increased spacing to prevent overlap
                         size_hint_y: None
                         adaptive_height: True
-                        padding: [dp(16), dp(20), dp(16), dp(20)]
+                        padding: [dp(16), dp(32), dp(16), dp(32)]  # Increased padding
             
             # Inferential Statistics Tab
             InferentialTab:

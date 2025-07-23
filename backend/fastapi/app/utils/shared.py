@@ -132,31 +132,48 @@ class AnalyticsUtils:
         if df.empty:
             return df
         
-        # Handle complex data types that cause issues with analytics
-        for col in df.columns:
-            if col in ['choice_selections', 'location_data', 'device_info', 'response_metadata']:
-                # Convert complex data to strings for analysis
-                df[col] = df[col].astype(str)
-        
-        # Convert datetime columns
-        if 'collected_at' in df.columns:
-            df['collected_at'] = pd.to_datetime(df['collected_at'], errors='coerce')
-        if 'datetime_value' in df.columns:
-            df['datetime_value'] = pd.to_datetime(df['datetime_value'], errors='coerce')
-        
-        # Convert numeric columns
-        if 'numeric_value' in df.columns:
-            df['numeric_value'] = pd.to_numeric(df['numeric_value'], errors='coerce')
-        
-        # Convert data quality score
-        if 'data_quality_score' in df.columns:
-            df['data_quality_score'] = pd.to_numeric(df['data_quality_score'], errors='coerce')
-        
-        # Drop columns that are not useful for analysis
-        columns_to_drop = ['response_id', 'device_info', 'location_data']
-        df = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
-        
-        return df
+        try:
+            # Handle complex data types that cause issues with analytics
+            for col in df.columns:
+                if col in ['choice_selections', 'location_data', 'device_info', 'response_metadata']:
+                    # Convert complex data to strings for analysis
+                    df[col] = df[col].astype(str)
+                
+                # Check for other complex data types that might cause boolean evaluation issues
+                col_dtype = str(df[col].dtype)
+                if col_dtype == 'object':
+                    # Check if column contains complex objects
+                    sample_values = df[col].dropna().head(3)
+                    if not sample_values.empty:
+                        sample_val = sample_values.iloc[0]
+                        if not isinstance(sample_val, (str, int, float, bool, type(None))):
+                            logger.debug(f"Converting complex object column {col} to string")
+                            df[col] = df[col].astype(str)
+            
+            # Convert datetime columns
+            if 'collected_at' in df.columns:
+                df['collected_at'] = pd.to_datetime(df['collected_at'], errors='coerce')
+            if 'datetime_value' in df.columns:
+                df['datetime_value'] = pd.to_datetime(df['datetime_value'], errors='coerce')
+            
+            # Convert numeric columns
+            if 'numeric_value' in df.columns:
+                df['numeric_value'] = pd.to_numeric(df['numeric_value'], errors='coerce')
+            
+            # Convert data quality score
+            if 'data_quality_score' in df.columns:
+                df['data_quality_score'] = pd.to_numeric(df['data_quality_score'], errors='coerce')
+            
+            # Drop columns that are not useful for analysis
+            columns_to_drop = ['response_id', 'device_info', 'location_data']
+            df = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
+            
+            return df
+            
+        except Exception as e:
+            logger.error(f"Error preparing DataFrame: {e}")
+            # Return original DataFrame if preparation fails
+            return df
     
     @staticmethod
     def convert_numpy_types(obj):
@@ -173,9 +190,24 @@ class AnalyticsUtils:
             return obj.tolist()
         elif isinstance(obj, np.bool_):
             return bool(obj)
-        elif pd.isna(obj):
+        elif isinstance(obj, pd.DataFrame):
+            # Handle DataFrames by converting to dict
+            return obj.to_dict()
+        elif isinstance(obj, pd.Series):
+            # Handle Series by converting to dict or list
+            return obj.to_dict()
+        elif obj is None:
             return None
+        elif isinstance(obj, (str, int, float, bool)):
+            return obj
         else:
+            # Check for pandas NA values using scalar check
+            try:
+                if pd.isna(obj) and not isinstance(obj, (pd.DataFrame, pd.Series)):
+                    return None
+            except (ValueError, TypeError):
+                # If pd.isna() fails (e.g., on complex objects), continue
+                pass
             return obj
     
     @staticmethod
@@ -189,17 +221,25 @@ class AnalyticsUtils:
                 'categorical_variables': [],
                 'text_variables': [],
                 'datetime_variables': [],
-                'completeness_score': 0
+                'completeness_score': 0,
+                'sample_size_analysis': {
+                    'current_size': 0,
+                    'adequacy_status': 'insufficient',
+                    'recommendations': {}
+                }
             }
-        
+
         try:
             # Use the standardized data profiler
             profiler = StandardizedDataProfiler()
             characteristics = profiler.profile_data(df)
             
+            # Get current sample size
+            current_sample_size = int(characteristics.n_observations)
+            
             # Convert to the expected format and ensure all numpy types are converted
             result = {
-                'sample_size': int(characteristics.n_observations),
+                'sample_size': current_sample_size,
                 'variable_count': int(characteristics.n_variables),
                 'numeric_variables': [col for col, dtype in characteristics.variable_types.items() 
                                     if dtype.value in ['numeric_continuous', 'numeric_discrete']],
@@ -218,14 +258,20 @@ class AnalyticsUtils:
                 }
             }
             
+            # Add sample size adequacy analysis
+            result['sample_size_analysis'] = AnalyticsUtils._analyze_sample_size_adequacy(
+                current_sample_size, result
+            )
+            
             # Apply numpy type conversion to the entire result
             return AnalyticsUtils.convert_numpy_types(result)
             
         except Exception as e:
             logger.error(f"Error in analyze_data_characteristics: {e}")
             # Fallback to simple analysis
+            current_sample_size = len(df)
             result = {
-                'sample_size': len(df),
+                'sample_size': current_sample_size,
                 'variable_count': len(df.columns),
                 'numeric_variables': list(df.select_dtypes(include=[np.number]).columns),
                 'categorical_variables': list(df.select_dtypes(include=['object', 'category']).columns),
@@ -240,8 +286,182 @@ class AnalyticsUtils:
                 }
             }
             
+            # Add sample size adequacy analysis for fallback too
+            result['sample_size_analysis'] = AnalyticsUtils._analyze_sample_size_adequacy(
+                current_sample_size, result
+            )
+            
             # Apply numpy type conversion to the fallback result
             return AnalyticsUtils.convert_numpy_types(result)
+    
+    @staticmethod
+    def _analyze_sample_size_adequacy(current_size: int, characteristics: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze whether current sample size is adequate for common statistical tests."""
+        try:
+            from app.analytics.inferential.power_analysis import (
+                calculate_sample_size_t_test,
+                calculate_sample_size_anova,
+                calculate_sample_size_correlation
+            )
+            
+            numeric_vars = len(characteristics.get('numeric_variables', []))
+            categorical_vars = len(characteristics.get('categorical_variables', []))
+            
+            recommendations = {}
+            adequacy_scores = []
+            
+            # Common effect sizes for recommendations
+            small_effect = 0.2
+            medium_effect = 0.5
+            large_effect = 0.8
+            
+            # T-test recommendations (if we have numeric variables)
+            if numeric_vars >= 2:
+                t_test_small = calculate_sample_size_t_test(
+                    effect_size=small_effect,
+                    power=0.80,
+                    test_type='two-sample'
+                )
+                t_test_medium = calculate_sample_size_t_test(
+                    effect_size=medium_effect,
+                    power=0.80,
+                    test_type='two-sample'
+                )
+                
+                recommendations['t_test'] = {
+                    'test_type': 'Independent t-test',
+                    'current_size': current_size,
+                    'needed_for_small_effect': t_test_small.get('total_sample_size', 0),
+                    'needed_for_medium_effect': t_test_medium.get('total_sample_size', 0),
+                    'adequacy': 'adequate' if current_size >= t_test_medium.get('total_sample_size', 0) else 'insufficient',
+                    'recommendation': f"For medium effect size (Cohen's d=0.5), need {t_test_medium.get('total_sample_size', 0)} total participants"
+                }
+                
+                # Calculate adequacy score for t-test
+                if current_size >= t_test_small.get('total_sample_size', 0):
+                    adequacy_scores.append(1.0)
+                elif current_size >= t_test_medium.get('total_sample_size', 0):
+                    adequacy_scores.append(0.8)
+                else:
+                    adequacy_scores.append(0.3)
+            
+            # ANOVA recommendations (if we have numeric + categorical variables)
+            if numeric_vars >= 1 and categorical_vars >= 1:
+                # Assume 3 groups for ANOVA calculation
+                anova_medium = calculate_sample_size_anova(
+                    effect_size=0.25,  # Cohen's f for medium effect
+                    n_groups=3,
+                    power=0.80
+                )
+                
+                recommendations['anova'] = {
+                    'test_type': 'One-way ANOVA',
+                    'current_size': current_size,
+                    'needed_for_medium_effect': anova_medium.get('total_sample_size', 0),
+                    'per_group_needed': anova_medium.get('n_per_group', 0),
+                    'adequacy': 'adequate' if current_size >= anova_medium.get('total_sample_size', 0) else 'insufficient',
+                    'recommendation': f"For 3-group ANOVA with medium effect, need {anova_medium.get('total_sample_size', 0)} total participants ({anova_medium.get('n_per_group', 0)} per group)"
+                }
+                
+                # Calculate adequacy score for ANOVA
+                if current_size >= anova_medium.get('total_sample_size', 0):
+                    adequacy_scores.append(0.9)
+                else:
+                    adequacy_scores.append(0.4)
+            
+            # Correlation recommendations (if we have multiple numeric variables)
+            if numeric_vars >= 2:
+                corr_medium = calculate_sample_size_correlation(
+                    r=0.3,  # Medium correlation
+                    power=0.80
+                )
+                
+                recommendations['correlation'] = {
+                    'test_type': 'Correlation analysis',
+                    'current_size': current_size,
+                    'needed_for_medium_effect': corr_medium.get('sample_size', 0),
+                    'adequacy': 'adequate' if current_size >= corr_medium.get('sample_size', 0) else 'insufficient',
+                    'recommendation': f"For detecting r=0.3 correlation, need {corr_medium.get('sample_size', 0)} participants"
+                }
+                
+                # Calculate adequacy score for correlation
+                if current_size >= corr_medium.get('sample_size', 0):
+                    adequacy_scores.append(0.8)
+                else:
+                    adequacy_scores.append(0.5)
+            
+            # Basic descriptive statistics adequacy (general rule of thumb)
+            descriptive_adequate = current_size >= 30
+            recommendations['descriptive'] = {
+                'test_type': 'Descriptive statistics',
+                'current_size': current_size,
+                'minimum_needed': 30,
+                'adequacy': 'adequate' if descriptive_adequate else 'insufficient',
+                'recommendation': "For reliable descriptive statistics, minimum 30 participants recommended"
+            }
+            
+            if descriptive_adequate:
+                adequacy_scores.append(0.7)
+            else:
+                adequacy_scores.append(0.2)
+            
+            # Overall adequacy assessment
+            if not adequacy_scores:
+                overall_adequacy = 'unknown'
+                overall_score = 0.0
+            else:
+                overall_score = sum(adequacy_scores) / len(adequacy_scores)
+                if overall_score >= 0.8:
+                    overall_adequacy = 'excellent'
+                elif overall_score >= 0.6:
+                    overall_adequacy = 'adequate'
+                elif overall_score >= 0.4:
+                    overall_adequacy = 'marginal'
+                else:
+                    overall_adequacy = 'insufficient'
+            
+            return {
+                'current_size': current_size,
+                'adequacy_status': overall_adequacy,
+                'adequacy_score': round(overall_score, 2),
+                'recommendations': recommendations,
+                'summary': {
+                    'tests_assessed': len(recommendations),
+                    'adequate_for': len([r for r in recommendations.values() if r.get('adequacy') == 'adequate']),
+                    'general_guidance': AnalyticsUtils._get_sample_size_guidance(current_size, overall_adequacy)
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Error in sample size adequacy analysis: {e}")
+            return {
+                'current_size': current_size,
+                'adequacy_status': 'unknown',
+                'adequacy_score': 0.0,
+                'recommendations': {},
+                'summary': {
+                    'tests_assessed': 0,
+                    'adequate_for': 0,
+                    'general_guidance': f"Unable to assess sample size adequacy: {str(e)}"
+                }
+            }
+    
+    @staticmethod
+    def _get_sample_size_guidance(current_size: int, adequacy: str) -> str:
+        """Get general guidance based on current sample size and adequacy."""
+        if adequacy == 'excellent':
+            return f"Your sample size of {current_size:,} is excellent for most statistical analyses."
+        elif adequacy == 'adequate':
+            return f"Your sample size of {current_size:,} is adequate for most common statistical tests."
+        elif adequacy == 'marginal':
+            return f"Your sample size of {current_size:,} is marginal. Consider collecting more data for robust analysis."
+        elif adequacy == 'insufficient':
+            if current_size < 30:
+                return f"Your sample size of {current_size:,} is too small for most statistical tests. Aim for at least 30-50 participants."
+            else:
+                return f"Your sample size of {current_size:,} may be insufficient for detecting smaller effect sizes. Consider increasing sample size."
+        else:
+            return f"Unable to assess adequacy of sample size {current_size:,}."
     
     @staticmethod
     def generate_analysis_recommendations(characteristics: Dict[str, Any]) -> Dict[str, Any]:
@@ -454,12 +674,39 @@ class AnalyticsUtils:
             return {'error': 'No data available for analysis'}
         
         try:
+            logger.info(f"Starting descriptive analysis with type: {analysis_type}")
+            logger.info(f"DataFrame shape: {df.shape}")
+            logger.info(f"DataFrame columns: {list(df.columns)}")
+            logger.info(f"DataFrame dtypes: {df.dtypes.to_dict()}")
+            
+            # Ensure we have a proper DataFrame
+            if not isinstance(df, pd.DataFrame):
+                logger.error(f"Expected DataFrame, got {type(df)}")
+                return {'error': f'Expected DataFrame, got {type(df)}'}
+            
+            # Check for problematic data types that might cause boolean evaluation issues
+            for col in df.columns:
+                col_type = str(df[col].dtype)
+                logger.debug(f"Column {col}: dtype={col_type}, sample values: {df[col].head(3).tolist()}")
+                
+                # Handle complex data types that might cause issues
+                if col_type == 'object':
+                    # Check if the column contains complex objects that might cause boolean evaluation issues
+                    sample_val = df[col].dropna().iloc[0] if not df[col].dropna().empty else None
+                    if sample_val is not None and not isinstance(sample_val, (str, int, float, bool)):
+                        logger.warning(f"Column {col} contains complex objects: {type(sample_val)}")
+            
             # Use the comprehensive descriptive analytics functions
             results = analyze_descriptive_data(
                 df, 
                 analysis_type=analysis_type,
                 target_variables=target_variables
             )
+            
+            # Check if results contain error
+            if isinstance(results, dict) and 'error' in results:
+                logger.error(f"Error from analyze_descriptive_data: {results['error']}")
+                return results
             
             # Add summary information
             numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
@@ -482,6 +729,10 @@ class AnalyticsUtils:
             
         except Exception as e:
             logger.error(f"Error in descriptive analysis: {e}")
+            logger.error(f"DataFrame info: shape={df.shape if hasattr(df, 'shape') else 'unknown'}")
+            logger.error(f"DataFrame type: {type(df)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return {'error': f'Descriptive analysis failed: {str(e)}'}
     
     @staticmethod

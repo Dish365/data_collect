@@ -51,18 +51,28 @@ class AutoDetectionAnalyticsHandler:
     def _run_auto_detection_thread(self, project_id: str):
         """Background thread for auto-detection analysis"""
         try:
+            print(f"[DEBUG] Starting auto-detection for project: {project_id}")
+            
             # Get project variables for selection options
+            print(f"[DEBUG] Getting project variables...")
             variables = self.analytics_service.get_project_variables(project_id)
+            print(f"[DEBUG] Project variables result: {variables}")
             self.project_variables = variables
             
             # Get analysis recommendations
+            print(f"[DEBUG] Getting analysis recommendations...")
             recommendations = self.analytics_service.get_analysis_recommendations(project_id)
+            print(f"[DEBUG] Recommendations result: {recommendations}")
             
             # Run comprehensive auto analysis
+            print(f"[DEBUG] Running auto analysis...")
             analysis_results = self.analytics_service.run_analysis(project_id, "auto")
+            print(f"[DEBUG] Analysis results: {analysis_results}")
             
             # Get available analysis types
+            print(f"[DEBUG] Getting available analysis types...")
             available_types = self.analytics_service.get_available_analysis_types()
+            print(f"[DEBUG] Available types result: {available_types}")
             
             # Combine results
             combined_results = {
@@ -72,11 +82,16 @@ class AutoDetectionAnalyticsHandler:
                 'project_variables': variables
             }
             
+            print(f"[DEBUG] Combined results keys: {list(combined_results.keys())}")
+            print(f"[DEBUG] Calling display method...")
+            
             Clock.schedule_once(
                 lambda dt: self._display_auto_detection_results(combined_results), 0
             )
         except Exception as e:
             print(f"Error in auto-detection: {e}")
+            import traceback
+            print(f"[DEBUG] Auto-detection traceback: {traceback.format_exc()}")
             Clock.schedule_once(
                 lambda dt: self.analytics_screen.show_error("Auto-detection failed"), 0
             )
@@ -87,54 +102,284 @@ class AutoDetectionAnalyticsHandler:
     
     def _display_auto_detection_results(self, results):
         """Display enhanced auto-detection results with tablet-optimized layout"""
-        if not hasattr(self.analytics_screen.ids, 'auto_detection_content'):
+        print(f"[DEBUG] _display_auto_detection_results called")
+        print(f"[DEBUG] Results type: {type(results)}")
+        print(f"[DEBUG] Results keys: {list(results.keys()) if isinstance(results, dict) else 'Not a dict'}")
+        
+        # Use the helper method to get the content area
+        content = self.analytics_screen.get_tab_content('auto_detection')
+        
+        if not content:
+            print(f"[DEBUG] ERROR: Could not get auto_detection content area")
             return
             
-        content = self.analytics_screen.ids.auto_detection_content
         content.clear_widgets()
+        print(f"[DEBUG] Content widget cleared, type: {type(content)}")
         
+        # Add a simple test widget first to verify the basic setup
+        from kivymd.uix.label import MDLabel
+        test_label = MDLabel(
+            text="🧪 TEST: Auto-detection results loading...",
+            font_style="H6",
+            theme_text_color="Primary",
+            halign="center",
+            size_hint_y=None,
+            height=dp(48)
+        )
+        content.add_widget(test_label)
+        print(f"[DEBUG] Added test label, content children: {len(content.children)}")
+        
+        # Add a small delay before continuing to ensure the test label is visible
+        Clock.schedule_once(lambda dt: self._continue_display_results(content, results, test_label), 0.5)
+        
+    def _continue_display_results(self, content, results, test_label):
+        """Continue displaying results after test label delay"""
+        print(f"[DEBUG] _continue_display_results called")
+        print(f"[DEBUG] Content type: {type(content)}")
+        print(f"[DEBUG] Content children before: {len(content.children)}")
+        print(f"[DEBUG] Results type: {type(results)}")
+        print(f"[DEBUG] Results keys: {list(results.keys()) if isinstance(results, dict) else 'Not a dict'}")
+        
+        # Remove test label
+        if test_label in content.children:
+            content.remove_widget(test_label)
+            print(f"[DEBUG] Removed test label, children now: {len(content.children)}")
+        else:
+            print(f"[DEBUG] Test label not in content.children")
+        
+        # Now create the actual analytics content
         if not results:
-            content.add_widget(self._create_tablet_empty_state(
+            print(f"[DEBUG] No results provided, showing empty state")
+            empty_widget = self._create_tablet_empty_state(
                 "No analysis recommendations available.\nPlease ensure the FastAPI backend is running."
-            ))
+            )
+            content.add_widget(empty_widget)
+            print(f"[DEBUG] Added empty state widget, content children count: {len(content.children)}")
             return
         
         recommendations = results.get('recommendations', {})
         analysis_results = results.get('analysis_results', {})
         project_variables = results.get('project_variables', {})
         
+        print(f"[DEBUG] Processing results - recommendations type: {type(recommendations)}")
+        print(f"[DEBUG] Processing results - analysis_results type: {type(analysis_results)}")
+        print(f"[DEBUG] Processing results - project_variables type: {type(project_variables)}")
+        
         # Check for errors
         if 'error' in recommendations or 'error' in analysis_results:
             error_msg = recommendations.get('error') or analysis_results.get('error')
+            print(f"[DEBUG] Error found: {error_msg}")
             if 'Cannot connect to analytics backend' in str(error_msg):
                 content.add_widget(self.analytics_screen.create_backend_error_widget())
             else:
                 content.add_widget(self._create_tablet_empty_state(f"Error: {error_msg}"))
             return
         
-        # Create tablet-optimized layout
-        main_scroll = MDScrollView()
-        main_content = MDBoxLayout(
+        print(f"[DEBUG] Creating fixed-height analytics interface...")
+        
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.card import MDCard
+        from kivymd.uix.boxlayout import MDBoxLayout
+        from kivymd.uix.button import MDRaisedButton, MDIconButton
+        
+        # 1. Data Overview Card (Fixed Height)
+        data_overview_card = MDCard(
             orientation="vertical",
-            spacing=self.TABLET_SPACING,
             size_hint_y=None,
-            adaptive_height=True,
-            padding=[self.TABLET_PADDING, self.TABLET_PADDING, self.TABLET_PADDING, self.TABLET_PADDING]
+            height=dp(220),  # Fixed height
+            padding=dp(20),
+            spacing=dp(12),
+            md_bg_color=(0.98, 0.99, 1.0, 1),
+            elevation=3,
+            radius=[16, 16, 16, 16]
         )
         
-        # Create sections optimized for tablet
-        self._create_tablet_data_selection_section(main_content, project_variables)
-        self._create_tablet_summary_cards(main_content, recommendations, analysis_results)
-        self._create_tablet_analysis_options(main_content, results.get('available_types', {}))
+        # Header
+        header_layout = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(12),
+            size_hint_y=None,
+            height=dp(40)
+        )
         
-        main_scroll.add_widget(main_content)
-        content.add_widget(main_scroll)
+        data_icon = MDIconButton(
+            icon="chart-box",
+            theme_icon_color="Custom",
+            icon_color=(0.2, 0.6, 1.0, 1),
+            disabled=True,
+            size_hint_x=None,
+            width=dp(48),
+            user_font_size="24sp"
+        )
+        
+        header_label = MDLabel(
+            text="📊 Data Overview",
+            font_style="H5",
+            theme_text_color="Primary",
+            bold=True
+        )
+        
+        header_layout.add_widget(data_icon)
+        header_layout.add_widget(header_label)
+        data_overview_card.add_widget(header_layout)
+        
+        # Data metrics
+        sample_size = project_variables.get('sample_size', 'N/A')
+        variable_count = project_variables.get('variable_count', 'N/A')
+        
+        metrics_text = f"""📋 Sample Size: {sample_size:,} responses
+📊 Variables: {variable_count} total variables
+📈 Numeric: {len(project_variables.get('numeric_variables', []))}
+🏷️ Categorical: {len(project_variables.get('categorical_variables', []))}
+📝 Text: {len(project_variables.get('text_variables', []))}
+📅 Date/Time: {len(project_variables.get('datetime_variables', []))}"""
+        
+        metrics_label = MDLabel(
+            text=metrics_text,
+            font_style="Body1",
+            theme_text_color="Secondary",
+            size_hint_y=None,
+            height=dp(120)
+        )
+        data_overview_card.add_widget(metrics_label)
+        
+        content.add_widget(data_overview_card)
+        print(f"[DEBUG] Added data overview card")
+        
+        # 2. Recommendations Card (Fixed Height)
+        recommendations_card = MDCard(
+            orientation="vertical",
+            size_hint_y=None,
+            height=dp(280),  # Increased height
+            padding=dp(20),
+            spacing=dp(12),
+            md_bg_color=(0.98, 1.0, 0.98, 1),
+            elevation=3,
+            radius=[16, 16, 16, 16]
+        )
+        
+        # Recommendations header
+        rec_header = MDLabel(
+            text="💡 Smart Recommendations",
+            font_style="H5",
+            theme_text_color="Primary",
+            bold=True,
+            size_hint_y=None,
+            height=dp(32)
+        )
+        recommendations_card.add_widget(rec_header)
+        
+        # Primary recommendation
+        primary_recs = recommendations.get('recommendations', {}).get('primary_recommendations', [])
+        if primary_recs:
+            top_rec = primary_recs[0]
+            rec_text = f"""🎯 Recommended: {top_rec.get('method', 'Analysis').replace('_', ' ').title()}
+            
+📋 {top_rec.get('rationale', 'Recommended based on your data characteristics')}
+
+✨ {len(primary_recs)} analysis recommendations available"""
+        else:
+            rec_text = "🔍 Analyzing your data for recommendations..."
+        
+        rec_content = MDLabel(
+            text=rec_text,
+            font_style="Body1",
+            theme_text_color="Secondary",
+            size_hint_y=None,
+            height=dp(140)
+        )
+        recommendations_card.add_widget(rec_content)
+        
+        # Action button
+        if primary_recs:
+            action_button = MDRaisedButton(
+                text=f"🚀 Run {primary_recs[0].get('method', 'Analysis').replace('_', ' ').title()}",
+                size_hint_y=None,
+                height=dp(48),
+                md_bg_color=(0.2, 0.8, 0.2, 1),
+                font_size="16sp"
+            )
+            recommendations_card.add_widget(action_button)
+        
+        content.add_widget(recommendations_card)
+        print(f"[DEBUG] Added recommendations card")
+        
+        # 3. Quick Analysis Options (Fixed Height)
+        options_card = MDCard(
+            orientation="vertical",
+            size_hint_y=None,
+            height=dp(180),  # Fixed height
+            padding=dp(20),
+            spacing=dp(12),
+            md_bg_color=(1.0, 0.99, 0.97, 1),
+            elevation=3,
+            radius=[16, 16, 16, 16]
+        )
+        
+        options_header = MDLabel(
+            text="🔬 Quick Analysis Options",
+            font_style="H5",
+            theme_text_color="Primary",
+            bold=True,
+            size_hint_y=None,
+            height=dp(32)
+        )
+        options_card.add_widget(options_header)
+        
+        # Analysis buttons in horizontal layout
+        buttons_layout = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(12),
+            size_hint_y=None,
+            height=dp(48)
+        )
+        
+        analysis_options = [
+            ("📊 Basic Stats", "basic", (0.2, 0.6, 1.0, 1)),
+            ("📈 Distributions", "distribution", (1.0, 0.6, 0.2, 1)),
+            ("🏷️ Categorical", "categorical", (0.2, 0.8, 0.6, 1)),
+            ("🔍 Quality Check", "quality", (0.6, 0.8, 0.2, 1))
+        ]
+        
+        for text, analysis_type, color in analysis_options:
+            btn = MDRaisedButton(
+                text=text,
+                size_hint_x=1,
+                height=dp(40),
+                md_bg_color=color,
+                font_size="12sp"
+            )
+            buttons_layout.add_widget(btn)
+        
+        options_card.add_widget(buttons_layout)
+        
+        # Comprehensive button
+        comprehensive_btn = MDRaisedButton(
+            text="🏆 Run Full Analysis Suite",
+            size_hint_y=None,
+            height=dp(48),
+            md_bg_color=(0.8, 0.2, 0.8, 1),
+            font_size="14sp"
+        )
+        options_card.add_widget(comprehensive_btn)
+        
+        content.add_widget(options_card)
+        print(f"[DEBUG] Added analysis options card")
+        
+        print(f"[DEBUG] Fixed-height analytics interface created successfully!")
+        print(f"[DEBUG] Total content children: {len(content.children)}")
     
     def _create_tablet_data_selection_section(self, content, project_variables):
         """Create tablet-optimized data selection interface"""
+        print(f"[DEBUG] _create_tablet_data_selection_section called")
+        print(f"[DEBUG] project_variables type: {type(project_variables)}")
+        print(f"[DEBUG] project_variables keys: {list(project_variables.keys()) if isinstance(project_variables, dict) else 'Not a dict'}")
+        
         if 'error' in project_variables:
+            print(f"[DEBUG] Error in project_variables, returning")
             return
         
+        print(f"[DEBUG] Creating selection card...")
         selection_card = MDCard(
             orientation="vertical",
             padding=self.TABLET_PADDING,
@@ -221,7 +466,12 @@ class AutoDetectionAnalyticsHandler:
         action_layout.add_widget(select_analysis_btn)
         selection_card.add_widget(action_layout)
         
+        print(f"[DEBUG] About to add selection_card to content")
+        print(f"[DEBUG] Selection card type: {type(selection_card)}")
+        print(f"[DEBUG] Selection card children: {len(selection_card.children)}")
+        
         content.add_widget(selection_card)
+        print(f"[DEBUG] Added selection_card to content successfully")
     
     def _create_tablet_summary_cards(self, content, recommendations, analysis_results):
         """Create tablet-optimized summary cards with side-by-side layout"""

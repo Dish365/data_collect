@@ -2,6 +2,9 @@
 Descriptive statistics module for comprehensive data analysis.
 """
 
+import pandas as pd
+import numpy as np
+
 from .basic_statistics import (
     calculate_basic_stats,
     calculate_percentiles,
@@ -77,54 +80,76 @@ def analyze_descriptive_data(data, analysis_type="auto", target_variables=None, 
     Returns:
         Dictionary with analysis results
     """
-    if analysis_type == "auto":
-        return auto_analyze_descriptive_data(data, **kwargs)
-    elif analysis_type == "basic":
-        numeric_cols = data.select_dtypes(include=['number']).columns.tolist()
-        categorical_cols = data.select_dtypes(include=['object', 'category']).columns.tolist()
+    try:
+        # Ensure we have a proper DataFrame
+        if not isinstance(data, pd.DataFrame):
+            return {"error": f"Expected DataFrame, got {type(data)}"}
         
-        results = {}
-        if numeric_cols:
-            results['basic_stats'] = calculate_basic_stats(data, numeric_cols)
-        if categorical_cols:
-            results['categorical_analysis'] = {col: analyze_categorical(data[col]) 
-                                             for col in categorical_cols}
-        results['missing_analysis'] = analyze_missing_data(data)
-        return results
+        # Check if DataFrame is empty using .empty property instead of boolean evaluation
+        if data.empty:
+            return {"error": "DataFrame is empty"}
         
-    elif analysis_type == "comprehensive":
-        results = {}
-        numeric_cols = data.select_dtypes(include=['number']).columns.tolist()
-        categorical_cols = data.select_dtypes(include=['object', 'category']).columns.tolist()
+        # Log basic info for debugging
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.debug(f"Processing analysis_type: {analysis_type}, data shape: {data.shape}")
         
-        # Numeric analyses
-        if numeric_cols:
-            results['basic_stats'] = calculate_basic_stats(data, numeric_cols)
-            results['percentiles'] = calculate_percentiles(data, numeric_cols)
-            if len(numeric_cols) >= 2:
-                results['correlations'] = calculate_correlation_matrix(data[numeric_cols])
-            results['outliers'] = get_outlier_summary(data, numeric_cols)
+        if analysis_type == "auto":
+            return auto_analyze_descriptive_data(data, **kwargs)
+        elif analysis_type == "basic":
+            numeric_cols = data.select_dtypes(include=['number']).columns.tolist()
+            categorical_cols = data.select_dtypes(include=['object', 'category']).columns.tolist()
             
-        # Categorical analyses  
-        if categorical_cols:
-            results['categorical_analysis'] = {col: analyze_categorical(data[col]) 
-                                             for col in categorical_cols}
+            results = {}
+            if numeric_cols:
+                results['basic_stats'] = calculate_basic_stats(data, numeric_cols)
+            if categorical_cols:
+                results['categorical_analysis'] = {col: analyze_categorical(data[col]) 
+                                                 for col in categorical_cols}
+            results['missing_analysis'] = analyze_missing_data(data)
+            return results
             
-        # Cross-analyses
-        results['missing_analysis'] = analyze_missing_data(data)
-        results['full_report'] = generate_full_report(data)
-        
-        return results
-        
-    elif analysis_type == "quality":
-        return {
-            'missing_analysis': analyze_missing_data(data),
-            'missing_patterns': get_missing_patterns(data),
-            'outlier_summary': get_outlier_summary(data, data.select_dtypes(include=['number']).columns.tolist()),
-            'data_overview': calculate_basic_stats(data, data.select_dtypes(include=['number']).columns.tolist())
-        }
-    else:
-        return {"error": f"Unknown analysis type: {analysis_type}"}
+        elif analysis_type == "comprehensive":
+            results = {}
+            numeric_cols = data.select_dtypes(include=['number']).columns.tolist()
+            categorical_cols = data.select_dtypes(include=['object', 'category']).columns.tolist()
+            
+            # Numeric analyses
+            if numeric_cols:
+                results['basic_stats'] = calculate_basic_stats(data, numeric_cols)
+                results['percentiles'] = calculate_percentiles(data, numeric_cols)
+                if len(numeric_cols) >= 2:
+                    results['correlations'] = calculate_correlation_matrix(data[numeric_cols])
+                results['outliers'] = get_outlier_summary(data, numeric_cols)
+                
+            # Categorical analyses  
+            if categorical_cols:
+                results['categorical_analysis'] = {col: analyze_categorical(data[col]) 
+                                                 for col in categorical_cols}
+                
+            # Cross-analyses
+            results['missing_analysis'] = analyze_missing_data(data)
+            results['full_report'] = generate_full_report(data)
+            
+            return results
+            
+        elif analysis_type == "quality":
+            return {
+                'missing_analysis': analyze_missing_data(data),
+                'missing_patterns': get_missing_patterns(data),
+                'outlier_summary': get_outlier_summary(data, data.select_dtypes(include=['number']).columns.tolist()),
+                'data_overview': calculate_basic_stats(data, data.select_dtypes(include=['number']).columns.tolist())
+            }
+        else:
+            return {"error": f"Unknown analysis type: {analysis_type}"}
+            
+    except Exception as e:
+        import logging
+        import traceback
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error in analyze_descriptive_data: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return {"error": f"Analysis failed: {str(e)}"}
 
 # Convenience functions
 def quick_data_overview(data):

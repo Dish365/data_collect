@@ -40,18 +40,15 @@ class DescriptiveAnalyticsHandler:
         self.TABLET_FONT_SIZE = "16sp"
     
     def run_descriptive_analysis(self, project_id: str, analysis_config: Dict = None):
-        """Run comprehensive descriptive analysis optimized for tablets"""
+        """Show descriptive analytics selection interface (no auto-run)"""
+        print(f"[DEBUG] run_descriptive_analysis called with project_id: {project_id}")
+        
         if not project_id:
+            print(f"[DEBUG] No project_id provided")
             return
             
-        self.analytics_screen.set_loading(True)
-        toast("📊 Loading comprehensive descriptive analytics...")
-        
-        threading.Thread(
-            target=self._run_descriptive_thread,
-            args=(project_id, analysis_config),
-            daemon=True
-        ).start()
+        # Show the selection interface (no automatic analysis)
+        self._show_descriptive_selection_interface(project_id)
     
     def _run_descriptive_thread(self, project_id: str, analysis_config: Dict):
         """Background thread for comprehensive descriptive analysis"""
@@ -86,10 +83,13 @@ class DescriptiveAnalyticsHandler:
     
     def _display_tablet_comprehensive_results(self, combined_results):
         """Display comprehensive descriptive analysis results optimized for tablets"""
-        if not hasattr(self.analytics_screen.ids, 'descriptive_content'):
+        # Use the helper method to get the content area
+        content = self.analytics_screen.get_tab_content('descriptive')
+        
+        if not content:
+            print(f"[DEBUG] ERROR: Could not get descriptive content area")
             return
             
-        content = self.analytics_screen.ids.descriptive_content
         content.clear_widgets()
         
         results = combined_results.get('analysis_results', {})
@@ -103,24 +103,1113 @@ class DescriptiveAnalyticsHandler:
                 content.add_widget(self._create_tablet_error_state(f"Analysis Error: {error_msg}"))
             return
         
-        # Create main scroll container
-        main_scroll = MDScrollView()
-        main_content = MDBoxLayout(
+        # Use improved heights and spacing for better tablet experience
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.card import MDCard
+        from kivymd.uix.boxlayout import MDBoxLayout
+        from kivymd.uix.button import MDRaisedButton, MDIconButton
+        
+        # 1. Configuration Card - IMPROVED HEIGHT AND SPACING
+        config_card = MDCard(
             orientation="vertical",
-            spacing=self.TABLET_SPACING,
             size_hint_y=None,
-            adaptive_height=True,
-            padding=[self.TABLET_PADDING, self.TABLET_PADDING, self.TABLET_PADDING, self.TABLET_PADDING]
+            height=dp(396),  # Increased by 10% from 360
+            padding=dp(32),  # Increased from 20
+            spacing=dp(16),  # Increased from 12
+            md_bg_color=(0.98, 0.99, 1.0, 1),
+            elevation=3,
+            radius=[16, 16, 16, 16]
         )
         
-        # Create tablet-optimized sections
-        self._create_tablet_analysis_configuration(main_content, project_variables)
-        self._create_tablet_results_dashboard(main_content, results)
-        self._create_tablet_detailed_statistics(main_content, results)
-        self._create_tablet_specialized_options(main_content, project_variables)
+        # Header
+        header_layout = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(16),  # Increased from 12
+            size_hint_y=None,
+            height=dp(48)    # Increased from 40
+        )
         
-        main_scroll.add_widget(main_content)
-        content.add_widget(main_scroll)
+        config_icon = MDIconButton(
+            icon="chart-line",
+            theme_icon_color="Custom",
+            icon_color=(0.2, 0.6, 1.0, 1),
+            disabled=True,
+            size_hint_x=None,
+            width=dp(56),    # Increased from 48
+            user_font_size="28sp"  # Increased from 24sp
+        )
+        
+        header_label = MDLabel(
+            text="📊 Descriptive Analytics",
+            font_style="H5",
+            theme_text_color="Primary",
+            bold=True
+        )
+        
+        header_layout.add_widget(config_icon)
+        header_layout.add_widget(header_label)
+        config_card.add_widget(header_layout)
+        
+        # Data summary with sample size adequacy
+        sample_size = project_variables.get('sample_size', 'N/A')
+        variable_count = project_variables.get('variable_count', 'N/A')
+        sample_adequacy = project_variables.get('sample_size_analysis', {})
+        
+        # Get adequacy status and guidance
+        adequacy_status = sample_adequacy.get('adequacy_status', 'unknown')
+        adequacy_score = sample_adequacy.get('adequacy_score', 0.0)
+        general_guidance = sample_adequacy.get('summary', {}).get('general_guidance', 'Sample size assessment unavailable')
+        
+        # Status emoji based on adequacy
+        status_emoji = {
+            'excellent': '🌟',
+            'adequate': '✅', 
+            'marginal': '⚠️',
+            'insufficient': '❌',
+            'unknown': '❓'
+        }.get(adequacy_status, '❓')
+        
+        summary_text = f"""📊 Dataset: {sample_size:,} responses across {variable_count} variables
+
+{status_emoji} Sample Adequacy: {adequacy_status.title()} (Score: {adequacy_score:.1f}/1.0)
+💡 Guidance: {general_guidance}
+
+📈 Numeric Variables: {len(project_variables.get('numeric_variables', []))} (for statistical analysis)
+🏷️ Categorical Variables: {len(project_variables.get('categorical_variables', []))} (for frequency analysis)
+📝 Text Variables: {len(project_variables.get('text_variables', []))} (for content analysis)
+📅 Date/Time Variables: {len(project_variables.get('datetime_variables', []))} (for temporal analysis)"""
+        
+        summary_label = MDLabel(
+            text=summary_text,
+            font_style="Body1",
+            theme_text_color="Secondary",
+            size_hint_y=None,
+            height=dp(140)   # Increased from 120
+        )
+        config_card.add_widget(summary_label)
+        
+        # Analysis buttons
+        buttons_layout = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(16),  # Increased from 12
+            size_hint_y=None,
+            height=dp(52)    # Increased from 48
+        )
+        
+        basic_btn = MDRaisedButton(
+            text="📊 Basic Statistics",
+            size_hint_x=1,
+            height=dp(48),   # Increased from 40
+            md_bg_color=(0.2, 0.6, 1.0, 1),
+            font_size="15sp", # Increased from 14sp
+            on_release=lambda x: self._run_basic_statistics()
+        )
+        
+        comprehensive_btn = MDRaisedButton(
+            text="🏆 Full Analysis",
+            size_hint_x=1,
+            height=dp(48),   # Increased from 40
+            md_bg_color=(0.8, 0.2, 0.8, 1),
+            font_size="15sp", # Increased from 14sp
+            on_release=lambda x: self._generate_comprehensive_report()
+        )
+        
+        buttons_layout.add_widget(basic_btn)
+        buttons_layout.add_widget(comprehensive_btn)
+        config_card.add_widget(buttons_layout)
+        
+        content.add_widget(config_card)
+        
+        # ADD SPACING BETWEEN CARDS
+        from kivymd.uix.widget import MDWidget
+        spacer = MDWidget(size_hint_y=None, height=dp(24))
+        content.add_widget(spacer)
+        
+        # 2. Results Card - if we have results
+        if 'analyses' in results:
+            results_card = self._create_fixed_height_results_card(results)
+            content.add_widget(results_card)
+        
+        print(f"[DEBUG] Descriptive analytics interface created successfully!")
+    
+    def _show_descriptive_selection_interface(self, project_id: str):
+        """Show descriptive analytics selection interface with manual options"""
+        print(f"[DEBUG] _show_descriptive_selection_interface called for project: {project_id}")
+        
+        # Use the helper method to get the content area
+        content = self.analytics_screen.get_tab_content('descriptive')
+        
+        if not content:
+            print(f"[DEBUG] ERROR: Could not get descriptive content area")
+            return
+        
+        print(f"[DEBUG] Successfully got descriptive content area, type: {type(content)}")
+            
+        content.clear_widgets()
+        
+        # Get project variables for context
+        project_variables = self.analytics_service.get_project_variables(project_id)
+        if 'error' in project_variables:
+            content.add_widget(self._create_error_state_card(f"Error loading project: {project_variables['error']}"))
+            return
+        
+        # Use improved heights and spacing for better tablet experience
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.card import MDCard
+        from kivymd.uix.boxlayout import MDBoxLayout
+        from kivymd.uix.button import MDRaisedButton, MDIconButton
+        from kivy.uix.gridlayout import GridLayout
+        
+        # 1. Header Card with Project Info - INCREASED HEIGHT AND PADDING
+        header_card = MDCard(
+            orientation="vertical",
+            size_hint_y=None,
+            height=dp(242),  # Increased by 10% from 220
+            padding=dp(32),  # Increased from 20
+            spacing=dp(16),  # Increased from 12
+            md_bg_color=(0.98, 0.99, 1.0, 1),
+            elevation=3,
+            radius=[16, 16, 16, 16]
+        )
+        
+        # Header
+        header_layout = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(16),  # Increased from 12
+            size_hint_y=None,
+            height=dp(48)    # Increased from 40
+        )
+        
+        desc_icon = MDIconButton(
+            icon="chart-line",
+            theme_icon_color="Custom",
+            icon_color=(0.2, 0.6, 1.0, 1),
+            disabled=True,
+            size_hint_x=None,
+            width=dp(56),    # Increased from 48
+            user_font_size="28sp"  # Increased from 24sp
+        )
+        
+        header_label = MDLabel(
+            text="📊 Descriptive Analytics Selection",
+            font_style="H5",
+            theme_text_color="Primary",
+            bold=True
+        )
+        
+        header_layout.add_widget(desc_icon)
+        header_layout.add_widget(header_label)
+        header_card.add_widget(header_layout)
+        
+        # Project info with sample size adequacy
+        sample_size = project_variables.get('sample_size', 'N/A')
+        variable_count = project_variables.get('variable_count', 'N/A')
+        numeric_vars = len(project_variables.get('numeric_variables', []))
+        categorical_vars = len(project_variables.get('categorical_variables', []))
+        text_vars = len(project_variables.get('text_variables', []))
+        
+        # Get sample size adequacy info
+        sample_adequacy = project_variables.get('sample_size_analysis', {})
+        adequacy_status = sample_adequacy.get('adequacy_status', 'unknown')
+        adequate_for = sample_adequacy.get('summary', {}).get('adequate_for', 0)
+        tests_assessed = sample_adequacy.get('summary', {}).get('tests_assessed', 0)
+        
+        # Status emoji
+        status_emoji = {
+            'excellent': '🌟',
+            'adequate': '✅', 
+            'marginal': '⚠️',
+            'insufficient': '❌',
+            'unknown': '❓'
+        }.get(adequacy_status, '❓')
+        
+        info_text = f"""📊 Dataset: {sample_size:,} responses across {variable_count} variables
+
+📈 Numeric: {numeric_vars} | 🏷️ Categorical: {categorical_vars} | 📝 Text: {text_vars}
+
+{status_emoji} Sample Adequacy: {adequacy_status.title()} ({adequate_for}/{tests_assessed} tests have adequate power)
+
+Select the descriptive analysis you want to run:"""
+        
+        info_label = MDLabel(
+            text=info_text,
+            font_style="Body1",
+            theme_text_color="Secondary",
+            size_hint_y=None,
+            height=dp(120)  # Increased from 100
+        )
+        header_card.add_widget(info_label)
+        
+        content.add_widget(header_card)
+        
+        # ADD SPACING BETWEEN CARDS
+        from kivymd.uix.widget import MDWidget
+        spacer1 = MDWidget(size_hint_y=None, height=dp(24))
+        content.add_widget(spacer1)
+        
+        # 2. Analysis Options Grid - INCREASED HEIGHT AND PADDING
+        options_card = MDCard(
+            orientation="vertical",
+            size_hint_y=None,
+            height=dp(900),  # Increased by 10% and adjusted for larger cards (was 480)
+            padding=dp(32),  # Increased from 20
+            spacing=dp(20),  # Increased from 16
+            md_bg_color=(1.0, 1.0, 1.0, 1),
+            elevation=2,
+            radius=[16, 16, 16, 16]
+        )
+        
+        options_title = MDLabel(
+            text="🎯 Available Descriptive Analytics",
+            font_style="H6",
+            theme_text_color="Primary",
+            bold=True,
+            size_hint_y=None,
+            height=dp(40)  # Increased from 32
+        )
+        options_card.add_widget(options_title)
+        
+        # Options grid (2 columns for tablets)
+        options_grid = GridLayout(
+            cols=2,
+            spacing=dp(16),  # Increased from 12
+            size_hint_y=None,
+            height=dp(800)   # Adjusted for 150% larger cards (3 rows * 450 + spacing)
+        )
+        
+        # Define descriptive analytics options
+        analysis_options = [
+            {
+                'name': 'Basic Statistics',
+                'icon': '📊',
+                'description': 'Mean, median, std dev, percentiles',
+                'endpoint': 'basic-statistics',
+                'color': (0.2, 0.6, 1.0, 1),
+                'suitable_for': f'All {numeric_vars} numeric variables'
+            },
+            {
+                'name': 'Distribution Analysis', 
+                'icon': '📈',
+                'description': 'Normality tests, skewness, kurtosis',
+                'endpoint': 'distributions',
+                'color': (1.0, 0.6, 0.2, 1),
+                'suitable_for': f'{numeric_vars} numeric variables'
+            },
+            {
+                'name': 'Categorical Analysis',
+                'icon': '🏷️', 
+                'description': 'Frequencies, cross-tabs, chi-square',
+                'endpoint': 'categorical',
+                'color': (0.2, 0.8, 0.6, 1),
+                'suitable_for': f'{categorical_vars} categorical variables'
+            },
+            {
+                'name': 'Outlier Detection',
+                'icon': '🎯',
+                'description': 'IQR, Z-score, isolation forest methods',
+                'endpoint': 'outliers', 
+                'color': (0.8, 0.2, 0.6, 1),
+                'suitable_for': f'{numeric_vars} numeric variables'
+            },
+            {
+                'name': 'Missing Data Analysis',
+                'icon': '❓',
+                'description': 'Missing patterns and correlations',
+                'endpoint': 'missing-data',
+                'color': (0.6, 0.4, 0.8, 1),
+                'suitable_for': 'All variables with missing data'
+            },
+            {
+                'name': 'Data Quality Check',
+                'icon': '🛡️',
+                'description': 'Completeness, consistency, validity',
+                'endpoint': 'data-quality',
+                'color': (0.4, 0.8, 0.2, 1),
+                'suitable_for': 'All variables quality assessment'
+            }
+        ]
+        
+        # Create option cards
+        for option in analysis_options:
+            option_card = self._create_analysis_option_card(project_id, option)
+            options_grid.add_widget(option_card)
+        
+        options_card.add_widget(options_grid)
+        content.add_widget(options_card)
+        
+        # ADD SPACING BETWEEN CARDS - Increased to prevent overlap
+        spacer2 = MDWidget(size_hint_y=None, height=dp(48))
+        content.add_widget(spacer2)
+        
+        # 3. Quick Actions Card - INCREASED HEIGHT AND PADDING
+        quick_actions_card = MDCard(
+            orientation="vertical",
+            size_hint_y=None,
+            height=dp(154),  # Increased by 10% from 140
+            padding=dp(32),  # Increased from 20
+            spacing=dp(16),  # Increased from 12
+            md_bg_color=(0.99, 1.0, 0.98, 1),
+            elevation=2,
+            radius=[16, 16, 16, 16]
+        )
+        
+        actions_title = MDLabel(
+            text="⚡ Quick Actions",
+            font_style="H6",
+            theme_text_color="Primary",
+            bold=True,
+            size_hint_y=None,
+            height=dp(40)  # Increased from 32
+        )
+        quick_actions_card.add_widget(actions_title)
+        
+        actions_layout = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(16),  # Increased from 12
+            size_hint_y=None,
+            height=dp(52)    # Increased from 48
+        )
+        
+        comprehensive_btn = MDRaisedButton(
+            text="🏆 Generate Full Report",
+            size_hint_x=2,
+            height=dp(48),   # Increased from 44
+            md_bg_color=(0.8, 0.2, 0.8, 1),
+            font_size="15sp", # Increased from 14sp
+            on_release=lambda x: self._run_comprehensive_report(project_id)
+        )
+        
+        variables_btn = MDRaisedButton(
+            text="🎯 Sample Size Guide",
+            size_hint_x=1,
+            height=dp(48),   # Increased from 44
+            md_bg_color=(0.2, 0.8, 0.6, 1),
+            font_size="15sp", # Increased from 14sp
+            on_release=lambda x: self._show_sample_size_recommendations(project_id)
+        )
+        
+        actions_layout.add_widget(comprehensive_btn)
+        actions_layout.add_widget(variables_btn)
+        quick_actions_card.add_widget(actions_layout)
+        
+        content.add_widget(quick_actions_card)
+        
+        print(f"[DEBUG] Descriptive selection interface created successfully!")
+    
+    def _create_analysis_option_card(self, project_id: str, option: Dict):
+        """Create an individual analysis option card"""
+        option_card = MDCard(
+            orientation="vertical",
+            padding=dp(20),  # Increased from 16
+            spacing=dp(12),  # Increased from 8
+            size_hint_y=None,
+            height=dp(240),  # Increased by 150% from 180 (180 * 2.5 = 450)
+            elevation=2,
+            md_bg_color=(1, 1, 1, 1),
+            radius=[12, 12, 12, 12]
+        )
+        
+        # Header with icon and name
+        header_layout = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(12),  # Increased from 8
+            size_hint_y=None,
+            height=dp(40)    # Increased for larger cards
+        )
+        
+        icon_label = MDLabel(
+            text=option['icon'],
+            font_style="H4",  # Larger font for bigger card
+            size_hint_x=None,
+            width=dp(40)     # Increased for larger cards
+        )
+        
+        name_label = MDLabel(
+            text=option['name'],
+            font_style="Subtitle1",
+            theme_text_color="Primary",
+            bold=True
+        )
+        
+        header_layout.add_widget(icon_label)
+        header_layout.add_widget(name_label)
+        option_card.add_widget(header_layout)
+        
+        # Description
+        desc_label = MDLabel(
+            text=option['description'],
+            font_style="Body1",  # Larger font for bigger card
+            theme_text_color="Secondary",
+            size_hint_y=None,
+            height=dp(60)    # Increased for larger cards
+        )
+        option_card.add_widget(desc_label)
+        
+        # Suitable for
+        suitable_label = MDLabel(
+            text=f"📋 {option['suitable_for']}",
+            font_style="Body2",  # Larger font for bigger card
+            theme_text_color="Secondary",
+            size_hint_y=None,
+            height=dp(42)    # Increased for larger cards
+        )
+        option_card.add_widget(suitable_label)
+        
+        # Run button
+        run_button = MDRaisedButton(
+            text=f"▶️ Run {option['name']}",
+            size_hint_y=None,
+            height=dp(48),   # Increased for larger cards
+            md_bg_color=option['color'],
+            font_size="16sp", # Increased font size for larger card
+            on_release=lambda x, endpoint=option['endpoint']: self._run_specific_analysis(project_id, endpoint, option['name'])
+        )
+        option_card.add_widget(run_button)
+        
+        return option_card
+    
+    def _run_specific_analysis(self, project_id: str, endpoint: str, analysis_name: str):
+        """Run a specific descriptive analysis"""
+        print(f"[DEBUG] Running {analysis_name} analysis for project {project_id}")
+        toast(f"🔄 Running {analysis_name}...")
+        
+        self.analytics_screen.set_loading(True)
+        threading.Thread(
+            target=self._specific_analysis_thread,
+            args=(project_id, endpoint, analysis_name),
+            daemon=True
+        ).start()
+    
+    def _specific_analysis_thread(self, project_id: str, endpoint: str, analysis_name: str):
+        """Background thread for specific analysis"""
+        try:
+            # Call the appropriate analytics service method
+            if endpoint == 'basic-statistics':
+                results = self.analytics_service.run_basic_statistics(project_id)
+            elif endpoint == 'distributions':
+                results = self.analytics_service.run_distribution_analysis(project_id)
+            elif endpoint == 'categorical':
+                results = self.analytics_service.run_categorical_analysis(project_id)
+            elif endpoint == 'outliers':
+                results = self.analytics_service.run_outlier_analysis(project_id)
+            elif endpoint == 'missing-data':
+                results = self.analytics_service.run_missing_data_analysis(project_id)
+            elif endpoint == 'data-quality':
+                results = self.analytics_service.run_data_quality_analysis(project_id)
+            else:
+                results = {'error': f'Unknown analysis endpoint: {endpoint}'}
+            
+            Clock.schedule_once(
+                lambda dt: self._display_specific_analysis_results(results, analysis_name), 0
+            )
+        except Exception as e:
+            print(f"Error in {analysis_name} analysis: {e}")
+            Clock.schedule_once(
+                lambda dt: toast(f"❌ {analysis_name} analysis failed"), 0
+            )
+            Clock.schedule_once(
+                lambda dt: self.analytics_screen.show_error(f"{analysis_name} analysis failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.analytics_screen.set_loading(False), 0
+            )
+    
+    def _display_specific_analysis_results(self, results: Dict, analysis_name: str):
+        """Display results from specific analysis"""
+        print(f"[DEBUG] Displaying {analysis_name} results: {type(results)}")
+        
+        if 'error' in results:
+            toast(f"❌ {analysis_name}: {results['error']}")
+            return
+        
+        # Create a results dialog for now (can be enhanced later)
+        from kivymd.uix.dialog import MDDialog
+        from kivymd.uix.button import MDFlatButton
+        from kivymd.uix.scrollview import MDScrollView
+        
+        # Format results for display
+        results_text = self._format_analysis_results(results, analysis_name)
+        
+        results_content = MDScrollView(size_hint=(1, 1))
+        results_label = MDLabel(
+            text=results_text,
+            font_style="Body2",
+            theme_text_color="Secondary",
+            text_size=(None, None),
+            size_hint_y=None
+        )
+        results_label.bind(texture_size=results_label.setter('size'))
+        results_content.add_widget(results_label)
+        
+        results_dialog = MDDialog(
+            title=f"📊 {analysis_name} Results",
+            type="custom",
+            content_cls=results_content,
+            size_hint=(0.9, 0.8),
+            buttons=[
+                MDFlatButton(
+                    text="Close",
+                    font_size="16sp",
+                    on_release=lambda x: results_dialog.dismiss()
+                ),
+                MDRaisedButton(
+                    text="📤 Export",
+                    font_size="16sp",
+                    on_release=lambda x: self._export_analysis_results(results, analysis_name)
+                )
+            ]
+        )
+        
+        results_dialog.open()
+        toast(f"✅ {analysis_name} completed successfully!")
+    
+    def _format_analysis_results(self, results: Dict, analysis_name: str) -> str:
+        """Format analysis results for display"""
+        if not results or 'error' in results:
+            return f"❌ {analysis_name} failed: {results.get('error', 'Unknown error')}"
+        
+        formatted_text = f"✅ {analysis_name} Results\n\n"
+        
+        # Add summary if available
+        if 'summary' in results:
+            summary = results['summary']
+            formatted_text += "📋 Summary:\n"
+            for key, value in summary.items():
+                formatted_text += f"  • {key.replace('_', ' ').title()}: {value}\n"
+            formatted_text += "\n"
+        
+        # Add main results (truncated for display)
+        main_keys = [k for k in results.keys() if k not in ['summary', 'error']]
+        if main_keys:
+            formatted_text += "📊 Analysis Results:\n"
+            for key in main_keys[:5]:  # Limit to first 5 keys
+                formatted_text += f"  • {key.replace('_', ' ').title()}: Available\n"
+            
+            if len(main_keys) > 5:
+                formatted_text += f"  • ... and {len(main_keys) - 5} more result sections\n"
+        
+        formatted_text += f"\n📤 Full results can be exported for detailed analysis."
+        
+        return formatted_text
+    
+    def _run_comprehensive_report(self, project_id: str):
+        """Run comprehensive report generation"""
+        toast("🏆 Generating comprehensive report...")
+        self.analytics_screen.set_loading(True)
+        
+        threading.Thread(
+            target=self._comprehensive_report_thread,
+            args=(project_id,),
+            daemon=True
+        ).start()
+    
+    def _comprehensive_report_thread(self, project_id: str):
+        """Background thread for comprehensive report"""
+        try:
+            results = self.analytics_service.generate_comprehensive_report(project_id, include_plots=True)
+            Clock.schedule_once(
+                lambda dt: self._display_specific_analysis_results(results, "Comprehensive Report"), 0
+            )
+        except Exception as e:
+            Clock.schedule_once(
+                lambda dt: toast("❌ Comprehensive report generation failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.analytics_screen.set_loading(False), 0
+            )
+    
+    def _show_variable_selection(self, project_id: str):
+        """Show variable selection dialog"""
+        toast("🎯 Variable selection - coming soon!")
+    
+    def _show_sample_size_recommendations(self, project_id: str):
+        """Show detailed sample size recommendations dialog"""
+        # Get project variables with sample size analysis
+        project_variables = self.analytics_service.get_project_variables(project_id)
+        if 'error' in project_variables:
+            toast(f"❌ Error loading sample size analysis: {project_variables['error']}")
+            return
+        
+        sample_adequacy = project_variables.get('sample_size_analysis', {})
+        recommendations = sample_adequacy.get('recommendations', {})
+        
+        if not recommendations:
+            toast("📊 No sample size recommendations available")
+            return
+        
+        # Create recommendations content
+        from kivymd.uix.dialog import MDDialog
+        from kivymd.uix.button import MDFlatButton, MDRaisedButton
+        from kivymd.uix.scrollview import MDScrollView
+        from kivymd.uix.boxlayout import MDBoxLayout
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.card import MDCard
+        from kivy.metrics import dp
+        
+        # Content container
+        content_container = MDScrollView(size_hint=(1, 1))
+        
+        content_layout = MDBoxLayout(
+            orientation="vertical",
+            spacing=dp(16),
+            size_hint_y=None,
+            adaptive_height=True,
+            padding=[dp(20), dp(20), dp(20), dp(20)]
+        )
+        
+        # Header info
+        current_size = sample_adequacy.get('current_size', 0)
+        adequacy_status = sample_adequacy.get('adequacy_status', 'unknown')
+        adequacy_score = sample_adequacy.get('adequacy_score', 0.0)
+        
+        header_text = f"""📊 Sample Size Analysis for Your Dataset
+
+Current Sample Size: {current_size:,} participants
+Overall Adequacy: {adequacy_status.title()} (Score: {adequacy_score:.1f}/1.0)
+
+Below are the sample size requirements for different statistical tests:"""
+        
+        header_label = MDLabel(
+            text=header_text,
+            font_style="Body1",
+            theme_text_color="Secondary",
+            size_hint_y=None,
+            adaptive_height=True,
+            text_size=(None, None)
+        )
+        content_layout.add_widget(header_label)
+        
+        # Create cards for each recommendation
+        for test_type, rec in recommendations.items():
+            test_card = self._create_sample_size_recommendation_card(rec)
+            content_layout.add_widget(test_card)
+        
+        # General guidance
+        general_guidance = sample_adequacy.get('summary', {}).get('general_guidance', '')
+        if general_guidance:
+            guidance_card = MDCard(
+                orientation="vertical",
+                padding=dp(16),
+                spacing=dp(8),
+                size_hint_y=None,
+                height=dp(120),
+                md_bg_color=(0.95, 0.98, 1.0, 1),
+                elevation=2,
+                radius=[8, 8, 8, 8]
+            )
+            
+            guidance_title = MDLabel(
+                text="💡 General Recommendation",
+                font_style="H6",
+                theme_text_color="Primary",
+                bold=True,
+                size_hint_y=None,
+                height=dp(32)
+            )
+            
+            guidance_text = MDLabel(
+                text=general_guidance,
+                font_style="Body1",
+                theme_text_color="Secondary",
+                size_hint_y=None,
+                adaptive_height=True,
+                text_size=(None, None)
+            )
+            
+            guidance_card.add_widget(guidance_title)
+            guidance_card.add_widget(guidance_text)
+            content_layout.add_widget(guidance_card)
+        
+        content_container.add_widget(content_layout)
+        
+        # Create dialog
+        recommendations_dialog = MDDialog(
+            title="🎯 Sample Size Recommendations",
+            type="custom",
+            content_cls=content_container,
+            size_hint=(0.9, 0.8),
+            buttons=[
+                MDFlatButton(
+                    text="Close",
+                    font_size="16sp",
+                    on_release=lambda x: recommendations_dialog.dismiss()
+                ),
+                MDRaisedButton(
+                    text="📤 Export Analysis",
+                    font_size="16sp",
+                    on_release=lambda x: self._export_sample_size_analysis(sample_adequacy)
+                )
+            ]
+        )
+        
+        recommendations_dialog.open()
+    
+    def _create_sample_size_recommendation_card(self, recommendation: dict) -> MDCard:
+        """Create a card showing sample size recommendation for a specific test"""
+        from kivymd.uix.card import MDCard
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.boxlayout import MDBoxLayout
+        from kivy.metrics import dp
+        
+        test_type = recommendation.get('test_type', 'Unknown Test')
+        current_size = recommendation.get('current_size', 0)
+        adequacy = recommendation.get('adequacy', 'unknown')
+        rec_text = recommendation.get('recommendation', 'No recommendation available')
+        
+        # Determine card color based on adequacy
+        if adequacy == 'adequate':
+            card_color = (0.95, 1.0, 0.95, 1)  # Light green
+            status_emoji = '✅'
+        else:
+            card_color = (1.0, 0.98, 0.95, 1)  # Light orange
+            status_emoji = '⚠️'
+        
+        card = MDCard(
+            orientation="vertical",
+            padding=dp(16),
+            spacing=dp(12),
+            size_hint_y=None,
+            height=dp(160),
+            md_bg_color=card_color,
+            elevation=2,
+            radius=[8, 8, 8, 8]
+        )
+        
+        # Header
+        header_layout = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(8),
+            size_hint_y=None,
+            height=dp(32)
+        )
+        
+        status_label = MDLabel(
+            text=status_emoji,
+            font_style="H6",
+            size_hint_x=None,
+            width=dp(32)
+        )
+        
+        title_label = MDLabel(
+            text=f"{test_type} - {adequacy.title()}",
+            font_style="Subtitle1",
+            theme_text_color="Primary",
+            bold=True
+        )
+        
+        header_layout.add_widget(status_label)
+        header_layout.add_widget(title_label)
+        card.add_widget(header_layout)
+        
+        # Requirements info
+        if 'needed_for_medium_effect' in recommendation:
+            needed = recommendation['needed_for_medium_effect']
+            req_text = f"Current: {current_size:,} | Needed: {needed:,} | Status: {adequacy}"
+        elif 'minimum_needed' in recommendation:
+            needed = recommendation['minimum_needed']
+            req_text = f"Current: {current_size:,} | Minimum: {needed:,} | Status: {adequacy}"
+        else:
+            req_text = f"Current size: {current_size:,} | Status: {adequacy}"
+        
+        req_label = MDLabel(
+            text=req_text,
+            font_style="Caption",
+            theme_text_color="Secondary",
+            size_hint_y=None,
+            height=dp(24)
+        )
+        card.add_widget(req_label)
+        
+        # Recommendation text
+        rec_label = MDLabel(
+            text=rec_text,
+            font_style="Body2",
+            theme_text_color="Secondary",
+            size_hint_y=None,
+            adaptive_height=True,
+            text_size=(None, None)
+        )
+        card.add_widget(rec_label)
+        
+        return card
+    
+    def _export_sample_size_analysis(self, sample_adequacy: dict):
+        """Export sample size analysis results"""
+        try:
+            import json
+            analysis_json = json.dumps(sample_adequacy, indent=2, default=str)
+            toast("✅ Sample size analysis exported successfully!")
+            # In a real implementation, you'd save this to a file
+            print("Sample Size Analysis Export:")
+            print(analysis_json)
+        except Exception as e:
+            toast(f"❌ Export failed: {str(e)}")
+    
+    def _export_analysis_results(self, results: Dict, analysis_name: str):
+        """Export analysis results"""
+        try:
+            exported = self.analytics_service.export_analysis_results(results, 'json')
+            toast(f"✅ {analysis_name} results exported successfully!")
+        except Exception as e:
+            toast(f"❌ Export failed: {str(e)}")
+    
+    def _create_error_state_card(self, message: str):
+        """Create error state card"""
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.card import MDCard
+        from kivymd.uix.button import MDIconButton
+        
+        error_card = MDCard(
+            orientation="vertical",
+            size_hint_y=None,
+            height=dp(264),  # Increased by 10% from 240
+            padding=dp(32),  # Increased from 20
+            spacing=dp(20),  # Increased from 16
+            md_bg_color=(1, 0.95, 0.95, 1),
+            elevation=2,
+            radius=[16, 16, 16, 16]
+        )
+        
+        error_icon = MDIconButton(
+            icon="alert-circle",
+            theme_icon_color="Custom",
+            icon_color=(0.8, 0.2, 0.2, 1),
+            disabled=True,
+            size_hint_x=None,
+            width=dp(72),    # Increased from 64
+            user_font_size="56sp"  # Increased from 48sp
+        )
+        
+        error_label = MDLabel(
+            text=message,
+            font_style="Body1",
+            theme_text_color="Custom",
+            text_color=(0.8, 0.2, 0.2, 1),
+            halign="center",
+            size_hint_y=None,
+            height=dp(100)   # Increased from 80
+        )
+        
+        error_card.add_widget(error_icon)
+        error_card.add_widget(error_label)
+        
+        return error_card
+    
+    def _show_initial_descriptive_interface(self, project_id: str):
+        """Show initial descriptive analytics interface immediately"""
+        print(f"[DEBUG] _show_initial_descriptive_interface called for project: {project_id}")
+        
+        # Use the helper method to get the content area
+        content = self.analytics_screen.get_tab_content('descriptive')
+        
+        if not content:
+            print(f"[DEBUG] ERROR: Could not get descriptive content area")
+            return
+            
+        content.clear_widgets()
+        
+        # Use fixed-height approach for immediate display
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.card import MDCard
+        from kivymd.uix.boxlayout import MDBoxLayout
+        from kivymd.uix.button import MDRaisedButton, MDIconButton
+        
+        # 1. Initial Interface Card (Fixed Height)  
+        initial_card = MDCard(
+            orientation="vertical",
+            size_hint_y=None,
+            height=dp(330),  # Increased by 10% from 300
+            padding=dp(20),
+            spacing=dp(16),
+            md_bg_color=(0.98, 0.99, 1.0, 1),
+            elevation=3,
+            radius=[16, 16, 16, 16]
+        )
+        
+        # Header
+        header_layout = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(12),
+            size_hint_y=None,
+            height=dp(48)
+        )
+        
+        desc_icon = MDIconButton(
+            icon="chart-line",
+            theme_icon_color="Custom",
+            icon_color=(0.2, 0.6, 1.0, 1),
+            disabled=True,
+            size_hint_x=None,
+            width=dp(48),
+            user_font_size="24sp"
+        )
+        
+        header_label = MDLabel(
+            text="📊 Descriptive Analytics",
+            font_style="H5",
+            theme_text_color="Primary",
+            bold=True
+        )
+        
+        header_layout.add_widget(desc_icon)
+        header_layout.add_widget(header_label)
+        initial_card.add_widget(header_layout)
+        
+        # Status message
+        status_text = f"""🔄 Preparing Descriptive Analysis...
+
+📊 Loading project data and variables
+📈 Calculating statistical measures  
+🎯 Generating comprehensive insights
+
+Please wait while we analyze your data."""
+        
+        status_label = MDLabel(
+            text=status_text,
+            font_style="Body1",
+            theme_text_color="Secondary",
+            size_hint_y=None,
+            height=dp(160)
+        )
+        initial_card.add_widget(status_label)
+        
+        # Quick action buttons (disabled during loading)
+        buttons_layout = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(12),
+            size_hint_y=None,
+            height=dp(48)
+        )
+        
+        config_btn = MDRaisedButton(
+            text="⚙️ Configuration",
+            size_hint_x=1,
+            height=dp(40),
+            md_bg_color=(0.6, 0.6, 0.6, 1),
+            font_size="14sp",
+            disabled=True
+        )
+        
+        preview_btn = MDRaisedButton(
+            text="👁️ Preview Data",
+            size_hint_x=1,
+            height=dp(40),
+            md_bg_color=(0.6, 0.6, 0.6, 1),
+            font_size="14sp",
+            disabled=True
+        )
+        
+        buttons_layout.add_widget(config_btn)
+        buttons_layout.add_widget(preview_btn)
+        initial_card.add_widget(buttons_layout)
+        
+        content.add_widget(initial_card)
+        print(f"[DEBUG] Initial descriptive interface created successfully!")
+    
+    def _create_fixed_height_results_card(self, results):
+        """Create fixed-height results card for descriptive analytics"""
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.card import MDCard
+        from kivymd.uix.boxlayout import MDBoxLayout
+        from kivymd.uix.button import MDRaisedButton, MDIconButton
+        
+        results_card = MDCard(
+            orientation="vertical",
+            size_hint_y=None,
+            height=dp(374),  # Increased by 10% from 340
+            padding=dp(32),  # Increased from 20
+            spacing=dp(16),  # Increased from 12
+            md_bg_color=(1.0, 0.99, 0.97, 1),
+            elevation=3,
+            radius=[16, 16, 16, 16]
+        )
+        
+        # Header
+        header_layout = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(16),  # Increased from 12
+            size_hint_y=None,
+            height=dp(48)    # Increased from 40
+        )
+        
+        results_icon = MDIconButton(
+            icon="chart-bar",
+            theme_icon_color="Custom",
+            icon_color=(1.0, 0.6, 0.0, 1),
+            disabled=True,
+            size_hint_x=None,
+            width=dp(56),    # Increased from 48
+            user_font_size="28sp"  # Increased from 24sp
+        )
+        
+        header_label = MDLabel(
+            text="📊 Analysis Results",
+            font_style="H5",
+            theme_text_color="Primary",
+            bold=True
+        )
+        
+        header_layout.add_widget(results_icon)
+        header_layout.add_widget(header_label)
+        results_card.add_widget(header_layout)
+        
+        # Results summary
+        analyses = results.get('analyses', {})
+        analysis_count = len([k for k in analyses.keys() if 'error' not in analyses.get(k, {})])
+        
+        results_text = f"""✅ Analysis Complete!
+
+📊 Analyses Completed: {analysis_count}
+🎯 Results Available: {', '.join(analyses.keys())[:50]}{'...' if len(', '.join(analyses.keys())) > 50 else ''}
+
+Status: Ready for detailed review and export"""
+        
+        results_label = MDLabel(
+            text=results_text,
+            font_style="Body1",
+            theme_text_color="Secondary",
+            size_hint_y=None,
+            height=dp(160)   # Increased from 140
+        )
+        results_card.add_widget(results_label)
+        
+        # Action buttons
+        action_layout = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(16),  # Increased from 12
+            size_hint_y=None,
+            height=dp(52)    # Increased from 48
+        )
+        
+        view_btn = MDRaisedButton(
+            text="📊 View Details",
+            size_hint_x=1,
+            height=dp(48),   # Increased from 40
+            md_bg_color=(0.2, 0.8, 0.2, 1),
+            font_size="15sp", # Increased from 14sp
+            on_release=lambda x: self._show_detailed_results(results)
+        )
+        
+        export_btn = MDRaisedButton(
+            text="📤 Export",
+            size_hint_x=0.7,
+            height=dp(48),   # Increased from 40
+            md_bg_color=(0.6, 0.6, 0.6, 1),
+            font_size="15sp", # Increased from 14sp
+            on_release=lambda x: self._export_results("descriptive", results)
+        )
+        
+        action_layout.add_widget(view_btn)
+        action_layout.add_widget(export_btn)
+        results_card.add_widget(action_layout)
+        
+        return results_card
+    
+    def _show_detailed_results(self, results):
+        """Show detailed results in a dialog"""
+        toast("📊 Detailed results view - coming soon!")
     
     def _create_tablet_analysis_configuration(self, content, project_variables):
         """Create tablet-optimized analysis configuration interface"""
@@ -417,7 +1506,7 @@ class DescriptiveAnalyticsHandler:
             padding=dp(20),
             spacing=dp(16),
             size_hint_y=None,
-            height=dp(380),
+            height=dp(418),  # Increased by 10% from 380
             elevation=3,
             md_bg_color=(1.0, 0.99, 0.97, 1),
             radius=[12, 12, 12, 12]
@@ -534,7 +1623,7 @@ class DescriptiveAnalyticsHandler:
             padding=dp(20),
             spacing=dp(16),
             size_hint_y=None,
-            height=dp(380),
+            height=dp(418),  # Increased by 10% from 380
             elevation=3,
             md_bg_color=(0.99, 1.0, 0.97, 1),
             radius=[12, 12, 12, 12]
@@ -693,7 +1782,7 @@ class DescriptiveAnalyticsHandler:
             padding=dp(20),
             spacing=dp(16),
             size_hint_y=None,
-            height=dp(380),
+            height=dp(418),  # Increased by 10% from 380
             elevation=3,
             md_bg_color=(0.97, 0.99, 1.0, 1),
             radius=[12, 12, 12, 12]
@@ -895,7 +1984,7 @@ class DescriptiveAnalyticsHandler:
             padding=dp(20),
             spacing=dp(16),
             size_hint_y=None,
-            height=dp(380),
+            height=dp(418),  # Increased by 10% from 380
             elevation=1,
             md_bg_color=(0.98, 0.98, 0.98, 1),
             radius=[12, 12, 12, 12]
@@ -936,7 +2025,7 @@ class DescriptiveAnalyticsHandler:
             padding=self.TABLET_PADDING,
             spacing=self.TABLET_SPACING,
             size_hint_y=None,
-            height=dp(300),
+            height=dp(330),  # Increased by 10% from 300
             elevation=2,
             md_bg_color=(1, 0.95, 0.95, 1),
             radius=[16, 16, 16, 16]

@@ -447,7 +447,8 @@ class AnalyticsService:
                 'text_variables': char_data.get('text_variables', []),
                 'datetime_variables': char_data.get('datetime_variables', []),
                 'variable_count': char_data.get('variable_count', 0),
-                'sample_size': char_data.get('sample_size', 0)
+                'sample_size': char_data.get('sample_size', 0),
+                'sample_size_analysis': char_data.get('sample_size_analysis', {})
             }
             
             # Combine all variables

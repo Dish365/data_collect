@@ -779,32 +779,70 @@ def auto_analyze_descriptive_data(data: pd.DataFrame,
     Returns:
         Dictionary with comprehensive analysis and recommendations
     """
-    detector = DescriptiveAutoDetector()
-    
-    # Get data characteristics
-    characteristics = detector.detect_data_characteristics(data, variable_metadata)
-    
-    # Get analysis suggestions
-    suggestions = detector.suggest_descriptive_analyses(data, variable_metadata, analysis_goals)
-    
-    # Generate report
-    report = detector.generate_analysis_report(data, variable_metadata)
-    
-    # Get the first primary recommendation method name
-    first_method = 'basic_statistics'  # default
-    if suggestions['primary_recommendations']:
-        first_rec = suggestions['primary_recommendations'][0]
-        if hasattr(first_rec, 'method'):
-            first_method = first_rec.method
-        else:
-            first_method = first_rec.get('method', 'basic_statistics')
-    
-    return {
-        'data_characteristics': characteristics,
-        'analysis_suggestions': suggestions,
-        'analysis_report': report,
-        'recommended_configuration': detector.auto_configure_analysis(first_method, data)
-    }
+    try:
+        # Validate input data
+        if not isinstance(data, pd.DataFrame):
+            return {'error': f'Expected DataFrame, got {type(data)}'}
+        
+        if data.empty:
+            return {'error': 'DataFrame is empty'}
+        
+        logger.debug(f"Starting auto-analysis for DataFrame with shape: {data.shape}")
+        
+        detector = DescriptiveAutoDetector()
+        
+        # Get data characteristics with error handling
+        try:
+            characteristics = detector.detect_data_characteristics(data, variable_metadata)
+        except Exception as e:
+            logger.error(f"Error detecting data characteristics: {e}")
+            return {'error': f'Failed to analyze data characteristics: {str(e)}'}
+        
+        # Get analysis suggestions with error handling
+        try:
+            suggestions = detector.suggest_descriptive_analyses(data, variable_metadata, analysis_goals)
+        except Exception as e:
+            logger.error(f"Error generating analysis suggestions: {e}")
+            return {'error': f'Failed to generate analysis suggestions: {str(e)}'}
+        
+        # Generate report with error handling
+        try:
+            report = detector.generate_analysis_report(data, variable_metadata)
+        except Exception as e:
+            logger.error(f"Error generating analysis report: {e}")
+            report = "Report generation failed"
+        
+        # Get the first primary recommendation method name
+        first_method = 'basic_statistics'  # default
+        try:
+            if suggestions and 'primary_recommendations' in suggestions and suggestions['primary_recommendations']:
+                first_rec = suggestions['primary_recommendations'][0]
+                if hasattr(first_rec, 'method'):
+                    first_method = first_rec.method
+                elif isinstance(first_rec, dict):
+                    first_method = first_rec.get('method', 'basic_statistics')
+        except Exception as e:
+            logger.debug(f"Error getting first method: {e}")
+        
+        # Auto-configure analysis with error handling
+        try:
+            recommended_config = detector.auto_configure_analysis(first_method, data)
+        except Exception as e:
+            logger.error(f"Error auto-configuring analysis: {e}")
+            recommended_config = {'error': f'Configuration failed: {str(e)}'}
+        
+        return {
+            'data_characteristics': characteristics,
+            'analysis_suggestions': suggestions,
+            'analysis_report': report,
+            'recommended_configuration': recommended_config
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in auto_analyze_descriptive_data: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return {'error': f'Auto-analysis failed: {str(e)}'}
 
 def quick_descriptive_recommendation(data: pd.DataFrame, analysis_type: str = 'auto') -> str:
     """

@@ -445,61 +445,86 @@ class StandardizedDataProfiler:
     
     def _classify_variable_type(self, series: pd.Series) -> DataType:
         """Classify a single variable's type."""
-        # Remove missing values for analysis
-        clean_series = series.dropna()
-        
-        if len(clean_series) == 0:
-            return DataType.EMPTY
-        
-        # Check for geographic coordinates
-        if any(geo_term in str(series.name).lower() for geo_term in ['lat', 'lon', 'latitude', 'longitude']) if series.name else False:
-            return DataType.GEOGRAPHIC
-        
-        # Check for datetime
-        if pd.api.types.is_datetime64_any_dtype(series):
-            return DataType.DATETIME
-        
-        # Check if binary
         try:
-            unique_vals = clean_series.unique()
-            if len(unique_vals) == 2:
-                return DataType.BINARY
-        except TypeError:
-            # Handle case where values are not hashable (like lists)
+            # Remove missing values for analysis
+            clean_series = series.dropna()
+            
+            if len(clean_series) == 0:
+                return DataType.EMPTY
+            
+            # Check for geographic coordinates
+            if series.name and any(geo_term in str(series.name).lower() for geo_term in ['lat', 'lon', 'latitude', 'longitude']):
+                return DataType.GEOGRAPHIC
+            
+            # Check for datetime
+            if pd.api.types.is_datetime64_any_dtype(series):
+                return DataType.DATETIME
+            
+            # Check if binary
             try:
-                # Convert to string and then get unique values
-                unique_vals = clean_series.astype(str).unique()
+                unique_vals = clean_series.unique()
                 if len(unique_vals) == 2:
                     return DataType.BINARY
-            except Exception:
-                # If all else fails, treat as text
-                return DataType.TEXT
-        
-        # Check if numeric
-        if pd.api.types.is_numeric_dtype(clean_series):
-            try:
-                # Check for continuous vs discrete
-                if len(unique_vals) > 20 or self._has_floating_point_values(clean_series):
-                    return DataType.NUMERIC_CONTINUOUS
-                else:
+            except (TypeError, ValueError) as e:
+                # Handle case where values are not hashable (like lists) or other type errors
+                logger.debug(f"Error getting unique values for binary check: {e}")
+                try:
+                    # Convert to string and then get unique values
+                    unique_vals = clean_series.astype(str).unique()
+                    if len(unique_vals) == 2:
+                        return DataType.BINARY
+                except Exception as e2:
+                    logger.debug(f"Error converting to string for binary check: {e2}")
+                    # If all else fails, treat as text
+                    return DataType.TEXT
+            
+            # Check if numeric
+            if pd.api.types.is_numeric_dtype(clean_series):
+                try:
+                    # Check for continuous vs discrete
+                    # Use the unique_vals from above if available, otherwise get them safely
+                    if 'unique_vals' not in locals():
+                        try:
+                            unique_vals = clean_series.unique()
+                        except Exception:
+                            # If we can't get unique values, default to continuous
+                            return DataType.NUMERIC_CONTINUOUS
+                    
+                    if len(unique_vals) > 20 or self._has_floating_point_values(clean_series):
+                        return DataType.NUMERIC_CONTINUOUS
+                    else:
+                        return DataType.NUMERIC_DISCRETE
+                except Exception as e:
+                    logger.debug(f"Error determining continuous vs discrete: {e}")
+                    # If there's an error determining continuous vs discrete, default to discrete
                     return DataType.NUMERIC_DISCRETE
-            except Exception:
-                # If there's an error determining continuous vs discrete, default to discrete
-                return DataType.NUMERIC_DISCRETE
-        
-        # Check if ordinal (ordered categorical)
-        if hasattr(series, 'cat') and series.cat.ordered:
-            return DataType.ORDINAL
-        
-        # Check if categorical
-        try:
-            if len(unique_vals) <= 50:
-                return DataType.CATEGORICAL
-            else:
+            
+            # Check if ordinal (ordered categorical)
+            if hasattr(series, 'cat') and series.cat.ordered:
+                return DataType.ORDINAL
+            
+            # Check if categorical
+            try:
+                # Get unique values safely
+                if 'unique_vals' not in locals():
+                    try:
+                        unique_vals = clean_series.unique()
+                    except Exception:
+                        # If we can't get unique values, treat as text
+                        return DataType.TEXT
+                
+                if len(unique_vals) <= 50:
+                    return DataType.CATEGORICAL
+                else:
+                    return DataType.TEXT
+            except Exception as e:
+                logger.debug(f"Error in categorical classification: {e}")
+                # If we can't determine unique values, default to text
                 return DataType.TEXT
-        except Exception:
-            # If we can't determine unique values, default to text
-            return DataType.TEXT
+                
+        except Exception as e:
+            logger.error(f"Error classifying variable type for series {series.name}: {e}")
+            return DataType.UNKNOWN
     
     def _has_floating_point_values(self, series: pd.Series) -> bool:
         """Check if series has floating point values."""
@@ -509,16 +534,24 @@ class StandardizedDataProfiler:
             # Additional safety check for complex data types
             if not pd.api.types.is_numeric_dtype(sample):
                 return False
+            
+            # Ensure we have actual values to check
+            if len(sample) == 0:
+                return False
                 
             for val in sample:
                 if pd.notnull(val) and isinstance(val, (int, float)):
                     try:
-                        if val != int(val):
+                        # Safely check if value is not equal to its integer conversion
+                        int_val = int(val)
+                        if float(val) != float(int_val):
                             return True
-                    except (ValueError, OverflowError):
+                    except (ValueError, OverflowError, TypeError):
+                        # If conversion fails, skip this value
                         continue
             return False
-        except Exception:
+        except Exception as e:
+            logger.debug(f"Error checking floating point values: {e}")
             return False
     
     def _calculate_missing_percentage(self, df: pd.DataFrame) -> float:

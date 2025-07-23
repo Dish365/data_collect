@@ -6,12 +6,52 @@
     padding: dp(8)
     spacing: dp(8)
 
-    MDIconButton:
-        icon: "view-dashboard"
-        theme_icon_color: "Custom"
-        icon_color: 1, 1, 1, 1
+    # Main navigation section
+    MDBoxLayout:
+        orientation: 'horizontal'
+        adaptive_size: True
+        spacing: dp(4)
         pos_hint: {"center_y": 0.5}
-        on_release: app.root.current = 'dashboard'
+
+        MDIconButton:
+            icon: "view-dashboard"
+            theme_icon_color: "Custom"
+            icon_color: 1, 1, 1, 1
+            pos_hint: {"center_y": 0.5}
+            on_release: root.navigate_to_screen('dashboard')
+            tooltip_text: "Dashboard"
+
+        MDIconButton:
+            icon: "folder-multiple"
+            theme_icon_color: "Custom"
+            icon_color: 1, 1, 1, 1
+            pos_hint: {"center_y": 0.5}
+            on_release: root.navigate_to_screen('projects')
+            tooltip_text: "Projects"
+
+        MDIconButton:
+            icon: "chart-line"
+            theme_icon_color: "Custom"
+            icon_color: 1, 1, 1, 1
+            pos_hint: {"center_y": 0.5}
+            on_release: root.navigate_to_screen('analytics')
+            tooltip_text: "Analytics"
+
+        MDIconButton:
+            icon: "clipboard-text"
+            theme_icon_color: "Custom"
+            icon_color: 1, 1, 1, 1
+            pos_hint: {"center_y": 0.5}
+            on_release: root.navigate_to_screen('data_collection')
+            tooltip_text: "Data Collection"
+
+        MDIconButton:
+            icon: "format-list-bulleted"
+            theme_icon_color: "Custom"
+            icon_color: 1, 1, 1, 1
+            pos_hint: {"center_y": 0.5}
+            on_release: root.navigate_to_screen('responses')
+            tooltip_text: "Responses"
 
     MDLabel:
         id: top_title
