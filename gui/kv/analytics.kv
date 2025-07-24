@@ -129,6 +129,22 @@
             # Tab styling for tablets
             tab_bar_height: dp(56)  # Larger tab bar
             
+            # Data Exploration Tab
+            DataExplorationTab:
+                title: "🔍 Explore Data"
+                icon: "table-search"
+                
+                MDScrollView:
+                    id: data_exploration_scroll
+                    
+                    MDBoxLayout:
+                        id: data_exploration_content
+                        orientation: 'vertical'
+                        spacing: dp(20)
+                        size_hint_y: None
+                        adaptive_height: True
+                        padding: [dp(16), dp(20), dp(16), dp(20)]
+            
             # Auto-Detection Tab
             AutoDetectionTab:
                 title: "🤖 Auto-Detection"
@@ -194,6 +210,9 @@
                         padding: [dp(16), dp(20), dp(16), dp(20)]
 
 # Custom Tab Classes with Tablet Optimizations
+<DataExplorationTab>:
+    id: data_exploration_tab
+
 <AutoDetectionTab>:
     id: auto_detection_tab
 

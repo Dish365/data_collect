@@ -25,6 +25,10 @@ class AnalyticsTab(MDBoxLayout, MDTabsBase):
     """Base class for analytics tab content - Tablet Optimized"""
     pass
 
+class DataExplorationTab(AnalyticsTab):
+    """Data exploration tab - Tablet Optimized"""
+    pass
+
 class AutoDetectionTab(AnalyticsTab):
     """Auto-detection and overview tab - Tablet Optimized"""
     pass
@@ -129,8 +133,14 @@ class AnalyticsScreen(Screen):
         from services.auto_detection_analytics import AutoDetectionAnalyticsHandler
         from services.descriptive_analytics import DescriptiveAnalyticsHandler
         from services.qualitative_analytics import QualitativeAnalyticsHandler
+        from services.data_exploration_service import DataExplorationService
         
         # Initialize handlers with tablet awareness
+        self.data_exploration_handler = DataExplorationService(
+            self.analytics_service, self
+        )
+        print(f"[DEBUG] Data exploration handler initialized")
+        
         self.auto_detection_handler = AutoDetectionAnalyticsHandler(
             self.analytics_service, self
         )
@@ -412,6 +422,7 @@ class AnalyticsScreen(Screen):
         print(f"[DEBUG] clean_tab_text after processing: '{clean_tab_text}'")
         
         tab_map = {
+            "Explore": "data_exploration",
             "Auto-Detection": "auto_detection",
             "Descriptive": "descriptive", 
             "Inferential": "inferential",
@@ -449,7 +460,7 @@ class AnalyticsScreen(Screen):
         """Manually switch to a specific tab (fallback method)"""
         print(f"[DEBUG] manual_switch_to_tab called for: {tab_name}")
         
-        if tab_name not in ["auto_detection", "descriptive", "inferential", "qualitative"]:
+        if tab_name not in ["data_exploration", "auto_detection", "descriptive", "inferential", "qualitative"]:
             print(f"[DEBUG] Invalid tab name: {tab_name}")
             return
         
@@ -498,6 +509,7 @@ class AnalyticsScreen(Screen):
                                 break
                     
                     tab_map = {
+                        "Explore": "data_exploration",
                         "Auto-Detection": "auto_detection",
                         "Descriptive": "descriptive", 
                         "Inferential": "inferential",
@@ -843,6 +855,25 @@ class AnalyticsScreen(Screen):
         return error_card
 
     # Enhanced analysis methods for tablets
+    def load_data_exploration(self):
+        """Load data exploration with tablet feedback"""
+        print(f"[DEBUG] load_data_exploration called")
+        print(f"[DEBUG] current_project_id: {self.current_project_id}")
+        print(f"[DEBUG] has data_exploration_handler: {hasattr(self, 'data_exploration_handler')}")
+        
+        if not self.current_project_id:
+            print(f"[DEBUG] No project selected, showing message")
+            self.show_select_project_message()
+            return
+        
+        if hasattr(self, 'data_exploration_handler'):
+            print(f"[DEBUG] Calling data_exploration_handler.explore_project_data")
+            toast("🔍 Loading data exploration...")
+            self.data_exploration_handler.explore_project_data(self.current_project_id)
+        else:
+            print(f"[DEBUG] ERROR: Data exploration handler not available")
+            toast("❌ Data exploration handler not available")
+
     def load_auto_detection(self):
         """Load auto-detection with tablet feedback"""
         print(f"[DEBUG] load_auto_detection called")
@@ -1104,7 +1135,10 @@ This powerful module will include:
             print(f"[DEBUG] No project ID available for loading tab content")
             return
             
-        if self.current_tab == "auto_detection":
+        if self.current_tab == "data_exploration":
+            print(f"[DEBUG] Loading data exploration content")
+            self.load_data_exploration()
+        elif self.current_tab == "auto_detection":
             print(f"[DEBUG] Loading auto-detection content")
             self.load_auto_detection()
         elif self.current_tab == "descriptive":
@@ -1137,6 +1171,7 @@ This powerful module will include:
             print(f"[DEBUG] Screen-level IDs available: {list(self.ids.keys())}")
             
             tab_content_map = {
+                'data_exploration': 'data_exploration_content',
                 'auto_detection': 'auto_detection_content',
                 'descriptive': 'descriptive_content', 
                 'inferential': 'inferential_content',

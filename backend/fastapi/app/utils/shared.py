@@ -121,10 +121,13 @@ class AnalyticsUtils:
     async def get_project_stats(project_id: str) -> Dict[str, Any]:
         """Get basic project statistics."""
         try:
-            return await get_project_stats(project_id)
+            stats = await get_project_stats(project_id)
+            if stats is None:
+                raise ValueError(f"Project {project_id} not found")
+            return stats
         except Exception as e:
             logger.error(f"Error getting project stats: {e}")
-            return {}
+            raise e  # Re-raise the exception so the endpoint can handle it
     
     @staticmethod
     def _prepare_dataframe(df: pd.DataFrame) -> pd.DataFrame:

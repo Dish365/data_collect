@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Dict, Any, List
 from datetime import datetime
+from asgiref.sync import sync_to_async
 
 from core.database import get_db
 from app.utils.shared import AnalyticsUtils
@@ -28,49 +29,70 @@ async def get_sync_status(
         Sync status information
     """
     try:
-        from core.database import get_django_db_connection
-        from projects.models import Project
-        from responses.models import Response
-        from forms.models import Question
-        
-        # Get sync statistics
-        if project_id:
-            # Specific project sync status
-            try:
-                project = Project.objects.get(id=project_id)
-                pending_responses = Response.objects.filter(
-                    project=project, 
-                    sync_status='pending'
-                ).count()
-                pending_questions = Question.objects.filter(
-                    project=project, 
-                    sync_status='pending'
-                ).count()
-                
-                return AnalyticsUtils.format_api_response('success', {
-                    'project_id': project_id,
-                    'project_name': project.name,
-                    'pending_responses': pending_responses,
-                    'pending_questions': pending_questions,
-                    'last_sync': project.updated_at.isoformat(),
-                    'sync_status': 'pending' if (pending_responses > 0 or pending_questions > 0) else 'synced'
-                })
-            except Project.DoesNotExist:
-                return AnalyticsUtils.format_api_response(
-                    'error', 
-                    None, 
-                    'Project not found'
-                )
-        else:
-            # Overall sync status
-            total_pending_responses = Response.objects.filter(sync_status='pending').count()
-            total_pending_questions = Question.objects.filter(sync_status='pending').count()
+        @sync_to_async
+        def get_sync_data():
+            from core.database import get_django_db_connection
+            from projects.models import Project
+            from responses.models import Response
+            from forms.models import Question
             
+            # Get sync statistics
+            if project_id:
+                # Specific project sync status
+                try:
+                    project = Project.objects.get(id=project_id)
+                    pending_responses = Response.objects.filter(
+                        project=project, 
+                        sync_status='pending'
+                    ).count()
+                    pending_questions = Question.objects.filter(
+                        project=project, 
+                        sync_status='pending'
+                    ).count()
+                    
+                    return {
+                        'type': 'project',
+                        'project_id': project_id,
+                        'project_name': project.name,
+                        'pending_responses': pending_responses,
+                        'pending_questions': pending_questions,
+                        'last_sync': project.updated_at.isoformat(),
+                        'sync_status': 'pending' if (pending_responses > 0 or pending_questions > 0) else 'synced'
+                    }
+                except Project.DoesNotExist:
+                    return {'type': 'error', 'message': 'Project not found'}
+            else:
+                # Overall sync status
+                total_pending_responses = Response.objects.filter(sync_status='pending').count()
+                total_pending_questions = Question.objects.filter(sync_status='pending').count()
+                
+                return {
+                    'type': 'overall',
+                    'total_pending_responses': total_pending_responses,
+                    'total_pending_questions': total_pending_questions,
+                    'overall_sync_status': 'pending' if (total_pending_responses > 0 or total_pending_questions > 0) else 'synced',
+                    'last_checked': datetime.now().isoformat()
+                }
+        
+        result = await get_sync_data()
+        
+        if result['type'] == 'error':
+            return AnalyticsUtils.format_api_response('error', None, result['message'])
+        elif result['type'] == 'project':
             return AnalyticsUtils.format_api_response('success', {
-                'total_pending_responses': total_pending_responses,
-                'total_pending_questions': total_pending_questions,
-                'overall_sync_status': 'pending' if (total_pending_responses > 0 or total_pending_questions > 0) else 'synced',
-                'last_checked': datetime.now().isoformat()
+                'project_id': result['project_id'],
+                'project_name': result['project_name'],
+                'pending_responses': result['pending_responses'],
+                'pending_questions': result['pending_questions'],
+                'last_sync': result['last_sync'],
+                'sync_status': result['sync_status']
+            })
+        else:  # overall
+            return AnalyticsUtils.format_api_response('success', {
+                'total_pending_responses': result['total_pending_responses'],
+                'total_pending_questions': result['total_pending_questions'],
+                'overall_sync_status': result['overall_sync_status'],
+                'last_checked': result['last_checked']
             })
             
     except Exception as e:

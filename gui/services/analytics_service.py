@@ -497,6 +497,48 @@ class AnalyticsService:
 
     # === Utility Methods ===
 
+    # === Data Exploration Methods ===
+
+    def explore_project_data(self, project_id: str, page: int = 1, page_size: int = 50, 
+                           search: str = None, question_filter: str = None,
+                           respondent_filter: str = None, date_from: str = None, 
+                           date_to: str = None) -> Dict:
+        """Explore project data with filtering and pagination"""
+        try:
+            import urllib.parse
+            
+            params = [('page', str(page)), ('page_size', str(page_size))]
+            if search:
+                params.append(('search', search))
+            if question_filter:
+                params.append(('question_filter', question_filter))
+            if respondent_filter:
+                params.append(('respondent_filter', respondent_filter))
+            if date_from:
+                params.append(('date_from', date_from))
+            if date_to:
+                params.append(('date_to', date_to))
+            
+            url = f'project/{project_id}/explore-data'
+            if params:
+                query_string = urllib.parse.urlencode(params)
+                url = f"{url}?{query_string}"
+            
+            result = self._make_analytics_request(url, method='GET')
+            return result
+            
+        except Exception as e:
+            return {'error': f'Data exploration failed: {str(e)}'}
+
+    def get_data_summary(self, project_id: str) -> Dict:
+        """Get quick data summary with types and samples"""
+        try:
+            result = self._make_analytics_request(f'project/{project_id}/data-summary')
+            return result
+            
+        except Exception as e:
+            return {'error': f'Data summary failed: {str(e)}'}
+
     def check_backend_health(self) -> Dict:
         """Check if analytics backend is available"""
         try:
@@ -553,7 +595,7 @@ class AnalyticsService:
                     r.response_metadata,
                     r.collected_at,
                     q.question_text,
-                    q.question_type,
+                    q.response_type,
                     q.options
                 FROM responses r
                 JOIN questions q ON r.question_id = q.id
