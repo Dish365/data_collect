@@ -93,7 +93,7 @@ class AnalyticsScreen(Screen):
         """Delayed initialization optimized for tablets"""
         # Set top bar title with tablet-appropriate styling
         if hasattr(self.ids, 'top_bar'):
-            self.ids.top_bar.set_title("📊 Analytics Dashboard")
+            self.ids.top_bar.set_title("Analytics Dashboard")
             self.ids.top_bar.set_current_screen('analytics')
         
         self.setup_analytics_service()
@@ -163,7 +163,7 @@ class AnalyticsScreen(Screen):
             conn = app.db_service.get_db_connection()
             
             if conn is None:
-                toast("📱 Database not initialized")
+                toast("Database not initialized")
                 return
                 
             cursor = conn.cursor()
@@ -210,7 +210,7 @@ class AnalyticsScreen(Screen):
             
             # Update project selector with tablet-friendly text
             if hasattr(self.ids, 'project_selector'):
-                self.ids.project_selector.text = "📊 Select Project for Analysis"
+                self.ids.project_selector.text = "Select Project for Analysis"
                 self.ids.project_selector.font_size = self.TABLET_FONT_SIZE
                 
         except Exception as e:
@@ -230,12 +230,12 @@ class AnalyticsScreen(Screen):
             content.clear_widgets()
             
             no_projects_card = self.create_tablet_empty_state_card(
-                title="🚀 Welcome to Analytics!",
+                title="Welcome to Analytics!",
                 message="To get started with data analysis:\n\n" +
-                        "1. 📝 Create a new project in the Projects tab\n" +
-                        "2. 📊 Add some survey questions\n" +
-                        "3. 📋 Collect responses from participants\n" +
-                        "4. 🔬 Return here for powerful analytics insights!",
+                        "1.  Create a new project in the Projects tab\n" +
+                        "2.  Add some survey questions\n" +
+                        "3.  Collect responses from participants\n" +
+                        "4.  Return here for powerful analytics insights!",
                 icon="chart-line",  # Updated to use consistent icon
                 action_text="Go to Projects",
                 action_callback=lambda: self.navigate_to_projects()
@@ -255,7 +255,7 @@ class AnalyticsScreen(Screen):
             content.clear_widgets()
             
             welcome_card = self.create_tablet_empty_state_card(
-                title="📊 Analytics Dashboard",
+                title="Analytics Dashboard",
                 message="Welcome to your data analytics workspace!\n\n" +
                         f"You have {len(self.project_list)} project(s) available.\n" +
                         "Select a project above to begin analyzing your data.",
@@ -273,15 +273,15 @@ class AnalyticsScreen(Screen):
             self.project_menu.dismiss()
             
         if not self.project_list:
-            toast("📋 No projects available")
+            toast("No projects available")
             return
             
         menu_items = []
         for project in self.project_list:
             # Enhanced menu item text for tablets
-            item_text = f"📊 {project['name']}\n" + \
-                       f"📋 {project['response_count']} responses • " + \
-                       f"👥 {project['respondent_count']} respondents"
+            item_text = f"{project['name']}\n" + \
+                       f"{project['response_count']} responses • " + \
+                       f"{project['respondent_count']} respondents"
             
             menu_items.append({
                 "text": item_text,
@@ -309,7 +309,7 @@ class AnalyticsScreen(Screen):
         
         # Update project selector with enhanced text for tablets
         if hasattr(self.ids, 'project_selector'):
-            selector_text = f"📊 {project['name']}"
+            selector_text = f"{project['name']}"
             if project['response_count'] > 0:
                 selector_text += f" ({project['response_count']} responses)"
             self.ids.project_selector.text = selector_text
@@ -325,7 +325,7 @@ class AnalyticsScreen(Screen):
         # FIXED: Only trigger auto-detection if actually on auto-detection tab
         if self.current_tab == "auto_detection":
             print(f"[DEBUG] select_project - triggering auto-detection analysis (on auto-detection tab)")
-            toast(f"🔬 Analyzing {project['name']}...")
+            toast(f" Analyzing {project['name']}...")
             Clock.schedule_once(lambda dt: self.load_auto_detection(), 0.5)
             self._auto_analysis_run = True
         else:
@@ -333,7 +333,7 @@ class AnalyticsScreen(Screen):
             # Just load the current tab content without auto-detection
             Clock.schedule_once(lambda dt: self.load_tab_content(), 0.2)
         
-        toast(f"✅ Selected: {project['name']}")
+        toast(f" Selected: {project['name']}")
 
     def setup_tablet_optimized_tabs(self):
         """Setup analytics tabs optimized for tablets"""
@@ -379,10 +379,10 @@ class AnalyticsScreen(Screen):
                 print(f"[DEBUG] Tab {i} original title: '{original_title}'")
                 # Add emoji prefixes to tab titles for better visual hierarchy
                 title_map = {
-                    "Auto-Detection": "🤖 Auto-Detection",
-                    "Descriptive": "📊 Descriptive", 
-                    "Inferential": "🔬 Inferential",
-                    "Qualitative": "📝 Qualitative"
+                    "Auto-Detection": " Auto-Detection",
+                    "Descriptive": " Descriptive", 
+                    "Inferential": " Inferential",
+                    "Qualitative": " Qualitative"
                 }
                 if original_title in title_map:
                     tab.title = title_map[original_title]
@@ -410,7 +410,7 @@ class AnalyticsScreen(Screen):
         if '[/font]' in clean_tab_text:
             clean_tab_text = clean_tab_text.split('[/font]')[-1].strip()
         
-        # Remove emoji prefixes (🤖, 📊, 🔬, 📝)
+        
         if ' ' in clean_tab_text:
             parts = clean_tab_text.split(' ')
             # Find the actual text part (not emoji)
@@ -434,7 +434,7 @@ class AnalyticsScreen(Screen):
         print(f"[DEBUG] Tab switched from '{old_tab}' to '{self.current_tab}'")
         
         # Provide tablet-friendly feedback
-        toast(f"📋 Switched to {clean_tab_text} Analytics")
+        toast(f"Switched to {clean_tab_text} Analytics")
         
         # Only load tab content if we have a project selected
         if self.current_project_id:
@@ -554,13 +554,13 @@ class AnalyticsScreen(Screen):
             # Enhanced stat items for tablets with emojis and better descriptions
             # Updated with valid Material Design icon names
             stat_items = [
-                ("📊 Total Responses", f"{stats.get('total_responses', 0):,}", "database-outline", 
+                ("Total Responses", f"{stats.get('total_responses', 0):,}", "database-outline", 
                  f"Survey responses collected", (0.2, 0.6, 1.0, 1)),
-                ("❓ Questions", f"{stats.get('total_questions', 0)}", "help-circle-outline", 
+                (" Questions", f"{stats.get('total_questions', 0)}", "help-circle-outline", 
                  f"Questions in survey", (0.2, 0.8, 0.6, 1)),
-                ("📈 Completion Rate", f"{stats.get('completion_rate', 0):.1f}%", "chart-line", 
+                ("Completion Rate", f"{stats.get('completion_rate', 0):.1f}%", "chart-line", 
                  f"Response completion rate", (0.8, 0.6, 0.2, 1)),
-                ("👥 Participants", f"{stats.get('unique_respondents', 0):,}", "account-group-outline", 
+                ("Participants", f"{stats.get('unique_respondents', 0):,}", "account-group-outline", 
                  f"Unique respondents", (0.6, 0.2, 0.8, 1)),
             ]
             
@@ -796,7 +796,7 @@ class AnalyticsScreen(Screen):
         )
         
         error_title = MDLabel(
-            text="🚨 Analytics Backend Unavailable",
+            text="Analytics Backend Unavailable",
             font_style="H5",
             theme_text_color="Custom",
             text_color=(0.8, 0.2, 0.2, 1),
@@ -811,10 +811,10 @@ class AnalyticsScreen(Screen):
         # Error message optimized for tablets
         error_message = MDLabel(
             text="The analytics backend is not responding. To fix this:\n\n" +
-                 "🔧 1. Start the FastAPI server on port 8001\n" +
-                 "🚀 2. Run: python backend/fastapi/start_analytics_backend.py\n" +
-                 "📋 3. Check backend logs for any errors\n" +
-                 "🔄 4. Click 'Retry Connection' when ready",
+                 " 1. Start the FastAPI server on port 8001\n" +
+                 " 2. Run: python backend/fastapi/start_analytics_backend.py\n" +
+                 " 3. Check backend logs for any errors\n" +
+                 " 4. Click 'Retry Connection' when ready",
             font_style="Body1",
             theme_text_color="Custom",
             text_color=(0.6, 0.1, 0.1, 1),
@@ -832,7 +832,7 @@ class AnalyticsScreen(Screen):
         )
         
         retry_button = MDRaisedButton(
-            text="🔄 Retry Connection",
+            text=" Retry Connection",
             size_hint_x=1,
             height=self.TABLET_BUTTON_HEIGHT,
             font_size=self.TABLET_FONT_SIZE,
@@ -841,7 +841,7 @@ class AnalyticsScreen(Screen):
         )
         
         help_button = MDFlatButton(
-            text="❓ Get Help",
+            text=" Get Help",
             size_hint_x=0.6,
             height=self.TABLET_BUTTON_HEIGHT,
             font_size=self.TABLET_FONT_SIZE,
@@ -868,11 +868,11 @@ class AnalyticsScreen(Screen):
         
         if hasattr(self, 'data_exploration_handler'):
             print(f"[DEBUG] Calling data_exploration_handler.explore_project_data")
-            toast("🔍 Loading data exploration...")
+            toast(" Loading data exploration...")
             self.data_exploration_handler.explore_project_data(self.current_project_id)
         else:
             print(f"[DEBUG] ERROR: Data exploration handler not available")
-            toast("❌ Data exploration handler not available")
+            toast(" Data exploration handler not available")
 
     def load_auto_detection(self):
         """Load auto-detection with tablet feedback"""
@@ -887,11 +887,11 @@ class AnalyticsScreen(Screen):
         
         if hasattr(self, 'auto_detection_handler'):
             print(f"[DEBUG] Calling auto_detection_handler.run_auto_detection")
-            toast("🤖 Running intelligent data analysis...")
+            toast(" Running intelligent data analysis...")
             self.auto_detection_handler.run_auto_detection(self.current_project_id)
         else:
             print(f"[DEBUG] ERROR: Auto-detection handler not available")
-            toast("❌ Auto-detection handler not available")
+            toast(" Auto-detection handler not available")
 
     def load_descriptive(self):
         """Load descriptive analytics with tablet feedback"""
@@ -906,11 +906,11 @@ class AnalyticsScreen(Screen):
         
         if hasattr(self, 'descriptive_handler'):
             print(f"[DEBUG] Calling descriptive_handler.run_descriptive_analysis")
-            toast("📊 Loading descriptive analytics selection...")
+            toast(" Loading descriptive analytics selection...")
             self.descriptive_handler.run_descriptive_analysis(self.current_project_id)
         else:
             print(f"[DEBUG] ERROR: Descriptive analytics handler not available")
-            toast("❌ Descriptive analytics handler not available")
+            toast(" Descriptive analytics handler not available")
     
     def debug_load_descriptive(self):
         """Debug method to manually trigger descriptive analytics"""
@@ -925,7 +925,7 @@ class AnalyticsScreen(Screen):
             return
         
         if hasattr(self, 'qualitative_handler'):
-            toast("📝 Analyzing text and qualitative data...")
+            toast(" Analyzing text and qualitative data...")
             self.qualitative_handler.run_text_analysis(self.current_project_id)
         else:
             toast("❌ Qualitative analytics handler not available")
@@ -994,24 +994,23 @@ class AnalyticsScreen(Screen):
         coming_soon_card.add_widget(header_layout)
         
         # Coming soon message
-        message_text = """🚀 Advanced Statistical Inference - Coming Soon!
+        message_text = """ Advanced Statistical Inference - Coming Soon!
 
 This powerful module will include:
 
-📊 Hypothesis Testing
+ Hypothesis Testing
    • t-tests, chi-square tests, ANOVA
    • Statistical significance testing
-
-📈 Regression Analysis  
+ Regression Analysis  
    • Linear and logistic regression
    • Multiple regression models
 
-🎯 Advanced Methods
+ Advanced Methods
    • Confidence intervals and p-values
    • Effect size calculations
    • Power analysis
 
-💡 Stay tuned for these advanced analytics capabilities!"""
+ Stay tuned for these advanced analytics capabilities!"""
         
         message_label = MDLabel(
             text=message_text,
@@ -1024,13 +1023,13 @@ This powerful module will include:
         
         # Action button
         action_button = MDRaisedButton(
-            text="📧 Request Early Access",
+            text=" Request Early Access",
             size_hint=(None, None),
             height=dp(48),
             width=dp(200),
             font_size="16sp",
             md_bg_color=(0.4, 0.2, 0.8, 1),
-            on_release=lambda x: toast("🚀 Early access request noted! We'll notify you when available.")
+            on_release=lambda x: toast(" Early access request noted! We'll notify you when available.")
         )
         coming_soon_card.add_widget(action_button)
         
@@ -1040,19 +1039,19 @@ This powerful module will include:
     # Tablet-specific utility methods
     def show_select_project_message(self):
         """Show tablet-optimized project selection message"""
-        toast("📊 Please select a project from the dropdown above")
+        toast(" Please select a project from the dropdown above")
 
     def show_project_selection_guide(self):
         """Show tablet-optimized project selection guide"""
-        toast("💡 Tap the project dropdown above to select a project for analysis")
+        toast(" Tap the project dropdown above to select a project for analysis")
 
     def show_backend_help(self):
         """Show backend setup help for tablets"""
-        toast("💡 Check the documentation for backend setup instructions")
+        toast(" Check the documentation for backend setup instructions")
 
     def navigate_to_projects(self):
         """Navigate to projects screen (placeholder)"""
-        toast("🚀 Navigate to Projects tab to create your first project")
+        toast(" Navigate to Projects tab to create your first project")
 
     def set_loading(self, loading):
         """Set loading state with tablet feedback"""
@@ -1061,7 +1060,7 @@ This powerful module will include:
             self.ids.loading_spinner.active = loading
         
         if loading:
-            toast("⏳ Processing...")
+            toast(" Processing...")
 
     def show_error(self, message):
         """Show error message with tablet formatting"""
@@ -1070,10 +1069,10 @@ This powerful module will include:
     def refresh_analysis(self):
         """Refresh current analysis with tablet feedback"""
         if self.current_project_id:
-            toast("🔄 Refreshing analysis...")
+            toast(" Refreshing analysis...")
             self.load_tab_content()
         else:
-            toast("📊 Select a project first to refresh analysis")
+            toast(" Select a project first to refresh analysis")
 
     def create_empty_state_widget(self, message):
         """Create simple empty state widget for backward compatibility"""
