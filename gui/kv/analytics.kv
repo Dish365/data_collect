@@ -11,41 +11,46 @@
     MDBoxLayout:
         id: main_content
         orientation: 'vertical'
-        spacing: dp(24)  # Increased from dp(20) to dp(24) for more breathing room
-        padding: [dp(24), dp(20), dp(24), dp(20)]  # Tablet-friendly padding
+        spacing: dp(16)  # Reduced spacing since we now have TopBar
+        padding: [dp(24), dp(8), dp(24), dp(20)]  # Reduced top padding
         
-        # Top Navigation Bar - Optimized for tablets
+        # Top Navigation Bar - Main App Navigation
+        TopBar:
+            id: top_bar
+            size_hint_y: None
+            height: dp(56)
+        
+        # Analytics-specific controls
         MDCard:
-            id: top_navigation
+            id: analytics_controls
             orientation: 'horizontal'
             size_hint_y: None
-            height: dp(72)  # Larger height for tablets
-            elevation: 3
-            md_bg_color: app.theme_cls.primary_color
+            height: dp(64)  # Slightly smaller than before
+            elevation: 2
+            md_bg_color: 0.98, 0.99, 1.0, 1
             radius: [12, 12, 12, 12]
-            padding: [dp(20), dp(16), dp(20), dp(16)]
+            padding: [dp(20), dp(12), dp(20), dp(12)]
             spacing: dp(16)
             
             # Analytics title with icon
             MDBoxLayout:
                 orientation: 'horizontal'
                 spacing: dp(12)
-                size_hint_x: 0.4
+                size_hint_x: 0.3
                 
                 MDIconButton:
                     icon: "chart-line"
                     theme_icon_color: "Custom"
-                    icon_color: 1, 1, 1, 1
+                    icon_color: app.theme_cls.primary_color
                     size_hint_x: None
-                    width: dp(40)
-                    user_font_size: "24sp"
+                    width: dp(36)
+                    user_font_size: "20sp"
                     disabled: True
                 
                 MDLabel:
-                    text: "📊 Analytics Dashboard"
-                    theme_text_color: "Custom"
-                    text_color: 1, 1, 1, 1
-                    font_style: "H5"
+                    text: "Analytics"
+                    theme_text_color: "Primary"
+                    font_style: "H6"
                     bold: True
                     halign: "left"
                     valign: "center"
@@ -55,35 +60,35 @@
                 id: project_selector
                 text: "📊 Select Project for Analysis"
                 size_hint_x: 0.5
-                height: dp(48)  # Larger touch target
-                font_size: "16sp"
-                md_bg_color: 1, 1, 1, 1
-                text_color: app.theme_cls.primary_color
+                height: dp(44)  # Slightly smaller
+                font_size: "15sp"
+                md_bg_color: app.theme_cls.primary_color
+                text_color: 1, 1, 1, 1
                 on_release: root.open_project_menu()
             
             # Action buttons
             MDBoxLayout:
                 orientation: 'horizontal'
                 spacing: dp(8)
-                size_hint_x: 0.3
+                size_hint_x: 0.2
                 
                 MDIconButton:
                     icon: "refresh"
                     theme_icon_color: "Custom"
-                    icon_color: 1, 1, 1, 1
+                    icon_color: app.theme_cls.primary_color
                     size_hint_x: None
-                    width: dp(48)
-                    user_font_size: "20sp"
+                    width: dp(44)
+                    user_font_size: "18sp"
                     on_release: root.refresh_analysis()
                     disabled: not root.current_project_id
                 
                 MDIconButton:
                     icon: "download"
                     theme_icon_color: "Custom"
-                    icon_color: 1, 1, 1, 1
+                    icon_color: app.theme_cls.primary_color
                     size_hint_x: None
-                    width: dp(48)
-                    user_font_size: "20sp"
+                    width: dp(44)
+                    user_font_size: "18sp"
                     disabled: not root.current_project_id
         
         # Quick Stats Cards - Responsive grid for tablets

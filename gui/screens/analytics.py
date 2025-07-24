@@ -14,6 +14,7 @@ from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.scrollview import MDScrollView
 from kivy.core.window import Window
 from kivy.uix.gridlayout import GridLayout
+from widgets.top_bar import TopBar
 
 import threading
 from datetime import datetime
@@ -89,6 +90,7 @@ class AnalyticsScreen(Screen):
         # Set top bar title with tablet-appropriate styling
         if hasattr(self.ids, 'top_bar'):
             self.ids.top_bar.set_title("📊 Analytics Dashboard")
+            self.ids.top_bar.set_current_screen('analytics')
         
         self.setup_analytics_service()
         self.load_projects()

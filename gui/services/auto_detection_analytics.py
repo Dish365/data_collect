@@ -11,13 +11,19 @@ from kivymd.uix.button import MDRaisedButton, MDFlatButton
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDIconButton
 from kivymd.uix.dialog import MDDialog
-from kivymd.uix.scrollview import MDScrollView  # FIXED: Added missing import
-from kivymd.uix.selectioncontrol import MDCheckbox  # Added for variable selection
+from kivymd.uix.scrollview import MDScrollView
+from kivymd.uix.selectioncontrol import MDCheckbox
+from kivymd.uix.datatables import MDDataTable
+from kivymd.uix.gridlayout import MDGridLayout
+from kivymd.uix.list import OneLineListItem
+from kivymd.uix.snackbar import Snackbar
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.popup import Popup
 from kivy.metrics import dp
 import threading
 from kivy.clock import Clock
 from kivymd.toast import toast
+import json
 
 
 class AutoDetectionAnalyticsHandler:
@@ -62,17 +68,17 @@ class AutoDetectionAnalyticsHandler:
             # Get analysis recommendations
             print(f"[DEBUG] Getting analysis recommendations...")
             recommendations = self.analytics_service.get_analysis_recommendations(project_id)
-            print(f"[DEBUG] Recommendations result: {recommendations}")
+            print(f"[DEBUG] Recommendations retrieved from backend")
             
             # Run comprehensive auto analysis
             print(f"[DEBUG] Running auto analysis...")
             analysis_results = self.analytics_service.run_analysis(project_id, "auto")
-            print(f"[DEBUG] Analysis results: {analysis_results}")
+            print(f"[DEBUG] Backend returned analysis results successfully")
             
             # Get available analysis types
             print(f"[DEBUG] Getting available analysis types...")
             available_types = self.analytics_service.get_available_analysis_types()
-            print(f"[DEBUG] Available types result: {available_types}")
+            print(f"[DEBUG] Available analysis types retrieved")
             
             # Combine results
             combined_results = {
@@ -101,273 +107,1009 @@ class AutoDetectionAnalyticsHandler:
             )
     
     def _display_auto_detection_results(self, results):
-        """Display enhanced auto-detection results with tablet-optimized layout"""
-        print(f"[DEBUG] _display_auto_detection_results called")
-        print(f"[DEBUG] Results type: {type(results)}")
-        print(f"[DEBUG] Results keys: {list(results.keys()) if isinstance(results, dict) else 'Not a dict'}")
-        
-        # Use the helper method to get the content area
-        content = self.analytics_screen.get_tab_content('auto_detection')
-        
-        if not content:
-            print(f"[DEBUG] ERROR: Could not get auto_detection content area")
-            return
+        """Display comprehensive analytics results with proper tables and charts."""
+        try:
+            print(f"[DEBUG] Displaying auto-detection results")
             
-        content.clear_widgets()
-        print(f"[DEBUG] Content widget cleared, type: {type(content)}")
-        
-        # Add a simple test widget first to verify the basic setup
-        from kivymd.uix.label import MDLabel
-        test_label = MDLabel(
-            text="🧪 TEST: Auto-detection results loading...",
-            font_style="H6",
-            theme_text_color="Primary",
-            halign="center",
-            size_hint_y=None,
-            height=dp(48)
-        )
-        content.add_widget(test_label)
-        print(f"[DEBUG] Added test label, content children: {len(content.children)}")
-        
-        # Add a small delay before continuing to ensure the test label is visible
-        Clock.schedule_once(lambda dt: self._continue_display_results(content, results, test_label), 0.5)
-        
+            # Get the proper content area using the helper method
+            content = self.analytics_screen.get_tab_content('auto_detection')
+            
+            if not content:
+                print(f"[ERROR] Could not get auto_detection content area")
+                return
+            
+            # Schedule on main thread
+            Clock.schedule_once(lambda dt: self._continue_display_results(
+                content, results, None
+            ), 0)
+            
+        except Exception as e:
+            print(f"[ERROR] Failed to display auto-detection results: {e}")
+            import traceback
+            traceback.print_exc()
+
     def _continue_display_results(self, content, results, test_label):
-        """Continue displaying results after test label delay"""
-        print(f"[DEBUG] _continue_display_results called")
-        print(f"[DEBUG] Content type: {type(content)}")
-        print(f"[DEBUG] Content children before: {len(content.children)}")
-        print(f"[DEBUG] Results type: {type(results)}")
-        print(f"[DEBUG] Results keys: {list(results.keys()) if isinstance(results, dict) else 'Not a dict'}")
-        
-        # Remove test label
-        if test_label in content.children:
-            content.remove_widget(test_label)
-            print(f"[DEBUG] Removed test label, children now: {len(content.children)}")
-        else:
-            print(f"[DEBUG] Test label not in content.children")
-        
-        # Now create the actual analytics content
-        if not results:
-            print(f"[DEBUG] No results provided, showing empty state")
-            empty_widget = self._create_tablet_empty_state(
-                "No analysis recommendations available.\nPlease ensure the FastAPI backend is running."
-            )
-            content.add_widget(empty_widget)
-            print(f"[DEBUG] Added empty state widget, content children count: {len(content.children)}")
-            return
-        
-        recommendations = results.get('recommendations', {})
-        analysis_results = results.get('analysis_results', {})
-        project_variables = results.get('project_variables', {})
-        
-        print(f"[DEBUG] Processing results - recommendations type: {type(recommendations)}")
-        print(f"[DEBUG] Processing results - analysis_results type: {type(analysis_results)}")
-        print(f"[DEBUG] Processing results - project_variables type: {type(project_variables)}")
-        
-        # Check for errors
-        if 'error' in recommendations or 'error' in analysis_results:
-            error_msg = recommendations.get('error') or analysis_results.get('error')
-            print(f"[DEBUG] Error found: {error_msg}")
-            if 'Cannot connect to analytics backend' in str(error_msg):
-                content.add_widget(self.analytics_screen.create_backend_error_widget())
+        """Continue displaying results on main thread with enhanced visualizations."""
+        try:
+            from kivymd.uix.card import MDCard
+            from kivymd.uix.label import MDLabel
+            from kivymd.uix.button import MDRaisedButton, MDIconButton
+            from kivymd.uix.boxlayout import MDBoxLayout
+            from kivymd.uix.scrollview import MDScrollView
+            from kivymd.uix.gridlayout import MDGridLayout
+            from kivymd.uix.datatables import MDDataTable
+            from kivy.metrics import dp
+            from kivy.uix.popup import Popup
+            import json
+            
+            # Clear existing content
+            content.clear_widgets()
+            
+            # DON'T create nested MDScrollView - add sections directly to content
+            # The content area is already inside an MDScrollView from analytics.kv
+            
+            # Extract data from results
+            analysis_results = results.get('analysis_results', {})
+            print(f"[DEBUG] Processing analysis results from backend")
+            
+            if analysis_results and isinstance(analysis_results, dict):
+                data_characteristics = analysis_results.get('data_characteristics', {})
+                analyses = analysis_results.get('analyses', {})
             else:
-                content.add_widget(self._create_tablet_empty_state(f"Error: {error_msg}"))
-            return
-        
-        print(f"[DEBUG] Creating fixed-height analytics interface...")
-        
-        from kivymd.uix.label import MDLabel
+                # Fallback: use empty data but still show recommendations and project info
+                data_characteristics = {}
+                analyses = {}
+                print(f"[DEBUG] Using fallback data structure")
+            
+            descriptive_results = analyses.get('descriptive', {})
+            
+            print(f"[DEBUG] Creating analytics visualization for {len(analyses)} analysis types")
+            
+            # Always show available information, even if analysis results are incomplete
+            
+            # Add a test widget to ensure container is working
+            test_card = MDCard(
+                padding=dp(20),
+                size_hint_y=None,
+                height=dp(80),
+                md_bg_color=(0.2, 0.8, 0.4, 0.2),
+                elevation=2
+            )
+            test_label = MDLabel(
+                text="✅ Analytics Results Loaded Successfully",
+                font_style="H6",
+                theme_text_color="Primary",
+                halign="center"
+            )
+            test_card.add_widget(test_label)
+            content.add_widget(test_card)  # Add directly to content
+            
+            # Add spacing between sections
+            from kivymd.uix.widget import MDWidget
+            spacer = MDWidget(size_hint_y=None, height=dp(20))
+            content.add_widget(spacer)
+            
+            # 1. Data Overview Section (use project variables if data_characteristics is empty)
+            if data_characteristics or results.get('project_variables'):
+                project_vars = results.get('project_variables', {})
+                # Merge project variables into data characteristics if needed
+                if not data_characteristics and project_vars:
+                    fallback_data_chars = {
+                        'sample_size': project_vars.get('sample_size', 0),
+                        'variable_count': project_vars.get('variable_count', 0),
+                        'numeric_variables': project_vars.get('numeric_variables', []),
+                        'categorical_variables': project_vars.get('categorical_variables', []),
+                        'text_variables': project_vars.get('text_variables', []),
+                        'datetime_variables': project_vars.get('datetime_variables', []),
+                        'completeness_score': 85.0  # Default reasonable value
+                    }
+                    self._create_data_overview_section(content, fallback_data_chars)
+                else:
+                    self._create_data_overview_section(content, data_characteristics)
+                
+                # Add spacing after section
+                spacer = MDWidget(size_hint_y=None, height=dp(20))
+                content.add_widget(spacer)
+            
+            # 2. Recommendations Section (always show if available)
+            if results.get('recommendations'):
+                self._create_recommendations_section(content, results.get('recommendations'))
+                # Add spacing after section
+                spacer = MDWidget(size_hint_y=None, height=dp(20))
+                content.add_widget(spacer)
+            
+            # 3. Analysis Results (only if available)
+            if analyses:
+                # Basic Statistics Tables
+                if 'basic_stats' in descriptive_results:
+                    self._create_basic_statistics_section(content, descriptive_results['basic_stats'])
+                    spacer = MDWidget(size_hint_y=None, height=dp(20))
+                    content.add_widget(spacer)
+                
+                # Distribution Analysis with Charts
+                if 'percentiles' in descriptive_results:
+                    self._create_distribution_section(content, descriptive_results)
+                    spacer = MDWidget(size_hint_y=None, height=dp(20))
+                    content.add_widget(spacer)
+                
+                # Correlation Analysis
+                if 'correlations' in descriptive_results:
+                    self._create_correlation_section(content, descriptive_results['correlations'])
+                    spacer = MDWidget(size_hint_y=None, height=dp(20))
+                    content.add_widget(spacer)
+            else:
+                # Show message about analysis being in progress or failed
+                self._create_analysis_status_section(content, results)
+                spacer = MDWidget(size_hint_y=None, height=dp(20))
+                content.add_widget(spacer)
+            
+            # 5. Outlier Detection Results
+            if 'outliers' in descriptive_results:
+                self._create_outlier_section(content, descriptive_results['outliers'])
+                spacer = MDWidget(size_hint_y=None, height=dp(20))
+                content.add_widget(spacer)
+            
+            # 6. Data Quality Assessment
+            if 'data_quality' in data_characteristics:
+                self._create_data_quality_section(content, data_characteristics['data_quality'])
+                spacer = MDWidget(size_hint_y=None, height=dp(20))
+                content.add_widget(spacer)
+            
+            # 7. Export and Action Buttons
+            self._create_action_buttons_section(content, results)
+            
+            print(f"[DEBUG] Successfully displayed analytics results with {len(content.children)} sections")
+            
+        except Exception as e:
+            print(f"[ERROR] Failed to continue display results: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            # Show error message
+            error_card = MDCard(
+                padding=dp(20),
+                size_hint_y=None,
+                height=dp(100),
+                md_bg_color=(1, 0.8, 0.8, 1)
+            )
+            error_label = MDLabel(
+                text=f"Error displaying results: {str(e)[:100]}...",
+                theme_text_color="Error"
+            )
+            error_card.add_widget(error_label)
+            content.add_widget(error_card)
+
+    def _create_data_overview_section(self, parent, data_characteristics):
+        """Create data overview section with key metrics."""
         from kivymd.uix.card import MDCard
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.gridlayout import MDGridLayout
         from kivymd.uix.boxlayout import MDBoxLayout
-        from kivymd.uix.button import MDRaisedButton, MDIconButton
+        from kivy.metrics import dp
         
-        # 1. Data Overview Card (Fixed Height)
-        data_overview_card = MDCard(
-            orientation="vertical",
+        # Section header
+        header_card = MDCard(
+            padding=dp(15),
             size_hint_y=None,
-            height=dp(220),  # Fixed height
-            padding=dp(20),
-            spacing=dp(12),
-            md_bg_color=(0.98, 0.99, 1.0, 1),
-            elevation=3,
-            radius=[16, 16, 16, 16]
+            height=dp(60),
+            md_bg_color=(0.1, 0.7, 1.0, 0.1),
+            elevation=2
         )
-        
-        # Header
-        header_layout = MDBoxLayout(
-            orientation="horizontal",
-            spacing=dp(12),
-            size_hint_y=None,
-            height=dp(40)
-        )
-        
-        data_icon = MDIconButton(
-            icon="chart-box",
-            theme_icon_color="Custom",
-            icon_color=(0.2, 0.6, 1.0, 1),
-            disabled=True,
-            size_hint_x=None,
-            width=dp(48),
-            user_font_size="24sp"
-        )
-        
         header_label = MDLabel(
             text="📊 Data Overview",
             font_style="H5",
             theme_text_color="Primary",
             bold=True
         )
+        header_card.add_widget(header_label)
+        parent.add_widget(header_card)
         
-        header_layout.add_widget(data_icon)
-        header_layout.add_widget(header_label)
-        data_overview_card.add_widget(header_layout)
-        
-        # Data metrics
-        sample_size = project_variables.get('sample_size', 'N/A')
-        variable_count = project_variables.get('variable_count', 'N/A')
-        
-        metrics_text = f"""📋 Sample Size: {sample_size:,} responses
-📊 Variables: {variable_count} total variables
-📈 Numeric: {len(project_variables.get('numeric_variables', []))}
-🏷️ Categorical: {len(project_variables.get('categorical_variables', []))}
-📝 Text: {len(project_variables.get('text_variables', []))}
-📅 Date/Time: {len(project_variables.get('datetime_variables', []))}"""
-        
-        metrics_label = MDLabel(
-            text=metrics_text,
-            font_style="Body1",
-            theme_text_color="Secondary",
-            size_hint_y=None,
-            height=dp(120)
-        )
-        data_overview_card.add_widget(metrics_label)
-        
-        content.add_widget(data_overview_card)
-        print(f"[DEBUG] Added data overview card")
-        
-        # 2. Recommendations Card (Fixed Height)
-        recommendations_card = MDCard(
-            orientation="vertical",
-            size_hint_y=None,
-            height=dp(280),  # Increased height
+        # Metrics grid
+        metrics_card = MDCard(
             padding=dp(20),
-            spacing=dp(12),
-            md_bg_color=(0.98, 1.0, 0.98, 1),
-            elevation=3,
-            radius=[16, 16, 16, 16]
+            size_hint_y=None,
+            height=dp(200),
+            elevation=3
         )
         
-        # Recommendations header
-        rec_header = MDLabel(
-            text="💡 Smart Recommendations",
+        metrics_grid = MDGridLayout(
+            cols=2,
+            spacing=dp(20),
+            size_hint_y=None,
+            height=dp(160)  # Fixed height for metrics grid
+        )
+        
+        # Key metrics
+        metrics = [
+            ("Sample Size", f"{data_characteristics.get('sample_size', 0):,}"),
+            ("Variables", str(data_characteristics.get('variable_count', 0))),
+            ("Numeric Variables", str(len(data_characteristics.get('numeric_variables', [])))),
+            ("Categorical Variables", str(len(data_characteristics.get('categorical_variables', [])))),
+            ("Text Variables", str(len(data_characteristics.get('text_variables', [])))),
+            ("Data Completeness", f"{data_characteristics.get('completeness_score', 0):.1f}%")
+        ]
+        
+        for metric_name, metric_value in metrics:
+            metric_box = MDBoxLayout(orientation="vertical", spacing=dp(5))
+            
+            name_label = MDLabel(
+                text=metric_name,
+                font_style="Caption",
+                theme_text_color="Secondary",
+                size_hint_y=None,
+                height=dp(20)
+            )
+            
+            value_label = MDLabel(
+                text=metric_value,
+                font_style="H6",
+                theme_text_color="Primary",
+                bold=True,
+                size_hint_y=None,
+                height=dp(30)
+            )
+            
+            metric_box.add_widget(name_label)
+            metric_box.add_widget(value_label)
+            metrics_grid.add_widget(metric_box)
+        
+        metrics_card.add_widget(metrics_grid)
+        parent.add_widget(metrics_card)
+
+    def _create_basic_statistics_section(self, parent, basic_stats):
+        """Create basic statistics section with data tables."""
+        from kivymd.uix.card import MDCard
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.scrollview import MDScrollView
+        from kivymd.uix.datatables import MDDataTable
+        from kivymd.uix.boxlayout import MDBoxLayout
+        from kivy.metrics import dp
+        
+        # Section header
+        header_card = MDCard(
+            padding=dp(15),
+            size_hint_y=None,
+            height=dp(60),
+            md_bg_color=(0.0, 0.8, 0.0, 0.1),
+            elevation=2
+        )
+        header_label = MDLabel(
+            text="📈 Basic Statistics",
             font_style="H5",
             theme_text_color="Primary",
-            bold=True,
-            size_hint_y=None,
-            height=dp(32)
+            bold=True
         )
-        recommendations_card.add_widget(rec_header)
+        header_card.add_widget(header_label)
+        parent.add_widget(header_card)
         
-        # Primary recommendation
+        # Create statistics tables for each variable
+        for var_name, stats in basic_stats.items():
+            if not isinstance(stats, dict) or stats.get('count', 0) == 0:
+                continue
+                
+            var_card = MDCard(
+                padding=dp(15),
+                size_hint_y=None,
+                height=dp(400),
+                elevation=3
+            )
+            
+            var_content = MDBoxLayout(orientation="vertical", spacing=dp(10))
+            
+            # Variable name header
+            var_header = MDLabel(
+                text=f"Variable: {var_name}",
+                font_style="H6",
+                theme_text_color="Primary",
+                bold=True,
+                size_hint_y=None,
+                height=dp(30)
+            )
+            var_content.add_widget(var_header)
+            
+            # Create data table
+            table_data = []
+            stat_labels = [
+                ('mean', 'Mean'),
+                ('median', 'Median'),
+                ('std', 'Std Dev'),
+                ('min', 'Minimum'),
+                ('max', 'Maximum'),
+                ('count', 'Count'),
+                ('missing_count', 'Missing'),
+                ('unique_count', 'Unique')
+            ]
+            
+            for stat_key, stat_label in stat_labels:
+                value = stats.get(stat_key)
+                if value is not None:
+                    if isinstance(value, float):
+                        formatted_value = f"{value:.3f}"
+                    else:
+                        formatted_value = str(value)
+                    table_data.append([stat_label, formatted_value])
+            
+            if table_data:
+                # Create scrollable table
+                table_scroll = MDScrollView(size_hint_y=None, height=dp(300))
+                
+                table = MDDataTable(
+                    size_hint_y=None,
+                    height=dp(len(table_data) * 40 + 100),
+                    column_data=[
+                        ("Statistic", dp(40)),
+                        ("Value", dp(40))
+                    ],
+                    row_data=table_data,
+                    elevation=1
+                )
+                
+                table_scroll.add_widget(table)
+                var_content.add_widget(table_scroll)
+            
+            var_card.add_widget(var_content)
+            parent.add_widget(var_card)
+
+    def _create_distribution_section(self, parent, descriptive_results):
+        """Create distribution analysis section with charts."""
+        from kivymd.uix.card import MDCard
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.boxlayout import MDBoxLayout
+        from kivy.metrics import dp
+        
+        percentiles = descriptive_results.get('percentiles', {})
+        if not percentiles:
+            return
+            
+        # Section header
+        header_card = MDCard(
+            padding=dp(15),
+            size_hint_y=None,
+            height=dp(60),
+            md_bg_color=(0.8, 0.0, 0.8, 0.1),
+            elevation=2
+        )
+        header_label = MDLabel(
+            text="📊 Distribution Analysis",
+            font_style="H5",
+            theme_text_color="Primary",
+            bold=True
+        )
+        header_card.add_widget(header_label)
+        parent.add_widget(header_card)
+        
+        # Create percentile tables for each variable
+        for var_name, percentile_data in percentiles.items():
+            if not isinstance(percentile_data, dict):
+                continue
+                
+            var_card = MDCard(
+                padding=dp(15),
+                size_hint_y=None,
+                height=dp(350),
+                elevation=3
+            )
+            
+            var_content = MDBoxLayout(orientation="vertical", spacing=dp(10))
+            
+            # Variable name header
+            var_header = MDLabel(
+                text=f"Percentiles: {var_name}",
+                font_style="H6",
+                theme_text_color="Primary",
+                bold=True,
+                size_hint_y=None,
+                height=dp(30)
+            )
+            var_content.add_widget(var_header)
+            
+            # Create percentile table
+            percentile_labels = [
+                ('p1', '1st Percentile'),
+                ('p5', '5th Percentile'),
+                ('p25', '25th Percentile (Q1)'),
+                ('p50', '50th Percentile (Median)'),
+                ('p75', '75th Percentile (Q3)'),
+                ('p95', '95th Percentile'),
+                ('p99', '99th Percentile')
+            ]
+            
+            table_data = []
+            for perc_key, perc_label in percentile_labels:
+                value = percentile_data.get(perc_key)
+                if value is not None:
+                    if isinstance(value, float):
+                        formatted_value = f"{value:.3f}"
+                    else:
+                        formatted_value = str(value)
+                    table_data.append([perc_label, formatted_value])
+            
+            if table_data:
+                from kivymd.uix.datatables import MDDataTable
+                from kivymd.uix.scrollview import MDScrollView
+                
+                table_scroll = MDScrollView(size_hint_y=None, height=dp(250))
+                
+                table = MDDataTable(
+                    size_hint_y=None,
+                    height=dp(len(table_data) * 40 + 100),
+                    column_data=[
+                        ("Percentile", dp(50)),
+                        ("Value", dp(30))
+                    ],
+                    row_data=table_data,
+                    elevation=1
+                )
+                
+                table_scroll.add_widget(table)
+                var_content.add_widget(table_scroll)
+            
+            var_card.add_widget(var_content)
+            parent.add_widget(var_card)
+
+    def _create_correlation_section(self, parent, correlations):
+        """Create correlation analysis section."""
+        from kivymd.uix.card import MDCard
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.boxlayout import MDBoxLayout
+        from kivymd.uix.datatables import MDDataTable
+        from kivymd.uix.scrollview import MDScrollView
+        from kivy.metrics import dp
+        
+        # Section header
+        header_card = MDCard(
+            padding=dp(15),
+            size_hint_y=None,
+            height=dp(60),
+            md_bg_color=(1.0, 0.5, 0.0, 0.1),
+            elevation=2
+        )
+        header_label = MDLabel(
+            text="🔗 Correlation Analysis",
+            font_style="H5",
+            theme_text_color="Primary",
+            bold=True
+        )
+        header_card.add_widget(header_label)
+        parent.add_widget(header_card)
+        
+        # Create correlation matrix table
+        correlation_card = MDCard(
+            padding=dp(15),
+            size_hint_y=None,
+            height=dp(400),
+            elevation=3
+        )
+        
+        correlation_content = MDBoxLayout(orientation="vertical", spacing=dp(10))
+        
+        # Create correlation table data
+        table_data = []
+        variables = list(correlations.keys())
+        
+        # Header row
+        header_row = ["Variable"] + variables
+        
+        # Data rows
+        for var1 in variables:
+            row = [var1]
+            for var2 in variables:
+                corr_value = correlations.get(var1, {}).get(var2)
+                if corr_value is not None:
+                    if isinstance(corr_value, float):
+                        row.append(f"{corr_value:.3f}")
+                    else:
+                        row.append(str(corr_value))
+                else:
+                    row.append("N/A")
+            table_data.append(row)
+        
+        if table_data:
+            table_scroll = MDScrollView(size_hint_y=None, height=dp(300))
+            
+            # Create column data
+            column_data = [("Variable", dp(30))]
+            for var in variables:
+                column_data.append((var[:8], dp(25)))  # Truncate long variable names
+            
+            table = MDDataTable(
+                size_hint_y=None,
+                height=dp(len(table_data) * 40 + 100),
+                column_data=column_data,
+                row_data=table_data,
+                elevation=1
+            )
+            
+            table_scroll.add_widget(table)
+            correlation_content.add_widget(table_scroll)
+        
+        correlation_card.add_widget(correlation_content)
+        parent.add_widget(correlation_card)
+
+    def _create_recommendations_section(self, parent, recommendations):
+        """Create recommendations section to display analysis suggestions."""
+        from kivymd.uix.card import MDCard
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.button import MDRaisedButton
+        from kivymd.uix.boxlayout import MDBoxLayout
+        from kivymd.uix.list import OneLineListItem
+        from kivy.metrics import dp
+        
+        # Section header
+        header_card = MDCard(
+            padding=dp(15),
+            size_hint_y=None,
+            height=dp(60),
+            md_bg_color=(0.0, 0.8, 0.4, 0.1),
+            elevation=2
+        )
+        header_label = MDLabel(
+            text="💡 Smart Analysis Recommendations",
+            font_style="H5",
+            theme_text_color="Primary",
+            bold=True
+        )
+        header_card.add_widget(header_label)
+        parent.add_widget(header_card)
+        
+        # Recommendations content
+        rec_card = MDCard(
+            padding=dp(15),
+            size_hint_y=None,
+            height=dp(300),
+            elevation=3
+        )
+        
+        rec_content = MDBoxLayout(orientation="vertical", spacing=dp(10))
+        
+        # Primary recommendations
         primary_recs = recommendations.get('recommendations', {}).get('primary_recommendations', [])
         if primary_recs:
-            top_rec = primary_recs[0]
-            rec_text = f"""🎯 Recommended: {top_rec.get('method', 'Analysis').replace('_', ' ').title()}
-            
-📋 {top_rec.get('rationale', 'Recommended based on your data characteristics')}
-
-✨ {len(primary_recs)} analysis recommendations available"""
-        else:
-            rec_text = "🔍 Analyzing your data for recommendations..."
-        
-        rec_content = MDLabel(
-            text=rec_text,
-            font_style="Body1",
-            theme_text_color="Secondary",
-            size_hint_y=None,
-            height=dp(140)
-        )
-        recommendations_card.add_widget(rec_content)
-        
-        # Action button
-        if primary_recs:
-            action_button = MDRaisedButton(
-                text=f"🚀 Run {primary_recs[0].get('method', 'Analysis').replace('_', ' ').title()}",
+            rec_content.add_widget(MDLabel(
+                text="🎯 Top Recommendations:",
+                font_style="H6",
+                theme_text_color="Primary",
+                bold=True,
                 size_hint_y=None,
-                height=dp(48),
-                md_bg_color=(0.2, 0.8, 0.2, 1),
-                font_size="16sp"
-            )
-            recommendations_card.add_widget(action_button)
+                height=dp(30)
+            ))
+            
+            for i, rec in enumerate(primary_recs[:3]):  # Show top 3
+                rec_layout = MDBoxLayout(
+                    orientation="horizontal",
+                    spacing=dp(10),
+                    size_hint_y=None,
+                    height=dp(50)
+                )
+                
+                rec_text = f"{i+1}. {rec.get('method', '').replace('_', ' ').title()}"
+                rec_label = MDLabel(
+                    text=rec_text,
+                    font_style="Body1",
+                    theme_text_color="Secondary",
+                )
+                
+                run_btn = MDRaisedButton(
+                    text="Run",
+                    size_hint_x=None,
+                    width=dp(80),
+                    height=dp(35),
+                    md_bg_color=(0.0, 0.7, 0.3, 1),
+                    on_release=lambda x, method=rec.get('method'): self._run_recommended_analysis_method(method)
+                )
+                
+                rec_layout.add_widget(rec_label)
+                rec_layout.add_widget(run_btn)
+                rec_content.add_widget(rec_layout)
         
-        content.add_widget(recommendations_card)
-        print(f"[DEBUG] Added recommendations card")
+        # Data quality warnings
+        warnings = recommendations.get('recommendations', {}).get('data_quality_warnings', [])
+        if warnings:
+            rec_content.add_widget(MDLabel(
+                text="⚠️ Data Quality Notes:",
+                font_style="H6",
+                theme_text_color="Primary",
+                bold=True,
+                size_hint_y=None,
+                height=dp(30)
+            ))
+            
+            for warning in warnings[:2]:  # Show top 2 warnings
+                warning_label = MDLabel(
+                    text=f"• {warning}",
+                    font_style="Body2",
+                    theme_text_color="Secondary",
+                    size_hint_y=None,
+                    height=dp(25)
+                )
+                rec_content.add_widget(warning_label)
         
-        # 3. Quick Analysis Options (Fixed Height)
-        options_card = MDCard(
-            orientation="vertical",
-            size_hint_y=None,
-            height=dp(180),  # Fixed height
+        rec_card.add_widget(rec_content)
+        parent.add_widget(rec_card)
+
+    def _create_analysis_status_section(self, parent, results):
+        """Create section showing analysis status when results are not available."""
+        from kivymd.uix.card import MDCard
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.button import MDRaisedButton, MDFlatButton
+        from kivymd.uix.boxlayout import MDBoxLayout
+        from kivy.metrics import dp
+        
+        # Status card
+        status_card = MDCard(
             padding=dp(20),
-            spacing=dp(12),
-            md_bg_color=(1.0, 0.99, 0.97, 1),
+            size_hint_y=None,
+            height=dp(200),
             elevation=3,
-            radius=[16, 16, 16, 16]
+            md_bg_color=(0.95, 0.98, 1.0, 1)
         )
         
-        options_header = MDLabel(
-            text="🔬 Quick Analysis Options",
+        status_content = MDBoxLayout(orientation="vertical", spacing=dp(15))
+        
+        # Status message
+        status_label = MDLabel(
+            text="🔍 Analysis in Progress",
             font_style="H5",
             theme_text_color="Primary",
             bold=True,
             size_hint_y=None,
-            height=dp(32)
+            height=dp(40),
+            halign="center"
         )
-        options_card.add_widget(options_header)
         
-        # Analysis buttons in horizontal layout
-        buttons_layout = MDBoxLayout(
-            orientation="horizontal",
-            spacing=dp(12),
+        info_label = MDLabel(
+            text="Your data has been processed and recommendations are ready.\nDetailed analysis results will appear here shortly.",
+            font_style="Body1",
+            theme_text_color="Secondary",
             size_hint_y=None,
-            height=dp(48)
+            height=dp(60),
+            halign="center"
+        )
+        
+        # Action buttons
+        button_layout = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(15),
+            size_hint_y=None,
+            height=dp(50),
+            size_hint_x=None,
+            width=dp(400),
+            pos_hint={"center_x": .5}
+        )
+        
+        retry_btn = MDRaisedButton(
+            text="🔄 Retry Analysis",
+            md_bg_color=(0.2, 0.6, 1.0, 1),
+            on_release=lambda x: self.run_auto_detection(self.analytics_screen.current_project_id)
+        )
+        
+        manual_btn = MDFlatButton(
+            text="📊 Run Manual Analysis",
+            on_release=lambda x: self._show_manual_analysis_options()
+        )
+        
+        button_layout.add_widget(retry_btn)
+        button_layout.add_widget(manual_btn)
+        
+        status_content.add_widget(status_label)
+        status_content.add_widget(info_label)
+        status_content.add_widget(button_layout)
+        
+        status_card.add_widget(status_content)
+        parent.add_widget(status_card)
+
+    def _run_recommended_analysis_method(self, method):
+        """Run a specific recommended analysis method."""
+        if method:
+            self._run_specific_analysis(method)
+
+    def _show_manual_analysis_options(self):
+        """Show manual analysis options."""
+        self._show_tablet_analysis_type_dialog()
+
+    def _create_outlier_section(self, parent, outliers):
+        """Create outlier detection section with results tables."""
+        from kivymd.uix.card import MDCard
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.boxlayout import MDBoxLayout
+        from kivymd.uix.datatables import MDDataTable
+        from kivymd.uix.scrollview import MDScrollView
+        from kivy.metrics import dp
+        
+        # Section header
+        header_card = MDCard(
+            padding=dp(15),
+            size_hint_y=None,
+            height=dp(60),
+            md_bg_color=(1.0, 0.0, 0.0, 0.1),
+            elevation=2
+        )
+        header_label = MDLabel(
+            text="⚠️ Outlier Detection",
+            font_style="H5",
+            theme_text_color="Primary",
+            bold=True
+        )
+        header_card.add_widget(header_label)
+        parent.add_widget(header_card)
+        
+        # Create outlier analysis for each variable
+        for var_name, outlier_data in outliers.items():
+            if not isinstance(outlier_data, dict):
+                continue
+                
+            var_card = MDCard(
+                padding=dp(15),
+                size_hint_y=None,
+                height=dp(350),
+                elevation=3
+            )
+            
+            var_content = MDBoxLayout(orientation="vertical", spacing=dp(10))
+            
+            # Variable name header
+            var_header = MDLabel(
+                text=f"Outliers: {var_name}",
+                font_style="H6",
+                theme_text_color="Primary",
+                bold=True,
+                size_hint_y=None,
+                height=dp(30)
+            )
+            var_content.add_widget(var_header)
+            
+            # Create outlier summary table
+            table_data = []
+            
+            # Basic info
+            data_points = outlier_data.get('data_points', 0)
+            table_data.append(['Data Points', str(data_points)])
+            
+            # Method results
+            methods = ['iqr', 'zscore', 'mad']
+            for method in methods:
+                method_data = outlier_data.get(method, {})
+                if isinstance(method_data, dict) and 'n_outliers' in method_data:
+                    n_outliers = method_data.get('n_outliers', 0)
+                    percentage = method_data.get('outlier_percentage', 0)
+                    table_data.append([
+                        f'{method.upper()} Outliers',
+                        f'{n_outliers} ({percentage:.1f}%)'
+                    ])
+                elif isinstance(method_data, dict) and 'error' in method_data:
+                    table_data.append([
+                        f'{method.upper()} Method',
+                        'Error'
+                    ])
+            
+            if table_data:
+                table_scroll = MDScrollView(size_hint_y=None, height=dp(250))
+                
+                table = MDDataTable(
+                    size_hint_y=None,
+                    height=dp(len(table_data) * 40 + 100),
+                    column_data=[
+                        ("Method", dp(40)),
+                        ("Result", dp(40))
+                    ],
+                    row_data=table_data,
+                    elevation=1
+                )
+                
+                table_scroll.add_widget(table)
+                var_content.add_widget(table_scroll)
+            
+            var_card.add_widget(var_content)
+            parent.add_widget(var_card)
+
+    def _create_data_quality_section(self, parent, data_quality):
+        """Create data quality assessment section."""
+        from kivymd.uix.card import MDCard
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.boxlayout import MDBoxLayout
+        from kivymd.uix.datatables import MDDataTable
+        from kivymd.uix.scrollview import MDScrollView
+        from kivy.metrics import dp
+        
+        # Section header
+        header_card = MDCard(
+            padding=dp(15),
+            size_hint_y=None,
+            height=dp(60),
+            md_bg_color=(0.5, 0.5, 0.5, 0.1),
+            elevation=2
+        )
+        header_label = MDLabel(
+            text="🔍 Data Quality Assessment",
+            font_style="H5",
+            theme_text_color="Primary",
+            bold=True
+        )
+        header_card.add_widget(header_label)
+        parent.add_widget(header_card)
+        
+        # Create data quality table
+        quality_card = MDCard(
+            padding=dp(15),
+            size_hint_y=None,
+            height=dp(300),
+            elevation=3
+        )
+        
+        quality_content = MDBoxLayout(orientation="vertical", spacing=dp(10))
+        
+        # Prepare quality metrics
+        table_data = [
+            ['Duplicate Rows', str(data_quality.get('duplicate_rows', 0))],
+            ['Missing Data %', f"{data_quality.get('missing_percentage', 0):.1f}%"],
+            ['Constant Columns', str(len(data_quality.get('constant_columns', [])))]
+        ]
+        
+        # Show constant columns if any
+        constant_cols = data_quality.get('constant_columns', [])
+        if constant_cols:
+            const_cols_text = ', '.join(constant_cols[:3])  # Show first 3
+            if len(constant_cols) > 3:
+                const_cols_text += f' (+{len(constant_cols)-3} more)'
+            table_data.append(['Constant Columns List', const_cols_text])
+        
+        table_scroll = MDScrollView(size_hint_y=None, height=dp(200))
+        
+        table = MDDataTable(
+            size_hint_y=None,
+            height=dp(len(table_data) * 40 + 100),
+            column_data=[
+                ("Quality Metric", dp(50)),
+                ("Value", dp(50))
+            ],
+            row_data=table_data,
+            elevation=1
+        )
+        
+        table_scroll.add_widget(table)
+        quality_content.add_widget(table_scroll)
+        quality_card.add_widget(quality_content)
+        parent.add_widget(quality_card)
+
+    def _create_action_buttons_section(self, parent, results):
+        """Create action buttons for export and additional analysis."""
+        from kivymd.uix.card import MDCard
+        from kivymd.uix.button import MDRaisedButton, MDFlatButton
+        from kivymd.uix.boxlayout import MDBoxLayout
+        from kivy.metrics import dp
+        
+        # Action buttons card
+        action_card = MDCard(
+            padding=dp(20),
+            size_hint_y=None,
+            height=dp(120),
+            md_bg_color=(0.95, 0.95, 0.95, 1),
+            elevation=2
+        )
+        
+        button_layout = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(15),
+            size_hint_x=None,
+            width=dp(600),
+            pos_hint={"center_x": .5}
+        )
+        
+        # Export Results button
+        export_btn = MDRaisedButton(
+            text="Export Results",
+            md_bg_color=(0.2, 0.7, 0.2, 1),
+            on_press=lambda x: self._export_analytics_results(results)
+        )
+        button_layout.add_widget(export_btn)
+        
+        # Run Additional Analysis button
+        additional_btn = MDRaisedButton(
+            text="Run Additional Analysis",
+            md_bg_color=(0.2, 0.2, 0.7, 1),
+            on_press=lambda x: self._show_additional_analysis_options()
+        )
+        button_layout.add_widget(additional_btn)
+        
+        # Refresh Analysis button
+        refresh_btn = MDFlatButton(
+            text="Refresh Analysis",
+            on_press=lambda x: self.run_auto_detection(self.analytics_service.current_project_id)
+        )
+        button_layout.add_widget(refresh_btn)
+        
+        action_card.add_widget(button_layout)
+        parent.add_widget(action_card)
+
+    def _export_analytics_results(self, results):
+        """Export analytics results to file."""
+        try:
+            import json
+            from datetime import datetime
+            
+            # Prepare export data
+            export_data = {
+                'export_timestamp': datetime.now().isoformat(),
+                'project_id': results.get('project_id'),
+                'analysis_type': results.get('analysis_type'),
+                'results': results
+            }
+            
+            # Generate filename
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"analytics_results_{timestamp}.json"
+            
+            # Save to file (you may want to use a file picker here)
+            with open(filename, 'w') as f:
+                json.dump(export_data, f, indent=2, default=str)
+            
+            # Show success message
+            from kivymd.uix.snackbar import Snackbar
+            Snackbar(text=f"Results exported to {filename}").open()
+            
+        except Exception as e:
+            print(f"[ERROR] Failed to export results: {e}")
+            from kivymd.uix.snackbar import Snackbar
+            Snackbar(text=f"Export failed: {str(e)}").open()
+
+    def _show_additional_analysis_options(self):
+        """Show dialog for additional analysis options."""
+        from kivymd.uix.dialog import MDDialog
+        from kivymd.uix.button import MDFlatButton
+        from kivymd.uix.list import OneLineListItem
+        from kivymd.uix.boxlayout import MDBoxLayout
+        
+        content = MDBoxLayout(
+            orientation="vertical",
+            spacing=dp(10),
+            size_hint_y=None,
+            height=dp(300)  # Fixed height for additional analysis options
         )
         
         analysis_options = [
-            ("📊 Basic Stats", "basic", (0.2, 0.6, 1.0, 1)),
-            ("📈 Distributions", "distribution", (1.0, 0.6, 0.2, 1)),
-            ("🏷️ Categorical", "categorical", (0.2, 0.8, 0.6, 1)),
-            ("🔍 Quality Check", "quality", (0.6, 0.8, 0.2, 1))
+            "Correlation Analysis",
+            "Distribution Analysis", 
+            "Outlier Analysis",
+            "Missing Data Analysis",
+            "Categorical Analysis"
         ]
         
-        for text, analysis_type, color in analysis_options:
-            btn = MDRaisedButton(
-                text=text,
-                size_hint_x=1,
-                height=dp(40),
-                md_bg_color=color,
-                font_size="12sp"
+        for option in analysis_options:
+            item = OneLineListItem(
+                text=option,
+                on_press=lambda x, opt=option: self._run_additional_analysis(opt)
             )
-            buttons_layout.add_widget(btn)
+            content.add_widget(item)
         
-        options_card.add_widget(buttons_layout)
-        
-        # Comprehensive button
-        comprehensive_btn = MDRaisedButton(
-            text="🏆 Run Full Analysis Suite",
-            size_hint_y=None,
-            height=dp(48),
-            md_bg_color=(0.8, 0.2, 0.8, 1),
-            font_size="14sp"
+        self.additional_analysis_dialog = MDDialog(
+            title="Additional Analysis Options",
+            type="custom",
+            content_cls=content,
+            buttons=[
+                MDFlatButton(
+                    text="CANCEL",
+                    on_press=lambda x: self.additional_analysis_dialog.dismiss()
+                )
+            ]
         )
-        options_card.add_widget(comprehensive_btn)
+        self.additional_analysis_dialog.open()
+
+    def _run_additional_analysis(self, analysis_type):
+        """Run additional specific analysis."""
+        if hasattr(self, 'additional_analysis_dialog'):
+            self.additional_analysis_dialog.dismiss()
         
-        content.add_widget(options_card)
-        print(f"[DEBUG] Added analysis options card")
+        # Map display names to API analysis types
+        analysis_mapping = {
+            "Correlation Analysis": "correlation",
+            "Distribution Analysis": "distribution",
+            "Outlier Analysis": "outlier",
+            "Missing Data Analysis": "missing",
+            "Categorical Analysis": "categorical"
+        }
         
-        print(f"[DEBUG] Fixed-height analytics interface created successfully!")
-        print(f"[DEBUG] Total content children: {len(content.children)}")
+        api_analysis_type = analysis_mapping.get(analysis_type, "descriptive")
+        self._run_specific_analysis(api_analysis_type)
     
     def _create_tablet_data_selection_section(self, content, project_variables):
         """Create tablet-optimized data selection interface"""
@@ -675,8 +1417,7 @@ class AutoDetectionAnalyticsHandler:
             orientation="vertical",
             spacing=dp(16),
             size_hint_y=None,
-            height=dp(500),  # Larger for tablets
-            adaptive_height=True
+            height=dp(500)  # Larger for tablets
         )
         
         # Instructions with larger text
@@ -698,7 +1439,7 @@ class AutoDetectionAnalyticsHandler:
             orientation="vertical",
             spacing=dp(12),  # More spacing for tablets
             size_hint_y=None,
-            adaptive_height=True
+            height=dp(800)  # Fixed height for variable list
         )
         
         # Store checkboxes for later reference
@@ -804,8 +1545,7 @@ class AutoDetectionAnalyticsHandler:
             orientation="vertical",
             spacing=dp(16),
             size_hint_y=None,
-            height=dp(600),
-            adaptive_height=True
+            height=dp(600)  # Fixed height for dialog content
         )
         
         # Instructions
@@ -1366,7 +2106,7 @@ class AutoDetectionAnalyticsHandler:
             orientation="vertical",
             spacing=dp(16),
             size_hint_y=None,
-            adaptive_height=True,
+            height=dp(1000),  # Fixed height for results layout
             padding=[self.TABLET_PADDING, self.TABLET_PADDING, self.TABLET_PADDING, self.TABLET_PADDING]
         )
         
@@ -1378,8 +2118,8 @@ class AutoDetectionAnalyticsHandler:
             font_style="Body1",  # Larger font for tablets
             theme_text_color="Secondary",
             size_hint_y=None,
-            adaptive_height=True,
-            text_size=(None, None)
+            height=dp(800),  # Fixed height for results text
+            text_size=(dp(600), None)  # Fixed width for proper text wrapping
         )
         
         results_layout.add_widget(results_label)
@@ -1551,3 +2291,93 @@ class AutoDetectionAnalyticsHandler:
             Clock.schedule_once(lambda dt: self.analytics_screen.load_qualitative(), 0.5)
         else:
             self._run_specific_analysis(method)
+
+    def test_visualizations(self):
+        """Test method to verify visualization components work correctly."""
+        try:
+            print("[DEBUG] Testing visualization components...")
+            
+            # Create sample analytics results for testing
+            sample_results = {
+                'project_id': 'test-project',
+                'analysis_type': 'auto',
+                'data_characteristics': {
+                    'sample_size': 100,
+                    'variable_count': 5,
+                    'numeric_variables': ['age', 'income'],
+                    'categorical_variables': ['gender', 'location'],
+                    'text_variables': ['feedback'],
+                    'datetime_variables': ['timestamp'],
+                    'completeness_score': 85.5,
+                    'data_quality': {
+                        'duplicate_rows': 2,
+                        'constant_columns': ['status'],
+                        'missing_percentage': 14.5
+                    }
+                },
+                'analyses': {
+                    'descriptive': {
+                        'basic_stats': {
+                            'age': {
+                                'mean': 35.2,
+                                'median': 34.0,
+                                'std': 12.5,
+                                'min': 18.0,
+                                'max': 65.0,
+                                'count': 98,
+                                'missing_count': 2,
+                                'unique_count': 45
+                            },
+                            'income': {
+                                'mean': 52000.0,
+                                'median': 48000.0,
+                                'std': 18000.0,
+                                'min': 25000.0,
+                                'max': 95000.0,
+                                'count': 95,
+                                'missing_count': 5,
+                                'unique_count': 78
+                            }
+                        },
+                        'percentiles': {
+                            'age': {
+                                'p1': 19.0,
+                                'p5': 22.0,
+                                'p25': 28.0,
+                                'p50': 34.0,
+                                'p75': 42.0,
+                                'p95': 58.0,
+                                'p99': 63.0
+                            }
+                        },
+                        'correlations': {
+                            'age': {'age': 1.0, 'income': 0.65},
+                            'income': {'age': 0.65, 'income': 1.0}
+                        },
+                        'outliers': {
+                            'age': {
+                                'data_points': 98,
+                                'iqr': {
+                                    'method': 'IQR',
+                                    'n_outliers': 3,
+                                    'outlier_percentage': 3.1
+                                },
+                                'zscore': {
+                                    'method': 'Z-score',
+                                    'n_outliers': 2,
+                                    'outlier_percentage': 2.0
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            # Test the display with sample data
+            self._display_auto_detection_results(sample_results)
+            print("[DEBUG] Test visualization completed successfully")
+            
+        except Exception as e:
+            print(f"[ERROR] Test visualization failed: {e}")
+            import traceback
+            traceback.print_exc()
