@@ -8,9 +8,40 @@ from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
 import json
 import logging
+import uuid
 from core.database import get_project_data, get_project_stats
 
 logger = logging.getLogger(__name__)
+
+def normalize_uuid(uuid_str: str) -> str:
+    """
+    Normalize UUID string format to handle both with and without hyphens.
+    
+    Args:
+        uuid_str: UUID string in any format
+        
+    Returns:
+        UUID string without hyphens (as stored in database)
+    """
+    if not uuid_str:
+        return uuid_str
+    
+    try:
+        # Remove any hyphens and convert to lowercase
+        cleaned = str(uuid_str).replace('-', '').lower()
+        
+        # Validate it's a proper UUID length (32 hex characters)
+        if len(cleaned) == 32 and all(c in '0123456789abcdef' for c in cleaned):
+            return cleaned
+        
+        # Try to parse as standard UUID and extract hex
+        uuid_obj = uuid.UUID(uuid_str)
+        return uuid_obj.hex
+        
+    except (ValueError, AttributeError):
+        # If all else fails, return the original string
+        logger.warning(f"Could not normalize UUID: {uuid_str}")
+        return str(uuid_str)
 
 # Import analytics modules
 from app.analytics.auto_detect.survey_detector import SurveyDetector
@@ -104,10 +135,22 @@ class AnalyticsUtils:
     """Comprehensive analytics utilities for the FastAPI endpoints."""
     
     @staticmethod
+    def normalize_uuid(uuid_str: str) -> str:
+        """
+        Normalize UUID string format to handle both with and without hyphens.
+        Wrapper around global normalize_uuid function for convenience.
+        """
+        return normalize_uuid(uuid_str)
+    
+    @staticmethod
     async def get_project_data(project_id: str) -> pd.DataFrame:
         """Get project data as pandas DataFrame."""
         try:
-            data = await get_project_data(project_id)
+            # Normalize UUID format to match database storage
+            normalized_project_id = normalize_uuid(project_id)
+            logger.info(f"Getting project data for {project_id} -> normalized: {normalized_project_id}")
+            
+            data = await get_project_data(normalized_project_id)
             if not data:
                 return pd.DataFrame()
             
@@ -121,7 +164,11 @@ class AnalyticsUtils:
     async def get_project_stats(project_id: str) -> Dict[str, Any]:
         """Get basic project statistics."""
         try:
-            stats = await get_project_stats(project_id)
+            # Normalize UUID format to match database storage
+            normalized_project_id = normalize_uuid(project_id)
+            logger.info(f"Getting project stats for {project_id} -> normalized: {normalized_project_id}")
+            
+            stats = await get_project_stats(normalized_project_id)
             if stats is None:
                 raise ValueError(f"Project {project_id} not found")
             return stats

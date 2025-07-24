@@ -822,6 +822,9 @@ async def explore_project_data(
         # Wrap database operations in sync_to_async
         @sync_to_async
         def explore_data_sync():
+            # Normalize project_id for database query
+            normalized_project_id = AnalyticsUtils.normalize_uuid(project_id)
+            
             # Build the base query
             base_query = """
                 SELECT 
@@ -849,7 +852,7 @@ async def explore_project_data(
                 WHERE r.project_id = %s
             """
             
-            params = [project_id]
+            params = [normalized_project_id]
             
             # Add filters
             if search:
@@ -902,7 +905,7 @@ async def explore_project_data(
             """
             
             with connection.cursor() as cursor:
-                cursor.execute(questions_query, [project_id])
+                cursor.execute(questions_query, [normalized_project_id])
                 filter_options['questions'] = [row[0] for row in cursor.fetchall()]
             
             # Format results
@@ -973,6 +976,9 @@ async def get_data_summary(
         # Wrap database operations in sync_to_async
         @sync_to_async
         def get_data_summary_sync():
+            # Normalize project_id for database query
+            normalized_project_id = AnalyticsUtils.normalize_uuid(project_id)
+            
             # Get comprehensive data summary
             summary_query = """
                 SELECT 
@@ -992,7 +998,7 @@ async def get_data_summary(
             """
             
             with connection.cursor() as cursor:
-                cursor.execute(summary_query, [project_id])
+                cursor.execute(summary_query, [normalized_project_id])
                 summary_result = cursor.fetchone()
             
             if not summary_result or summary_result[0] == 0:
@@ -1012,7 +1018,7 @@ async def get_data_summary(
             """
             
             with connection.cursor() as cursor:
-                cursor.execute(type_breakdown_query, [project_id])
+                cursor.execute(type_breakdown_query, [normalized_project_id])
                 type_results = cursor.fetchall()
             
             # Get question type breakdown
@@ -1028,7 +1034,7 @@ async def get_data_summary(
             """
             
             with connection.cursor() as cursor:
-                cursor.execute(question_breakdown_query, [project_id])
+                cursor.execute(question_breakdown_query, [normalized_project_id])
                 question_results = cursor.fetchall()
             
             # Get sample recent responses
@@ -1046,7 +1052,7 @@ async def get_data_summary(
             """
             
             with connection.cursor() as cursor:
-                cursor.execute(sample_query, [project_id])
+                cursor.execute(sample_query, [normalized_project_id])
                 sample_results = cursor.fetchall()
             
             # Format results
