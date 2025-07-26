@@ -342,6 +342,58 @@ class DashboardService:
             print(f"Exception getting available users: {e}")
             return []
     
+    def get_notifications(self):
+        """Get user's unread notifications"""
+        try:
+            response = self.auth_service.make_authenticated_request('api/v1/auth/notifications/')
+            if 'error' in response:
+                print(f"Error getting notifications: {response.get('message', 'Unknown error')}")
+                return {'notifications': [], 'unread_count': 0}
+            
+            return {
+                'notifications': response.get('notifications', []),
+                'unread_count': response.get('unread_count', 0),
+                'total_count': response.get('total_count', 0)
+            }
+            
+        except Exception as e:
+            print(f"Exception getting notifications: {e}")
+            return {'notifications': [], 'unread_count': 0}
+    
+    def mark_notification_read(self, notification_id):
+        """Mark a notification as read"""
+        try:
+            response = self.auth_service.make_authenticated_request(
+                f'api/v1/auth/notifications/{notification_id}/read/',
+                method='POST'
+            )
+            
+            if 'error' in response:
+                return False, response.get('error', 'Unknown error')
+            
+            return True, response.get('message', 'Notification marked as read')
+            
+        except Exception as e:
+            print(f"Exception marking notification as read: {e}")
+            return False, str(e)
+    
+    def mark_all_notifications_read(self):
+        """Mark all notifications as read"""
+        try:
+            response = self.auth_service.make_authenticated_request(
+                'api/v1/auth/notifications/mark-all-read/',
+                method='POST'
+            )
+            
+            if 'error' in response:
+                return False, response.get('error', 'Unknown error')
+            
+            return True, response.get('message', 'All notifications marked as read')
+            
+        except Exception as e:
+            print(f"Exception marking all notifications as read: {e}")
+            return False, str(e)
+    
     def search_users(self, query):
         """Search for users by username, email, or name"""
         try:
@@ -362,7 +414,7 @@ class DashboardService:
     def get_project_members(self, project_id):
         """Get team members for a specific project"""
         try:
-            response = self.auth_service.make_authenticated_request(f'api/v1/projects/{project_id}/members/')
+            response = self.auth_service.make_authenticated_request(f'api/v1/projects/{project_id}/get_team_members/')
             if 'error' in response:
                 print(f"Error getting project members: {response.get('message', 'Unknown error')}")
                 return []
@@ -374,7 +426,7 @@ class DashboardService:
             return []
     
     def invite_team_member(self, project_id, user_email, role='member', permissions=None):
-        """Invite a user to join a project team"""
+        """Invite a user to join a project team (supports both existing and new users)"""
         try:
             data = {
                 'user_email': user_email,
@@ -391,13 +443,29 @@ class DashboardService:
             )
             
             if 'error' in response:
-                return False, response.get('error', 'Unknown error')
+                error_message = response.get('error', 'Unknown error')
+                
+                # Handle specific error cases
+                if 'details' in response:
+                    details = response.get('details', {})
+                    if 'non_field_errors' in details:
+                        non_field_errors = details['non_field_errors']
+                        if non_field_errors and len(non_field_errors) > 0:
+                            # Extract the actual error message
+                            if isinstance(non_field_errors[0], dict):
+                                error_message = non_field_errors[0].get('message', str(non_field_errors[0]))
+                            else:
+                                error_message = str(non_field_errors[0])
+                
+                return False, error_message, response
             
-            return True, response.get('message', 'Team member invited successfully')
+            # Return success, message, and full response data for invitation type handling
+            message = response.get('message', 'Team member invited successfully')
+            return True, message, response
             
         except Exception as e:
             print(f"Exception inviting team member: {e}")
-            return False, str(e)
+            return False, str(e), None
     
     def remove_team_member(self, project_id, user_id):
         """Remove a team member from a project"""

@@ -68,6 +68,44 @@
         pos_hint: {"center_y": 0.5}
         spacing: dp(8)
 
+        # Notification button with badge
+        RelativeLayout:
+            size_hint: None, None
+            size: dp(48), dp(48)
+            pos_hint: {"center_y": 0.5}
+
+            MDIconButton:
+                id: notification_button
+                icon: "bell"
+                theme_icon_color: "Custom"
+                icon_color: 1, 1, 1, 1
+                pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                on_release: root.show_notifications()
+                tooltip_text: "Notifications"
+
+            # Notification badge
+            MDLabel:
+                id: notification_badge
+                text: "0"
+                font_style: "Caption"
+                theme_text_color: "Custom"
+                text_color: 1, 1, 1, 1
+                size_hint: None, None
+                size: dp(18), dp(18)
+                pos_hint: {"center_x": 0.75, "center_y": 0.75}
+                md_bg_color: 1, 0, 0, 1  # Red background
+                radius: [dp(9)]
+                halign: "center"
+                valign: "center"
+                opacity: 0  # Initially hidden
+                canvas.before:
+                    Color:
+                        rgba: self.md_bg_color
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: self.radius
+
         MDIconButton:
             icon: "account-circle-outline"
             theme_text_color: "Custom"

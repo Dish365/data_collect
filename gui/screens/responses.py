@@ -127,8 +127,6 @@ class ResponseItem(MDCard):
         respondent_id = respondent_data.get('respondent_id') or 'Unknown'
         display_name = respondent_data.get('display_name') or 'Anonymous'
         project_name = respondent_data.get('project_name') or 'Unknown Project'
-        response_count = respondent_data.get('response_count') or 0
-        last_response = respondent_data.get('last_response_formatted') or 'No responses'
         
         # Selection checkbox
         self.selection_checkbox = MDCheckbox(
@@ -162,53 +160,32 @@ class ResponseItem(MDCard):
         # Project Name
         project_label = MDLabel(
             text=project_name,
-            size_hint_x=0.18,
+            size_hint_x=0.25,
             font_style="Body2",
             font_size="16sp",  # Larger font for tablets
             halign="left"
         )
         project_label.bind(size=project_label.setter('text_size'))
         
-        # Response Count
-        count_label = MDLabel(
-            text=str(response_count),
-            size_hint_x=0.1,
-            font_style="Body2",
-            font_size="16sp",  # Larger font for tablets
-            halign="center"
-        )
-        
-        # Last Response Date
-        date_label = MDLabel(
-            text=last_response,
-            size_hint_x=0.18,
-            font_style="Body2",
-            font_size="16sp",  # Larger font for tablets
-            halign="center"
-        )
-        date_label.bind(size=date_label.setter('text_size'))
-        
         # Actions (View, Edit, Delete) - Tablet optimized
         actions_layout = MDBoxLayout(
             orientation="horizontal",
-            size_hint_x=0.18,
+            size_hint_x=0.25,
             spacing=dp(4)  # Increased spacing
         )
         
-        # Create tablet-optimized buttons
-        self.create_tablet_optimized_buttons(actions_layout)
+        # Create responsive action buttons
+        self.create_action_buttons(actions_layout)
         
         # Add all widgets
         self.add_widget(self.selection_checkbox)
         self.add_widget(respondent_id_label)
         self.add_widget(name_label)
         self.add_widget(project_label)
-        self.add_widget(count_label)
-        self.add_widget(date_label)
         self.add_widget(actions_layout)
     
-    def create_tablet_optimized_buttons(self, layout):
-        """Create tablet-optimized action buttons"""
+    def create_action_buttons(self, layout):
+        """Create responsive action buttons"""
         try:
             from widgets.responsive_layout import ResponsiveHelper
             
@@ -264,44 +241,22 @@ class ResponseItem(MDCard):
             layout.add_widget(delete_button)
             
         except Exception as e:
-            print(f"Error creating tablet buttons: {e}")
-            # Fallback to original buttons
-            self.create_original_buttons(layout)
-    
-    def create_original_buttons(self, layout):
-        """Create original action buttons as fallback"""
-        # View Button
-        view_button = MDFlatButton(
-            text="View",
-            size_hint_x=None,
-            width=dp(50),
-            theme_text_color="Custom",
-            text_color=(0.2, 0.6, 1, 1),  # Blue
-            on_release=self.view_responses
-        )
-        
-        # Edit Button
-        edit_button = MDFlatButton(
-            text="Edit",
-            size_hint_x=None,
-            width=dp(50),
-            theme_text_color="Custom",
-            text_color=(1, 0.6, 0.2, 1),  # Orange
-            on_release=self.edit_respondent
-        )
-        
-        # Delete Button
-        delete_button = MDFlatButton(
-            text="Del",
-            size_hint_x=None,
-            width=dp(40),
-            theme_text_color="Error",
-            on_release=self.delete_respondent
-        )
-        
-        layout.add_widget(view_button)
-        layout.add_widget(edit_button)
-        layout.add_widget(delete_button)
+            print(f"Error creating action buttons: {e}")
+            # Create basic buttons as fallback
+            for text, color, callback in [
+                ("View", (0.2, 0.6, 1, 1), self.view_responses),
+                ("Edit", (1, 0.6, 0.2, 1), self.edit_respondent),
+                ("Delete", (1, 0.2, 0.2, 1), self.delete_respondent)
+            ]:
+                button = MDFlatButton(
+                    text=text,
+                    size_hint_x=None,
+                    width=dp(50),
+                    theme_text_color="Custom",
+                    text_color=color,
+                    on_release=callback
+                )
+                layout.add_widget(button)
     
     def on_checkbox_active(self, checkbox, value):
         """Handle selection checkbox change"""
@@ -360,7 +315,6 @@ class ResponsesScreen(Screen):
         # Initialize responsive layout
         self.update_responsive_layout()
         
-        self.load_summary_stats()
         self.load_respondents()
 
     def on_window_resize(self, width, height):
@@ -498,47 +452,7 @@ class ResponsesScreen(Screen):
             self.ids.content_layout.opacity = 0.3 if show else 1
             self.ids.content_layout.disabled = show
 
-    def load_summary_stats(self):
-        """Load summary statistics for the header"""
-        def _load_stats():
-            try:
-                summary, error = self.responses_service.get_respondents_summary()
-                if error:
-                    print(f"Error loading summary: {error}")
-                    return
-                Clock.schedule_once(lambda dt: self._update_summary_ui(summary))
-            except Exception as e:
-                print(f"Exception loading summary: {e}")
-        
-        threading.Thread(target=_load_stats, daemon=True).start()
 
-    def _update_summary_ui(self, summary):
-        """Update the summary statistics in the UI"""
-        try:
-            # Safely extract values with defaults
-            total_respondents = summary.get('total_respondents', 0) if summary else 0
-            total_responses = summary.get('total_responses', 0) if summary else 0
-            avg_responses = summary.get('avg_responses_per_respondent', 0.0) if summary else 0.0
-            
-            # Update labels with safe values
-            if hasattr(self.ids, 'total_respondents_label'):
-                self.ids.total_respondents_label.text = f"Total Respondents: {total_respondents}"
-            if hasattr(self.ids, 'total_responses_label'):
-                self.ids.total_responses_label.text = f"Total Responses: {total_responses}"
-            if hasattr(self.ids, 'avg_responses_label'):
-                self.ids.avg_responses_label.text = f"Avg per Respondent: {avg_responses}"
-        except Exception as e:
-            print(f"Error updating summary UI: {e}")
-            # Set fallback values on error
-            try:
-                if hasattr(self.ids, 'total_respondents_label'):
-                    self.ids.total_respondents_label.text = "Total Respondents: 0"
-                if hasattr(self.ids, 'total_responses_label'):
-                    self.ids.total_responses_label.text = "Total Responses: 0"
-                if hasattr(self.ids, 'avg_responses_label'):
-                    self.ids.avg_responses_label.text = "Avg per Respondent: 0.0"
-            except:
-                pass
 
     def search_respondents(self, query):
         """Search respondents by query"""
@@ -813,14 +727,14 @@ class ResponsesScreen(Screen):
                 content.add_widget(no_responses)
             else:
                 for i, response in enumerate(responses):
-                    response_card = self.create_tablet_response_card(response, i+1)
+                    response_card = self.create_response_card(response, i+1)
                     content.add_widget(response_card)
                     
         except Exception as e:
             print(f"Error updating detail panel: {e}")
     
-    def create_tablet_response_card(self, response, question_number):
-        """Create a tablet-optimized response card"""
+    def create_response_card(self, response, question_number):
+        """Create responsive response card"""
         try:
             from widgets.responsive_layout import ResponsiveHelper
             
@@ -879,47 +793,43 @@ class ResponsesScreen(Screen):
             return card
             
         except Exception as e:
-            print(f"Error creating tablet response card: {e}")
-            # Fallback to original
-            return self.create_original_response_card(response, question_number)
-    
-    def create_original_response_card(self, response, question_number):
-        """Create original response card as fallback"""
-        card = MDCard(
-            orientation="vertical",
-            padding=dp(10),
-            spacing=dp(5),
-            size_hint_y=None,
-            height=dp(80),
-            elevation=2
-        )
-        
-        question_label = MDLabel(
-            text=f"Q{question_number}: {response.get('question_text', 'Unknown Question')}",
-            font_style="Subtitle2",
-            size_hint_y=None,
-            height=dp(25)
-        )
-        
-        answer_label = MDLabel(
-            text=f"Answer: {response.get('response_value', 'No answer')}",
-            font_style="Body1",
-            size_hint_y=None,
-            height=dp(25)
-        )
-        
-        time_label = MDLabel(
-            text=f"Collected: {response.get('collected_at_formatted', 'Unknown time')}",
-            font_style="Caption",
-            size_hint_y=None,
-            height=dp(20)
-        )
-        
-        card.add_widget(question_label)
-        card.add_widget(answer_label)
-        card.add_widget(time_label)
-        
-        return card
+            print(f"Error creating response card: {e}")
+            # Create basic fallback card
+            card = MDCard(
+                orientation="vertical",
+                padding=dp(10),
+                spacing=dp(5),
+                size_hint_y=None,
+                height=dp(80),
+                elevation=2
+            )
+            
+            question_label = MDLabel(
+                text=f"Q{question_number}: {response.get('question_text', 'Unknown Question')}",
+                font_style="Subtitle2",
+                size_hint_y=None,
+                height=dp(25)
+            )
+            
+            answer_label = MDLabel(
+                text=f"Answer: {response.get('response_value', 'No answer')}",
+                font_style="Body1",
+                size_hint_y=None,
+                height=dp(25)
+            )
+            
+            time_label = MDLabel(
+                text=f"Collected: {response.get('collected_at_formatted', 'Unknown time')}",
+                font_style="Caption",
+                size_hint_y=None,
+                height=dp(20)
+            )
+            
+            card.add_widget(question_label)
+            card.add_widget(answer_label)
+            card.add_widget(time_label)
+            
+            return card
 
     def _show_response_dialog(self, respondent_data):
         """Show the response detail dialog"""

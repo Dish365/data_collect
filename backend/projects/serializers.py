@@ -130,7 +130,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 
 class ProjectMemberInviteSerializer(serializers.Serializer):
-    """Serializer for inviting users to projects"""
+    """Serializer for inviting users to projects (handles both existing and new users)"""
     user_email = serializers.EmailField()
     role = serializers.ChoiceField(choices=ProjectMember.ROLE_CHOICES, default='member')
     permissions = serializers.ListField(
@@ -139,24 +139,48 @@ class ProjectMemberInviteSerializer(serializers.Serializer):
     )
     
     def validate_user_email(self, value):
-        """Validate that user exists"""
+        """Validate email and check if user exists"""
         from authentication.models import User
-        try:
-            user = User.objects.get(email=value)
-            return user
-        except User.DoesNotExist:
-            raise serializers.ValidationError("No user found with this email address.")
+        
+        # Don't raise an error if user doesn't exist - we'll handle pending invitations
+        # Just return the email for now, we'll process it in the view
+        return value
     
     def validate(self, attrs):
         """Validate the invite data"""
+        from authentication.models import User
+        from .models import PendingInvitation
+        
         project = self.context.get('project')
-        user = attrs['user_email']  # This is now a User object from validate_user_email
+        email = attrs['user_email']  # This is now just an email string
         
-        if project.created_by == user:
-            raise serializers.ValidationError("Cannot invite project creator as a team member.")
-        
-        if project.members.filter(user=user).exists():
-            raise serializers.ValidationError("User is already a team member of this project.")
+        # Check if user exists
+        try:
+            user = User.objects.get(email=email)
+            attrs['existing_user'] = user
+            attrs['is_existing_user'] = True
+            
+            # Validate existing user constraints
+            if project.created_by == user:
+                raise serializers.ValidationError("Cannot invite project creator as a team member.")
+            
+            if project.members.filter(user=user).exists():
+                raise serializers.ValidationError("User is already a team member of this project.")
+                
+        except User.DoesNotExist:
+            # User doesn't exist - this will be a pending invitation
+            attrs['existing_user'] = None
+            attrs['is_existing_user'] = False
+            
+            # Check if there's already a pending invitation
+            existing_pending = PendingInvitation.objects.filter(
+                project=project,
+                email=email,
+                status='pending'
+            ).first()
+            
+            if existing_pending and existing_pending.is_valid():
+                raise serializers.ValidationError(f"A pending invitation has already been sent to {email}.")
         
         # Set default permissions based on role if not provided
         if 'permissions' not in attrs or not attrs['permissions']:

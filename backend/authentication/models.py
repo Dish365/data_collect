@@ -72,6 +72,10 @@ class User(AbstractUser):
             'can_collect_data': self.can_collect_data(),
         }
 
+    def get_unread_notifications_count(self):
+        """Get count of unread notifications"""
+        return self.notifications.filter(is_read=False).count()
+
 
 class PasswordResetToken(models.Model):
     """Model for secure password reset tokens"""
@@ -103,3 +107,103 @@ class PasswordResetToken(models.Model):
     
     def __str__(self):
         return f"Reset token for {self.user.email} - {'Valid' if self.is_valid() else 'Invalid'}"
+
+
+class UserNotification(models.Model):
+    """Model for user notifications including team invitations"""
+    
+    NOTIFICATION_TYPES = [
+        ('team_invitation', 'Team Invitation'),
+        ('project_update', 'Project Update'),
+        ('system_message', 'System Message'),
+        ('welcome', 'Welcome Message'),
+    ]
+    
+    PRIORITY_LEVELS = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('urgent', 'Urgent'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    
+    # Notification content
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, default='system_message')
+    priority = models.CharField(max_length=10, choices=PRIORITY_LEVELS, default='medium')
+    
+    # Status
+    is_read = models.BooleanField(default=False)
+    read_at = models.DateTimeField(null=True, blank=True)
+    
+    # Related objects (optional)
+    related_project_id = models.UUIDField(null=True, blank=True, help_text="ID of related project")
+    related_user_id = models.UUIDField(null=True, blank=True, help_text="ID of related user (e.g., who sent invitation)")
+    
+    # Metadata
+    action_url = models.CharField(max_length=500, blank=True, help_text="URL for action button")
+    action_text = models.CharField(max_length=100, blank=True, help_text="Text for action button")
+    expires_at = models.DateTimeField(null=True, blank=True, help_text="When notification expires")
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'is_read']),
+            models.Index(fields=['notification_type', 'created_at']),
+            models.Index(fields=['priority', 'created_at']),
+        ]
+    
+    def __str__(self):
+        status = "Read" if self.is_read else "Unread"
+        return f"{self.user.username} - {self.title} ({status})"
+    
+    def mark_as_read(self):
+        """Mark notification as read"""
+        if not self.is_read:
+            self.is_read = True
+            self.read_at = timezone.now()
+            self.save()
+    
+    def is_expired(self):
+        """Check if notification has expired"""
+        if self.expires_at:
+            return timezone.now() > self.expires_at
+        return False
+    
+    @classmethod
+    def create_team_invitation_notification(cls, user, project, inviter, role):
+        """Create a team invitation notification"""
+        return cls.objects.create(
+            user=user,
+            title=f"Team Invitation: {project.name}",
+            message=f"{inviter.username} has invited you to join the project '{project.name}' as a {role.title()}. "
+                   f"You can now access the project and collaborate with the team.",
+            notification_type='team_invitation',
+            priority='medium',
+            related_project_id=project.id,
+            related_user_id=inviter.id,
+            action_text="View Project",
+            action_url=f"/projects/{project.id}/",
+            expires_at=timezone.now() + timedelta(days=30)  # Invitation expires in 30 days
+        )
+    
+    @classmethod
+    def create_welcome_notification(cls, user):
+        """Create a welcome notification for new users"""
+        return cls.objects.create(
+            user=user,
+            title="Welcome to the Research Platform!",
+            message="Welcome to our research data collection platform. You can now create projects, "
+                   "collect data, collaborate with team members, and run analytics on your data.",
+            notification_type='welcome',
+            priority='low',
+            action_text="Get Started",
+            action_url="/dashboard/"
+        )

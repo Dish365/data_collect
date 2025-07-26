@@ -342,3 +342,158 @@ class ProjectMemberActivity(models.Model):
     
     def __str__(self):
         return f"{self.actor.username} {self.get_activity_type_display()} - {self.project.name}"
+
+
+class PendingInvitation(models.Model):
+    """Model for pending invitations to users who don't have accounts yet"""
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('expired', 'Expired'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='pending_invitations')
+    email = models.EmailField(help_text="Email of the person being invited")
+    role = models.CharField(max_length=20, choices=ProjectMember.ROLE_CHOICES, default='member')
+    permissions = models.TextField(
+        help_text="Comma-separated list of permissions",
+        default='view_project,view_responses'
+    )
+    
+    # Invitation details
+    invited_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_pending_invitations')
+    invitation_token = models.CharField(max_length=100, unique=True, help_text="Unique token for invitation link")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    # Optional: associated user (set when they register)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='received_pending_invitations')
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(help_text="When invitation expires")
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        unique_together = ['project', 'email']  # One pending invitation per email per project
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['email', 'status']),
+            models.Index(fields=['invitation_token']),
+            models.Index(fields=['status', 'expires_at']),
+        ]
+    
+    def save(self, *args, **kwargs):
+        if not self.invitation_token:
+            import secrets
+            self.invitation_token = secrets.token_urlsafe(32)
+        if not self.expires_at:
+            from datetime import timedelta
+            self.expires_at = timezone.now() + timedelta(days=7)  # 7 days to accept
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"Pending invitation: {self.email} → {self.project.name} ({self.status})"
+    
+    def is_valid(self):
+        """Check if invitation is still valid"""
+        return self.status == 'pending' and timezone.now() < self.expires_at
+    
+    def get_permissions_list(self):
+        """Get permissions as a list"""
+        return self.permissions.split(',') if self.permissions else []
+    
+    def get_invitation_url(self):
+        """Get the invitation URL for the email"""
+        # In a real app, you'd use your domain
+        return f"http://localhost:8000/accept-invitation/{self.invitation_token}/"
+    
+    def accept_invitation(self, user):
+        """Accept the invitation and create project membership"""
+        if not self.is_valid():
+            return False, "Invitation has expired or is no longer valid"
+        
+        # Check if user is already a member
+        if self.project.members.filter(user=user).exists():
+            return False, "User is already a member of this project"
+        
+        # Create project membership
+        success, result = self.project.add_team_member(
+            user=user,
+            role=self.role,
+            permissions=self.get_permissions_list(),
+            actor=user  # User accepts their own invitation
+        )
+        
+        if success:
+            # Update invitation status
+            self.status = 'accepted'
+            self.user = user
+            self.accepted_at = timezone.now()
+            self.save()
+            
+            # Create notification for the user
+            from authentication.models import UserNotification
+            UserNotification.create_team_invitation_notification(
+                user=user,
+                project=self.project,
+                inviter=self.invited_by,
+                role=self.role
+            )
+            
+            return True, result
+        else:
+            return False, result
+    
+    def cancel_invitation(self, actor):
+        """Cancel the invitation"""
+        if self.status == 'pending':
+            self.status = 'cancelled'
+            self.save()
+            
+            # Create activity record
+            self.project.create_activity(
+                activity_type='member_removed',  # Use existing type
+                actor=actor,
+                target_user=None,  # No target user since they didn't register yet
+                metadata={
+                    'invitation_cancelled': True,
+                    'email': self.email,
+                    'role': self.role
+                }
+            )
+            
+            return True, "Invitation cancelled successfully"
+        else:
+            return False, "Cannot cancel invitation that is not pending"
+    
+    @classmethod
+    def create_pending_invitation(cls, project, email, role, permissions, invited_by):
+        """Create a new pending invitation"""
+        # Check if there's already a pending invitation
+        existing = cls.objects.filter(
+            project=project,
+            email=email,
+            status='pending'
+        ).first()
+        
+        if existing:
+            if existing.is_valid():
+                return False, "A pending invitation already exists for this email"
+            else:
+                # Update expired invitation
+                existing.status = 'expired'
+                existing.save()
+        
+        # Create new invitation
+        invitation = cls.objects.create(
+            project=project,
+            email=email,
+            role=role,
+            permissions=','.join(permissions) if isinstance(permissions, list) else permissions,
+            invited_by=invited_by
+        )
+        
+        return True, invitation

@@ -34,8 +34,12 @@ class DashboardScreen(MDScreen):
         """Called when the screen is entered."""
         # Set top bar title and current screen
         if hasattr(self.ids, 'top_bar'):
-            self.ids.top_bar.set_title("📊 Dashboard")
+            self.ids.top_bar.set_title("Dashboard")
             self.ids.top_bar.set_current_screen("dashboard")
+            
+            # Start notification polling
+            self.ids.top_bar.load_notifications()
+            self.ids.top_bar.start_notification_polling()
         
         # CLINICAL: Force immediate responsive layout
         self.update_responsive_layout()
@@ -257,11 +261,11 @@ class DashboardScreen(MDScreen):
             
             # Example: Update title based on permissions
             if can_manage:
-                title = "🔧 Admin Dashboard"
+                title = "Admin Dashboard"
             elif can_create_projects:
-                title = "🔬 Researcher Dashboard"  
+                title = "Researcher Dashboard"  
             else:
-                title = "📝 Field Worker Dashboard"
+                title = "Field Worker Dashboard"
                 
             if hasattr(self.ids, 'top_bar'):
                 self.ids.top_bar.set_title(title)

@@ -24,46 +24,18 @@
                 size_hint_x: 1  # Will be adjusted for tablets
                 spacing: dp(12)
 
-                # Header section with summary stats and controls - Enhanced for tablets
+                # Header section with controls - Enhanced for tablets
                 MDCard:
                     padding: dp(20)  # Increased padding for tablets
                     spacing: dp(12)  # Increased spacing
                     size_hint_y: None
-                    height: dp(160)  # Increased height for tablets
+                    height: dp(120)  # Reduced height without summary
                     elevation: 2
                     
                     MDBoxLayout:
                         orientation: "vertical"
                         spacing: dp(12)  # Increased spacing
                         
-                        # Summary Statistics Row - Tablet optimized
-                        MDBoxLayout:
-                            orientation: "horizontal"
-                            spacing: dp(24)  # Increased spacing
-                            size_hint_y: None
-                            height: dp(40)  # Increased height for tablets
-                            
-                            MDLabel:
-                                id: total_respondents_label
-                                text: "Total Respondents: Loading..."
-                                font_style: "Subtitle1"
-                                font_size: "18sp"  # Larger font for tablets
-                                size_hint_x: 0.33
-                                
-                            MDLabel:
-                                id: total_responses_label
-                                text: "Total Responses: Loading..."
-                                font_style: "Subtitle1"
-                                font_size: "18sp"  # Larger font for tablets
-                                size_hint_x: 0.33
-                                
-                            MDLabel:
-                                id: avg_responses_label
-                                text: "Avg per Respondent: Loading..."
-                                font_style: "Subtitle1"
-                                font_size: "18sp"  # Larger font for tablets
-                                size_hint_x: 0.34
-
                         # Controls Row - Tablet optimized with larger touch targets
                         MDBoxLayout:
                             orientation: "horizontal"
@@ -194,31 +166,15 @@
                             
                         MDLabel:
                             text: "Project"
-                            size_hint_x: 0.18
+                            size_hint_x: 0.25
                             font_style: "Subtitle2"
                             font_size: "16sp"
                             halign: "left"
                             theme_text_color: "Primary"
                             
                         MDLabel:
-                            text: "Responses"
-                            size_hint_x: 0.1
-                            font_style: "Subtitle2"
-                            font_size: "16sp"
-                            halign: "center"
-                            theme_text_color: "Primary"
-                            
-                        MDLabel:
-                            text: "Last Response"
-                            size_hint_x: 0.18
-                            font_style: "Subtitle2"
-                            font_size: "16sp"
-                            halign: "center"
-                            theme_text_color: "Primary"
-                            
-                        MDLabel:
                             text: "Actions"
-                            size_hint_x: 0.18
+                            size_hint_x: 0.25
                             font_style: "Subtitle2"
                             font_size: "16sp"
                             halign: "center"

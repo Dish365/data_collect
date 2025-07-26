@@ -14,8 +14,9 @@ from .serializers import (
     ForgotPasswordSerializer,
     ResetPasswordSerializer
 )
-from .models import PasswordResetToken
+from .models import PasswordResetToken, UserNotification
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -30,6 +31,10 @@ class RegisterView(generics.CreateAPIView):
         user = serializer.save()
         token, _ = Token.objects.get_or_create(user=user)
         user_data = UserSerializer(user).data
+        
+        # Create welcome notification
+        UserNotification.create_welcome_notification(user)
+        
         return Response({
             'token': token.key,
             'user': user_data
@@ -266,3 +271,73 @@ class UserSearchView(APIView):
             })
         
         return Response({'users': formatted_users})
+
+
+class NotificationListView(APIView):
+    """Get user's notifications"""
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        notifications = request.user.notifications.filter(
+            is_read=False
+        ).order_by('-created_at')[:20]  # Last 20 unread notifications
+        
+        formatted_notifications = []
+        for notification in notifications:
+            formatted_notifications.append({
+                'id': str(notification.id),
+                'title': notification.title,
+                'message': notification.message,
+                'type': notification.notification_type,
+                'priority': notification.priority,
+                'is_read': notification.is_read,
+                'created_at': notification.created_at.isoformat(),
+                'action_url': notification.action_url,
+                'action_text': notification.action_text,
+                'related_project_id': str(notification.related_project_id) if notification.related_project_id else None,
+                'is_expired': notification.is_expired(),
+            })
+        
+        unread_count = request.user.get_unread_notifications_count()
+        
+        return Response({
+            'notifications': formatted_notifications,
+            'unread_count': unread_count,
+            'total_count': len(formatted_notifications)
+        })
+
+
+class MarkNotificationReadView(APIView):
+    """Mark a notification as read"""
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request, notification_id):
+        try:
+            notification = request.user.notifications.get(id=notification_id)
+            notification.mark_as_read()
+            
+            return Response({
+                'message': 'Notification marked as read',
+                'notification_id': str(notification.id)
+            })
+            
+        except UserNotification.DoesNotExist:
+            return Response({
+                'error': 'Notification not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+
+class MarkAllNotificationsReadView(APIView):
+    """Mark all notifications as read"""
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        updated_count = request.user.notifications.filter(is_read=False).update(
+            is_read=True,
+            read_at=timezone.now()
+        )
+        
+        return Response({
+            'message': f'Marked {updated_count} notifications as read',
+            'updated_count': updated_count
+        })

@@ -10,4 +10,9 @@ urlpatterns = [
     path('forgot-password/', views.ForgotPasswordView.as_view(), name='forgot-password'),
     path('reset-password/', views.ResetPasswordView.as_view(), name='reset-password'),
     path('search-users/', views.UserSearchView.as_view(), name='search-users'),
+    
+    # Notification endpoints
+    path('notifications/', views.NotificationListView.as_view(), name='notifications'),
+    path('notifications/<uuid:notification_id>/read/', views.MarkNotificationReadView.as_view(), name='mark-notification-read'),
+    path('notifications/mark-all-read/', views.MarkAllNotificationsReadView.as_view(), name='mark-all-notifications-read'),
 ] 

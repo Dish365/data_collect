@@ -105,11 +105,19 @@ class ProjectViewSet(BaseModelViewSet):
             'team_members': team_members,
             'total_count': len(team_members)
         })
+    
+    @action(detail=True, methods=['get'])
+    def get_team_members(self, request, pk=None):
+        """Get all team members for a project (alias for members)"""
+        return self.members(request, pk)
 
     @action(detail=True, methods=['post'])
     def invite_member(self, request, pk=None):
         """Invite a user to join the project team"""
         project = self.get_object()
+        
+        # Log the incoming request data for debugging
+        print(f"Invite member request data: {request.data}")
         
         # Check if user can manage team members (creator or admin)
         if project.created_by != request.user and not request.user.is_superuser:
@@ -120,39 +128,164 @@ class ProjectViewSet(BaseModelViewSet):
         
         serializer = ProjectMemberInviteSerializer(
             data=request.data, 
-            context={'project': project}
+            context={'project': project, 'request': request}
         )
         
         if serializer.is_valid():
             validated_data = serializer.validated_data
-            user_to_invite = validated_data['user_email']  # This is a User object
+            email = validated_data['user_email']  # This is now just an email string
             role = validated_data['role']
             permissions = validated_data['permissions']
+            is_existing_user = validated_data['is_existing_user']
+            existing_user = validated_data.get('existing_user')
             
-            success, result = project.add_team_member(
-                user=user_to_invite,
-                role=role,
-                permissions=permissions,
-                actor=request.user
+            if is_existing_user:
+                # Handle existing user invitation
+                print(f"Inviting existing user: {existing_user.email} with role: {role} and permissions: {permissions}")
+                
+                success, result = project.add_team_member(
+                    user=existing_user,
+                    role=role,
+                    permissions=permissions,
+                    actor=request.user
+                )
+                
+                if success:
+                    # Set the invited_by field
+                    result.invited_by = request.user
+                    result.save()
+                    
+                    # Create notification for the invited user
+                    self._create_invitation_notification(existing_user, project, request.user)
+                    
+                    member_serializer = ProjectMemberSerializer(result)
+                    return Response({
+                        'message': f'Team member {existing_user.username} invited successfully to project {project.name}',
+                        'member': member_serializer.data,
+                        'invitation_type': 'existing_user'
+                    }, status=status.HTTP_201_CREATED)
+                else:
+                    print(f"Failed to add team member: {result}")
+                    return Response(
+                        {'error': result}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                    
+            else:
+                # Handle pending invitation for new user
+                from .models import PendingInvitation
+                
+                print(f"Creating pending invitation for new user: {email} with role: {role} and permissions: {permissions}")
+                
+                success, result = PendingInvitation.create_pending_invitation(
+                    project=project,
+                    email=email,
+                    role=role,
+                    permissions=permissions,
+                    invited_by=request.user
+                )
+                
+                if success:
+                    # Send email invitation (TODO: implement email sending)
+                    invitation_url = result.get_invitation_url()
+                    print(f"Invitation URL for {email}: {invitation_url}")
+                    
+                    # TODO: Send email with invitation link
+                    self._send_invitation_email(result)
+                    
+                    return Response({
+                        'message': f'Invitation sent to {email}. They will receive an email to join project {project.name}',
+                        'invitation': {
+                            'id': str(result.id),
+                            'email': result.email,
+                            'role': result.role,
+                            'status': result.status,
+                            'expires_at': result.expires_at.isoformat(),
+                            'invitation_url': invitation_url
+                        },
+                        'invitation_type': 'pending'
+                    }, status=status.HTTP_201_CREATED)
+                else:
+                    return Response(
+                        {'error': result}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+        
+        print(f"Serializer validation errors: {serializer.errors}")
+        return Response({
+            'error': 'Invalid data provided',
+            'details': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    def _create_invitation_notification(self, invited_user, project, inviter):
+        """Create a notification for the invited user"""
+        try:
+            from authentication.models import UserNotification
+            
+            # Create in-app notification
+            notification = UserNotification.create_team_invitation_notification(
+                user=invited_user,
+                project=project,
+                inviter=inviter,
+                role=project.members.get(user=invited_user).role
             )
             
-            if success:
-                # Set the invited_by field
-                result.invited_by = request.user
-                result.save()
-                
-                member_serializer = ProjectMemberSerializer(result)
-                return Response({
-                    'message': 'Team member invited successfully',
-                    'member': member_serializer.data
-                }, status=status.HTTP_201_CREATED)
-            else:
-                return Response(
-                    {'error': result}, 
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            print(f"NOTIFICATION CREATED: {invited_user.username} has been invited to project '{project.name}' by {inviter.username}")
+            
+            # TODO: Send email notification
+            # You could add email sending here using Django's email system
+            
+            return notification
+            
+        except Exception as e:
+            print(f"Error creating invitation notification: {e}")
+            return None
+    
+    def _send_invitation_email(self, pending_invitation):
+        """Send invitation email to the pending user"""
+        try:
+            from django.core.mail import send_mail
+            from django.conf import settings
+            
+            subject = f"You're invited to join {pending_invitation.project.name}!"
+            message = f"""
+Hello!
+
+{pending_invitation.invited_by.username} has invited you to join the project "{pending_invitation.project.name}" on our research platform.
+
+Your role: {pending_invitation.role.title()}
+
+To accept this invitation and create your account, click the link below:
+{pending_invitation.get_invitation_url()}
+
+This invitation will expire on {pending_invitation.expires_at.strftime('%B %d, %Y at %I:%M %p')}.
+
+If you have any questions, please contact {pending_invitation.invited_by.email}.
+
+Best regards,
+Research Data Collection Team
+            """.strip()
+            
+            # For now, just print the email content (in development)
+            print(f"EMAIL INVITATION for {pending_invitation.email}:")
+            print(f"Subject: {subject}")
+            print(f"Message: {message}")
+            print(f"Invitation URL: {pending_invitation.get_invitation_url()}")
+            
+            # TODO: Uncomment to actually send emails
+            # send_mail(
+            #     subject,
+            #     message,
+            #     settings.DEFAULT_FROM_EMAIL,
+            #     [pending_invitation.email],
+            #     fail_silently=False,
+            # )
+            
+            return True
+            
+        except Exception as e:
+            print(f"Error sending invitation email: {e}")
+            return False
 
     @action(detail=True, methods=['patch'])
     def update_member(self, request, pk=None):
@@ -297,3 +430,88 @@ class ProjectViewSet(BaseModelViewSet):
             'users': list(users),
             'total_count': users.count()
         })
+
+    @action(detail=False, methods=['post'])
+    def accept_invitation(self, request):
+        """Accept a pending invitation using the invitation token"""
+        token = request.data.get('invitation_token')
+        if not token:
+            return Response(
+                {'error': 'invitation_token is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            from .models import PendingInvitation
+            invitation = PendingInvitation.objects.get(invitation_token=token)
+            
+            if not invitation.is_valid():
+                return Response(
+                    {'error': 'This invitation has expired or is no longer valid'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Accept the invitation
+            success, result = invitation.accept_invitation(request.user)
+            
+            if success:
+                member_serializer = ProjectMemberSerializer(result)
+                return Response({
+                    'message': f'Welcome to {invitation.project.name}! You have successfully joined as {invitation.role.title()}.',
+                    'project': {
+                        'id': str(invitation.project.id),
+                        'name': invitation.project.name,
+                        'description': invitation.project.description,
+                    },
+                    'member': member_serializer.data
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    {'error': result}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+        except PendingInvitation.DoesNotExist:
+            return Response(
+                {'error': 'Invalid invitation token'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Error processing invitation: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['get'])
+    def get_invitation_info(self, request):
+        """Get information about a pending invitation (for registration page)"""
+        token = request.query_params.get('token')
+        if not token:
+            return Response(
+                {'error': 'token parameter is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            from .models import PendingInvitation
+            invitation = PendingInvitation.objects.get(invitation_token=token)
+            
+            return Response({
+                'invitation': {
+                    'id': str(invitation.id),
+                    'email': invitation.email,
+                    'role': invitation.role,
+                    'project_name': invitation.project.name,
+                    'project_description': invitation.project.description,
+                    'invited_by': invitation.invited_by.username,
+                    'expires_at': invitation.expires_at.isoformat(),
+                    'is_valid': invitation.is_valid(),
+                    'status': invitation.status
+                }
+            })
+            
+        except PendingInvitation.DoesNotExist:
+            return Response(
+                {'error': 'Invalid invitation token'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
