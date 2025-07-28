@@ -5,35 +5,68 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.metrics import dp
-from widgets.stat_card import StatCard
 from kivymd.uix.screen import MDScreen
 from kivy.lang import Builder
 from kivy.core.window import Window
-from widgets.top_bar import TopBar
-from services.dashboard_service import DashboardService
-import threading
 from kivy.clock import Clock
-from widgets.activity_item import ActivityItem
+import threading
+
+# Import with fallbacks for better compatibility
+try:
+    from widgets.stat_card import StatCard
+except ImportError:
+    print("Warning: StatCard widget not found")
+    StatCard = None
+
+try:
+    from widgets.top_bar import TopBar
+except ImportError:
+    print("Warning: TopBar widget not found")
+    TopBar = None
+
+try:
+    from services.dashboard_service import DashboardService
+except ImportError:
+    print("Warning: DashboardService not found - using fallback")
+    DashboardService = None
+
+try:
+    from widgets.activity_item import ActivityItem
+except ImportError:
+    print("Warning: ActivityItem widget not found")
+    ActivityItem = None
+
+try:
+    from widgets.team_member_dialog import TeamMemberDialog
+except ImportError:
+    print("Warning: TeamMemberDialog not found")
+    TeamMemberDialog = None
+
+# KivyMD imports
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDIconButton
-from widgets.team_member_dialog import TeamMemberDialog
-
 
 Builder.load_file("kv/dashboard.kv")
-
 
 class DashboardScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         app = App.get_running_app()
-        self.dashboard_service = DashboardService(app.auth_service, app.db_service)
+        
+        # Initialize dashboard service with fallback
+        if DashboardService and hasattr(app, 'auth_service') and hasattr(app, 'db_service'):
+            self.dashboard_service = DashboardService(app.auth_service, app.db_service)
+        else:
+            print("Warning: Dashboard service not available - using fallback mode")
+            self.dashboard_service = None
+            
         self.last_update_time = None
         self.auto_refresh_enabled = True
 
     def on_enter(self, *args):
         """Called when the screen is entered."""
         # Set top bar title and current screen
-        if hasattr(self.ids, 'top_bar'):
+        if hasattr(self.ids, 'top_bar') and self.ids.top_bar:
             self.ids.top_bar.set_title("Dashboard")
             self.ids.top_bar.set_current_screen("dashboard")
             
@@ -41,10 +74,10 @@ class DashboardScreen(MDScreen):
             self.ids.top_bar.load_notifications()
             self.ids.top_bar.start_notification_polling()
         
-        # CLINICAL: Force immediate responsive layout
+        # Force immediate responsive layout
         self.update_responsive_layout()
         
-        # CLINICAL: Force layout refresh after a short delay to ensure KV is loaded
+        # Force layout refresh after a short delay to ensure KV is loaded
         Clock.schedule_once(self._force_layout_refresh, 0.1)
         
         # Initialize dashboard service for current user with retry logic
@@ -61,34 +94,38 @@ class DashboardScreen(MDScreen):
     def _force_layout_refresh(self, dt):
         """Force a complete layout refresh to ensure responsive layout is applied"""
         try:
-            print("CLINICAL: Forcing layout refresh")
+            print("Dashboard: Forcing layout refresh")
             
             # Force responsive layout update again
             self.update_responsive_layout()
             
             # Force all grids to re-layout
-            if hasattr(self.ids, 'stats_grid'):
+            if hasattr(self.ids, 'stats_grid') and self.ids.stats_grid:
                 self.ids.stats_grid.do_layout()
-            if hasattr(self.ids, 'actions_grid'):
+            if hasattr(self.ids, 'actions_grid') and self.ids.actions_grid:
                 self.ids.actions_grid.do_layout()
-            if hasattr(self.ids, 'content_layout'):
+            if hasattr(self.ids, 'content_layout') and self.ids.content_layout:
                 self.ids.content_layout.do_layout()
                 
-            print("CLINICAL: Layout refresh completed")
+            print("Dashboard: Layout refresh completed")
             
         except Exception as e:
-            print(f"CLINICAL ERROR in layout refresh: {e}")
+            print(f"Error in layout refresh: {e}")
 
     def _initialize_with_retry(self, max_retries=3, delay=0.5):
         """Initialize dashboard with retry logic"""
         print(f"Starting dashboard initialization (max {max_retries} retries)")
+        
+        if not self.dashboard_service:
+            print("Dashboard service not available")
+            return False
         
         for attempt in range(max_retries):
             print(f"Dashboard initialization attempt {attempt + 1}")
             
             # First check if auth service has user data
             app = App.get_running_app()
-            if not app.auth_service.is_authenticated():
+            if not hasattr(app, 'auth_service') or not app.auth_service.is_authenticated():
                 print(f"Attempt {attempt + 1}: User not authenticated")
                 if attempt < max_retries - 1:
                     import time
@@ -112,7 +149,7 @@ class DashboardScreen(MDScreen):
 
     def _delayed_init(self, dt):
         """Delayed initialization if user context wasn't ready initially"""
-        if self.dashboard_service.initialize_for_user():
+        if self.dashboard_service and self.dashboard_service.initialize_for_user():
             self.update_stats()
         else:
             print("Warning: Could not initialize dashboard even after delay")
@@ -130,25 +167,30 @@ class DashboardScreen(MDScreen):
         """Auto-refresh stats if screen is still active"""
         if self.manager.current == "dashboard":
             # Ensure user context is still available
-            if self.dashboard_service.get_current_user_id():
+            if self.dashboard_service and self.dashboard_service.get_current_user_id():
                 self.update_stats(show_loader=False)  # Silent refresh
             else:
                 print("Warning: Lost user context during auto-refresh")
 
     def navigate_to(self, screen_name):
-        self.manager.transition.direction = "left"  
-        self.manager.current = screen_name
+        if self.manager:
+            self.manager.transition.direction = "left"  
+            self.manager.current = screen_name
     
     def open_team_management(self):
         """Open team member management dialog"""
         try:
-            team_dialog = TeamMemberDialog(
-                dashboard_service=self.dashboard_service,
-                callback=self.on_team_management_closed
-            )
-            team_dialog.open()
+            if TeamMemberDialog and self.dashboard_service:
+                team_dialog = TeamMemberDialog(
+                    dashboard_service=self.dashboard_service,
+                    callback=self.on_team_management_closed
+                )
+                team_dialog.open()
+            else:
+                self.show_toast("Team management not available")
         except Exception as e:
             print(f"Error opening team management dialog: {e}")
+            self.show_toast("Error opening team management")
     
     def on_team_management_closed(self):
         """Called when team management dialog is closed"""
@@ -158,6 +200,9 @@ class DashboardScreen(MDScreen):
     def update_team_member_card(self, team_members_count):
         """Update the team member card with enhanced information"""
         try:
+            if not hasattr(self.ids, 'team_members_card') or not self.ids.team_members_card:
+                return
+                
             self.ids.team_members_card.value = str(team_members_count)
             
             # Provide contextual information based on count
@@ -176,9 +221,12 @@ class DashboardScreen(MDScreen):
                         self.ids.team_members_card.note = "Just you - click to invite others"
                     else:
                         # Try to get detailed info
-                        team_info = self.dashboard_service.get_total_team_members_info()
-                        if team_info and 'details' in team_info:
-                            self.ids.team_members_card.note = team_info['details']
+                        if self.dashboard_service:
+                            team_info = self.dashboard_service.get_total_team_members_info()
+                            if team_info and 'details' in team_info:
+                                self.ids.team_members_card.note = team_info['details']
+                            else:
+                                self.ids.team_members_card.note = f"{count} team members - click to manage"
                         else:
                             self.ids.team_members_card.note = f"{count} team members - click to manage"
                 except ValueError:
@@ -186,14 +234,52 @@ class DashboardScreen(MDScreen):
         
         except Exception as e:
             print(f"Error updating team member card: {e}")
-            self.ids.team_members_card.note = "Click to manage team members"
+            if hasattr(self.ids, 'team_members_card') and self.ids.team_members_card:
+                self.ids.team_members_card.note = "Click to manage team members"
     
     def show_loader(self, show=True):
-        self.ids.spinner.active = show
-        self.ids.main_scroll_view.opacity = 0 if show else 1
+        """Show/hide modern loading indicator"""
+        try:
+            if hasattr(self.ids, 'loading_card') and self.ids.loading_card:
+                if show:
+                    self.ids.loading_card.opacity = 1
+                    if hasattr(self.ids, 'spinner') and self.ids.spinner:
+                        self.ids.spinner.active = True
+                else:
+                    self.ids.loading_card.opacity = 0
+                    if hasattr(self.ids, 'spinner') and self.ids.spinner:
+                        self.ids.spinner.active = False
+                        
+            if hasattr(self.ids, 'main_scroll_view') and self.ids.main_scroll_view:
+                self.ids.main_scroll_view.opacity = 0.3 if show else 1
+        except Exception as e:
+            print(f"Error updating loader: {e}")
+
+    def show_toast(self, message):
+        """Show toast message with fallback"""
+        try:
+            from utils.cross_platform_toast import toast
+            toast(message)
+        except ImportError:
+            try:
+                from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
+                
+                snackbar = MDSnackbar(
+                    MDSnackbarText(text=message),
+                    y=dp(24),
+                    pos_hint={"center_x": 0.5},
+                    size_hint_x=0.8,
+                )
+                snackbar.open()
+            except Exception:
+                print(f"Toast: {message}")
 
     def update_stats(self, show_loader=True):
         """Fetches dashboard statistics in a background thread."""
+        if not self.dashboard_service:
+            self._handle_error("Dashboard service not available")
+            return
+            
         # Verify user context before updating
         user_id = self.dashboard_service.get_current_user_id()
         if not user_id:
@@ -214,39 +300,52 @@ class DashboardScreen(MDScreen):
     def _update_in_thread(self):
         """Background task to get stats."""
         try:
-            stats = self.dashboard_service.get_dashboard_stats()
-            Clock.schedule_once(lambda dt: self._update_ui(stats))
+            if self.dashboard_service:
+                stats = self.dashboard_service.get_dashboard_stats()
+                Clock.schedule_once(lambda dt: self._update_ui(stats))
+            else:
+                Clock.schedule_once(lambda dt: self._handle_error("Dashboard service not available"))
         except Exception as e:
             print(f"Error fetching dashboard stats: {e}")
             Clock.schedule_once(lambda dt: self._handle_error(str(e)))
 
     def _handle_error(self, error_message):
-        """Handle error cases"""
+        """Handle error cases with modern UI updates"""
         print(f"Dashboard error: {error_message}")
-        # Show fallback data or error message
-        self.ids.total_responses_card.value = "Error"
-        self.ids.active_projects_card.value = "Error"
-        self.ids.pending_sync_card.value = "Error"
-        self.update_team_member_card("Error")  # Use dedicated method
         
-        # Clear notes for other cards
-        self.ids.total_responses_card.note = ""
-        self.ids.active_projects_card.note = ""
-        self.ids.pending_sync_card.note = ""
-        # Team members card note is handled by update_team_member_card
-        
-        # Clear activity feed and show error message
-        activity_feed_layout = self.ids.activity_feed_layout
-        activity_feed_layout.clear_widgets()
-        activity_feed_layout.add_widget(MDLabel(
-            text=f"Error loading data: {error_message}", 
-            halign="center", 
-            theme_text_color="Error",
-            size_hint_y=None,
-            height=dp(40)
-        ))
-        
-        self.show_loader(False)
+        try:
+            # Update stat cards with error state
+            if hasattr(self.ids, 'total_responses_card') and self.ids.total_responses_card:
+                self.ids.total_responses_card.value = "Error"
+                self.ids.total_responses_card.note = ""
+                
+            if hasattr(self.ids, 'active_projects_card') and self.ids.active_projects_card:
+                self.ids.active_projects_card.value = "Error"
+                self.ids.active_projects_card.note = ""
+                
+            if hasattr(self.ids, 'pending_sync_card') and self.ids.pending_sync_card:
+                self.ids.pending_sync_card.value = "Error"
+                self.ids.pending_sync_card.note = ""
+                
+            self.update_team_member_card("Error")
+            
+            # Clear activity feed and show error message
+            if hasattr(self.ids, 'activity_feed_layout') and self.ids.activity_feed_layout:
+                activity_feed_layout = self.ids.activity_feed_layout
+                activity_feed_layout.clear_widgets()
+                activity_feed_layout.add_widget(MDLabel(
+                    text=f"Error loading data: {error_message}", 
+                    halign="center", 
+                    theme_text_color="Error",
+                    size_hint_y=None,
+                    height=dp(40)
+                ))
+            
+            self.show_loader(False)
+            
+        except Exception as e:
+            print(f"Error in error handler: {e}")
+            self.show_loader(False)
 
     def _update_additional_info(self, stats):
         """Update additional information display"""
@@ -254,12 +353,11 @@ class DashboardScreen(MDScreen):
             # Get user permissions
             permissions = stats.get('user_permissions', {})
             
-            # You can add logic here to show/hide UI elements based on permissions
             can_manage = permissions.get('can_manage_users', False)
             can_create_projects = permissions.get('can_create_projects', True)
             can_collect_data = permissions.get('can_collect_data', True)
             
-            # Example: Update title based on permissions
+            # Update title based on permissions
             if can_manage:
                 title = "Admin Dashboard"
             elif can_create_projects:
@@ -267,31 +365,25 @@ class DashboardScreen(MDScreen):
             else:
                 title = "Field Worker Dashboard"
                 
-            if hasattr(self.ids, 'top_bar'):
+            if hasattr(self.ids, 'top_bar') and self.ids.top_bar:
                 self.ids.top_bar.set_title(title)
             
             # Update card notes to be more specific
-            # Total responses - from projects user has access to
-            self.ids.total_responses_card.note = "From your accessible projects"
+            if hasattr(self.ids, 'total_responses_card') and self.ids.total_responses_card:
+                self.ids.total_responses_card.note = "From your accessible projects"
+                
+            if hasattr(self.ids, 'active_projects_card') and self.ids.active_projects_card:
+                if can_manage:
+                    self.ids.active_projects_card.note = "All projects in system"
+                else:
+                    self.ids.active_projects_card.note = "Projects you created"
+                    
+            if hasattr(self.ids, 'pending_sync_card') and self.ids.pending_sync_card:
+                self.ids.pending_sync_card.note = "Your pending operations"
             
-            # Active projects - projects user can see
-            if can_manage:
-                self.ids.active_projects_card.note = "All projects in system"
-            else:
-                self.ids.active_projects_card.note = "Projects you created"
-            
-            # Pending sync - user's sync operations
-            self.ids.pending_sync_card.note = "Your pending operations"
-            
-            # Team members note is set in the enhanced display section
-            # Don't override it here unless there's an error
-            team_members_count = stats.get('team_members', 'N/A')
-            if team_members_count == 'N/A' or team_members_count == 'Error':
-                self.ids.team_members_card.note = "Click to manage team members"
-            
-            # Show additional stats as tooltips or helper text
+            # Show warning for failed syncs
             failed_sync = stats.get('failed_sync', '0')
-            if failed_sync != '0' and failed_sync != 0:
+            if failed_sync and str(failed_sync) != '0':
                 print(f"Warning: {failed_sync} failed sync operations")
                 
         except Exception as e:
@@ -301,45 +393,50 @@ class DashboardScreen(MDScreen):
         """Updates the UI with new stats."""
         try:
             # Update stat cards with enhanced information
-            self.ids.total_responses_card.value = stats.get('total_respondents', 'N/A')
-            self.ids.active_projects_card.value = stats.get('active_projects', 'N/A')
-            self.ids.pending_sync_card.value = stats.get('pending_sync', 'N/A')
+            if hasattr(self.ids, 'total_responses_card') and self.ids.total_responses_card:
+                self.ids.total_responses_card.value = stats.get('total_respondents', 'N/A')
+                
+            if hasattr(self.ids, 'active_projects_card') and self.ids.active_projects_card:
+                self.ids.active_projects_card.value = stats.get('active_projects', 'N/A')
+                
+            if hasattr(self.ids, 'pending_sync_card') and self.ids.pending_sync_card:
+                self.ids.pending_sync_card.value = stats.get('pending_sync', 'N/A')
             
             # Enhanced team members display using dedicated method
             team_members_count = stats.get('team_members', 'N/A')
             self.update_team_member_card(team_members_count)
 
-            # Update additional stats if available
-            failed_sync = stats.get('failed_sync', '0')
-            recent_responses = stats.get('recent_responses', '0')
-            completion_rate = stats.get('completion_rate', 'N/A')
-            
-            # Show warning for failed syncs
-            if failed_sync and str(failed_sync) != '0':
-                print(f"Note: {failed_sync} sync operations have failed")
-                # Could add a visual indicator here
-            
             # Update activity feed
-            activity_feed_layout = self.ids.activity_feed_layout
-            activity_feed_layout.clear_widgets()
-            activity_feed = stats.get('activity_feed', [])
-            
-            if not activity_feed:
-                activity_feed_layout.add_widget(MDLabel(
-                    text="No recent activity in your accessible projects.", 
-                    halign="center", 
-                    theme_text_color="Hint",
-                    size_hint_y=None,
-                    height=dp(40)
-                ))
-            else:
-                for activity in activity_feed:
-                    activity_feed_layout.add_widget(ActivityItem(
-                        activity_text=activity.get('text'),
-                        activity_time=activity.get('time'),
-                        activity_icon=activity.get('icon'),
-                        activity_type=activity.get('type', '')
+            if hasattr(self.ids, 'activity_feed_layout') and self.ids.activity_feed_layout:
+                activity_feed_layout = self.ids.activity_feed_layout
+                activity_feed_layout.clear_widgets()
+                activity_feed = stats.get('activity_feed', [])
+                
+                if not activity_feed:
+                    activity_feed_layout.add_widget(MDLabel(
+                        text="No recent activity in your accessible projects.", 
+                        halign="center", 
+                        theme_text_color="Secondary",
+                        size_hint_y=None,
+                        height=dp(40)
                     ))
+                else:
+                    for activity in activity_feed:
+                        if ActivityItem:
+                            activity_feed_layout.add_widget(ActivityItem(
+                                activity_text=activity.get('text'),
+                                activity_time=activity.get('time'),
+                                activity_icon=activity.get('icon'),
+                                activity_type=activity.get('type', '')
+                            ))
+                        else:
+                            # Fallback to simple label
+                            activity_feed_layout.add_widget(MDLabel(
+                                text=f"{activity.get('text', 'Activity')} - {activity.get('time', '')}",
+                                size_hint_y=None,
+                                height=dp(30),
+                                theme_text_color="Secondary"
+                            ))
                     
             # Show additional information if available
             self._update_additional_info(stats)
@@ -356,19 +453,6 @@ class DashboardScreen(MDScreen):
                   f"Pending Sync: {stats.get('pending_sync', 'N/A')}, "
                   f"Team: {stats.get('team_members', 'N/A')}")
             
-            # Debug the actual values being set
-            print(f"Debug - Setting card values:")
-            print(f"  total_responses_card.value = '{stats.get('total_respondents', 'N/A')}'")
-            print(f"  active_projects_card.value = '{stats.get('active_projects', 'N/A')}'")
-            print(f"  pending_sync_card.value = '{stats.get('pending_sync', 'N/A')}'")
-            print(f"  team_members_card.value = '{stats.get('team_members', 'N/A')}'")
-            
-            # Force update the card display methods
-            self.ids.total_responses_card.update_value(stats.get('total_respondents', 'N/A'))
-            self.ids.active_projects_card.update_value(stats.get('active_projects', 'N/A'))
-            self.ids.pending_sync_card.update_value(stats.get('pending_sync', 'N/A'))
-            self.ids.team_members_card.update_value(stats.get('team_members', 'N/A'))
-            
         except Exception as e:
             print(f"Error updating UI: {e}")
             self._handle_error(f"UI update error: {str(e)}")
@@ -383,26 +467,18 @@ class DashboardScreen(MDScreen):
             Clock.unschedule(self._delayed_init)
             
             # Reset dashboard service state
-            self.dashboard_service.use_combined_endpoint = True
+            if self.dashboard_service:
+                self.dashboard_service.use_combined_endpoint = True
             
             # Clear current display
             self.show_loader(True)
             
             # Clear stat cards
-            self.ids.total_responses_card.value = "Loading..."
-            self.ids.active_projects_card.value = "Loading..."
-            self.ids.pending_sync_card.value = "Loading..."
-            self.update_team_member_card("Loading...")  # Use dedicated method
-            
-            # Clear notes for other cards
-            self.ids.total_responses_card.note = ""
-            self.ids.active_projects_card.note = ""
-            self.ids.pending_sync_card.note = ""
-            # Team members card note is handled by update_team_member_card
+            self._set_card_loading_state()
             
             # Clear activity feed
-            activity_feed_layout = self.ids.activity_feed_layout
-            activity_feed_layout.clear_widgets()
+            if hasattr(self.ids, 'activity_feed_layout') and self.ids.activity_feed_layout:
+                self.ids.activity_feed_layout.clear_widgets()
             
             # Reset update time
             self.last_update_time = None
@@ -411,6 +487,18 @@ class DashboardScreen(MDScreen):
             
         except Exception as e:
             print(f"Error resetting dashboard: {e}")
+
+    def _set_card_loading_state(self):
+        """Set all cards to loading state"""
+        cards = ['total_responses_card', 'active_projects_card', 'pending_sync_card']
+        
+        for card_id in cards:
+            if hasattr(self.ids, card_id) and getattr(self.ids, card_id):
+                card = getattr(self.ids, card_id)
+                card.value = "Loading..."
+                card.note = ""
+        
+        self.update_team_member_card("Loading...")
 
     def force_refresh_for_user_change(self):
         """Force refresh dashboard when user context changes"""
@@ -421,7 +509,7 @@ class DashboardScreen(MDScreen):
             self.reset_for_new_user()
             
             # Try to initialize and update immediately
-            if self.dashboard_service.initialize_for_user():
+            if self.dashboard_service and self.dashboard_service.initialize_for_user():
                 self.update_stats(show_loader=True)
             else:
                 print("Warning: Could not initialize dashboard service during force refresh")
@@ -435,6 +523,10 @@ class DashboardScreen(MDScreen):
         """Force a complete refresh of all dashboard data"""
         try:
             print("Performing complete dashboard refresh")
+            
+            if not self.dashboard_service:
+                self._handle_error("Dashboard service not available")
+                return
             
             # Reset dashboard service
             self.dashboard_service.use_combined_endpoint = True
@@ -454,7 +546,7 @@ class DashboardScreen(MDScreen):
     def get_dashboard_summary(self):
         """Get a summary of current dashboard state for other screens"""
         try:
-            user_id = self.dashboard_service.get_current_user_id()
+            user_id = self.dashboard_service.get_current_user_id() if self.dashboard_service else None
             return {
                 'last_update': self.last_update_time,
                 'auto_refresh': self.auto_refresh_enabled,
@@ -500,172 +592,173 @@ class DashboardScreen(MDScreen):
     def update_responsive_layout(self):
         """Update layout based on current screen size"""
         try:
-            from widgets.responsive_layout import ResponsiveHelper
+            try:
+                from widgets.responsive_layout import ResponsiveHelper
+            except ImportError:
+                # Fallback responsive logic
+                self._fallback_responsive_layout()
+                return
+                
             from kivy.core.window import Window
             
             # Get current window dimensions
             window_width = Window.width
             window_height = Window.height
             
-            print(f"CLINICAL DEBUG: Window dimensions: {window_width}x{window_height}")
+            print(f"Dashboard: Window dimensions: {window_width}x{window_height}")
             
             # Update spacing and padding based on screen size
-            if hasattr(self.ids, 'content_layout'):
+            if hasattr(self.ids, 'content_layout') and self.ids.content_layout:
                 self.ids.content_layout.spacing = ResponsiveHelper.get_responsive_spacing()
                 self.ids.content_layout.padding = ResponsiveHelper.get_responsive_padding()
             
-            # CLINICAL FIX: Force single column for narrow windows
-            if hasattr(self.ids, 'stats_container'):
+            # Calculate responsive columns
+            if hasattr(self.ids, 'stats_container') and self.ids.stats_container:
                 category = ResponsiveHelper.get_screen_size_category()
                 is_landscape = ResponsiveHelper.is_landscape()
                 
-                print(f"CLINICAL DEBUG: Category={category}, Landscape={is_landscape}")
-                
-                # AGGRESSIVE WIDTH-BASED COLUMN CALCULATION
-                # Each card needs absolute minimum 180dp width + 16dp spacing
+                # Conservative width-based column calculation
                 min_card_width = 180
                 spacing = 16
-                padding = 48  # Total left+right padding
+                padding = 48
                 available_width = window_width - padding
                 
-                print(f"CLINICAL DEBUG: Available width for cards: {available_width}dp")
-                
-                # Calculate maximum possible columns with safety margin
                 max_possible_cols = max(1, int(available_width / (min_card_width + spacing)))
                 
-                print(f"CLINICAL DEBUG: Max possible columns: {max_possible_cols}")
-                
-                # CLINICAL DECISION TREE - SUPER CONSERVATIVE FOR NARROW WINDOWS
-                if window_width < 700:  # Very narrow - FORCE single column (increased from 600)
+                # Responsive column decision
+                if window_width < 700:
                     stats_cols = 1
                     actions_cols = 1
-                    print("CLINICAL: FORCING single column for very narrow window")
-                elif window_width < 1200:  # Narrow - FORCE single column for stats (increased from 1000)
+                elif window_width < 1200:
                     stats_cols = 1
                     actions_cols = 2
-                    print("CLINICAL: FORCING single stats column for narrow window")
-                elif window_width < 1600:  # Medium - 2 columns max (increased from 1400)
+                elif window_width < 1600:
                     stats_cols = min(2, max_possible_cols)
                     actions_cols = 2
-                    print("CLINICAL: Using 2 columns max for medium window")
-                else:  # Wide - use calculated columns but cap at 3 for actions
+                else:
                     if is_landscape and category in ["tablet", "large_tablet"]:
                         stats_cols = min(4, max_possible_cols)
-                        actions_cols = 3  # Max 3 columns for actions for better visual balance
+                        actions_cols = 3
                     else:
                         stats_cols = min(2, max_possible_cols)
                         actions_cols = 2
-                    print("CLINICAL: Using calculated columns for wide window")
                 
-                # SAFETY CHECK - Never allow more columns than fit
-                stats_cols = min(stats_cols, max_possible_cols, 4)
-                stats_cols = max(stats_cols, 1)  # Never less than 1
+                # Safety checks
+                stats_cols = min(max(stats_cols, 1), 4)
+                actions_cols = min(max(actions_cols, 1), 3)
                 
-                actions_cols = min(actions_cols, 3)  # Cap actions at 3 columns for better visual balance
-                actions_cols = max(actions_cols, 1)
+                print(f"Dashboard: Using {stats_cols} stats columns, {actions_cols} action columns")
                 
-                print(f" Using {stats_cols} stats columns, {actions_cols} action columns")
-                
-                # Apply the calculated columns immediately
+                # Apply the calculated columns
                 self.set_stats_grid_columns(stats_cols)
                 self.set_actions_grid_columns(actions_cols)
                 
-                # Update card sizes based on available space
+                # Update card sizes
                 self.update_card_sizes(stats_cols, window_width, category)
             
         except Exception as e:
-            print(f"CLINICAL ERROR in responsive layout: {e}")
-            # EMERGENCY FALLBACK - Force single column
+            print(f"Error in responsive layout: {e}")
+            # Emergency fallback
             self.set_stats_grid_columns(1)
             self.set_actions_grid_columns(1)
+
+    def _fallback_responsive_layout(self):
+        """Fallback responsive layout when ResponsiveHelper is not available"""
+        try:
+            from kivy.core.window import Window
+            window_width = Window.width
+            
+            if window_width < 800:
+                stats_cols = 1
+                actions_cols = 1
+            elif window_width < 1200:
+                stats_cols = 2
+                actions_cols = 2
+            else:
+                stats_cols = 2
+                actions_cols = 3
+                
+            self.set_stats_grid_columns(stats_cols)
+            self.set_actions_grid_columns(actions_cols)
+            
+        except Exception as e:
+            print(f"Error in fallback responsive layout: {e}")
 
     def update_card_sizes(self, cols, window_width, category):
         """Update StatCard sizes based on layout and screen size"""
         try:
-            print(f"CLINICAL: Updating card sizes for {cols} columns, width={window_width}")
-            
-            # CLINICAL CARD HEIGHT CALCULATION
-            if window_width < 500:  # Very narrow
-                card_height = 100  # Compact
-            elif window_width < 800:  # Narrow
+            if window_width < 500:
+                card_height = 100
+            elif window_width < 800:
                 card_height = 120
-            elif cols == 1:  # Single column - can be taller
+            elif cols == 1:
                 card_height = 140
-            elif cols == 2:  # Two columns
+            elif cols == 2:
                 card_height = 130
-            elif cols == 3:  # Three columns
+            elif cols == 3:
                 card_height = 120
-            else:  # Four columns
+            else:
                 card_height = 110
             
-            print(f"CLINICAL: Setting card height to {card_height}dp")
+            print(f"Dashboard: Setting card height to {card_height}dp")
             
-            # Update all stat cards with clinical precision
+            # Update all stat cards
             card_ids = ['total_responses_card', 'active_projects_card', 'pending_sync_card', 'team_members_card']
             for card_id in card_ids:
-                if hasattr(self.ids, card_id):
+                if hasattr(self.ids, card_id) and getattr(self.ids, card_id):
                     card = getattr(self.ids, card_id)
                     
-                    # FORCE HEIGHT UPDATE
+                    # Force height update
                     card.size_hint_y = None
                     card.height = dp(card_height)
                     
                     # Try responsive height method if available
                     if hasattr(card, 'update_responsive_height'):
                         card.update_responsive_height(card_height)
-                    
-                    print(f"CLINICAL: Updated {card_id} height to {card_height}dp")
             
         except Exception as e:
-            print(f"CLINICAL ERROR updating card sizes: {e}")
+            print(f"Error updating card sizes: {e}")
 
     def set_stats_grid_columns(self, cols):
-        """Set the number of columns for the stats grid with clinical precision"""
+        """Set the number of columns for the stats grid"""
         try:
-            if hasattr(self.ids, 'stats_grid'):
+            if hasattr(self.ids, 'stats_grid') and self.ids.stats_grid:
                 self.ids.stats_grid.cols = cols
-                print(f"CLINICAL: Stats grid columns set to {cols}")
+                print(f"Dashboard: Stats grid columns set to {cols}")
                 
-                # FORCE FULL WIDTH FOR SINGLE COLUMN
+                # Force full width for single column
                 if cols == 1:
                     card_ids = ['total_responses_card', 'active_projects_card', 'pending_sync_card', 'team_members_card']
                     for card_id in card_ids:
-                        if hasattr(self.ids, card_id):
+                        if hasattr(self.ids, card_id) and getattr(self.ids, card_id):
                             card = getattr(self.ids, card_id)
-                            card.size_hint_x = 1  # Force full width
-                            print(f"CLINICAL: Forced {card_id} to full width")
+                            card.size_hint_x = 1
                 
-                # Force grid to re-layout immediately
-                if hasattr(self.ids.stats_grid, 'do_layout'):
-                    self.ids.stats_grid.do_layout()
+                # Force layout refresh
+                self.ids.stats_grid.do_layout()
                 
-                # Force parent layouts to update
-                if hasattr(self.ids, 'stats_container'):
+                if hasattr(self.ids, 'stats_container') and self.ids.stats_container:
                     self.ids.stats_container.do_layout()
-                if hasattr(self.ids, 'content_layout'):
-                    self.ids.content_layout.do_layout()
                     
         except Exception as e:
-            print(f"CLINICAL ERROR setting stats grid columns: {e}")
+            print(f"Error setting stats grid columns: {e}")
     
     def set_actions_grid_columns(self, cols):
-        """Set the number of columns for the actions grid with clinical precision"""
+        """Set the number of columns for the actions grid"""
         try:
-            if hasattr(self.ids, 'actions_grid'):
+            if hasattr(self.ids, 'actions_grid') and self.ids.actions_grid:
                 self.ids.actions_grid.cols = cols
-                print(f"CLINICAL: Actions grid columns set to {cols}")
+                print(f"Dashboard: Actions grid columns set to {cols}")
                 
-                # Update button heights based on columns for better visual balance
-                button_height = dp(60) if cols <= 2 else dp(55)
+                # Update button heights based on columns
+                button_height = dp(64) if cols <= 2 else dp(60)
                 self.ids.actions_grid.row_default_height = button_height
                 
-                # Force grid to re-layout immediately
-                if hasattr(self.ids.actions_grid, 'do_layout'):
-                    self.ids.actions_grid.do_layout()
+                # Force layout refresh
+                self.ids.actions_grid.do_layout()
                 
-                # Force container to re-layout as well
-                if hasattr(self.ids, 'actions_container'):
+                if hasattr(self.ids, 'actions_container') and self.ids.actions_container:
                     self.ids.actions_container.do_layout()
                     
         except Exception as e:
-            print(f"CLINICAL ERROR setting actions grid columns: {e}") 
+            print(f"Error setting actions grid columns: {e}")

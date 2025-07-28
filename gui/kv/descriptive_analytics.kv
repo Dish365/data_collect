@@ -1,0 +1,649 @@
+#:kivy 2.0
+#:import MDCard kivymd.uix.card.MDCard
+#:import MDLabel kivymd.uix.label.MDLabel
+#:import MDRaisedButton kivymd.uix.button.MDRaisedButton
+#:import MDFlatButton kivymd.uix.button.MDFlatButton
+#:import MDIconButton kivymd.uix.button.MDIconButton
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDDialog kivymd.uix.dialog.MDDialog
+#:import MDScrollView kivymd.uix.scrollview.MDScrollView
+#:import GridLayout kivy.uix.gridlayout.GridLayout
+#:import MDCircularProgressIndicator kivymd.uix.spinner.MDCircularProgressIndicator
+#:import MDCheckbox kivymd.uix.selectioncontrol.MDCheckbox
+#:import MDDropdownMenu kivymd.uix.menu.MDDropdownMenu
+#:import OneLineListItem kivymd.uix.list.OneLineListItem
+#:import TwoLineListItem kivymd.uix.list.TwoLineListItem
+
+# Descriptive Analytics Components
+<DescriptiveAnalyticsCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(300)
+    elevation: 3
+    radius: [16, 16, 16, 16]
+    padding: [dp(24), dp(20), dp(24), dp(20)]
+    spacing: dp(16)
+    md_bg_color: 0.98, 0.99, 1.0, 1
+
+<DescriptiveHeaderCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(200)
+    elevation: 2
+    radius: [12, 12, 12, 12]
+    padding: [dp(20), dp(16), dp(20), dp(16)]
+    spacing: dp(16)
+    md_bg_color: 0.98, 0.99, 1.0, 1
+
+<DescriptiveOptionsCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(900)
+    elevation: 2
+    radius: [16, 16, 16, 16]
+    padding: [dp(32), dp(20), dp(32), dp(20)]
+    spacing: dp(20)
+    md_bg_color: 1.0, 1.0, 1.0, 1
+
+<DescriptiveAnalysisOption@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(450)
+    elevation: 2
+    radius: [12, 12, 12, 12]
+    padding: [dp(20), dp(16), dp(20), dp(16)]
+    spacing: dp(12)
+    md_bg_color: 1, 1, 1, 1
+
+<DescriptiveResultsCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(400)
+    elevation: 3
+    radius: [12, 12, 12, 12]
+    padding: [dp(20), dp(16), dp(20), dp(16)]
+    spacing: dp(16)
+    md_bg_color: 0.99, 1.0, 0.98, 1
+
+<DescriptiveLoadingCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(200)
+    elevation: 2
+    radius: [12, 12, 12, 12]
+    padding: dp(24)
+    spacing: dp(16)
+    md_bg_color: 0.98, 0.98, 0.98, 1
+
+<DescriptiveErrorCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(150)
+    elevation: 2
+    radius: [12, 12, 12, 12]
+    padding: [dp(20), dp(16), dp(20), dp(16)]
+    spacing: dp(12)
+    md_bg_color: 1.0, 0.95, 0.95, 1
+
+<DescriptiveSampleSizeCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(300)
+    elevation: 2
+    radius: [12, 12, 12, 12]
+    padding: [dp(20), dp(16), dp(20), dp(16)]
+    spacing: dp(16)
+    md_bg_color: 0.98, 1.0, 0.99, 1
+
+<DescriptiveQualityCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(350)
+    elevation: 2
+    radius: [12, 12, 12, 12]
+    padding: [dp(20), dp(16), dp(20), dp(16)]
+    spacing: dp(16)
+    md_bg_color: 0.99, 0.98, 1.0, 1
+
+<DescriptiveStatsCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(280)
+    elevation: 2
+    radius: [12, 12, 12, 12]
+    padding: [dp(16), dp(12), dp(16), dp(12)]
+    spacing: dp(12)
+    md_bg_color: 1, 1, 1, 1
+
+<DescriptiveVariableRow@MDCard>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: dp(80)
+    elevation: 1
+    radius: [8, 8, 8, 8]
+    padding: [dp(12), dp(8), dp(12), dp(8)]
+    spacing: dp(12)
+    md_bg_color: 1, 1, 1, 0.8
+
+<DescriptiveButton@MDRaisedButton>:
+    size_hint_y: None
+    height: dp(48)
+    font_size: "16sp"
+    elevation: 2
+
+<DescriptiveIconButton@MDIconButton>:
+    size_hint: None, None
+    size: dp(48), dp(48)
+    icon_size: "20dp"
+
+<DescriptiveText@MDLabel>:
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Secondary"
+
+<DescriptiveTitle@MDLabel>:
+    font_style: "Headline"
+
+    role: "small"
+    theme_text_color: "Primary"
+    bold: True
+
+<DescriptiveSubtitle@MDLabel>:
+    font_style: "Title"
+
+    role: "large"
+    theme_text_color: "Primary"
+
+<DescriptiveCaption@MDLabel>:
+    font_style: "Label"
+
+    role: "small"
+    theme_text_color: "Hint"
+
+# Status indicators without emojis
+<DescriptiveStatusExcellent@MDLabel>:
+    text: "Excellent"
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Custom"
+    text_color: 0.2, 0.8, 0.2, 1
+    bold: True
+
+<DescriptiveStatusAdequate@MDLabel>:
+    text: "Adequate"
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Custom"
+    text_color: 0.6, 0.8, 0.2, 1
+    bold: True
+
+<DescriptiveStatusMarginal@MDLabel>:
+    text: "Marginal"
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Custom"
+    text_color: 0.8, 0.6, 0.2, 1
+    bold: True
+
+<DescriptiveStatusInsufficient@MDLabel>:
+    text: "Insufficient"
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Custom"
+    text_color: 0.8, 0.2, 0.2, 1
+    bold: True
+
+<DescriptiveStatusUnknown@MDLabel>:
+    text: "Unknown"
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Custom"
+    text_color: 0.6, 0.6, 0.6, 1
+    bold: True
+
+# Analysis option templates
+<DescriptiveBasicStatsOption@DescriptiveAnalysisOption>:
+    md_bg_color: 0.95, 0.98, 1.0, 1
+
+<DescriptiveDistributionOption@DescriptiveAnalysisOption>:
+    md_bg_color: 1.0, 0.95, 0.9, 1
+
+<DescriptiveCategoricalOption@DescriptiveAnalysisOption>:
+    md_bg_color: 0.95, 1.0, 0.95, 1
+
+<DescriptiveAdvancedOption@DescriptiveAnalysisOption>:
+    md_bg_color: 0.98, 0.95, 1.0, 1
+
+<DescriptiveQualityOption@DescriptiveAnalysisOption>:
+    md_bg_color: 1.0, 0.98, 0.95, 1
+
+<DescriptiveOutlierOption@DescriptiveAnalysisOption>:
+    md_bg_color: 1.0, 0.9, 0.9, 1
+
+# Header components
+<DescriptiveHeaderLayout@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(12)
+    size_hint_y: None
+    height: dp(48)
+
+<DescriptiveHeaderIcon@MDIconButton>:
+    icon: "chart-line"
+    theme_icon_color: "Custom"
+    icon_color: 0.2, 0.6, 1.0, 1
+    disabled: True
+    size_hint_x: None
+    width: dp(40)
+
+<DescriptiveHeaderLabel@MDLabel>:
+    text: "Descriptive Analytics"
+    font_style: "Headline"
+
+    role: "medium"
+    theme_text_color: "Primary"
+    bold: True
+
+# Analysis option components
+<DescriptiveOptionHeader@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(12)
+    size_hint_y: None
+    height: dp(40)
+
+<DescriptiveOptionIcon@MDLabel>:
+    font_style: "Headline"
+
+    role: "large"
+    size_hint_x: None
+    width: dp(40)
+
+<DescriptiveOptionName@MDLabel>:
+    font_style: "Title"
+
+    role: "large"
+    theme_text_color: "Primary"
+    bold: True
+
+<DescriptiveOptionDescription@MDLabel>:
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Secondary"
+    size_hint_y: None
+    height: dp(60)
+
+<DescriptiveOptionSuitable@MDLabel>:
+    font_style: "Body"
+
+    role: "medium"
+    theme_text_color: "Secondary"
+    size_hint_y: None
+    height: dp(42)
+
+<DescriptiveOptionButton@MDRaisedButton>:
+    text: "Run Analysis"
+    size_hint_y: None
+    height: dp(48)
+    font_size: "16sp"
+
+# Sample size recommendation components
+<DescriptiveSampleSizeHeader@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(8)
+    size_hint_y: None
+    height: dp(32)
+
+<DescriptiveSampleSizeStatus@MDLabel>:
+    font_style: "Headline"
+
+    role: "small"
+    size_hint_x: None
+    width: dp(32)
+
+<DescriptiveSampleSizeTitle@MDLabel>:
+    font_style: "Title"
+
+    role: "large"
+    theme_text_color: "Primary"
+    bold: True
+
+<DescriptiveSampleSizeRequirements@MDLabel>:
+    font_style: "Label"
+
+    role: "small"
+    theme_text_color: "Secondary"
+    size_hint_y: None
+    height: dp(24)
+
+<DescriptiveSampleSizeRecommendation@MDLabel>:
+    font_style: "Body"
+
+    role: "medium"
+    theme_text_color: "Secondary"
+    size_hint_y: None
+    adaptive_height: True
+    text_size: None, None
+
+# Comprehensive report components
+<DescriptiveComprehensiveReportCard@MDCard>:
+    orientation: 'vertical'
+    padding: dp(20)
+    spacing: dp(16)
+    size_hint_y: None
+    height: dp(418)
+    elevation: 3
+    md_bg_color: 1.0, 0.99, 0.97, 1
+    radius: [12, 12, 12, 12]
+
+<DescriptiveComprehensiveHeader@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(12)
+    size_hint_y: None
+    height: dp(48)
+
+<DescriptiveComprehensiveIcon@MDIconButton>:
+    icon: "file-document-multiple"
+    theme_icon_color: "Custom"
+    icon_color: 1.0, 0.6, 0.0, 1
+    disabled: True
+    size_hint_x: None
+    width: dp(40)
+
+<DescriptiveComprehensiveTitle@MDLabel>:
+    text: "Comprehensive Report"
+    font_style: "Headline"
+
+    role: "medium"
+    theme_text_color: "Primary"
+    bold: True
+
+<DescriptiveComprehensiveMetadata@MDLabel>:
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Secondary"
+    size_hint_y: None
+    height: dp(160)
+
+<DescriptiveComprehensiveSummary@MDLabel>:
+    font_style: "Body"
+
+    role: "medium"
+    theme_text_color: "Secondary"
+    size_hint_y: None
+    height: dp(80)
+
+<DescriptiveComprehensiveActions@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(12)
+    size_hint_y: None
+    height: dp(44)
+
+<DescriptiveComprehensiveViewButton@MDRaisedButton>:
+    text: "View Full Report"
+    size_hint_x: 2
+    height: dp(44)
+
+<DescriptiveComprehensiveExportButton@MDRaisedButton>:
+    text: "Export Report"
+    size_hint_x: 1
+    height: dp(44)
+
+# Data quality components
+<DescriptiveQualityHeader@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(12)
+    size_hint_y: None
+    height: dp(48)
+
+<DescriptiveQualityIcon@MDIconButton>:
+    icon: "shield-check"
+    theme_icon_color: "Custom"
+    icon_color: 0.2, 0.8, 0.6, 1
+    disabled: True
+    size_hint_x: None
+    width: dp(40)
+
+<DescriptiveQualityTitle@MDLabel>:
+    text: "Data Quality Analysis"
+    font_style: "Headline"
+
+    role: "medium"
+    theme_text_color: "Primary"
+    bold: True
+
+<DescriptiveQualityScore@MDLabel>:
+    font_style: "Headline"
+
+    role: "large"
+    theme_text_color: "Primary"
+    bold: True
+    halign: "center"
+
+<DescriptiveQualityDetails@MDLabel>:
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Secondary"
+    size_hint_y: None
+    height: dp(120)
+
+# Basic statistics components
+<DescriptiveBasicStatsHeader@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(12)
+    size_hint_y: None
+    height: dp(48)
+
+<DescriptiveBasicStatsIcon@MDIconButton>:
+    icon: "calculator"
+    theme_icon_color: "Custom"
+    icon_color: 0.4, 0.6, 1.0, 1
+    disabled: True
+    size_hint_x: None
+    width: dp(40)
+
+<DescriptiveBasicStatsTitle@MDLabel>:
+    text: "Basic Statistics"
+    font_style: "Headline"
+
+    role: "medium"
+    theme_text_color: "Primary"
+    bold: True
+
+<DescriptiveBasicStatsContent@MDLabel>:
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Secondary"
+    size_hint_y: None
+    height: dp(200)
+
+# Variable statistics row components
+<DescriptiveVariableRowHeader@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(12)
+    size_hint_y: None
+    height: dp(32)
+
+<DescriptiveVariableName@MDLabel>:
+    font_style: "Title"
+
+    role: "large"
+    theme_text_color: "Primary"
+    bold: True
+
+<DescriptiveVariableStats@MDLabel>:
+    font_style: "Body"
+
+    role: "medium"
+    theme_text_color: "Secondary"
+
+# Error state components
+<DescriptiveErrorHeader@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(12)
+    size_hint_y: None
+    height: dp(32)
+
+<DescriptiveErrorIcon@MDIconButton>:
+    icon: "alert-circle"
+    theme_icon_color: "Custom"
+    icon_color: 0.8, 0.2, 0.2, 1
+    disabled: True
+    size_hint_x: None
+    width: dp(32)
+
+<DescriptiveErrorTitle@MDLabel>:
+    text: "Analysis Error"
+    font_style: "Headline"
+
+    role: "small"
+    theme_text_color: "Custom"
+    text_color: 0.8, 0.2, 0.2, 1
+    bold: True
+
+<DescriptiveErrorMessage@MDLabel>:
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Custom"
+    text_color: 0.6, 0.1, 0.1, 1
+    size_hint_y: None
+    height: dp(80)
+
+# Loading state components
+<DescriptiveLoadingSpinner@MDCircularProgressIndicator>:
+    size_hint: None, None
+    size: dp(48), dp(48)
+    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+<DescriptiveLoadingText@MDLabel>:
+    text: "Running descriptive analysis..."
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Secondary"
+    halign: "center"
+
+# Results components
+<DescriptiveResultsHeader@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(12)
+    size_hint_y: None
+    height: dp(48)
+
+<DescriptiveResultsIcon@MDIconButton>:
+    icon: "chart-bar"
+    theme_icon_color: "Custom"
+    icon_color: 0.2, 0.8, 0.6, 1
+    disabled: True
+    size_hint_x: None
+    width: dp(40)
+
+<DescriptiveResultsTitle@MDLabel>:
+    text: "Analysis Results"
+    font_style: "Headline"
+
+    role: "medium"
+    theme_text_color: "Primary"
+    bold: True
+
+<DescriptiveResultsContent@MDLabel>:
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Secondary"
+    size_hint_y: None
+    height: dp(300)
+
+# Action button components
+<DescriptiveActionLayout@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(12)
+    size_hint_y: None
+    height: dp(48)
+
+<DescriptiveViewButton@MDRaisedButton>:
+    text: "View Details"
+    size_hint_x: 1
+    height: dp(48)
+
+<DescriptiveExportButton@MDRaisedButton>:
+    text: "Export Results"
+    size_hint_x: 1
+    height: dp(48)
+
+<DescriptiveCloseButton@MDFlatButton>:
+    text: "Close"
+    size_hint_x: 1
+    height: dp(48)
+
+# Dialog components
+<DescriptiveResultsDialog@MDDialog>:
+    title: "Descriptive Analysis Results"
+    type: "custom"
+    size_hint: 0.95, 0.85
+
+<DescriptiveResultsDialogContent@MDScrollView>:
+    size_hint: 1, 1
+
+<DescriptiveResultsDialogLayout@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(16)
+    size_hint_y: None
+    adaptive_height: True
+    padding: dp(16)
+
+# Variable selection components
+<DescriptiveVariableSelectionDialog@MDDialog>:
+    title: "Variable Selection"
+    type: "custom"
+    size_hint: 0.8, 0.7
+
+<DescriptiveVariableSelectionContent@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(12)
+    size_hint_y: None
+    height: dp(400)
+    adaptive_height: True
+
+<DescriptiveVariableInstructions@MDLabel>:
+    text: "Select variables for analysis:"
+    font_style: "Title"
+
+    role: "large"
+    theme_text_color: "Primary"
+    size_hint_y: None
+    height: dp(32)
+
+<DescriptiveVariableLayout@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(8)
+    size_hint_y: None
+    height: dp(32)
+
+<DescriptiveVariableCheckbox@MDCheckbox>:
+    size_hint_x: None
+    width: dp(32)
+    active: True
+
+<DescriptiveVariableLabel@MDLabel>:
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Secondary"
+
+<DescriptiveNoVariablesLabel@MDLabel>:
+    text: "No variables found for analysis"
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Hint"
+    halign: "center" 

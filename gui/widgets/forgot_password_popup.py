@@ -2,7 +2,7 @@ from kivy.uix.popup import Popup
 from kivy.properties import BooleanProperty
 from kivy.lang import Builder
 from kivymd.app import MDApp
-from kivymd.toast import toast
+from utils.cross_platform_toast import toast
 
 Builder.load_file("kv/forgot_password_popup.kv")  # Adjust path if needed
 

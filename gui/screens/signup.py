@@ -1,6 +1,6 @@
 from kivymd.uix.screen import MDScreen
 from kivy.lang import Builder
-from kivymd.toast import toast
+from utils.cross_platform_toast import toast
 from kivymd.app import MDApp
 from kivy.properties import BooleanProperty
 import re

@@ -457,23 +457,23 @@ Please wait while we analyze your text data."""
     
     def _show_sentiment_analysis(self):
         """Show sentiment analysis"""
-        from kivymd.toast import toast
-        toast("😊 Sentiment analysis coming soon!")
+        from utils.cross_platform_toast import toast
+        toast("Sentiment analysis coming soon!")
     
     def _show_theme_analysis(self):
         """Show theme analysis"""
-        from kivymd.toast import toast
-        toast("🏷️ Theme analysis coming soon!")
+        from utils.cross_platform_toast import toast
+        toast("Theme analysis coming soon!")
     
     def _show_detailed_text_results(self, text_data):
         """Show detailed text results"""
-        from kivymd.toast import toast
-        toast("📊 Detailed text results view - coming soon!")
+        from utils.cross_platform_toast import toast
+        toast("Detailed text results view - coming soon!")
     
     def _export_text_results(self, text_data):
         """Export text results"""
-        from kivymd.toast import toast
-        toast("📤 Text analysis export - coming soon!")
+        from utils.cross_platform_toast import toast
+        toast("Text analysis export - coming soon!")
     
     def _create_text_overview_card(self, content, results):
         """Create text analysis overview card"""

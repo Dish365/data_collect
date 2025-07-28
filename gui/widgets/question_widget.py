@@ -1,17 +1,18 @@
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivy.properties import ObjectProperty
+from kivymd.uix.card import MDCard
+from kivy.properties import ObjectProperty, StringProperty
 from kivy.event import EventDispatcher
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
-from kivy.uix.spinner import Spinner
-from kivy.uix.checkbox import CheckBox
-from kivy.uix.button import Button
 from kivy.metrics import dp
-from kivy.properties import StringProperty
+from kivy.lang import Builder
+from kivy.core.window import Window
 import json
 
-class QuestionWidget(MDBoxLayout, EventDispatcher):
+# Load the KV file
+Builder.load_file("kv/question_widget.kv")
+
+
+class QuestionWidget(MDCard, EventDispatcher):
+    """Modern question widget using KivyMD 2.0.1 Material Design"""
+    
     question_data = ObjectProperty()
     question_id = StringProperty('')
     question_text = StringProperty('')
@@ -20,79 +21,105 @@ class QuestionWidget(MDBoxLayout, EventDispatcher):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.orientation = 'vertical'
-        self.padding = dp(10)
-        self.spacing = dp(5)
-        self.size_hint_y = None
-        self.height = dp(150)
         self.register_event_type('on_delete')
         
-        # Question text
-        self.text_label = Label(
-            text=self.question_text,
-            size_hint_y=None,
-            height=dp(40),
-            font_size=dp(16)
-        )
-        self.add_widget(self.text_label)
+        # Setup responsive properties
+        self.update_responsive_properties()
         
-        # Response input
-        self.response_widget = self._create_response_widget()
-        self.add_widget(self.response_widget)
+        # Bind to window resize for responsive updates
+        Window.bind(on_resize=self._on_window_resize)
         
         # Bind properties
-        self.bind(question_text=self.text_label.setter('text'))
+        self.bind(question_text=self._update_question_text)
+        self.bind(question_type=self._update_question_type)
+        self.bind(options=self._update_options)
+    
+    def _on_window_resize(self, *args):
+        """Handle window resize for responsive updates"""
+        self.update_responsive_properties()
+    
+    def update_responsive_properties(self):
+        """Update properties based on screen size"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            category = ResponsiveHelper.get_screen_size_category()
+            
+            # Responsive sizing based on device category
+            if category == "large_tablet":
+                self.height = dp(200)
+                self.padding = [dp(20), dp(16)]
+                self.spacing = dp(12)
+            elif category == "tablet":
+                self.height = dp(180)
+                self.padding = [dp(16), dp(12)]
+                self.spacing = dp(10)
+            elif category == "small_tablet":
+                self.height = dp(160)
+                self.padding = [dp(14), dp(10)]
+                self.spacing = dp(8)
+            else:  # phone
+                self.height = dp(150)
+                self.padding = [dp(12), dp(8)]
+                self.spacing = dp(6)
+                
+        except Exception as e:
+            print(f"Error updating QuestionWidget responsive properties: {e}")
+            # Fallback to default values
+            self.height = dp(150)
+            self.padding = [dp(12), dp(8)]
+            self.spacing = dp(6)
+    
+    def _update_question_text(self, instance, value):
+        """Update question text in UI"""
+        if hasattr(self, 'question_label'):
+            self.question_label.text = value
+    
+    def _update_question_type(self, instance, value):
+        """Update question type and recreate response widget"""
+        self._create_response_widget()
+    
+    def _update_options(self, instance, value):
+        """Update options for select/multiselect questions"""
+        if self.question_type in ['select', 'multiselect']:
+            self._create_response_widget()
     
     def _create_response_widget(self):
-        """Create appropriate response widget based on question type"""
-        if self.question_type == 'text':
-            return TextInput(
-                multiline=False,
-                size_hint_y=None,
-                height=dp(40)
-            )
-        elif self.question_type == 'number':
-            return TextInput(
-                multiline=False,
-                input_filter='float',
-                size_hint_y=None,
-                height=dp(40)
-            )
-        elif self.question_type == 'select':
-            options = json.loads(self.options)
-            spinner = Spinner(
-                text='Select an option',
-                values=options,
-                size_hint_y=None,
-                height=dp(40)
-            )
-            return spinner
-        elif self.question_type == 'multiselect':
-            options = json.loads(self.options)
-            layout = BoxLayout(
-                orientation='vertical',
-                size_hint_y=None,
-                height=dp(len(options) * 40)
-            )
-            self.checkboxes = []
-            for option in options:
-                option_layout = BoxLayout(
-                    orientation='horizontal',
-                    size_hint_y=None,
-                    height=dp(40)
-                )
-                checkbox = CheckBox(size_hint_x=None, width=dp(40))
-                label = Label(text=option)
-                option_layout.add_widget(checkbox)
-                option_layout.add_widget(label)
-                layout.add_widget(option_layout)
-                self.checkboxes.append((checkbox, option))
-            return layout
-        else:
-            return Label(text='Unsupported question type')
+        """Create appropriate response widget based on question type using KV"""
+        if not hasattr(self, 'response_area'):
+            return
+            
+        # Clear existing widgets
+        self.response_area.clear_widgets()
+        
+        # Create appropriate widget based on question type using KV
+        from kivy.lang import Builder
+        
+        widget_map = {
+            'text': 'TextResponseWidget',
+            'number': 'NumberResponseWidget', 
+            'select': 'SelectResponseWidget',
+            'multiselect': 'MultiSelectResponseWidget',
+            'date': 'DateResponseWidget',
+            'time': 'TimeResponseWidget',
+            'datetime': 'DateTimeResponseWidget',
+        }
+        
+        widget_class = widget_map.get(self.question_type, 'TextResponseWidget')
+        
+        widget = Builder.load_string(f'''
+{widget_class}:
+    question_options: {self.options}
+''')
+        
+        self.response_area.add_widget(widget)
+        self.response_widget = widget
     
     def get_response(self):
         """Get the current response value"""
+        if not hasattr(self, 'response_widget'):
+            return ''
+            
         if self.question_type == 'text':
             return self.response_widget.text
         elif self.question_type == 'number':
@@ -109,6 +136,9 @@ class QuestionWidget(MDBoxLayout, EventDispatcher):
     
     def clear_response(self):
         """Clear the current response"""
+        if not hasattr(self, 'response_widget'):
+            return
+            
         if self.question_type == 'text':
             self.response_widget.text = ''
         elif self.question_type == 'number':
@@ -117,12 +147,12 @@ class QuestionWidget(MDBoxLayout, EventDispatcher):
             self.response_widget.text = 'Select an option'
         elif self.question_type == 'multiselect':
             for checkbox, _ in self.checkboxes:
-                checkbox.active = False 
+                checkbox.active = False
 
     def get_data(self):
-        # This will be implemented to return the question's data
+        """Return the question's data"""
         return self.question_data
 
     def on_delete(self, *args):
-        # This is the event that will be dispatched
+        """Handle delete event"""
         pass 

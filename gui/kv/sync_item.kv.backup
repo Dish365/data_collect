@@ -1,0 +1,90 @@
+#:import dp kivy.metrics.dp
+
+<SyncItem>:
+    orientation: "vertical"
+    size_hint_y: None
+    height: dp(120)
+    padding: dp(10), dp(6)
+    spacing: dp(8)
+    style: "elevated"
+    radius: [dp(12)]
+    elevation: 1
+    md_bg_color: app.theme_cls.surfaceColor
+
+    # Main content layout
+    MDBoxLayout:
+        orientation: "horizontal"
+        spacing: dp(12)
+        size_hint: 1, 1
+
+        # Left side - Item details
+        MDBoxLayout:
+            id: details_layout
+            orientation: "vertical"
+            spacing: dp(4)
+            size_hint_x: 0.7
+
+            # Table name and operation
+            MDLabel:
+                id: table_operation_label
+                text: f"{root.table_name.title()} - {root.operation.title()}"
+                font_style: "Subtitle1"
+                bold: True
+                size_hint_y: None
+                height: dp(20)
+                theme_text_color: "Primary"
+
+            # Record ID
+            MDLabel:
+                id: record_id_label
+                text: f"ID: {root.record_id[:8]}..."
+                font_style: "Caption"
+                size_hint_y: None
+                height: dp(16)
+                theme_text_color: "Secondary"
+
+            # Created date
+            MDLabel:
+                id: created_date_label
+                text: f"Created: {root.created_at}"
+                font_style: "Caption"
+                size_hint_y: None
+                height: dp(16)
+                theme_text_color: "Secondary"
+
+            # Attempts
+            MDLabel:
+                id: attempts_label
+                text: f"Attempts: {root.attempts}"
+                font_style: "Caption"
+                size_hint_y: None
+                height: dp(16)
+                theme_text_color: "Secondary"
+
+        # Right side - Sync button and status
+        MDBoxLayout:
+            id: button_layout
+            orientation: "vertical"
+            spacing: dp(8)
+            size_hint_x: 0.3
+
+            # Sync button
+            MDButton:
+                id: sync_button
+                text: "Sync"
+                style: "filled"
+                size_hint_x: 1
+                size_hint_y: None
+                height: dp(36)
+                on_release: root.on_sync_button_pressed(self)
+
+            # Status indicator
+            MDLabel:
+                id: status_label
+                text: root.status.title()
+                font_style: "Caption"
+                theme_text_color: "Custom"
+                text_color: app.theme_cls.warningColor if root.status == 'pending' else app.theme_cls.primaryColor if root.status == 'synced' else app.theme_cls.errorColor
+                size_hint_y: None
+                height: dp(16)
+                halign: "center" 

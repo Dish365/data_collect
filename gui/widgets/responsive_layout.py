@@ -1,100 +1,329 @@
 """
-Responsive Layout Utilities for Tablet Optimization
+Responsive Layout Helper for KivyMD Applications
+Provides utilities for creating responsive layouts across different screen sizes
+Follows Material Design 3 responsive breakpoints
 """
 
 from kivy.core.window import Window
 from kivy.metrics import dp
+from kivy.event import EventDispatcher
+from kivy.properties import StringProperty, BooleanProperty, NumericProperty
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.gridlayout import MDGridLayout
+from kivymd.uix.button import MDButton, MDButtonIcon, MDButtonText
+from kivymd.uix.label import MDLabel
 
-class ResponsiveHelper:
-    """Helper class for responsive design decisions"""
+
+class ResponsiveHelper(EventDispatcher):
+    """
+    Helper class for managing responsive layouts across different screen sizes
+    Follows Material Design responsive breakpoints
+    """
     
-    @staticmethod
-    def is_landscape():
-        """Check if device is in landscape orientation"""
-        return Window.width > Window.height
+    # Screen size categories
+    PHONE = "phone"
+    SMALL_TABLET = "small_tablet"
+    TABLET = "tablet"
+    LARGE_TABLET = "large_tablet"
+    DESKTOP = "desktop"
     
-    @staticmethod
-    def is_tablet():
-        """Check if device has tablet-like dimensions"""
-        return min(Window.width, Window.height) >= 600
+    # Breakpoints (in dp)
+    BREAKPOINTS = {
+        PHONE: 0,           # 0-599dp
+        SMALL_TABLET: 600,  # 600-839dp
+        TABLET: 840,        # 840-1199dp
+        LARGE_TABLET: 1200, # 1200-1599dp
+        DESKTOP: 1600       # 1600dp+
+    }
     
-    @staticmethod
-    def get_screen_size_category():
-        """Get screen size category for responsive design"""
-        width, height = Window.width, Window.height
-        min_size = min(width, height)
+    # Current screen properties
+    current_category = StringProperty(PHONE)
+    is_landscape = BooleanProperty(False)
+    screen_width = NumericProperty(0)
+    screen_height = NumericProperty(0)
+    
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(ResponsiveHelper, cls).__new__(cls)
+        return cls._instance
+    
+    def __init__(self):
+        if hasattr(self, '_initialized'):
+            return
+        super().__init__()
+        self._initialized = True
         
-        if min_size < 480:
-            return "phone"
-        elif min_size < 768:
-            return "small_tablet"
-        elif min_size < 1024:
-            return "tablet"
+        # Bind to window size changes
+        Window.bind(size=self._on_window_resize)
+        
+        # Initialize current values
+        self._update_screen_info()
+    
+    def _on_window_resize(self, window, size):
+        """Handle window resize events"""
+        self._update_screen_info()
+    
+    def _update_screen_info(self):
+        """Update current screen information"""
+        self.screen_width = Window.width
+        self.screen_height = Window.height
+        self.is_landscape = Window.width > Window.height
+        self.current_category = self._get_category_for_width(Window.width)
+    
+    def _get_category_for_width(self, width):
+        """Get screen category for given width"""
+        width_dp = width  # Assuming width is already in dp
+        
+        if width_dp < self.BREAKPOINTS[self.SMALL_TABLET]:
+            return self.PHONE
+        elif width_dp < self.BREAKPOINTS[self.TABLET]:
+            return self.SMALL_TABLET
+        elif width_dp < self.BREAKPOINTS[self.LARGE_TABLET]:
+            return self.TABLET
+        elif width_dp < self.BREAKPOINTS[self.DESKTOP]:
+            return self.LARGE_TABLET
         else:
-            return "large_tablet"
+            return self.DESKTOP
     
-    @staticmethod
-    def get_responsive_cols():
-        """Get number of columns based on screen size"""
-        category = ResponsiveHelper.get_screen_size_category()
-        is_landscape = ResponsiveHelper.is_landscape()
-        
-        if category == "phone":
-            return 1
-        elif category == "small_tablet":
-            return 2 if is_landscape else 1
-        elif category == "tablet":
-            return 3 if is_landscape else 2
-        else:  # large_tablet
-            return 4 if is_landscape else 3
+    @classmethod
+    def get_screen_size_category(cls):
+        """Get current screen size category"""
+        instance = cls()
+        return instance.current_category
     
-    @staticmethod
-    def get_responsive_spacing():
-        """Get responsive spacing based on screen size"""
-        category = ResponsiveHelper.get_screen_size_category()
+    @classmethod
+    def is_landscape(cls):
+        """Check if screen is in landscape orientation"""
+        instance = cls()
+        return instance.is_landscape
+    
+    @classmethod
+    def get_responsive_value(cls, phone=None, small_tablet=None, tablet=None, 
+                           large_tablet=None, desktop=None, default=None):
+        """
+        Get responsive value based on current screen size
         
-        spacing_map = {
-            "phone": dp(8),
-            "small_tablet": dp(12),
-            "tablet": dp(16),
-            "large_tablet": dp(20)
+        Args:
+            phone: Value for phone screens
+            small_tablet: Value for small tablet screens
+            tablet: Value for tablet screens
+            large_tablet: Value for large tablet screens
+            desktop: Value for desktop screens
+            default: Default value if specific size not provided
+        
+        Returns:
+            Appropriate value for current screen size
+        """
+        instance = cls()
+        category = instance.current_category
+        
+        # Create value mapping
+        values = {
+            cls.PHONE: phone,
+            cls.SMALL_TABLET: small_tablet,
+            cls.TABLET: tablet,
+            cls.LARGE_TABLET: large_tablet,
+            cls.DESKTOP: desktop
         }
         
-        return spacing_map.get(category, dp(16))
+        # Get value for current category or fall back to default
+        value = values.get(category)
+        if value is not None:
+            return value
+        
+        # Fallback logic - use the closest smaller screen size value
+        fallback_order = [cls.DESKTOP, cls.LARGE_TABLET, cls.TABLET, cls.SMALL_TABLET, cls.PHONE]
+        current_index = fallback_order.index(category)
+        
+        for fallback_category in fallback_order[current_index:]:
+            fallback_value = values.get(fallback_category)
+            if fallback_value is not None:
+                return fallback_value
+        
+        return default
     
-    @staticmethod
-    def get_responsive_padding():
-        """Get responsive padding based on screen size"""
-        category = ResponsiveHelper.get_screen_size_category()
-        
-        padding_map = {
-            "phone": dp(12),
-            "small_tablet": dp(16), 
-            "tablet": dp(24),
-            "large_tablet": dp(32)
-        }
-        
-        return padding_map.get(category, dp(16))
+    @classmethod
+    def get_padding(cls):
+        """Get responsive padding values"""
+        return cls.get_responsive_value(
+            phone=dp(12),
+            small_tablet=dp(16),
+            tablet=dp(20),
+            large_tablet=dp(24),
+            desktop=dp(28),
+            default=dp(16)
+        )
     
-    @staticmethod
-    def get_responsive_font_size(base_size="16sp"):
-        """Get responsive font size based on screen size"""
-        category = ResponsiveHelper.get_screen_size_category()
-        base = int(base_size.replace("sp", ""))
+    @classmethod
+    def get_spacing(cls):
+        """Get responsive spacing values"""
+        return cls.get_responsive_value(
+            phone=dp(8),
+            small_tablet=dp(12),
+            tablet=dp(16),
+            large_tablet=dp(20),
+            desktop=dp(24),
+            default=dp(12)
+        )
+    
+    @classmethod
+    def get_card_elevation(cls):
+        """Get responsive card elevation"""
+        return cls.get_responsive_value(
+            phone=1,
+            small_tablet=2,
+            tablet=2,
+            large_tablet=3,
+            desktop=3,
+            default=2
+        )
+    
+    @classmethod
+    def get_font_sizes(cls):
+        """Get responsive font sizes"""
+        category = cls.get_screen_size_category()
         
-        multiplier_map = {
-            "phone": 1.0,
-            "small_tablet": 1.1,
-            "tablet": 1.2,
-            "large_tablet": 1.3
-        }
+        if category == cls.PHONE:
+            return {
+                "headline": "18sp",
+                "title": "16sp",
+                "subtitle": "14sp",
+                "body": "13sp",
+                "caption": "11sp",
+                "hint": "10sp"
+            }
+        elif category == cls.SMALL_TABLET:
+            return {
+                "headline": "20sp",
+                "title": "18sp",
+                "subtitle": "16sp",
+                "body": "14sp",
+                "caption": "12sp",
+                "hint": "11sp"
+            }
+        elif category in [cls.TABLET, cls.LARGE_TABLET]:
+            return {
+                "headline": "24sp",
+                "title": "20sp",
+                "subtitle": "18sp",
+                "body": "16sp",
+                "caption": "14sp",
+                "hint": "12sp"
+            }
+        else:  # Desktop
+            return {
+                "headline": "28sp",
+                "title": "24sp",
+                "subtitle": "20sp",
+                "body": "18sp",
+                "caption": "16sp",
+                "hint": "14sp"
+            }
+    
+    @classmethod
+    def get_touch_target_size(cls):
+        """Get responsive touch target sizes"""
+        return cls.get_responsive_value(
+            phone=dp(40),
+            small_tablet=dp(44),
+            tablet=dp(48),
+            large_tablet=dp(52),
+            desktop=dp(56),
+            default=dp(44)
+        )
+    
+    @classmethod
+    def get_icon_size(cls):
+        """Get responsive icon sizes"""
+        return cls.get_responsive_value(
+            phone=dp(20),
+            small_tablet=dp(22),
+            tablet=dp(24),
+            large_tablet=dp(26),
+            desktop=dp(28),
+            default=dp(24)
+        )
+    
+    @classmethod
+    def should_use_sidebar(cls):
+        """Determine if sidebar layout should be used"""
+        category = cls.get_screen_size_category()
+        is_landscape = cls.is_landscape()
         
-        multiplier = multiplier_map.get(category, 1.0)
-        return f"{int(base * multiplier)}sp"
+        if category == cls.LARGE_TABLET:
+            return True
+        elif category == cls.TABLET:
+            return is_landscape
+        elif category == cls.SMALL_TABLET:
+            return is_landscape
+        else:
+            return False
+    
+    @classmethod
+    def get_layout_columns(cls):
+        """Get number of columns for grid layouts"""
+        return cls.get_responsive_value(
+            phone=1,
+            small_tablet=2,
+            tablet=3,
+            large_tablet=4,
+            desktop=5,
+            default=1
+        )
+    
+    @classmethod
+    def get_card_width_ratio(cls):
+        """Get card width ratio for responsive cards"""
+        category = cls.get_screen_size_category()
+        is_landscape = cls.is_landscape()
+        
+        if category == cls.PHONE:
+            return 1.0  # Full width
+        elif category == cls.SMALL_TABLET:
+            return 0.8 if not is_landscape else 0.6
+        elif category == cls.TABLET:
+            return 0.7 if not is_landscape else 0.5
+        elif category == cls.LARGE_TABLET:
+            return 0.6
+        else:  # Desktop
+            return 0.5
+    
+    @classmethod
+    def get_sidebar_width_ratio(cls):
+        """Get sidebar width ratio"""
+        return cls.get_responsive_value(
+            phone=0.0,
+            small_tablet=0.25,
+            tablet=0.3,
+            large_tablet=0.3,
+            desktop=0.25,
+            default=0.3
+        )
+    
+    @classmethod
+    def get_content_width_ratio(cls):
+        """Get main content width ratio when sidebar is present"""
+        if cls.should_use_sidebar():
+            return 1.0 - cls.get_sidebar_width_ratio()
+        return 1.0
+    
+    @classmethod
+    def get_responsive_height(cls, base_height):
+        """Get responsive height based on base height"""
+        multiplier = cls.get_responsive_value(
+            phone=0.8,
+            small_tablet=0.9,
+            tablet=1.0,
+            large_tablet=1.1,
+            desktop=1.2,
+            default=1.0
+        )
+        return base_height * multiplier
 
 
+# Responsive Layout Classes
 class ResponsiveBoxLayout(MDBoxLayout):
     """Responsive BoxLayout that adapts to screen size"""
     
@@ -110,12 +339,12 @@ class ResponsiveBoxLayout(MDBoxLayout):
     def update_responsive_properties(self):
         """Update properties based on current screen size"""
         # Update spacing and padding responsively
-        self.spacing = ResponsiveHelper.get_responsive_spacing()
-        self.padding = ResponsiveHelper.get_responsive_padding()
+        self.spacing = ResponsiveHelper.get_spacing()
+        self.padding = ResponsiveHelper.get_padding()
         
         # Switch orientation based on screen size if needed
         if hasattr(self, 'adaptive_orientation') and self.adaptive_orientation:
-            if ResponsiveHelper.is_landscape() and ResponsiveHelper.is_tablet():
+            if ResponsiveHelper.is_landscape() and ResponsiveHelper.get_screen_size_category() in [ResponsiveHelper.TABLET, ResponsiveHelper.LARGE_TABLET]:
                 self.orientation = 'horizontal'
             else:
                 self.orientation = 'vertical'
@@ -137,12 +366,12 @@ class ResponsiveGridLayout(MDGridLayout):
     def update_responsive_properties(self):
         """Update properties based on current screen size"""
         # Update columns responsively
-        responsive_cols = ResponsiveHelper.get_responsive_cols()
+        responsive_cols = ResponsiveHelper.get_layout_columns()
         self.cols = min(responsive_cols, self.base_cols)
         
         # Update spacing and padding
-        self.spacing = ResponsiveHelper.get_responsive_spacing()
-        self.padding = ResponsiveHelper.get_responsive_padding()
+        self.spacing = ResponsiveHelper.get_spacing()
+        self.padding = ResponsiveHelper.get_padding()
 
 
 class AdaptiveCardLayout(MDBoxLayout):
@@ -152,8 +381,8 @@ class AdaptiveCardLayout(MDBoxLayout):
         super().__init__(**kwargs)
         self.orientation = 'vertical'
         self.adaptive_height = True
-        self.spacing = ResponsiveHelper.get_responsive_spacing()
-        self.padding = ResponsiveHelper.get_responsive_padding()
+        self.spacing = ResponsiveHelper.get_spacing()
+        self.padding = ResponsiveHelper.get_padding()
         
         # Create container for cards
         self.card_container = ResponsiveGridLayout(base_cols=2)
@@ -163,8 +392,8 @@ class AdaptiveCardLayout(MDBoxLayout):
     
     def _on_window_resize(self, *args):
         """Handle window resize"""
-        self.spacing = ResponsiveHelper.get_responsive_spacing()
-        self.padding = ResponsiveHelper.get_responsive_padding()
+        self.spacing = ResponsiveHelper.get_spacing()
+        self.padding = ResponsiveHelper.get_padding()
     
     def add_card(self, card):
         """Add a card to the adaptive layout"""
@@ -175,126 +404,53 @@ class AdaptiveCardLayout(MDBoxLayout):
         self.card_container.clear_widgets()
 
 
-def get_tablet_optimized_button_height():
-    """Get tablet-optimized button height"""
-    category = ResponsiveHelper.get_screen_size_category()
-    
-    height_map = {
-        "phone": dp(40),
-        "small_tablet": dp(48),
-        "tablet": dp(56),
-        "large_tablet": dp(64)
-    }
-    
-    return height_map.get(category, dp(48))
-
-
-def get_tablet_optimized_card_height():
-    """Get tablet-optimized card height"""
-    category = ResponsiveHelper.get_screen_size_category()
-    
-    height_map = {
-        "phone": dp(120),
-        "small_tablet": dp(140),
-        "tablet": dp(160),
-        "large_tablet": dp(180)
-    }
-    
-    return height_map.get(category, dp(140))
-
-
-def apply_tablet_text_scaling(widget, base_font_style="Body1"):
-    """Apply tablet-appropriate text scaling to a widget"""
-    if hasattr(widget, 'font_size'):
-        category = ResponsiveHelper.get_screen_size_category()
-        
-        if category in ["tablet", "large_tablet"]:
-            # Increase font size for tablets
-            current_size = widget.font_size
-            if isinstance(current_size, str) and current_size.endswith("sp"):
-                base_size = int(current_size.replace("sp", ""))
-                widget.font_size = f"{int(base_size * 1.2)}sp"
-
-
-# Tablet-Optimized Button Helpers
-from kivymd.uix.button import MDRaisedButton, MDIconButton, MDFlatButton
-
-class TabletOptimizedButton(MDRaisedButton):
-    """Button that automatically adapts size for tablet use"""
+# Responsive Button Classes
+class ResponsiveButton(MDButton):
+    """Button that automatically adapts size for responsive use"""
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.update_tablet_properties()
+        self.update_responsive_properties()
         Window.bind(on_resize=self._on_window_resize)
     
     def _on_window_resize(self, *args):
         """Handle window resize"""
-        self.update_tablet_properties()
+        self.update_responsive_properties()
     
-    def update_tablet_properties(self):
-        """Update button properties for tablet optimization"""
-        category = ResponsiveHelper.get_screen_size_category()
-        
-        # Set tablet-appropriate height
-        height_map = {
-            "phone": dp(40),
-            "small_tablet": dp(48),
-            "tablet": dp(56),
-            "large_tablet": dp(64)
-        }
-        
+    def update_responsive_properties(self):
+        """Update button properties for responsive optimization"""
+        # Set responsive height
         self.size_hint_y = None
-        self.height = height_map.get(category, dp(48))
+        self.height = ResponsiveHelper.get_touch_target_size()
         
-        # Set tablet-appropriate font size
-        font_size_map = {
-            "phone": "14sp",
-            "small_tablet": "16sp", 
-            "tablet": "18sp",
-            "large_tablet": "20sp"
-        }
-        
+        # Set responsive font size
+        font_sizes = ResponsiveHelper.get_font_sizes()
         if hasattr(self, 'font_size'):
-            self.font_size = font_size_map.get(category, "16sp")
+            self.font_size = font_sizes.get("body", "14sp")
 
 
-class TabletOptimizedIconButton(MDIconButton):
-    """Icon button that automatically adapts size for tablet use"""
+class ResponsiveIconButton(MDButton):
+    """Icon button that automatically adapts size for responsive use"""
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.update_tablet_properties()
+        self.update_responsive_properties()
         Window.bind(on_resize=self._on_window_resize)
     
     def _on_window_resize(self, *args):
         """Handle window resize"""
-        self.update_tablet_properties()
+        self.update_responsive_properties()
     
-    def update_tablet_properties(self):
-        """Update icon button properties for tablet optimization"""
-        category = ResponsiveHelper.get_screen_size_category()
-        
-        # Set tablet-appropriate size
-        size_map = {
-            "phone": (dp(40), dp(40)),
-            "small_tablet": (dp(48), dp(48)),
-            "tablet": (dp(56), dp(56)),
-            "large_tablet": (dp(64), dp(64))
-        }
-        
+    def update_responsive_properties(self):
+        """Update icon button properties for responsive optimization"""
+        # Set responsive size
+        icon_size = ResponsiveHelper.get_icon_size()
         self.size_hint = (None, None)
-        self.size = size_map.get(category, (dp(48), dp(48)))
+        self.size = (icon_size * 2, icon_size * 2)
         
-        # Set tablet-appropriate icon size
-        icon_size_map = {
-            "phone": "24sp",
-            "small_tablet": "28sp",
-            "tablet": "32sp", 
-            "large_tablet": "36sp"
-        }
-        
+        # Set responsive icon size
         if hasattr(self, 'user_font_size'):
-            self.user_font_size = icon_size_map.get(category, "28sp")
+            self.user_font_size = f"{icon_size}sp"
 
 
 class ResponsiveButtonGrid(ResponsiveGridLayout):
@@ -307,8 +463,8 @@ class ResponsiveButtonGrid(ResponsiveGridLayout):
         self.height = self.minimum_height
         
     def add_button(self, button_text, callback=None, **button_kwargs):
-        """Add a tablet-optimized button to the grid"""
-        button = TabletOptimizedButton(
+        """Add a responsive button to the grid"""
+        button = ResponsiveButton(
             text=button_text,
             **button_kwargs
         )
@@ -320,8 +476,8 @@ class ResponsiveButtonGrid(ResponsiveGridLayout):
         return button
     
     def add_icon_button(self, icon, callback=None, **button_kwargs):
-        """Add a tablet-optimized icon button to the grid"""
-        button = TabletOptimizedIconButton(
+        """Add a responsive icon button to the grid"""
+        button = ResponsiveIconButton(
             icon=icon,
             **button_kwargs
         )
@@ -333,70 +489,9 @@ class ResponsiveButtonGrid(ResponsiveGridLayout):
         return button
 
 
-def create_tablet_action_bar(actions_list):
-    """Create a responsive action bar with tablet-optimized buttons
-    
-    Args:
-        actions_list: List of tuples (text, callback) or (icon, callback, is_icon)
-    """
-    action_bar = ResponsiveButtonGrid(base_cols=len(actions_list))
-    action_bar.orientation = 'horizontal'
-    action_bar.size_hint_y = None
-    action_bar.height = get_tablet_optimized_button_height()
-    
-    for action in actions_list:
-        if len(action) == 3 and action[2]:  # Icon button
-            icon, callback, _ = action
-            action_bar.add_icon_button(icon, callback)
-        else:  # Text button
-            text, callback = action[:2]
-            action_bar.add_button(text, callback)
-    
-    return action_bar
-
-
-def create_responsive_button_row(buttons_config, max_cols=4):
-    """Create a responsive row of buttons that adapts to screen size
-    
-    Args:
-        buttons_config: List of dicts with button configuration
-        max_cols: Maximum columns for large screens
-    """
-    category = ResponsiveHelper.get_screen_size_category()
-    is_landscape = ResponsiveHelper.is_landscape()
-    
-    # Determine optimal columns
-    if category == "phone":
-        cols = 1 if not is_landscape else 2
-    elif category == "small_tablet": 
-        cols = 2 if not is_landscape else 3
-    elif category == "tablet":
-        cols = 2 if not is_landscape else min(max_cols, 4)
-    else:  # large_tablet
-        cols = 3 if not is_landscape else min(max_cols, 4)
-    
-    # Create grid layout
-    button_grid = ResponsiveGridLayout(base_cols=cols)
-    button_grid.adaptive_height = True
-    button_grid.size_hint_y = None
-    button_grid.height = button_grid.minimum_height
-    
-    # Add buttons
-    for config in buttons_config:
-        if config.get('icon'):
-            button = TabletOptimizedIconButton(**config)
-        else:
-            button = TabletOptimizedButton(**config)
-        button_grid.add_widget(button)
-    
-    return button_grid
-
-
-# Responsive Typography Helpers
-from kivymd.uix.label import MDLabel
-
+# Responsive Typography
 class ResponsiveLabel(MDLabel):
-    """Label that automatically scales typography for tablet use"""
+    """Label that automatically scales typography for responsive use"""
     
     def __init__(self, base_font_style="Body1", **kwargs):
         self.base_font_style = base_font_style
@@ -414,177 +509,143 @@ class ResponsiveLabel(MDLabel):
         
         # Font style mapping for different screen sizes
         style_scaling = {
-            "phone": {
+            ResponsiveHelper.PHONE: {
                 "H1": "H2", "H2": "H3", "H3": "H4", "H4": "H5", "H5": "H6", "H6": "Subtitle1",
                 "Subtitle1": "Subtitle2", "Subtitle2": "Body1", "Body1": "Body2", "Body2": "Caption"
             },
-            "small_tablet": {
+            ResponsiveHelper.SMALL_TABLET: {
                 "H1": "H1", "H2": "H2", "H3": "H3", "H4": "H4", "H5": "H5", "H6": "H6",
                 "Subtitle1": "Subtitle1", "Subtitle2": "Subtitle2", "Body1": "Body1", "Body2": "Body2"
             },
-            "tablet": {
+            ResponsiveHelper.TABLET: {
                 "H1": "H1", "H2": "H1", "H3": "H2", "H4": "H3", "H5": "H4", "H6": "H5",
                 "Subtitle1": "H6", "Subtitle2": "Subtitle1", "Body1": "Subtitle2", "Body2": "Body1"
             },
-            "large_tablet": {
+            ResponsiveHelper.LARGE_TABLET: {
+                "H1": "H1", "H2": "H1", "H3": "H2", "H4": "H3", "H5": "H4", "H6": "H5",
+                "Subtitle1": "H6", "Subtitle2": "Subtitle1", "Body1": "Subtitle2", "Body2": "Body1"
+            },
+            ResponsiveHelper.DESKTOP: {
                 "H1": "H1", "H2": "H1", "H3": "H2", "H4": "H3", "H5": "H4", "H6": "H5",
                 "Subtitle1": "H6", "Subtitle2": "Subtitle1", "Body1": "Subtitle2", "Body2": "Body1"
             }
         }
         
-        scaling = style_scaling.get(category, style_scaling["small_tablet"])
+        scaling = style_scaling.get(category, style_scaling[ResponsiveHelper.SMALL_TABLET])
         new_style = scaling.get(self.base_font_style, self.base_font_style)
         
         if hasattr(self, 'font_style'):
             self.font_style = new_style
 
 
-def get_responsive_font_size(base_size_sp, style="Body1"):
-    """Get responsive font size based on screen category
-    
-    Args:
-        base_size_sp: Base size in sp (without 'sp' suffix)
-        style: Font style for context (Body1, H1, etc.)
-    """
+# Convenience functions for common responsive patterns
+def responsive_padding():
+    """Get current responsive padding"""
+    return ResponsiveHelper.get_padding()
+
+def responsive_spacing():
+    """Get current responsive spacing"""
+    return ResponsiveHelper.get_spacing()
+
+def responsive_font_size(size_type="body"):
+    """Get responsive font size for given type"""
+    sizes = ResponsiveHelper.get_font_sizes()
+    return sizes.get(size_type, sizes["body"])
+
+def is_mobile():
+    """Check if current device is mobile-sized"""
+    return ResponsiveHelper.get_screen_size_category() == ResponsiveHelper.PHONE
+
+def is_tablet():
+    """Check if current device is tablet-sized"""
     category = ResponsiveHelper.get_screen_size_category()
-    
-    # Base multipliers for different screen sizes
-    multipliers = {
-        "phone": 0.9,
-        "small_tablet": 1.0,
-        "tablet": 1.15,
-        "large_tablet": 1.3
-    }
-    
-    # Additional scaling for headers vs body text
-    style_multipliers = {
-        "H1": 1.2, "H2": 1.15, "H3": 1.1, "H4": 1.05, "H5": 1.0, "H6": 1.0,
-        "Subtitle1": 1.0, "Subtitle2": 0.95, "Body1": 1.0, "Body2": 0.95, "Caption": 0.9
-    }
-    
-    base_multiplier = multipliers.get(category, 1.0)
-    style_multiplier = style_multipliers.get(style, 1.0)
-    
-    final_size = base_size_sp * base_multiplier * style_multiplier
-    return f"{int(final_size)}sp"
+    return category in [ResponsiveHelper.SMALL_TABLET, ResponsiveHelper.TABLET, ResponsiveHelper.LARGE_TABLET]
 
+def is_desktop():
+    """Check if current device is desktop-sized"""
+    return ResponsiveHelper.get_screen_size_category() == ResponsiveHelper.DESKTOP
 
-def apply_responsive_typography(widget, base_style="Body1"):
-    """Apply responsive typography to any widget with text
-    
-    Args:
-        widget: Widget to apply typography to
-        base_style: Base font style to scale from
-    """
-    if not hasattr(widget, 'font_style') and not hasattr(widget, 'font_size'):
-        return
-    
+def use_compact_layout():
+    """Determine if compact layout should be used"""
     category = ResponsiveHelper.get_screen_size_category()
-    
-    # Apply font style if widget supports it
-    if hasattr(widget, 'font_style'):
-        style_scaling = {
-            "phone": base_style,
-            "small_tablet": base_style,
-            "tablet": _scale_font_style_up(base_style),
-            "large_tablet": _scale_font_style_up(base_style, 2)
-        }
-        widget.font_style = style_scaling.get(category, base_style)
-    
-    # Apply direct font size if widget uses it
-    elif hasattr(widget, 'font_size'):
-        if isinstance(widget.font_size, str) and widget.font_size.endswith("sp"):
-            base_size = int(widget.font_size.replace("sp", ""))
-            widget.font_size = get_responsive_font_size(base_size, base_style)
+    return category in [ResponsiveHelper.PHONE, ResponsiveHelper.SMALL_TABLET]
 
 
-def _scale_font_style_up(style, levels=1):
-    """Helper to scale font style up by specified levels"""
-    hierarchy = ["Caption", "Body2", "Body1", "Subtitle2", "Subtitle1", "H6", "H5", "H4", "H3", "H2", "H1"]
-    
-    try:
-        current_index = hierarchy.index(style)
-        new_index = min(current_index + levels, len(hierarchy) - 1)
-        return hierarchy[new_index]
-    except ValueError:
-        return style
-
-
-def create_responsive_text_section(title, content, title_style="H6", content_style="Body1"):
-    """Create a responsive text section with title and content
-    
-    Args:
-        title: Title text
-        content: Content text
-        title_style: Base style for title
-        content_style: Base style for content
-    """
-    section = ResponsiveBoxLayout()
-    section.orientation = 'vertical'
-    section.adaptive_height = True
-    section.size_hint_y = None
-    section.height = section.minimum_height
-    
-    # Title label
-    title_label = ResponsiveLabel(
-        text=title,
-        base_font_style=title_style,
-        size_hint_y=None,
-        height=dp(32)
+# Responsive Button Creation Helpers
+def create_responsive_button(text, style="filled", callback=None, **kwargs):
+    """Create a responsive button with KivyMD 2.0.1 style"""
+    button = ResponsiveButton(
+        style=style,
+        **kwargs
     )
-    apply_responsive_typography(title_label, title_style)
     
-    # Content label
-    content_label = ResponsiveLabel(
-        text=content,
-        base_font_style=content_style,
-        text_size=(None, None),
-        adaptive_height=True
+    # Add button text
+    button.add_widget(MDButtonText(text=text))
+    
+    if callback:
+        button.bind(on_press=callback)
+    
+    return button
+
+
+def create_responsive_icon_button(icon, text=None, style="filled", callback=None, **kwargs):
+    """Create a responsive icon button with KivyMD 2.0.1 style"""
+    button = ResponsiveIconButton(
+        style=style,
+        **kwargs
     )
-    apply_responsive_typography(content_label, content_style)
     
-    section.add_widget(title_label)
-    section.add_widget(content_label)
+    # Add icon
+    button.add_widget(MDButtonIcon(icon=icon))
     
-    return section
+    # Add text if provided
+    if text:
+        button.add_widget(MDButtonText(text=text))
+    
+    if callback:
+        button.bind(on_press=callback)
+    
+    return button
 
 
-def get_tablet_line_height(base_line_height=1.2):
-    """Get tablet-appropriate line height"""
-    category = ResponsiveHelper.get_screen_size_category()
+def create_responsive_button_row(buttons_config, max_cols=4):
+    """Create a responsive row of buttons that adapts to screen size"""
+    cols = ResponsiveHelper.get_layout_columns()
+    cols = min(cols, max_cols)
     
-    line_height_map = {
-        "phone": base_line_height,
-        "small_tablet": base_line_height * 1.1,
-        "tablet": base_line_height * 1.2,
-        "large_tablet": base_line_height * 1.3
-    }
+    # Create grid layout
+    button_grid = ResponsiveGridLayout(base_cols=cols)
+    button_grid.adaptive_height = True
+    button_grid.size_hint_y = None
+    button_grid.height = button_grid.minimum_height
     
-    return line_height_map.get(category, base_line_height)
+    # Add buttons
+    for config in buttons_config:
+        if config.get('icon'):
+            button = create_responsive_icon_button(**config)
+        else:
+            button = create_responsive_button(**config)
+        button_grid.add_widget(button)
+    
+    return button_grid
 
 
-def optimize_text_for_tablets(text_widget):
-    """Comprehensive tablet text optimization for any text widget"""
-    if not text_widget:
-        return
+def create_responsive_action_bar(actions_list):
+    """Create a responsive action bar with buttons
     
-    category = ResponsiveHelper.get_screen_size_category()
+    Args:
+        actions_list: List of dicts with button configuration
+    """
+    action_bar = ResponsiveButtonGrid(base_cols=len(actions_list))
+    action_bar.orientation = 'horizontal'
+    action_bar.size_hint_y = None
+    action_bar.height = ResponsiveHelper.get_touch_target_size()
     
-    # Apply responsive font sizing
-    apply_responsive_typography(text_widget)
+    for action in actions_list:
+        if action.get('icon'):
+            button = create_responsive_icon_button(**action)
+        else:
+            button = create_responsive_button(**action)
+        action_bar.add_widget(button)
     
-    # Optimize text wrapping and sizing for tablets
-    if category in ["tablet", "large_tablet"]:
-        # Better text wrapping for larger screens
-        if hasattr(text_widget, 'text_size'):
-            if hasattr(text_widget, 'width'):
-                text_widget.text_size = (text_widget.width, None)
-        
-        # Improve text contrast for larger viewing distances
-        if hasattr(text_widget, 'theme_text_color'):
-            # Keep existing theme but ensure good contrast
-            pass
-    
-    # Increase padding for better readability on tablets
-    if hasattr(text_widget, 'padding'):
-        text_widget.padding = ResponsiveHelper.get_responsive_padding() 
+    return action_bar 

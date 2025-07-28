@@ -1,20 +1,39 @@
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
-from kivy.uix.button import Button
-from kivy_garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
+from kivymd.uix.card import MDCard
+from kivy.properties import StringProperty, ObjectProperty
 from kivy.metrics import dp
+from kivy.lang import Builder
+from kivy.core.window import Window
+from kivy_garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 import matplotlib.pyplot as plt
 import matplotlib.style as style
 import numpy as np
 import pandas as pd
 from typing import Dict, List, Any, Optional
 
-class ChartWidget(BoxLayout):
+# Load the KV file
+Builder.load_file("kv/chart_widget.kv")
+
+
+class ChartWidget(MDCard):
+    """Modern chart widget using KivyMD 2.0.1 Material Design"""
+    
+    chart_type = StringProperty('bar')
+    title = StringProperty('')
+    subtitle = StringProperty('')
+    data = ObjectProperty()
+    
     def __init__(self, chart_type='bar', data=None, title='', subtitle='', **kwargs):
         super().__init__(**kwargs)
-        self.orientation = 'vertical'
-        self.padding = dp(10)
-        self.spacing = dp(10)
+        self.chart_type = chart_type
+        self.data = data
+        self.title = title
+        self.subtitle = subtitle
+        
+        # Setup responsive properties
+        self.update_responsive_properties()
+        
+        # Bind to window resize for responsive updates
+        Window.bind(on_resize=self._on_window_resize)
         
         # Set matplotlib style for better appearance
         try:
@@ -25,48 +44,75 @@ class ChartWidget(BoxLayout):
             except:
                 pass  # Use default style
         
-        # Add title and subtitle
-        if title:
-            title_label = Label(
-                text=title,
-                size_hint_y=None,
-                height=dp(40),
-                font_size=dp(18),
-                bold=True
-            )
-            self.add_widget(title_label)
-            
-        if subtitle:
-            subtitle_label = Label(
-                text=subtitle,
-                size_hint_y=None,
-                height=dp(25),
-                font_size=dp(14),
-                color=(0.6, 0.6, 0.6, 1)
-            )
-            self.add_widget(subtitle_label)
-        
         # Create figure with better default settings
         self.figure = plt.figure(figsize=(10, 6), facecolor='white')
         self.canvas = FigureCanvasKivyAgg(self.figure)
-        self.add_widget(self.canvas)
         
-        # Store data and chart type
-        self.data = data
-        self.chart_type = chart_type
+        # Bind properties
+        self.bind(title=self._update_title)
+        self.bind(subtitle=self._update_subtitle)
+        self.bind(data=self._update_data)
+        self.bind(chart_type=self._update_chart_type)
         
         # Create chart based on type
         if data is not None:
             self.create_chart()
-        
-        # Add export button
-        export_button = Button(
-            text='Export Chart',
-            size_hint_y=None,
-            height=dp(40),
-            on_press=self.export_data
-        )
-        self.add_widget(export_button)
+    
+    def _on_window_resize(self, *args):
+        """Handle window resize for responsive updates"""
+        self.update_responsive_properties()
+    
+    def update_responsive_properties(self):
+        """Update properties based on screen size"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            category = ResponsiveHelper.get_screen_size_category()
+            
+            # Responsive sizing based on device category
+            if category == "large_tablet":
+                self.height = dp(500)
+                self.padding = [dp(20), dp(16)]
+                self.spacing = dp(16)
+            elif category == "tablet":
+                self.height = dp(450)
+                self.padding = [dp(16), dp(12)]
+                self.spacing = dp(14)
+            elif category == "small_tablet":
+                self.height = dp(400)
+                self.padding = [dp(14), dp(10)]
+                self.spacing = dp(12)
+            else:  # phone
+                self.height = dp(350)
+                self.padding = [dp(12), dp(8)]
+                self.spacing = dp(10)
+                
+        except Exception as e:
+            print(f"Error updating ChartWidget responsive properties: {e}")
+            # Fallback to default values
+            self.height = dp(350)
+            self.padding = [dp(12), dp(8)]
+            self.spacing = dp(10)
+    
+    def _update_title(self, instance, value):
+        """Update title in UI"""
+        if hasattr(self, 'title_label'):
+            self.title_label.text = value
+    
+    def _update_subtitle(self, instance, value):
+        """Update subtitle in UI"""
+        if hasattr(self, 'subtitle_label'):
+            self.subtitle_label.text = value
+    
+    def _update_data(self, instance, value):
+        """Update data and recreate chart"""
+        self.data = value
+        self.create_chart()
+    
+    def _update_chart_type(self, instance, value):
+        """Update chart type and recreate chart"""
+        self.chart_type = value
+        self.create_chart()
     
     def create_chart(self):
         """Create chart based on type and data."""
@@ -381,6 +427,7 @@ class ChartWidget(BoxLayout):
         except Exception as e:
             print(f"Export failed: {e}")
     
+    @staticmethod
     def create_analytics_chart(chart_type: str, data: Any, title: str = "", subtitle: str = ""):
         """Static method to create analytics charts."""
         return ChartWidget(

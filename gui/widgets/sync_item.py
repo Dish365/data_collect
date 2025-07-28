@@ -1,55 +1,90 @@
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
-from kivy.uix.button import Button
-from kivy.metrics import dp
 from kivymd.uix.card import MDCard
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.label import MDLabel
-from kivymd.uix.button import MDRaisedButton
+from kivy.properties import StringProperty, ObjectProperty
+from kivy.metrics import dp
+from kivy.lang import Builder
+from kivy.core.window import Window
 from datetime import datetime
 
+# Load the KV file
+Builder.load_file("kv/sync_item.kv")
+
+
 class SyncItem(MDCard):
+    """Modern sync item widget using KivyMD 2.0.1 Material Design"""
+    
+    table_name = StringProperty("")
+    operation = StringProperty("")
+    record_id = StringProperty("")
+    created_at = StringProperty("")
+    attempts = StringProperty("0")
+    status = StringProperty("pending")
+    sync_data = ObjectProperty()
+    
     def __init__(self, sync_data, on_sync_pressed=None, **kwargs):
         super().__init__(**kwargs)
         self.sync_data = sync_data
         self.on_sync_pressed = on_sync_pressed
-        self.setup_ui()
         
-    def setup_ui(self):
-        self.orientation = 'vertical'
-        self.padding = dp(12)
-        self.spacing = dp(8)
-        self.size_hint_y = None
-        self.height = dp(120)
-        self.md_bg_color = (0.95, 0.95, 0.95, 1)
+        # Setup responsive properties
+        self.update_responsive_properties()
         
-        # Main content layout
-        content_layout = MDBoxLayout(orientation='horizontal', spacing=dp(12))
+        # Bind to window resize for responsive updates
+        Window.bind(on_resize=self._on_window_resize)
         
-        # Left side - Item details
-        details_layout = MDBoxLayout(orientation='vertical', spacing=dp(4))
-        details_layout.size_hint_x = 0.7
+        # Update properties from sync_data
+        self._update_from_sync_data()
         
-        # Table name and operation
-        table_operation = MDLabel(
-            text=f"{self.sync_data['table_name'].title()} - {self.sync_data['operation'].title()}",
-            font_style="Subtitle1",
-            bold=True,
-            size_hint_y=None,
-            height=dp(20)
-        )
-        details_layout.add_widget(table_operation)
+        # Bind properties
+        self.bind(sync_data=self._update_from_sync_data)
+    
+    def _on_window_resize(self, *args):
+        """Handle window resize for responsive updates"""
+        self.update_responsive_properties()
+    
+    def update_responsive_properties(self):
+        """Update properties based on screen size"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            category = ResponsiveHelper.get_screen_size_category()
+            
+            # Responsive sizing based on device category
+            if category == "large_tablet":
+                self.height = dp(140)
+                self.padding = [dp(16), dp(12)]
+                self.spacing = dp(16)
+            elif category == "tablet":
+                self.height = dp(130)
+                self.padding = [dp(14), dp(10)]
+                self.spacing = dp(14)
+            elif category == "small_tablet":
+                self.height = dp(125)
+                self.padding = [dp(12), dp(8)]
+                self.spacing = dp(12)
+            else:  # phone
+                self.height = dp(120)
+                self.padding = [dp(10), dp(6)]
+                self.spacing = dp(10)
+                
+        except Exception as e:
+            print(f"Error updating SyncItem responsive properties: {e}")
+            # Fallback to default values
+            self.height = dp(120)
+            self.padding = [dp(10), dp(6)]
+            self.spacing = dp(10)
+    
+    def _update_from_sync_data(self, *args):
+        """Update properties from sync_data"""
+        if not self.sync_data:
+            return
+            
+        self.table_name = self.sync_data.get('table_name', '')
+        self.operation = self.sync_data.get('operation', '')
+        self.record_id = self.sync_data.get('record_id', '')
+        self.attempts = str(self.sync_data.get('attempts', 0))
+        self.status = self.sync_data.get('status', 'pending')
         
-        # Record ID
-        record_id = MDLabel(
-            text=f"ID: {self.sync_data['record_id'][:8]}...",
-            font_style="Caption",
-            size_hint_y=None,
-            height=dp(16)
-        )
-        details_layout.add_widget(record_id)
-        
-        # Created date
+        # Format created date
         created_date = self.sync_data.get('created_at', '')
         if created_date:
             try:
@@ -62,65 +97,19 @@ class SyncItem(MDCard):
                 formatted_date = str(created_date)
         else:
             formatted_date = "Unknown"
-            
-        date_label = MDLabel(
-            text=f"Created: {formatted_date}",
-            font_style="Caption",
-            size_hint_y=None,
-            height=dp(16)
-        )
-        details_layout.add_widget(date_label)
         
-        # Attempts
-        attempts = self.sync_data.get('attempts', 0)
-        attempts_label = MDLabel(
-            text=f"Attempts: {attempts}",
-            font_style="Caption",
-            size_hint_y=None,
-            height=dp(16)
-        )
-        details_layout.add_widget(attempts_label)
-        
-        content_layout.add_widget(details_layout)
-        
-        # Right side - Sync button
-        button_layout = MDBoxLayout(orientation='vertical', spacing=dp(8))
-        button_layout.size_hint_x = 0.3
-        
-        # Sync button
-        sync_button = MDRaisedButton(
-            text="Sync",
-            size_hint_x=1,
-            size_hint_y=None,
-            height=dp(36),
-            on_press=self.on_sync_button_pressed
-        )
-        button_layout.add_widget(sync_button)
-        
-        # Status indicator
-        status = self.sync_data.get('status', 'pending')
-        status_color = (1, 0.5, 0, 1) if status == 'pending' else (0, 1, 0, 1)
-        status_label = MDLabel(
-            text=status.title(),
-            font_style="Caption",
-            theme_text_color="Custom",
-            text_color=status_color,
-            size_hint_y=None,
-            height=dp(16)
-        )
-        button_layout.add_widget(status_label)
-        
-        content_layout.add_widget(button_layout)
-        
-        self.add_widget(content_layout)
+        self.created_at = formatted_date
     
     def on_sync_button_pressed(self, instance):
+        """Handle sync button press"""
         if self.on_sync_pressed:
             self.on_sync_pressed(self.sync_data)
     
     def update_status(self, status):
         """Update the status of this sync item"""
         self.sync_data['status'] = status
+        self.status = status
         # Refresh the UI
-        self.clear_widgets()
-        self.setup_ui() 
+        self._update_from_sync_data()
+    
+ 

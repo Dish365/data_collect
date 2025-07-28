@@ -1,205 +1,198 @@
 from kivymd.uix.card import MDCard
-from kivymd.uix.textfield import MDTextField
-from kivymd.uix.button import MDRaisedButton, MDIconButton
-from kivymd.uix.label import MDLabel
-from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.selectioncontrol import MDSwitch, MDCheckbox
-from kivymd.uix.selectioncontrol import MDCheckbox
-from kivymd.uix.selectioncontrol import MDCheckbox
-from kivymd.uix.selectioncontrol import MDSwitch
+from kivy.properties import StringProperty, BooleanProperty
 from kivy.metrics import dp
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.widget import Widget
-from kivymd.uix.selectioncontrol import MDCheckbox
+from kivy.lang import Builder
+from kivy.core.window import Window
 
+# Load the KV file
+Builder.load_file("kv/question_block.kv")
 
 
 class QuestionBlock(MDCard):
+    """Modern question block widget using KivyMD 2.0.1 Material Design"""
+    
+    question_text = StringProperty("")
+    answer_type = StringProperty("Short Answer")
+    allow_multiple = BooleanProperty(False)
+    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.orientation = "vertical"
-        self.padding = dp(16)
-        self.spacing = dp(12)
-        self.radius = [12, 12, 12, 12]
-        self.size_hint_y = None
-        self.bind(minimum_height=self.setter("height"))
-        self.md_bg_color = (0.98, 0.98, 0.98, 1)
-        self.elevation = 0.8
-
+        
+        # Setup responsive properties
+        self.update_responsive_properties()
+        
+        # Bind to window resize for responsive updates
+        Window.bind(on_resize=self._on_window_resize)
+        
+        # Initialize options widgets list
         self.options_widgets = []
-        self.allow_multiple = False
-
-        # Question Input
-        self.question_input = MDTextField(
-            hint_text="Enter your question",
-            mode="rectangle",
-            size_hint_y=None,
-            height=dp(48)
-        )
-
-        # Dropdown menu
-        self.answer_type = "Short Answer"
-        self.menu_items = [
-            {"text": "Short Answer", "on_release": lambda x="Short Answer": self.set_answer_type(x)},
-            {"text": "Long Answer", "on_release": lambda x="Long Answer": self.set_answer_type(x)},
-            {"text": "Multiple Choice", "on_release": lambda x="Multiple Choice": self.set_answer_type(x)},
-        ]
-
-        self.menu = MDDropdownMenu(
-            caller=None,
-            items=self.menu_items,
-            width_mult=4
-        )
-
-        self.type_button = MDRaisedButton(
-            text=self.answer_type,
-            on_release=self.open_menu,
-            size_hint=(None, None),
-            size=(dp(160), dp(36))
-        )
-
-        # Top row: question + type
-        top_row = MDBoxLayout(
-            orientation="horizontal",
-            spacing=dp(10),
-            size_hint_y=None,
-            height=dp(48)
-        )
-        top_row.add_widget(self.question_input)
-        top_row.add_widget(self.type_button)
-
-        # Answer area (dynamic content)
-        self.answer_area = MDBoxLayout(
-            orientation="vertical",
-            spacing=dp(8),
-            size_hint_y=None
-        )
-        self.answer_area.bind(minimum_height=self.answer_area.setter("height"))
-
-        # Footer row: delete button right aligned
-        footer = MDBoxLayout(
-            orientation="horizontal",
-            size_hint_y=None,
-            height=dp(40)
-        )
-        footer.add_widget(Widget())  # spacer
-        footer.add_widget(MDRaisedButton(
-            text="Delete Question",
-            md_bg_color=(1, 0.3, 0.3, 1),
-            on_release=lambda x: self.parent.remove_widget(self),
-            size_hint=(None, None),
-            size=(dp(160), dp(36))
-        ))
-
-        # Assemble card
-        self.add_widget(top_row)
-        self.add_widget(self.answer_area)
-        self.add_widget(footer)
-
-        self.set_answer_type(self.answer_type)
-
-    def open_menu(self, instance):
-        self.menu.caller = instance
-        self.menu.open()
-
-    def set_answer_type(self, answer_type):
-        self.answer_type = answer_type
-        self.type_button.text = answer_type
+        
+        # Bind properties
+        self.bind(question_text=self._update_question_text)
+        self.bind(answer_type=self._update_answer_type)
+        self.bind(allow_multiple=self._update_allow_multiple)
+    
+    def _on_window_resize(self, *args):
+        """Handle window resize for responsive updates"""
+        self.update_responsive_properties()
+    
+    def update_responsive_properties(self):
+        """Update properties based on screen size"""
+        try:
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            category = ResponsiveHelper.get_screen_size_category()
+            
+            # Responsive sizing based on device category
+            if category == "large_tablet":
+                self.padding = [dp(20), dp(16)]
+                self.spacing = dp(16)
+            elif category == "tablet":
+                self.padding = [dp(16), dp(12)]
+                self.spacing = dp(14)
+            elif category == "small_tablet":
+                self.padding = [dp(14), dp(10)]
+                self.spacing = dp(12)
+            else:  # phone
+                self.padding = [dp(12), dp(8)]
+                self.spacing = dp(10)
+                
+        except Exception as e:
+            print(f"Error updating QuestionBlock responsive properties: {e}")
+            # Fallback to default values
+            self.padding = [dp(12), dp(8)]
+            self.spacing = dp(10)
+    
+    def _update_question_text(self, instance, value):
+        """Update question text in UI"""
+        if hasattr(self, 'question_input'):
+            self.question_input.text = value
+    
+    def _update_answer_type(self, instance, value):
+        """Update answer type and recreate answer area"""
+        if hasattr(self, 'type_button'):
+            self.type_button.text = value
+        self._update_answer_area()
+    
+    def _update_allow_multiple(self, instance, value):
+        """Update allow multiple setting"""
+        if hasattr(self, 'toggle_switch'):
+            self.toggle_switch.active = value
+    
+    def _update_answer_area(self):
+        """Update the answer area based on answer type"""
+        if not hasattr(self, 'answer_area'):
+            return
+            
+        # Clear existing widgets
         self.answer_area.clear_widgets()
-
-        if answer_type == "Short Answer":
-            self.answer_area.add_widget(MDTextField(hint_text="Short answer preview", mode="rectangle"))
-
-        elif answer_type == "Long Answer":
-            self.answer_area.add_widget(MDTextField(hint_text="Long answer preview", multiline=True, mode="rectangle"))
-
-        elif answer_type == "Multiple Choice":
-            self.options_widgets = []
-            self.options_box = MDBoxLayout(orientation="vertical", spacing=dp(4), size_hint_y=None)
-            self.options_box.bind(minimum_height=self.options_box.setter("height"))
-            self.options_box.size_hint_y = None
-            self.options_box.bind(minimum_height=self.options_box.setter("height"))
-            self.add_option()
-            self.add_option()
-
-            add_option_btn = MDRaisedButton(
-                text="Add Option",
-                size_hint=(None, None),
-                size=(dp(120), dp(36)),
-                on_release=self.add_option
-            )
-
-            toggle_layout = MDBoxLayout(
-                orientation="horizontal",
-                spacing=dp(8),
-                size_hint_y=None,
-                height=dp(40)
-            )
-            toggle_label = MDLabel(
-                text="Allow multiple answers",
-                size_hint_x=None,
-                width=dp(200)
-            )
-            self.toggle_switch = MDSwitch(
-                active=False,
-                on_active=self.toggle_multiple
-            )
-            toggle_layout.add_widget(toggle_label)
-            toggle_layout.add_widget(self.toggle_switch)
-
-            self.answer_area.add_widget(self.options_box)
-            self.answer_area.add_widget(add_option_btn)
-            self.answer_area.add_widget(toggle_layout)
-
-    def toggle_multiple(self, instance, value):
+        
+        # Create appropriate widget based on answer type using KV
+        from kivy.lang import Builder
+        
+        if self.answer_type == "Short Answer":
+            widget = Builder.load_string('''
+ShortAnswerPreview:
+''')
+            self.answer_area.add_widget(widget)
+            
+        elif self.answer_type == "Long Answer":
+            widget = Builder.load_string('''
+LongAnswerPreview:
+''')
+            self.answer_area.add_widget(widget)
+            
+        elif self.answer_type == "Multiple Choice":
+            widget = Builder.load_string('''
+MultipleChoicePreview:
+''')
+            self.answer_area.add_widget(widget)
+            # Store reference for option management
+            self.multiple_choice_widget = widget
+    
+    def get_multiple_choice_widget(self):
+        """Get reference to multiple choice widget for option management"""
+        return getattr(self, 'multiple_choice_widget', None)
+    
+    def _on_toggle_multiple(self, instance, value):
+        """Handle toggle switch change"""
         self.allow_multiple = value
-
+    
     def add_option(self, *args):
-        box = BoxLayout(size_hint_y=None, height=dp(50), spacing=dp(8))
-        option_input = MDTextField(hint_text="Option", mode="rectangle")
-        delete_btn = MDIconButton(
-            icon="close",
-            on_release=lambda x: self.remove_option(box)
-        )
-        box.add_widget(option_input)
-        box.add_widget(delete_btn)
-        self.options_widgets.append(option_input)
-        self.options_box.add_widget(box)
-        self.options_box.height = self.options_box.minimum_height
-
+        """Add a new option to multiple choice widget"""
+        widget = self.get_multiple_choice_widget()
+        if widget and hasattr(widget, 'add_option'):
+            widget.add_option()
+    
     def remove_option(self, widget):
-        self.options_box.remove_widget(widget)
-        self.options_widgets = [w for w in self.options_widgets if w != widget]
-
+        """Remove an option from multiple choice widget"""
+        mc_widget = self.get_multiple_choice_widget()
+        if mc_widget and hasattr(mc_widget, 'remove_option'):
+            mc_widget.remove_option(widget)
+    
+    def open_menu(self, instance):
+        """Open the answer type dropdown menu"""
+        if hasattr(self, 'menu'):
+            self.menu.caller = instance
+            self.menu.open()
+    
+    def set_answer_type(self, answer_type):
+        """Set the answer type"""
+        self.answer_type = answer_type
+    
     def to_dict(self):
+        """Convert question block to dictionary"""
         return {
-            "question": self.question_input.text.strip(),
+            "question": self.question_text,
             "type": self.answer_type,
             "options": [w.text.strip() for w in self.options_widgets] if self.answer_type == "Multiple Choice" else [],
-            "allow_multiple": bool(self.allow_multiple)
+            "allow_multiple": self.allow_multiple
         }
-
+    
     def render_preview(self):
+        """Render a preview of the question"""
         from kivymd.uix.boxlayout import MDBoxLayout
         from kivymd.uix.selectioncontrol import MDCheckbox
         from kivymd.uix.label import MDLabel
-
-        preview = MDBoxLayout(orientation="vertical", spacing=dp(8))
-        preview.add_widget(MDLabel(text=self.question_input.text, font_style="Subtitle1"))
-
+        from kivymd.uix.textfield import MDTextField
+        
+        preview = MDBoxLayout(
+            orientation="vertical",
+            spacing=dp(8)
+        )
+        
+        preview.add_widget(MDLabel(
+            text=self.question_text,
+            font_style="Subtitle1"
+        ))
+        
         if self.answer_type == "Short Answer":
-            preview.add_widget(MDTextField(hint_text="Short answer", mode="rectangle"))
-
+            preview.add_widget(MDTextField(
+                hint_text="Short answer",
+                mode="rectangle"
+            ))
+            
         elif self.answer_type == "Long Answer":
-            preview.add_widget(MDTextField(hint_text="Long answer", multiline=True, mode="rectangle"))
-
+            preview.add_widget(MDTextField(
+                hint_text="Long answer",
+                multiline=True,
+                mode="rectangle"
+            ))
+            
         elif self.answer_type == "Multiple Choice":
-            option_class = MDCheckbox 
             for opt in self.options_widgets:
-                row = MDBoxLayout(orientation="horizontal", spacing=dp(8), size_hint_y=None, height=dp(40))
-                row.add_widget(option_class(size_hint=(None, None), size=(dp(36), dp(36))))
+                row = MDBoxLayout(
+                    orientation="horizontal",
+                    spacing=dp(8),
+                    size_hint_y=None,
+                    height=dp(40)
+                )
+                row.add_widget(MDCheckbox(
+                    size_hint=(None, None),
+                    size=(dp(36), dp(36))
+                ))
                 row.add_widget(MDLabel(text=opt.text))
                 preview.add_widget(row)
-
+        
         return preview

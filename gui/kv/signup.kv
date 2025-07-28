@@ -1,17 +1,20 @@
 #:import dp kivy.metrics.dp
 #:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
 #:import MDCard     kivymd.uix.card.MDCard
-#:import MDRaisedButton kivymd.uix.button.MDRaisedButton
+#:import MDButton kivymd.uix.button.MDButton
+#:import MDButtonText kivymd.uix.button.MDButtonText
 #:import MDTextField    kivymd.uix.textfield.MDTextField
+#:import MDTextFieldHintText kivymd.uix.textfield.MDTextFieldHintText
+#:import MDTextFieldTrailingIcon kivymd.uix.textfield.MDTextFieldTrailingIcon
 #:import MDLabel        kivymd.uix.label.MDLabel
-#:import MDSpinner kivymd.uix.spinner.MDSpinner
+#:import MDCircularProgressIndicator kivymd.uix.progressindicator.MDCircularProgressIndicator
 #:import MDIconButton kivymd.uix.button.MDIconButton
 #:import FloatLayout kivy.uix.floatlayout.FloatLayout
 
 <SignUpScreen>:
     name: "signup"
     # full-screen primary color background
-    md_bg_color: app.theme_cls.primary_color
+    md_bg_color: app.theme_cls.primaryColor
 
     AnchorLayout:
         anchor_x: "center"
@@ -30,20 +33,20 @@
                 spacing: dp(20)
 
                 MDBoxLayout:
-                    orientation:"horizontal"
+                    orientation: "horizontal"
                     size_hint_y: None
-                    height:dp(24)
+                    height: dp(24)
 
                     MDIconButton:
-                        icon:"arrow-left"
-                        user_font_size: "24sp"
+                        icon: "arrow-left"
+                        icon_size: "24sp"
                         disabled: root.is_registering
                         on_release: root.on_login()
 
                 # Title
                 MDLabel:
                     text: "Create Account"
-                    font_style: "H5"
+                    font_style: "Display"
                     halign: "center"
                     size_hint_y: None
                     height: self.texture_size[1]
@@ -51,11 +54,13 @@
                 # Username
                 MDTextField:
                     id: username
-                    hint_text: "Username"
-                    mode: "rectangle"
+                    mode: "outlined"
                     size_hint_y: None
                     height: dp(48)
                     disabled: root.is_registering
+
+                    MDTextFieldHintText:
+                        text: "Username"
 
                 # First & Last name side by side
                 MDBoxLayout:
@@ -66,33 +71,41 @@
 
                     MDTextField:
                         id: first_name
-                        hint_text: "First Name"
-                        mode: "rectangle"
+                        mode: "outlined"
                         disabled: root.is_registering
+
+                        MDTextFieldHintText:
+                            text: "First Name"
 
                     MDTextField:
                         id: last_name
-                        hint_text: "Last Name"
-                        mode: "rectangle"
+                        mode: "outlined"
                         disabled: root.is_registering
+
+                        MDTextFieldHintText:
+                            text: "Last Name"
 
                 # Email
                 MDTextField:
                     id: email
-                    hint_text: "Email Address"
-                    mode: "rectangle"
+                    mode: "outlined"
                     size_hint_y: None
                     height: dp(48)
                     disabled: root.is_registering
 
+                    MDTextFieldHintText:
+                        text: "Email Address"
+
                 # Institution
                 MDTextField:
                     id: institution
-                    hint_text: "Institution"
-                    mode: "rectangle"
+                    mode: "outlined"
                     size_hint_y: None
                     height: dp(48)
                     disabled: root.is_registering
+
+                    MDTextFieldHintText:
+                        text: "Institution"
 
                 # Password with toggle
                 FloatLayout:
@@ -101,23 +114,23 @@
 
                     MDTextField:
                         id: password
-                        hint_text: "Password"
+                        mode: "outlined"
                         password: not root.password_visible
-                        mode: "rectangle"
                         size_hint: 1, None
                         height: dp(48)
                         pos_hint: {"x": 0, "center_y": 0.5}
                         disabled: root.is_registering
 
-                    MDIconButton:
-                        icon: "eye-off" if root.password_visible else "eye"
-                        on_release: root.toggle_password_visibility()
-                        pos_hint: {"right": 0.98, "center_y": 0.5}
-                        size_hint: None, None
-                        size: dp(32), dp(32)
-                        md_bg_color: 0, 0, 0, 0
-                        theme_icon_color: "Custom"
-                        icon_color: 0.5, 0.5, 0.5, 1
+                        MDTextFieldHintText:
+                            text: "Password"
+
+                        MDIconButton:
+                            icon: "eye-off" if root.password_visible else "eye"
+                            on_release: root.toggle_password_visibility()
+                            pos_hint: {"center_y": 0.5}
+                            pos: self.parent.width - self.width - dp(8), 0
+                            theme_icon_color: "Custom"
+                            icon_color: 0.5, 0.5, 0.5, 1
 
                 # Confirm Password with toggle
                 FloatLayout:
@@ -126,32 +139,35 @@
 
                     MDTextField:
                         id: confirm_password
-                        hint_text: "Confirm Password"
+                        mode: "outlined"
                         password: not root.confirm_password_visible
-                        mode: "rectangle"
                         size_hint: 1, None
                         height: dp(48)
                         pos_hint: {"x": 0, "center_y": 0.5}
                         disabled: root.is_registering
 
-                    MDIconButton:
-                        icon: "eye-off" if root.confirm_password_visible else "eye"
-                        on_release: root.toggle_confirm_password_visibility()
-                        pos_hint: {"right": 0.98, "center_y": 0.5}
-                        size_hint: None, None
-                        size: dp(32), dp(32)
-                        md_bg_color: 0, 0, 0, 0
-                        theme_icon_color: "Custom"
-                        icon_color: 0.5, 0.5, 0.5, 1
+                        MDTextFieldHintText:
+                            text: "Confirm Password"
+
+                        MDIconButton:
+                            icon: "eye-off" if root.confirm_password_visible else "eye"
+                            on_release: root.toggle_confirm_password_visibility()
+                            pos_hint: {"center_y": 0.5}
+                            pos: self.parent.width - self.width - dp(8), 0
+                            theme_icon_color: "Custom"
+                            icon_color: 0.5, 0.5, 0.5, 1
 
                 # Sign-Up button
-                MDRaisedButton:
+                MDButton:
                     id: signup_button
-                    text: "Sign Up"
+                    style: "elevated"
                     size_hint: 1, None
                     height: dp(50)
                     disabled: root.is_registering
                     on_release: root.signup()
+                    
+                    MDButtonText:
+                        text: "Sign Up"
 
                 # Spinner container
                 MDBoxLayout:
@@ -163,7 +179,7 @@
                     opacity: 1 if root.is_registering else 0
                     spacing: dp(10)
 
-                    MDSpinner:
+                    MDCircularProgressIndicator:
                         id: signup_spinner
                         size_hint: None, None
                         size: dp(20), dp(20)

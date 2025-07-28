@@ -1,11 +1,23 @@
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.lang import Builder
 from kivymd.app import MDApp
-from kivymd.toast import toast
-from kivymd.uix.dialog import MDDialog
-from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivy.clock import Clock
 import threading
+
+# Updated imports for KivyMD 2.0
+from kivymd.uix.dialog import (
+    MDDialog, 
+    MDDialogHeadlineText, 
+    MDDialogSupportingText,
+    MDDialogButtonContainer
+)
+from kivymd.uix.button import MDButton, MDButtonText
+from kivymd.uix.snackbar import MDSnackbar, MDSnackbarText
+from kivymd.uix.list import MDList, MDListItem, MDListItemHeadlineText, MDListItemSupportingText, MDListItemLeadingIcon
+from kivymd.uix.scrollview import MDScrollView
+from kivymd.uix.label import MDLabel
+from kivymd.uix.menu import MDDropdownMenu
+from kivy.uix.widget import Widget
 
 Builder.load_file("kv/topbar.kv")
 
@@ -16,6 +28,7 @@ class TopBar(MDBoxLayout):
         self.current_screen = "dashboard"
         self.notifications_data = {'unread_count': 0, 'notifications': []}
         self.notification_dialog = None
+        self.navigation_menu = None
     
     def set_title(self, text):
         """Set the title text for the top bar"""
@@ -57,33 +70,104 @@ class TopBar(MDBoxLayout):
             self.set_title(title)
             
             # Show navigation feedback
-            toast(f" Navigated to {title}")
+            self.show_toast(f"Navigated to {title}")
+    
+    def show_navigation_menu(self):
+        """Show navigation menu for small screens"""
+        navigation_items = [
+            {
+                "text": "Dashboard",
+                "icon": "view-dashboard",
+                "on_release": lambda x="dashboard": self._navigate_and_close_menu(x),
+            },
+            {
+                "text": "Projects",
+                "icon": "folder-multiple", 
+                "on_release": lambda x="projects": self._navigate_and_close_menu(x),
+            },
+            {
+                "text": "Analytics",
+                "icon": "chart-line",
+                "on_release": lambda x="analytics": self._navigate_and_close_menu(x),
+            },
+            {
+                "text": "Data Collection",
+                "icon": "clipboard-text",
+                "on_release": lambda x="data_collection": self._navigate_and_close_menu(x),
+            },
+            {
+                "text": "Responses",
+                "icon": "format-list-bulleted",
+                "on_release": lambda x="responses": self._navigate_and_close_menu(x),
+            },
+        ]
+        
+        if not self.navigation_menu:
+            self.navigation_menu = MDDropdownMenu(
+                caller=self.ids.hamburger_menu,
+                items=navigation_items,
+                width_mult=4,
+            )
+        else:
+            self.navigation_menu.items = navigation_items
+            
+        self.navigation_menu.open()
+    
+    def _navigate_and_close_menu(self, screen_name):
+        """Navigate to screen and close menu"""
+        if self.navigation_menu:
+            self.navigation_menu.dismiss()
+        self.navigate_to_screen(screen_name)
+    
+    def show_toast(self, message):
+        """Show toast message with KivyMD 2.0.1 snackbar"""
+        try:
+            from utils.cross_platform_toast import toast
+            toast(message)
+        except ImportError:
+            try:
+                snackbar = MDSnackbar(
+                    MDSnackbarText(text=message),
+                    y="24dp",
+                    pos_hint={"center_x": 0.5},
+                    size_hint_x=0.8,
+                )
+                snackbar.open()
+            except Exception:
+                print(f"Toast: {message}")
     
     def set_current_screen(self, screen_name):
         """Set the current active screen for highlighting"""
         self.current_screen = screen_name
-        # Could add visual highlighting logic here in the future
     
     def get_navigation_screens(self):
         """Get list of available navigation screens"""
         return ['dashboard', 'projects', 'analytics', 'data_collection', 'responses']
     
     def logout(self):
-        """Show logout confirmation dialog"""
+        """Show logout confirmation dialog with KivyMD 2.0.1 syntax"""
         if not self.logout_dialog:
             self.logout_dialog = MDDialog(
-                title="Confirm Logout",
-                text="Are you sure you want to logout? All unsaved data will be lost.",
-                buttons=[
-                    MDFlatButton(
-                        text="CANCEL",
+                MDDialogHeadlineText(
+                    text="Confirm Logout"
+                ),
+                MDDialogSupportingText(
+                    text="Are you sure you want to logout? All unsaved data will be lost."
+                ),
+                MDDialogButtonContainer(
+                    Widget(),  # Spacer
+                    MDButton(
+                        MDButtonText(text="Cancel"),
+                        style="text",
                         on_release=self._dismiss_logout_dialog
                     ),
-                    MDRaisedButton(
-                        text="LOGOUT",
+                    MDButton(
+                        MDButtonText(text="Logout"),
+                        style="text",
                         on_release=self._confirm_logout
                     ),
-                ],
+                    spacing="8dp",
+                ),
             )
         self.logout_dialog.open()
     
@@ -100,11 +184,12 @@ class TopBar(MDBoxLayout):
         app = MDApp.get_running_app()
         
         # Logout from auth service
-        app.auth_service.logout()
+        if hasattr(app, 'auth_service'):
+            app.auth_service.logout()
         app.user_display_name = "Guest"
         
         # Show logout message
-        toast("Logged out successfully")
+        self.show_toast("Logged out successfully")
         
         # Stop notification polling
         self.stop_notification_polling()
@@ -118,19 +203,23 @@ class TopBar(MDBoxLayout):
         """Update the notification badge count"""
         try:
             if hasattr(self.ids, 'notification_badge'):
+                badge = self.ids.notification_badge
                 if unread_count > 0:
-                    self.ids.notification_badge.text = str(min(unread_count, 99))  # Cap at 99
-                    self.ids.notification_badge.opacity = 1
+                    badge.text = str(min(unread_count, 99))  # Cap at 99
+                    badge.opacity = 1
                 else:
-                    self.ids.notification_badge.opacity = 0
+                    badge.text = "0"
+                    badge.opacity = 0
             
-            # Update button color based on notifications
+            # Update button icon based on notifications
             if hasattr(self.ids, 'notification_button'):
+                button = self.ids.notification_button
                 if unread_count > 0:
-                    self.ids.notification_button.theme_icon_color = "Custom"
-                    self.ids.notification_button.icon_color = [1, 0.5, 0, 1]  # Orange for notifications
+                    button.icon = "bell"  # Filled bell for notifications
+                    button.icon_color = [1, 0.7, 0, 1]  # Orange for notifications
                 else:
-                    self.ids.notification_button.theme_icon_color = "Primary"
+                    button.icon = "bell-outline"  # Outline bell for no notifications
+                    button.icon_color = [1, 1, 1, 0.9]  # White default
                     
         except Exception as e:
             print(f"Error updating notification badge: {e}")
@@ -163,33 +252,11 @@ class TopBar(MDBoxLayout):
         self.update_notification_badge(notifications_data.get('unread_count', 0))
     
     def show_notifications(self):
-        """Show notifications dialog"""
-        from kivymd.uix.list import MDList, OneLineAvatarIconListItem, IconLeftWidget
-        from kivymd.uix.scrollview import MDScrollView
-        from kivymd.uix.label import MDLabel
-        
+        """Show notifications dialog with modern KivyMD 2.0.1 design"""
         # Load fresh notifications
         self.load_notifications()
         
-        # Create dialog content
-        content = MDBoxLayout(
-            orientation="vertical",
-            spacing="16dp",
-            size_hint_y=None,
-            height="400dp",
-            padding="16dp"
-        )
-        
-        # Title
-        title = MDLabel(
-            text="Notifications",
-            font_style="H6",
-            size_hint_y=None,
-            height="40dp"
-        )
-        content.add_widget(title)
-        
-        # Notifications list
+        # Create notifications list content
         scroll = MDScrollView()
         notifications_list = MDList()
         
@@ -199,51 +266,63 @@ class TopBar(MDBoxLayout):
             empty_label = MDLabel(
                 text="No new notifications",
                 halign="center",
-                theme_text_color="Hint",
+                theme_text_color="Secondary",
                 size_hint_y=None,
                 height="40dp"
             )
             notifications_list.add_widget(empty_label)
         else:
             for notification in notifications:
-                item = OneLineAvatarIconListItem(
-                    text=notification['title'],
-                    secondary_text=notification['message'][:100] + "..." if len(notification['message']) > 100 else notification['message']
+                item = MDListItem(
+                    MDListItemLeadingIcon(
+                        icon=self._get_notification_icon(notification.get('type', 'bell'))
+                    ),
+                    MDListItemHeadlineText(
+                        text=notification['title']
+                    ),
+                    MDListItemSupportingText(
+                        text=notification['message'][:100] + "..." if len(notification['message']) > 100 else notification['message']
+                    )
                 )
-                
-                # Add icon based on notification type
-                icon_name = {
-                    'team_invitation': 'account-plus',
-                    'project_update': 'folder-edit',
-                    'system_message': 'information',
-                    'welcome': 'hand-wave'
-                }.get(notification['type'], 'bell')
-                
-                item.add_widget(IconLeftWidget(icon=icon_name))
                 notifications_list.add_widget(item)
         
         scroll.add_widget(notifications_list)
-        content.add_widget(scroll)
         
-        # Create dialog
+        # Create dialog with KivyMD 2.0.1 syntax
         self.notification_dialog = MDDialog(
-            title="Notifications",
-            type="custom",
-            content_cls=content,
-            size_hint=(0.8, 0.7),
-            buttons=[
-                MDFlatButton(
-                    text="MARK ALL READ",
+            MDDialogHeadlineText(
+                text="Notifications"
+            ),
+            MDDialogSupportingText(
+                text=f"You have {len(notifications)} notification{'s' if len(notifications) != 1 else ''}"
+            ),
+            scroll,
+            MDDialogButtonContainer(
+                Widget(),  # Spacer
+                MDButton(
+                    MDButtonText(text="Mark All Read"),
+                    style="text",
                     on_release=self.mark_all_notifications_read
                 ),
-                MDFlatButton(
-                    text="CLOSE",
+                MDButton(
+                    MDButtonText(text="Close"),
+                    style="text", 
                     on_release=self.close_notification_dialog
-                )
-            ]
+                ),
+                spacing="8dp",
+            ),
         )
         
         self.notification_dialog.open()
+    
+    def _get_notification_icon(self, notification_type):
+        """Get icon name based on notification type"""
+        return {
+            'team_invitation': 'account-plus',
+            'project_update': 'folder-edit',
+            'system_message': 'information',
+            'welcome': 'hand-wave'
+        }.get(notification_type, 'bell')
     
     def mark_all_notifications_read(self, *args):
         """Mark all notifications as read"""
@@ -261,12 +340,12 @@ class TopBar(MDBoxLayout):
     def handle_mark_all_result(self, success, message):
         """Handle mark all notifications result"""
         if success:
-            toast("All notifications marked as read")
+            self.show_toast("All notifications marked as read")
             self.update_notification_badge(0)
             if self.notification_dialog:
                 self.notification_dialog.dismiss()
         else:
-            toast(f" Error: {message}")
+            self.show_toast(f"Error: {message}")
     
     def close_notification_dialog(self, *args):
         """Close notification dialog"""

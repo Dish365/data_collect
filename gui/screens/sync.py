@@ -2,7 +2,7 @@ from kivy.uix.screenmanager import Screen
 from kivy.lang import Builder
 from kivy.clock import Clock
 from kivy.metrics import dp
-from kivymd.toast import toast
+from utils.cross_platform_toast import toast
 from kivy.app import App
 import threading
 

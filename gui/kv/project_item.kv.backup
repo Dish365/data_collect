@@ -1,0 +1,113 @@
+#:import dp kivy.metrics.dp
+
+<ProjectItem>:
+    orientation: "horizontal"
+    size_hint_y: None
+    height: dp(72)
+    padding: dp(8), dp(8), dp(4), dp(8)
+    spacing: dp(12)
+    style: "elevated"
+    radius: [dp(12)]
+    elevation: 1
+    md_bg_color: app.theme_cls.surfaceColor
+
+    # Date Circle
+    MDCard:
+        id: date_circle
+        size_hint: None, None
+        size: dp(56), dp(56)
+        radius: [dp(28)]
+        md_bg_color: app.theme_cls.primaryColor
+        ripple_behavior: False
+        elevation: 0
+        padding: dp(4)
+
+        MDBoxLayout:
+            orientation: "vertical"
+            size_hint: 1, 1
+            padding: 0, dp(0)
+            spacing: dp(2)
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+            MDLabel:
+                id: day_label
+                halign: 'center'
+                font_style: "H6"
+                theme_text_color: "Primary"
+                adaptive_height: True
+                size_hint_y: None
+                height: self.texture_size[1]
+
+            MDLabel:
+                id: month_label
+                halign: 'center'
+                font_style: "Caption"
+                theme_text_color: "Primary"
+                adaptive_height: True
+                size_hint_y: None
+                height: self.texture_size[1]
+
+    # Project Info
+    MDBoxLayout:
+        id: info_layout
+        orientation: "vertical"
+        adaptive_height: True
+        pos_hint: {'center_y': 0.5}
+        spacing: dp(4)
+
+        MDLabel:
+            id: name_label
+            text: root.name
+            font_style: "Subtitle1"
+            adaptive_height: True
+            size_hint_y: None
+            height: self.texture_size[1]
+            text_size: None, None
+            halign: 'left'
+            valign: 'middle'
+            shorten: True
+            shorten_from: 'right'
+            theme_text_color: "Primary"
+
+        MDLabel:
+            id: desc_label
+            text: root.description
+            font_style: "Body2"
+            theme_text_color: "Secondary"
+            adaptive_height: True
+            size_hint_y: None
+            height: self.texture_size[1]
+            text_size: None, None
+            halign: 'left'
+            valign: 'middle'
+            shorten: True
+            shorten_from: 'right'
+
+    # Right Aligned Items
+    MDBoxLayout:
+        id: right_layout
+        adaptive_width: True
+        spacing: dp(8)
+        pos_hint: {'center_y': 0.5}
+
+        # Sync Status Label
+        MDLabel:
+            id: sync_status_label
+            text: "Unknown"
+            font_style: "Caption"
+            halign: "right"
+            size_hint: None, None
+            size: dp(72), dp(24)
+            pos_hint: {'center_y': 0.5}
+            theme_text_color: "Custom"
+            text_color: 0.5, 0.5, 0.5, 1
+
+        # Options Menu
+        MDIconButton:
+            id: menu_button
+            icon: 'dots-vertical'
+            size_hint: None, None
+            size: dp(44), dp(44)
+            user_font_size: "20sp"
+            on_release: root.open_menu(self)
+            pos_hint: {'center_y': 0.5} 

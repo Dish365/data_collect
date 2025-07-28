@@ -34,19 +34,28 @@
 
                     MDLabel:
                         text: "Project:"
-                        font_style: "Subtitle1"
+                        font_style: "Title"
+
+                        role: "large"
                         theme_text_color: "Primary"
                         font_size: "16sp"
                         size_hint_x: None
                         width: dp(80)
                         halign: "left"
 
-                    MDDropDownItem:
+                    MDButton:
                         id: project_spinner
-                        text: 'Select Project'
-                        on_release: root.open_project_menu()
+                        style: "outlined"
                         size_hint_x: 1
-                        font_size: '16sp'
+                        height: dp(48)
+                        on_release: root.open_project_menu()
+                        
+                        MDButtonText:
+                            text: 'Select Project'
+                            font_size: '16sp'
+                        
+                        MDButtonIcon:
+                            icon: "chevron-down"
 
                 # Description Row
                 MDBoxLayout:
@@ -56,7 +65,9 @@
 
                     MDLabel:
                         text: "Build professional forms with customizable question types"
-                        font_style: "Body2"
+                        font_style: "Body"
+
+                        role: "medium"
                         theme_text_color: "Secondary"
                         font_size: "14sp"
 
@@ -85,7 +96,9 @@
 
                         MDLabel:
                             text: "Question Types"
-                            font_style: "H6"
+                            font_style: "Headline"
+
+                            role: "small"
                             bold: True
                             theme_text_color: "Primary"
                             font_size: "18sp"
@@ -94,7 +107,9 @@
 
                         MDLabel:
                             text: "Choose question types to build your form"
-                            font_style: "Caption"
+                            font_style: "Label"
+
+                            role: "small"
                             theme_text_color: "Secondary"
                             font_size: "12sp"
                             size_hint_y: None
@@ -137,29 +152,43 @@
 
                                     MDLabel:
                                         text: "Text Responses"
-                                        font_style: "Subtitle1"
+                                        font_style: "Title"
+
+                                        role: "large"
                                         bold: True
                                         theme_text_color: "Primary"
                                         font_size: "16sp"  # Larger font for tablets
 
                                 # Text Response Buttons - Tablet optimized
-                                MDRaisedButton:
-                                    text: "Short Text"
+                                MDButton:
+                                    style: "filled"
                                     on_release: root.add_question('text_short')
                                     size_hint_y: None
-                                    height: dp(48)  # Tablet-friendly touch target
+                                    height: dp(48)
                                     md_bg_color: 0.2, 0.6, 1, 1
-                                    font_size: "15sp"  # Larger font for tablets
                                     elevation: 1
+                                    
+                                    MDButtonIcon:
+                                        icon: "text-short"
+                                    
+                                    MDButtonText:
+                                        text: "Short Text"
+                                        font_size: "15sp"
 
-                                MDRaisedButton:
-                                    text: "Long Text"
+                                MDButton:
+                                    style: "filled"
                                     on_release: root.add_question('text_long')
                                     size_hint_y: None
-                                    height: dp(48)  # Tablet-friendly touch target
+                                    height: dp(48)
                                     md_bg_color: 0.2, 0.6, 1, 1
-                                    font_size: "15sp"  # Larger font for tablets
                                     elevation: 1
+                                    
+                                    MDButtonIcon:
+                                        icon: "text-long"
+                                    
+                                    MDButtonText:
+                                        text: "Long Text"
+                                        font_size: "15sp"
 
                             # NUMERIC RESPONSES SECTION
                             MDBoxLayout:
@@ -183,29 +212,43 @@
 
                                     MDLabel:
                                         text: "Numeric Responses"
-                                        font_style: "Subtitle1"
+                                        font_style: "Title"
+
+                                        role: "large"
                                         bold: True
                                         theme_text_color: "Primary"
                                         font_size: "16sp"  # Larger font for tablets
 
-                                # Numeric Response Buttons - Tablet optimized
-                                MDRaisedButton:
-                                    text: "Number (Integer)"
+                                # Numeric Response Buttons - Modern design
+                                MDButton:
+                                    style: "filled"
                                     on_release: root.add_question('numeric_integer')
                                     size_hint_y: None
-                                    height: dp(48)  # Tablet-friendly touch target
+                                    height: dp(48)
                                     md_bg_color: 1, 0.6, 0.2, 1
-                                    font_size: "15sp"  # Larger font for tablets
                                     elevation: 1
+                                    
+                                    MDButtonIcon:
+                                        icon: "numeric"
+                                    
+                                    MDButtonText:
+                                        text: "Number (Integer)"
+                                        font_size: "15sp"
 
-                                MDRaisedButton:
-                                    text: "Number (Decimal)"
+                                MDButton:
+                                    style: "filled"
                                     on_release: root.add_question('numeric_decimal')
                                     size_hint_y: None
-                                    height: dp(48)  # Tablet-friendly touch target
+                                    height: dp(48)
                                     md_bg_color: 1, 0.6, 0.2, 1
-                                    font_size: "15sp"  # Larger font for tablets
                                     elevation: 1
+                                    
+                                    MDButtonIcon:
+                                        icon: "numeric-9-plus"
+                                    
+                                    MDButtonText:
+                                        text: "Number (Decimal)"
+                                        font_size: "15sp"
 
                             # CHOICE RESPONSES SECTION
                             MDBoxLayout:
@@ -229,29 +272,43 @@
 
                                     MDLabel:
                                         text: "Choice Responses"
-                                        font_style: "Subtitle1"
+                                        font_style: "Title"
+
+                                        role: "large"
                                         bold: True
                                         theme_text_color: "Primary"
                                         font_size: "15sp"  # Smaller font
 
                                 # Choice Response Buttons
-                                MDRaisedButton:
-                                    text: "Single Choice"
+                                MDButton:
+                                    style: "filled"
                                     on_release: root.add_question('choice_single')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.8, 0.4, 0.2, 1
-                                    font_size: "13sp"
                                     elevation: 1
+                                    
+                                    MDButtonIcon:
+                                        icon: "radiobox-marked"
+                                    
+                                    MDButtonText:
+                                        text: "Single Choice"
+                                        font_size: "13sp"
 
-                                MDRaisedButton:
-                                    text: "Multiple Choice"
+                                MDButton:
+                                    style: "filled"
                                     on_release: root.add_question('choice_multiple')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.8, 0.4, 0.2, 1
-                                    font_size: "13sp"
                                     elevation: 1
+                                    
+                                    MDButtonIcon:
+                                        icon: "checkbox-marked"
+                                    
+                                    MDButtonText:
+                                        text: "Multiple Choice"
+                                        font_size: "13sp"
 
                             # DATE & TIME SECTION
                             MDBoxLayout:
@@ -275,7 +332,9 @@
 
                                     MDLabel:
                                         text: "Date & Time"
-                                        font_style: "Subtitle1"
+                                        font_style: "Title"
+
+                                        role: "large"
                                         bold: True
                                         theme_text_color: "Primary"
                                         font_size: "15sp"  # Smaller font
@@ -321,7 +380,9 @@
 
                                     MDLabel:
                                         text: "Location & GPS"
-                                        font_style: "Subtitle1"
+                                        font_style: "Title"
+
+                                        role: "large"
                                         bold: True
                                         theme_text_color: "Primary"
                                         font_size: "15sp"
@@ -367,7 +428,9 @@
 
                                     MDLabel:
                                         text: "Media & Files"
-                                        font_style: "Subtitle1"
+                                        font_style: "Title"
+
+                                        role: "large"
                                         bold: True
                                         theme_text_color: "Primary"
                                         font_size: "15sp"
@@ -431,7 +494,9 @@
 
                                     MDLabel:
                                         text: "Special Types"
-                                        font_style: "Subtitle1"
+                                        font_style: "Title"
+
+                                        role: "large"
                                         bold: True
                                         theme_text_color: "Primary"
                                         font_size: "15sp"
@@ -481,7 +546,9 @@
 
                         MDLabel:
                             text: "Form Questions"
-                            font_style: "H6"
+                            font_style: "Headline"
+
+                            role: "small"
                             bold: True
                             theme_text_color: "Primary"
                             font_size: "18sp"
@@ -490,7 +557,9 @@
 
                         MDLabel:
                             text: "Add questions from the left panel to build your form"
-                            font_style: "Body2"
+                            font_style: "Body"
+
+                            role: "medium"
                             theme_text_color: "Secondary"
                             font_size: "14sp"
                             size_hint_y: None
@@ -533,14 +602,18 @@
 
                                 MDLabel:
                                     text: "No questions added yet"
-                                    font_style: "H6"
+                                    font_style: "Headline"
+
+                                    role: "small"
                                     theme_text_color: "Hint"
                                     halign: "center"
                                     font_size: "18sp"
 
                                 MDLabel:
                                     text: "Select question types from the left panel to start building your form"
-                                    font_style: "Body2"
+                                    font_style: "Body"
+
+                                    role: "medium"
                                     theme_text_color: "Hint"
                                     halign: "center"
                                     font_size: "14sp"
@@ -558,25 +631,35 @@
                 Widget:
                     size_hint_x: 1
 
-                MDRaisedButton:
-                    text: "Save Form"
-                    icon: "content-save"
+                MDButton:
+                    style: "filled"
                     md_bg_color: 0.27, 0.65, 0.27, 1
-                    font_size: "14sp"
                     size_hint: None, None
                     size: dp(120), dp(40)
                     elevation: 2
                     on_release: root.save_form()
+                    
+                    MDButtonIcon:
+                        icon: "content-save"
+                    
+                    MDButtonText:
+                        text: "Save Form"
+                        font_size: "14sp"
 
-                MDRaisedButton:
-                    text: "Preview"
-                    icon: "eye"
+                MDButton:
+                    style: "filled"
                     md_bg_color: 0.4, 0.4, 0.9, 1
-                    font_size: "14sp"
                     size_hint: None, None
                     size: dp(100), dp(40)
                     elevation: 2
                     on_release: root.preview_questions()
+                    
+                    MDButtonIcon:
+                        icon: "eye"
+                    
+                    MDButtonText:
+                        text: "Preview"
+                        font_size: "14sp"
 
                 Widget:
                     size_hint_x: 1
@@ -592,7 +675,7 @@
 
             Widget:
 
-            MDSpinner:
+            MDCircularProgressIndicator:
                 id: spinner
                 size_hint: None, None
                 size: dp(48), dp(48)
@@ -601,10 +684,138 @@
 
             MDLabel:
                 text: "Processing..."
-                font_style: "Body1"
+                font_style: "Body"
+
+                role: "large"
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
                 halign: "center"
                 font_size: "16sp"
 
             Widget:
+
+# Modern KV Components for Form Builder States
+
+<NoProjectsState@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(280)
+    elevation: 0
+    md_bg_color: 0.98, 0.98, 0.98, 1
+    radius: [16, 16, 16, 16]
+    padding: [dp(32), dp(24)]
+    spacing: dp(20)
+    pos_hint: {'center_x': 0.5}
+    
+    Widget:
+        size_hint_y: None
+        height: dp(16)
+    
+    MDIcon:
+        icon: "folder-plus-outline"
+        size_hint: None, None
+        size: dp(64), dp(64)
+        pos_hint: {'center_x': 0.5}
+        theme_icon_color: "Custom"
+        icon_color: 0.6, 0.6, 0.6, 1
+    
+    MDLabel:
+        text: "No Projects Found"
+        font_style: "Headline"
+
+        role: "medium"
+        theme_text_color: "Primary"
+        halign: "center"
+        bold: True
+        size_hint_y: None
+        height: dp(32)
+    
+    MDLabel:
+        text: "To create forms, you need to have at least one project.\nGo to the Projects page to create a new project first."
+        font_style: "Body"
+
+        role: "large"
+        theme_text_color: "Secondary"
+        halign: "center"
+        text_size: self.width, None
+        size_hint_y: None
+        height: dp(60)
+    
+    MDButton:
+        style: "filled"
+        size_hint: None, None
+        size: dp(160), dp(48)
+        pos_hint: {'center_x': 0.5}
+        md_bg_color: app.theme_cls.primaryColor
+        on_release: setattr(app.root, 'current', 'projects')
+        
+        MDButtonText:
+            text: "Go to Projects"
+        
+        MDButtonIcon:
+            icon: "arrow-right"
+
+<EmptyFormState@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(240)
+    elevation: 0
+    md_bg_color: 0.98, 0.98, 0.98, 1
+    radius: [16, 16, 16, 16]
+    padding: [dp(32), dp(24)]
+    spacing: dp(16)
+    pos_hint: {'center_x': 0.5}
+    
+    Widget:
+        size_hint_y: None
+        height: dp(12)
+    
+    MDIcon:
+        icon: "clipboard-text-outline"
+        size_hint: None, None
+        size: dp(56), dp(56)
+        pos_hint: {'center_x': 0.5}
+        theme_icon_color: "Custom"
+        icon_color: 0.7, 0.7, 0.7, 1
+    
+    MDLabel:
+        text: "No questions added yet"
+        font_style: "Headline"
+
+        role: "small"
+        theme_text_color: "Secondary"
+        halign: "center"
+        bold: True
+        size_hint_y: None
+        height: dp(28)
+    
+    MDLabel:
+        text: "Select question types from the left panel to start building your form"
+        font_style: "Body"
+
+        role: "medium"
+        theme_text_color: "Secondary"
+        halign: "center"
+        text_size: self.width, None
+        size_hint_y: None
+        height: dp(48)
+
+<FormPreviewContent@MDScrollView>:
+    questions_data: []
+    
+    MDBoxLayout:
+        orientation: 'vertical'
+        spacing: dp(16)
+        padding: [dp(16), dp(16)]
+        size_hint_y: None
+        adaptive_height: True
+        
+        MDLabel:
+            text: "Form Preview" if root.questions_data else "No questions to preview"
+            font_style: "Headline"
+
+            role: "small" if root.questions_data else "Subtitle1"
+            theme_text_color: "Primary" if root.questions_data else "Secondary"
+            halign: "left"
+            size_hint_y: None
+            height: dp(32)

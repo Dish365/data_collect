@@ -1,33 +1,15 @@
 from kivy.uix.screenmanager import Screen
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-from kivy.uix.spinner import Spinner
-from kivy.uix.textinput import TextInput
-from kivy.uix.scrollview import ScrollView
-from kivy.metrics import dp
-from widgets.form_fields import (
-    ShortTextField, LongTextField, NumericIntegerField, NumericDecimalField,
-    SingleChoiceField, MultipleChoiceField, RatingScaleField, DateField, 
-    DateTimeField, LocationPickerField, PhotoUploadField, AudioRecordingField, 
-    BarcodeField, create_form_field
-)
-from widgets.questionBlock import QuestionBlock
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.scrollview import MDScrollView
+from widgets.form_fields import create_form_field
 from kivymd.uix.dialog import MDDialog
-from kivymd.uix.button import MDRaisedButton
-from kivymd.uix.label import MDLabel
 from kivy.clock import Clock
 from kivy.properties import StringProperty, ListProperty
 from kivy.app import App
-from kivymd.toast import toast
+from utils.cross_platform_toast import toast
 import threading
 from kivymd.uix.menu import MDDropdownMenu
 
 from kivy.lang import Builder
 
-import uuid
 import json
 
 from services.form_service import FormService
@@ -209,34 +191,12 @@ class FormBuilderScreen(Screen):
             self.project_id = None
             self.ids.form_canvas.clear_widgets()
             
-            # Add a helpful widget to the form canvas
-            help_layout = MDBoxLayout(
-                orientation='vertical',
-                spacing=dp(16),
-                adaptive_height=True,
-                size_hint_y=None,
-                height=dp(200)
-            )
-            
-            help_label = MDLabel(
-                text="No projects found!\n\nTo create forms, you need to have at least one project.\nGo to the Projects page to create a new project first.",
-                halign="center",
-                theme_text_color="Secondary",
-                size_hint_y=None,
-                height=dp(120)
-            )
-            
-            go_to_projects_btn = MDRaisedButton(
-                text="Go to Projects",
-                size_hint=(None, None),
-                size=(dp(150), dp(40)),
-                pos_hint={'center_x': 0.5},
-                on_release=lambda x: setattr(self.manager, 'current', 'projects')
-            )
-            
-            help_layout.add_widget(help_label)
-            help_layout.add_widget(go_to_projects_btn)
-            self.ids.form_canvas.add_widget(help_layout)
+            # Create no projects state using KV component
+            from kivy.lang import Builder
+            no_projects_widget = Builder.load_string('''
+NoProjectsState:
+''')
+            self.ids.form_canvas.add_widget(no_projects_widget)
             
             print(f"No projects found for user {user_id}")
             return
@@ -411,52 +371,12 @@ class FormBuilderScreen(Screen):
         if question_count == 0:
             # Show empty state if not already shown
             if not empty_state:
-                # Create empty state widget
-                empty_state = MDBoxLayout(
-                    orientation='vertical',
-                    spacing=dp(16),
-                    size_hint_y=None,
-                    height=dp(200)
-                )
-                empty_state.id = 'empty_state'
-                
-                # Add spacing
-                empty_state.add_widget(MDBoxLayout(size_hint_y=None, height=dp(40)))
-                
-                # Add icon (using icon-like label since MDIcon might not be available)
-                icon_label = MDLabel(
-                    text="📋",
-                    font_size="48sp",
-                    halign="center",
-                    size_hint_y=None,
-                    height=dp(64)
-                )
-                empty_state.add_widget(icon_label)
-                
-                # Add title
-                title_label = MDLabel(
-                    text="No questions added yet",
-                    font_style="H6",
-                    theme_text_color="Hint",
-                    halign="center",
-                    font_size="18sp",
-                    size_hint_y=None,
-                    height=dp(32)
-                )
-                empty_state.add_widget(title_label)
-                
-                # Add description
-                desc_label = MDLabel(
-                    text="Select question types from the left panel to start building your form",
-                    font_style="Body2",
-                    theme_text_color="Hint",
-                    halign="center",
-                    font_size="14sp",
-                    size_hint_y=None,
-                    height=dp(40)
-                )
-                empty_state.add_widget(desc_label)
-                
+                # Create empty state widget using KV component
+                from kivy.lang import Builder
+                empty_state = Builder.load_string('''
+EmptyFormState:
+    id: 'empty_state'
+''')
                 self.ids.form_canvas.add_widget(empty_state)
         else:
             # Hide empty state if it exists
@@ -628,63 +548,29 @@ class FormBuilderScreen(Screen):
             
             questions.append(q)
 
-        preview_layout = MDBoxLayout(orientation="vertical", spacing=dp(16), padding=dp(16), adaptive_height=True)
-        if not questions:
-            preview_layout.add_widget(MDLabel(text="No questions to preview.", font_style="Subtitle1"))
-        else:
-            for q in questions:
-                # Question card
-                question_card = MDBoxLayout(
-                    orientation="vertical",
-                    padding=dp(12),
-                    spacing=dp(8),
-                    size_hint_y=None,
-                    height=dp(120) if not q.get('options') else dp(120 + len(q.get('options', [])) * 20),
-                    md_bg_color=(0.96, 0.96, 0.96, 1)
-                )
-                
-                q_number = q.get('number', 1)
-                q_text = q.get('question', '')
-                q_type = q.get('type', '')
-                options = q.get('options', [])
-                allow_multiple = q.get('allow_multiple', False)
-                
-                # Question header
-                header = MDLabel(text=f"Question {q_number}: {q_text}", font_style="Subtitle1", bold=True)
-                type_label = MDLabel(text=f"Type: {q_type}", font_style="Caption", theme_text_color="Secondary")
-                
-                question_card.add_widget(header)
-                question_card.add_widget(type_label)
-                
-                if options:
-                    options_label = MDLabel(text="Options:", font_style="Body2")
-                    question_card.add_widget(options_label)
-                    for opt in options:
-                        question_card.add_widget(MDLabel(text=f"• {opt}", font_style="Body2"))
-                    if allow_multiple:
-                        question_card.add_widget(MDLabel(text="(Multiple answers allowed)", font_style="Caption"))
-                elif q_type in ["GPS Location", "Photo/Image", "Audio Recording", "Barcode/QR Code"]:
-                    question_card.add_widget(MDLabel(text=f"[{q_type} input field]", font_style="Body2"))
-                elif "Number" in q_type:
-                    question_card.add_widget(MDLabel(text=f"[{q_type} input field]", font_style="Body2"))
-                elif "Date" in q_type:
-                    question_card.add_widget(MDLabel(text=f"[{q_type} picker]", font_style="Body2"))
-                elif "Rating" in q_type:
-                    question_card.add_widget(MDLabel(text="[Rating scale 1-5]", font_style="Body2"))
-                else:
-                    question_card.add_widget(MDLabel(text="[Text input field]", font_style="Body2"))
-                    
-                preview_layout.add_widget(question_card)
-
+        # Create preview dialog using KV component
+        from kivy.lang import Builder
+        preview_content = Builder.load_string(f'''
+FormPreviewContent:
+    questions_data: {repr(questions)}
+''')
+        
         dialog = MDDialog(
             title="Form Preview",
             type="custom",
-            content_cls=preview_layout,
-            buttons=[
-                MDRaisedButton(text="Close", on_release=lambda x: dialog.dismiss())
-            ],
+            content_cls=preview_content,
             auto_dismiss=True,
         )
+        
+        # Add close button programmatically since we can't bind in string
+        from kivymd.uix.button import MDButton, MDButtonText
+        close_button = MDButton(
+            style="text",
+            on_release=lambda x: dialog.dismiss()
+        )
+        close_button.add_widget(MDButtonText(text="Close"))
+        dialog.buttons = [close_button]
+        
         dialog.open()
 
     # Legacy methods for backward compatibility

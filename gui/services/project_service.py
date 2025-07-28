@@ -3,7 +3,7 @@ import threading
 import uuid
 import json
 from datetime import datetime
-from kivymd.toast import toast
+from utils.cross_platform_toast import toast
 from kivy.clock import Clock
 import time
 

@@ -1,3 +1,5 @@
+#:import dp kivy.metrics.dp
+
 <DashboardScreen>:
     name: "dashboard"
 
@@ -5,13 +7,14 @@
         orientation: 'vertical'
         size_hint: 1, 1
 
-        # Responsive Top Bar with refresh button - Unified styling
+        # Modern Top Bar with enhanced styling
         MDBoxLayout:
             orientation: 'horizontal'
             size_hint_y: None
-            height: dp(56)
-            md_bg_color: app.theme_cls.primary_color
-            padding: dp(8)
+            height: dp(64)  # Increased for modern Material Design
+            md_bg_color: app.theme_cls.primaryColor
+            padding: dp(12)
+            elevation: 4
             
             TopBar:
                 id: top_bar
@@ -19,38 +22,58 @@
             MDIconButton:
                 icon: "refresh"
                 theme_icon_color: "Custom"
-                icon_color: 1, 1, 1, 1
-                size_hint_x: None
-                width: dp(48)
+                icon_color: 1, 1, 1, 0.9
+                size_hint: None, None
+                size: dp(48), dp(48)
+                radius: dp(24)
                 pos_hint: {"center_y": 0.5}
-                on_press: root.refresh_dashboard()
+                theme_bg_color: "Custom"
+                md_bg_color: 1, 1, 1, 0.1
+                ripple_scale: 0.85
+                on_release: root.refresh_dashboard()
 
         RelativeLayout:
             size_hint: 1, 1
             
-            # Main content area
-            ScrollView:
+            # Main content area with modern scrolling
+            MDScrollView:
                 id: main_scroll_view
                 size_hint: 1, 1
+                do_scroll_x: False
+                bar_width: dp(4)
                 
                 MDBoxLayout:
                     id: content_layout
                     orientation: 'vertical'
-                    padding: dp(24)  # Increased from dp(16) for tablets
-                    spacing: dp(20)  # Increased from dp(16) for tablets
+                    padding: dp(24)
+                    spacing: dp(24)  # Increased for better visual hierarchy
                     adaptive_height: True
                     size_hint_y: None
                     height: self.minimum_height
 
+                    # Modern page title with better typography
                     MDLabel:
                         text: "Research Dashboard"
-                        font_style: "H5"
+                        theme_font_size: "Custom"
+                        font_size: dp(32)
+                        bold: True
                         size_hint_y: None
                         height: self.texture_size[1] + dp(16)
                         halign: "left"
                         theme_text_color: "Primary"
 
-                    # Responsive Stats Grid - Now using ResponsiveGridLayout
+                    # Stats section with modern card design
+                    MDLabel:
+                        text: "Overview"
+                        theme_font_size: "Custom"
+                        font_size: dp(18)
+                        bold: True
+                        halign: "left"
+                        size_hint_y: None
+                        height: self.texture_size[1] + dp(12)
+                        theme_text_color: "Secondary"
+
+                    # Responsive Stats Grid
                     MDBoxLayout:
                         id: stats_container
                         orientation: 'vertical'
@@ -59,15 +82,13 @@
                         height: self.minimum_height
                         spacing: dp(16)
                         
-                        # Stats will be arranged responsively based on screen size
-                        # Portrait: 2x2 grid, Landscape tablet: 4x1 row
                         MDGridLayout:
                             id: stats_grid
                             adaptive_height: True
                             size_hint_y: None
                             height: self.minimum_height
                             spacing: dp(16)
-                            cols: 1  # Changed from 2 to 1 for narrow window safety
+                            cols: 1  # Will be updated by Python code
 
                             StatCard:
                                 id: total_responses_card
@@ -75,8 +96,7 @@
                                 value: "Loading..."
                                 icon: "database"
                                 size_hint_y: None
-                                size_hint_x: 1  # Force full width
-                                # Height will be set dynamically by Python code
+                                size_hint_x: 1
                                 on_press: root.navigate_to("responses")
 
                             StatCard:
@@ -85,8 +105,7 @@
                                 value: "Loading..."
                                 icon: "folder"
                                 size_hint_y: None
-                                size_hint_x: 1  # Force full width
-                                # Height will be set dynamically by Python code
+                                size_hint_x: 1
                                 on_press: root.navigate_to("projects")
 
                             StatCard:
@@ -95,8 +114,7 @@
                                 value: "Loading..."
                                 icon: "sync"
                                 size_hint_y: None
-                                size_hint_x: 1  # Force full width
-                                # Height will be set dynamically by Python code
+                                size_hint_x: 1
                                 on_press: root.navigate_to("sync")
 
                             StatCard:
@@ -106,19 +124,21 @@
                                 note: "Click to manage team members"
                                 icon: "account-group"
                                 size_hint_y: None
-                                size_hint_x: 1  # Force full width
-                                # Height will be set dynamically by Python code
+                                size_hint_x: 1
                                 on_press: root.open_team_management()
 
+                    # Quick Actions section
                     MDLabel:
-                        text: "Dashboard Tools"
-                        font_style: "Subtitle1"
+                        text: "Quick Actions"
+                        theme_font_size: "Custom"
+                        font_size: dp(18)
+                        bold: True
                         halign: "left"
                         size_hint_y: None
-                        height: self.texture_size[1] + dp(16)
-                        theme_text_color: "Primary"
+                        height: self.texture_size[1] + dp(12)
+                        theme_text_color: "Secondary"
 
-                    # Responsive Dashboard Tools Grid - Improved spacing and alignment
+                    # Modern action buttons grid
                     MDBoxLayout:
                         id: actions_container
                         orientation: 'vertical'
@@ -132,112 +152,137 @@
                             adaptive_height: True
                             size_hint_y: None
                             height: self.minimum_height
-                            spacing: dp(16)  # Increased spacing for better visual separation
-                            cols: 2  # Default 2 columns, will be updated by Python
-                            row_default_height: dp(60)  # Consistent button height
+                            spacing: dp(16)
+                            cols: 2  # Will be updated by Python code
+                            row_default_height: dp(64)  # Increased for better touch targets
                             row_force_default: True
-                            # Ensure uniform column widths
-                            cols_minimum: {0: dp(120), 1: dp(120), 2: dp(120)}
                             size_hint_x: 1
                             
-                            MDRaisedButton:
-                                text: "Projects"
+                            MDButton:
+                                style: "filled"
                                 size_hint: 1, None
-                                height: dp(60)
-                                font_size: "16sp"
-                                elevation: 2
-                                md_bg_color: app.theme_cls.primary_color
-                                theme_text_color: "Primary"
-                                # Enhanced interactive effects
-                                ripple_scale: 1.2
-                                elevation_press_anim: True
-                                on_press: root.navigate_to("projects")
+                                height: dp(64)
+                                on_release: root.navigate_to("projects")
+                                
+                                MDButtonText:
+                                    text: "Projects"
+                                    theme_font_size: "Custom"
+                                    font_size: dp(16)
 
-                            MDRaisedButton:
-                                text: "Collect Data"
+                            MDButton:
+                                style: "filled"
                                 size_hint: 1, None
-                                height: dp(60)
-                                font_size: "16sp"
-                                elevation: 2
-                                md_bg_color: app.theme_cls.primary_color
-                                theme_text_color: "Primary"
-                                # Enhanced interactive effects
-                                ripple_scale: 1.2
-                                elevation_press_anim: True
-                                on_press: root.navigate_to("data_collection")
+                                height: dp(64)
+                                on_release: root.navigate_to("data_collection")
+                                
+                                MDButtonText:
+                                    text: "Collect Data"
+                                    theme_font_size: "Custom"
+                                    font_size: dp(16)
 
-                            MDRaisedButton:
-                                text: "Analytics"
+                            MDButton:
+                                style: "filled"
                                 size_hint: 1, None
-                                height: dp(60)
-                                font_size: "16sp"
-                                elevation: 2
-                                md_bg_color: app.theme_cls.primary_color
-                                theme_text_color: "Primary"
-                                # Enhanced interactive effects
-                                ripple_scale: 1.2
-                                elevation_press_anim: True
-                                on_press: root.navigate_to("analytics")
+                                height: dp(64)
+                                on_release: root.navigate_to("analytics")
+                                
+                                MDButtonText:
+                                    text: "Analytics"
+                                    theme_font_size: "Custom"
+                                    font_size: dp(16)
 
-                            MDRaisedButton:
-                                text: "Form Builder"
+                            MDButton:
+                                style: "filled"
                                 size_hint: 1, None
-                                height: dp(60)
-                                font_size: "16sp"
-                                elevation: 2
-                                md_bg_color: app.theme_cls.primary_color
-                                theme_text_color: "Primary"
-                                # Enhanced interactive effects
-                                ripple_scale: 1.2
-                                elevation_press_anim: True
-                                on_press: root.navigate_to("form_builder")
+                                height: dp(64)
+                                on_release: root.navigate_to("form_builder")
+                                
+                                MDButtonText:
+                                    text: "Form Builder"
+                                    theme_font_size: "Custom"
+                                    font_size: dp(16)
 
-                            MDRaisedButton:
-                                text: "Team Members"
+                            MDButton:
+                                style: "filled"
                                 size_hint: 1, None
-                                height: dp(60)
-                                font_size: "16sp"
-                                elevation: 2
-                                md_bg_color: app.theme_cls.primary_color
-                                theme_text_color: "Primary"
-                                # Enhanced interactive effects
-                                ripple_scale: 1.2
-                                elevation_press_anim: True
-                                on_press: root.open_team_management()
+                                height: dp(64)
+                                on_release: root.open_team_management()
+                                
+                                MDButtonText:
+                                    text: "Team Members"
+                                    theme_font_size: "Custom"
+                                    font_size: dp(16)
 
-                            MDRaisedButton:
-                                text: "Sync Status"
+                            MDButton:
+                                style: "filled"
                                 size_hint: 1, None
-                                height: dp(60)
-                                font_size: "16sp"
-                                elevation: 2
-                                md_bg_color: app.theme_cls.primary_color
-                                theme_text_color: "Primary"
-                                # Enhanced interactive effects
-                                ripple_scale: 1.2
-                                elevation_press_anim: True
-                                on_press: root.navigate_to("sync")
+                                height: dp(64)
+                                on_release: root.navigate_to("sync")
+                                
+                                MDButtonText:
+                                    text: "Sync Status"
+                                    theme_font_size: "Custom"
+                                    font_size: dp(16)
 
+                    # Recent Activity section
                     MDLabel:
                         text: "Recent Activity"
-                        font_style: "Subtitle1"
+                        theme_font_size: "Custom"
+                        font_size: dp(18)
+                        bold: True
                         halign: "left"
                         size_hint_y: None
-                        height: self.texture_size[1] + dp(16)
-                        theme_text_color: "Primary"
+                        height: self.texture_size[1] + dp(12)
+                        theme_text_color: "Secondary"
 
-                    MDBoxLayout:
-                        id: activity_feed_layout
+                    # Modern activity feed with card container
+                    MDCard:
                         orientation: "vertical"
-                        spacing: dp(12)  # Increased spacing for tablets
                         adaptive_height: True
                         size_hint_y: None
                         height: self.minimum_height
+                        radius: dp(16)
+                        elevation: 2
+                        padding: dp(16)
+                        md_bg_color: app.theme_cls.surfaceContainerColor
 
-            # Loading spinner
-            MDSpinner:
-                id: spinner
+                        MDBoxLayout:
+                            id: activity_feed_layout
+                            orientation: "vertical"
+                            spacing: dp(12)
+                            adaptive_height: True
+                            size_hint_y: None
+                            height: self.minimum_height
+
+            # Modern loading indicator
+            MDCard:
+                id: loading_card
                 size_hint: None, None
-                size: dp(46), dp(46)
+                size: dp(120), dp(120)
+                radius: dp(16)
+                elevation: 8
                 pos_hint: {'center_x': .5, 'center_y': .5}
-                active: False
+                md_bg_color: app.theme_cls.surfaceContainerHighColor
+                opacity: 0
+                
+                MDBoxLayout:
+                    orientation: "vertical"
+                    spacing: dp(16)
+                    pos_hint: {'center_x': .5, 'center_y': .5}
+                    adaptive_height: True
+                    
+                    MDCircularProgressIndicator:
+                        id: spinner
+                        size_hint: None, None
+                        size: dp(48), dp(48)
+                        pos_hint: {'center_x': .5}
+                        active: False
+                    
+                    MDLabel:
+                        text: "Loading..."
+                        theme_font_size: "Custom"
+                        font_size: dp(14)
+                        halign: "center"
+                        theme_text_color: "Secondary"
+                        size_hint_y: None
+                        height: self.texture_size[1]

@@ -11,8 +11,16 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.menu import MDDropdownMenu
 from datetime import datetime
 from kivy.app import App
+from kivy.lang import Builder
+from kivy.core.window import Window
+
+# Load the KV file
+Builder.load_file("kv/project_item.kv")
+
 
 class ProjectItem(MDCard, EventDispatcher):
+    """Modern project item widget using KivyMD 2.0.1 Material Design"""
+    
     project_id = StringProperty('')
     name = StringProperty('')
     description = StringProperty('')
@@ -25,120 +33,13 @@ class ProjectItem(MDCard, EventDispatcher):
         self.register_event_type('on_delete')
         self.register_event_type('on_build_form')
         
-        # Get responsive sizing
-        self.setup_responsive_layout()
+        # Setup responsive properties
+        self.update_responsive_properties()
         
-        # --- Date Circle ---
-        date_circle = MDCard(
-            size_hint=(None, None),
-            size=self.get_date_circle_size(),
-            radius=[self.get_date_circle_radius()],
-            md_bg_color=App.get_running_app().theme_cls.primary_light,
-            ripple_behavior=False,
-            elevation=0
-        )
-        date_circle.padding = self.get_date_circle_padding()
+        # Bind to window resize for responsive updates
+        Window.bind(on_resize=self._on_window_resize)
         
-        date_layout = MDBoxLayout(
-            orientation='vertical',
-            size_hint=(1, 1),
-            padding=(0, dp(0)),
-            spacing=self.get_date_layout_spacing(),
-            pos_hint={'center_x': 0.5, 'center_y': 0.5}
-        )
-        self.day_label = MDLabel(
-            halign='center', 
-            font_style="H6" if not self.is_tablet() else "H5",  # Larger font for tablets
-            theme_text_color="Primary"
-        )
-        self.month_label = MDLabel(
-            halign='center', 
-            font_style="Caption" if not self.is_tablet() else "Body2",  # Larger font for tablets
-            theme_text_color="Primary"
-        )
-        date_layout.add_widget(self.day_label)
-        date_layout.add_widget(self.month_label)
-        date_circle.add_widget(date_layout)
-        self.add_widget(date_circle)
-        
-        # --- Project Info ---
-        info_layout = MDBoxLayout(
-            orientation='vertical', 
-            adaptive_height=True, 
-            pos_hint={'center_y': 0.5},
-            spacing=self.get_info_layout_spacing()
-        )
-        self.name_label = MDLabel(
-            text=self.name, 
-            font_style="Subtitle1" if not self.is_tablet() else "H6",  # Larger font for tablets
-            adaptive_height=True,
-            font_size=self.get_name_font_size(),
-            text_size=(None, None),  # Will be set dynamically
-            halign='left',
-            valign='middle',
-            shorten=True,  # Enable text shortening with ellipses
-            shorten_from='right'  # Shorten from the right side
-        )
-        self.desc_label = MDLabel(
-            text=self.description, 
-            font_style="Body2" if not self.is_tablet() else "Body1",  # Larger font for tablets
-            theme_text_color="Secondary", 
-            adaptive_height=True,
-            font_size=self.get_description_font_size(),
-            text_size=(None, None),  # Will be set dynamically
-            halign='left',
-            valign='middle',
-            shorten=True,  # Enable text shortening with ellipses
-            shorten_from='right'  # Shorten from the right side
-        )
-        info_layout.add_widget(self.name_label)
-        info_layout.add_widget(self.desc_label)
-        self.add_widget(info_layout)
-
-        # --- Right Aligned Items ---
-        right_layout = MDBoxLayout(
-            adaptive_width=True,
-            spacing=self.get_right_layout_spacing(),
-            pos_hint={'center_y': 0.5}
-        )
-
-        # --- Sync Status Label ---
-        self.sync_status_label = MDLabel(
-            text="Unknown",
-            font_style="Caption" if not self.is_tablet() else "Body2",
-            halign="right",
-            size_hint=(None, None),
-            size=self.get_sync_status_size(),
-            pos_hint={'center_y': 0.5},
-            theme_text_color="Custom",
-            text_color=(0.5, 0.5, 0.5, 1),
-            font_size=self.get_sync_status_font_size()
-        )
-        right_layout.add_widget(self.sync_status_label)
-        
-        # --- Options Menu ---
-        self.menu_button = MDIconButton(
-            icon='dots-vertical',
-            size_hint=(None, None),
-            size=self.get_menu_button_size(),
-            user_font_size=self.get_menu_icon_size(),
-            on_release=self.open_menu,
-            pos_hint={'center_y': 0.5}
-        )
-        right_layout.add_widget(self.menu_button)
-        self.add_widget(right_layout)
-
-        menu_items = [
-            {"text": "Edit", "viewclass": "OneLineListItem", "on_release": lambda: self.dispatch('on_edit')},
-            {"text": "Build Form", "viewclass": "OneLineListItem", "on_release": lambda: self.dispatch('on_build_form')},
-            {"text": "Delete", "viewclass": "OneLineListItem", "on_release": lambda: self.dispatch('on_delete')},
-        ]
-        self.menu = MDDropdownMenu(
-            caller=self.menu_button,
-            items=menu_items,
-            width_mult=4,
-        )
-
+        # Bind properties for updates
         self.bind(name=self._update_name)
         self.bind(description=self._update_description)
         self.bind(created_at=self._update_date)
@@ -149,62 +50,134 @@ class ProjectItem(MDCard, EventDispatcher):
         # Populate initial data
         self._update_date(self, self.created_at)
         self._update_sync_status(self, self.sync_status)
-
-    def setup_responsive_layout(self):
-        """Setup responsive layout properties"""
+    
+    def _on_window_resize(self, *args):
+        """Handle window resize for responsive updates"""
+        self.update_responsive_properties()
+    
+    def update_responsive_properties(self):
+        """Update properties based on screen size"""
         try:
             from widgets.responsive_layout import ResponsiveHelper
             
             category = ResponsiveHelper.get_screen_size_category()
             
-            # Set responsive properties based on device category
+            # Responsive sizing based on device category
             if category == "large_tablet":
-                self.orientation = 'horizontal'
-                self.padding = (dp(16), dp(16), dp(12), dp(16))
-                self.spacing = dp(20)
-                self.size_hint_y = None
                 self.height = dp(96)
-                self.elevation = 1.2
+                self.padding = [dp(16), dp(16), dp(12), dp(16)]
+                self.spacing = dp(20)
             elif category == "tablet":
-                self.orientation = 'horizontal'
-                self.padding = (dp(12), dp(12), dp(8), dp(12))
-                self.spacing = dp(16)
-                self.size_hint_y = None
                 self.height = dp(84)
-                self.elevation = 1.0
+                self.padding = [dp(12), dp(12), dp(8), dp(12)]
+                self.spacing = dp(16)
             elif category == "small_tablet":
-                self.orientation = 'horizontal'
-                self.padding = (dp(10), dp(10), dp(6), dp(10))
-                self.spacing = dp(14)
-                self.size_hint_y = None
                 self.height = dp(78)
-                self.elevation = 0.9
+                self.padding = [dp(10), dp(10), dp(6), dp(10)]
+                self.spacing = dp(14)
             else:  # phone
-                self.orientation = 'horizontal'
-                self.padding = (dp(8), dp(8), dp(4), dp(8))
-                self.spacing = dp(12)
-                self.size_hint_y = None
                 self.height = dp(72)
-                self.elevation = 0.8
+                self.padding = [dp(8), dp(8), dp(4), dp(8)]
+                self.spacing = dp(12)
                 
         except Exception as e:
-            print(f"Error setting up responsive layout for project item: {e}")
-            # Fallback to original sizing
-            self.orientation = 'horizontal'
-            self.padding = (dp(8), dp(8), dp(4), dp(8))
-            self.spacing = dp(12)
-            self.size_hint_y = None
+            print(f"Error updating ProjectItem responsive properties: {e}")
+            # Fallback to default values
             self.height = dp(72)
-            self.elevation = 0.8
+            self.padding = [dp(8), dp(8), dp(4), dp(8)]
+            self.spacing = dp(12)
 
-    def is_tablet(self):
-        """Check if current device is a tablet"""
+    def _update_name(self, instance, value):
+        """Update name label"""
+        if hasattr(self, 'name_label'):
+            self.name_label.text = value
+            self._update_text_sizes()
+
+    def _update_description(self, instance, value):
+        """Update description label"""
+        if hasattr(self, 'desc_label'):
+            self.desc_label.text = value
+            self._update_text_sizes()
+    
+    def _update_date(self, instance, value):
+        """Update date labels"""
+        if not value:
+            if hasattr(self, 'day_label'):
+                self.day_label.text = "--"
+            if hasattr(self, 'month_label'):
+                self.month_label.text = "N/A"
+            return
+            
         try:
-            from widgets.responsive_layout import ResponsiveHelper
-            category = ResponsiveHelper.get_screen_size_category()
-            return category in ["small_tablet", "tablet", "large_tablet"]
-        except Exception:
-            return False
+            if '.' in value:
+                dt_object = datetime.fromisoformat(value.split('.')[0])
+            else:
+                dt_object = datetime.fromisoformat(value.replace('Z', ''))
+            
+            if hasattr(self, 'day_label'):
+                self.day_label.text = dt_object.strftime("%d")
+            if hasattr(self, 'month_label'):
+                self.month_label.text = dt_object.strftime("%b").upper()
+        except (ValueError, TypeError):
+            if hasattr(self, 'day_label'):
+                self.day_label.text = "!"
+            if hasattr(self, 'month_label'):
+                self.month_label.text = "Err"
+
+    def _update_sync_status(self, instance, value):
+        """Update sync status label"""
+        status_map = {
+            'synced': ('Synced', (0.0, 0.6, 0.2, 1)),   # Green
+            'pending': ('Pending', (0.9, 0.6, 0, 1)),   # Amber
+            'failed': ('Failed', (0.8, 0, 0, 1)),       # Red
+            'unknown': ('Unknown', (0.5, 0.5, 0.5, 1))  # Grey
+        }
+
+        label_text, color = status_map.get(value.lower(), status_map['unknown'])
+
+        if hasattr(self, 'sync_status_label'):
+            self.sync_status_label.text = label_text
+            self.sync_status_label.theme_text_color = 'Custom'
+            self.sync_status_label.text_color = color
+
+    def _update_text_sizes(self, *args):
+        """Update text sizes to enable proper ellipses truncation"""
+        try:
+            # Calculate available width for text
+            total_width = self.width
+            date_circle_width = self.get_date_circle_size()[0]
+            right_layout_width = self.get_sync_status_size()[0] + self.get_menu_button_size()[0] + self.get_right_layout_spacing()
+            padding_width = self.padding[0] + self.padding[2]  # left + right padding
+            spacing_width = self.spacing * 2  # spacing between elements
+            
+            # Calculate available width for info layout
+            available_width = total_width - date_circle_width - right_layout_width - padding_width - spacing_width
+            
+            # Set text_size for name and description labels
+            if available_width > 0:
+                # Name gets more space (about 60% of available width)
+                name_width = available_width * 0.6
+                if hasattr(self, 'name_label'):
+                    self.name_label.text_size = (name_width, None)
+                
+                # Description gets the remaining space (about 40% of available width)
+                desc_width = available_width * 0.4
+                if hasattr(self, 'desc_label'):
+                    self.desc_label.text_size = (desc_width, None)
+            else:
+                # Fallback if width calculation fails
+                if hasattr(self, 'name_label'):
+                    self.name_label.text_size = (200, None)
+                if hasattr(self, 'desc_label'):
+                    self.desc_label.text_size = (150, None)
+                
+        except Exception as e:
+            print(f"Error updating text sizes: {e}")
+            # Fallback values
+            if hasattr(self, 'name_label'):
+                self.name_label.text_size = (200, None)
+            if hasattr(self, 'desc_label'):
+                self.desc_label.text_size = (150, None)
 
     def get_date_circle_size(self):
         """Get responsive date circle size"""
@@ -395,87 +368,21 @@ class ProjectItem(MDCard, EventDispatcher):
             return "20sp"
 
     def open_menu(self, button):
-        self.menu.open()
-
-    def _update_name(self, instance, value):
-        self.name_label.text = value
-        self._update_text_sizes()
-
-    def _update_description(self, instance, value):
-        self.desc_label.text = value
-        self._update_text_sizes()
-    
-    def _update_date(self, instance, value):
-        if not value:
-            self.day_label.text = "--"
-            self.month_label.text = "N/A"
-            return
-            
-        try:
-            if '.' in value:
-                dt_object = datetime.fromisoformat(value.split('.')[0])
-            else:
-                dt_object = datetime.fromisoformat(value.replace('Z', ''))
-            
-            self.day_label.text = dt_object.strftime("%d")
-            self.month_label.text = dt_object.strftime("%b").upper()
-        except (ValueError, TypeError):
-            self.day_label.text = "!"
-            self.month_label.text = "Err"
-
-    def _update_sync_status(self, instance, value):
-        status_map = {
-            'synced': ('Synced', (0.0, 0.6, 0.2, 1)),   # Green
-            'pending': ('Pending', (0.9, 0.6, 0, 1)),   # Amber
-            'failed': ('Failed', (0.8, 0, 0, 1)),       # Red
-            'unknown': ('Unknown', (0.5, 0.5, 0.5, 1))  # Grey
-        }
-
-        label_text, color = status_map.get(value.lower(), status_map['unknown'])
-
-        self.sync_status_label.text = label_text
-        self.sync_status_label.theme_text_color = 'Custom'
-        self.sync_status_label.text_color = color
-
-    def _update_text_sizes(self, *args):
-        """Update text sizes to enable proper ellipses truncation"""
-        try:
-            # Calculate available width for text
-            # Account for date circle, right layout, and padding
-            total_width = self.width
-            date_circle_width = self.get_date_circle_size()[0]
-            right_layout_width = self.get_sync_status_size()[0] + self.get_menu_button_size()[0] + self.get_right_layout_spacing()
-            padding_width = self.padding[0] + self.padding[2]  # left + right padding
-            spacing_width = self.spacing * 2  # spacing between elements
-            
-            # Calculate available width for info layout
-            available_width = total_width - date_circle_width - right_layout_width - padding_width - spacing_width
-            
-            # Set text_size for name and description labels
-            if available_width > 0:
-                # Name gets more space (about 60% of available width)
-                name_width = available_width * 0.6
-                self.name_label.text_size = (name_width, None)
-                
-                # Description gets the remaining space (about 40% of available width)
-                desc_width = available_width * 0.4
-                self.desc_label.text_size = (desc_width, None)
-            else:
-                # Fallback if width calculation fails
-                self.name_label.text_size = (200, None)
-                self.desc_label.text_size = (150, None)
-                
-        except Exception as e:
-            print(f"Error updating text sizes: {e}")
-            # Fallback values
-            self.name_label.text_size = (200, None)
-            self.desc_label.text_size = (150, None)
+        """Open the options menu"""
+        if hasattr(self, 'menu'):
+            self.menu.open()
 
     def on_edit(self, *args):
-        self.menu.dismiss()
+        """Handle edit event"""
+        if hasattr(self, 'menu'):
+            self.menu.dismiss()
     
     def on_delete(self, *args):
-        self.menu.dismiss()
+        """Handle delete event"""
+        if hasattr(self, 'menu'):
+            self.menu.dismiss()
 
     def on_build_form(self, *args):
-        self.menu.dismiss()
+        """Handle build form event"""
+        if hasattr(self, 'menu'):
+            self.menu.dismiss()

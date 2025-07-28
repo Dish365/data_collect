@@ -1,3 +1,17 @@
+#:import dp kivy.metrics.dp
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDCard kivymd.uix.card.MDCard
+#:import MDButton kivymd.uix.button.MDButton
+#:import MDButtonText kivymd.uix.button.MDButtonText
+#:import MDButtonIcon kivymd.uix.button.MDButtonIcon
+#:import MDTextField kivymd.uix.textfield.MDTextField
+#:import MDLabel kivymd.uix.label.MDLabel
+#:import MDIconButton kivymd.uix.button.MDIconButton
+#:import MDCheckbox kivymd.uix.selectioncontrol.MDCheckbox
+#:import ScrollView kivy.uix.scrollview.ScrollView
+#:import MDCircularProgressIndicator kivymd.uix.progressindicator.MDCircularProgressIndicator
+#:import MDDialog kivymd.uix.dialog.MDDialog
+
 <ResponsesScreen>:
     name: "responses"
 
@@ -9,19 +23,19 @@
         TopBar:
             id: top_bar
             size_hint_y: None
-            height: dp(64)  # Increased from default for tablets
+            height: dp(64) if root.tablet_view or root.desktop_view else dp(56)
 
-        # Main content layout - Responsive (will switch between stacked and side-by-side)
+        # Main content layout - Responsive using MDResponsiveLayout
         MDBoxLayout:
             id: main_content_layout
-            orientation: "vertical"  # Will be changed to horizontal on tablets
+            orientation: "vertical" if root.mobile_view else "horizontal"
             spacing: dp(16)  # Increased spacing
             padding: dp(24)  # Increased padding for tablets
             # Left Panel / Top Panel (Master View)
             MDBoxLayout:
                 id: master_panel
                 orientation: "vertical"
-                size_hint_x: 1  # Will be adjusted for tablets
+                size_hint_x: 0.6 if root.tablet_view or root.desktop_view else 1
                 spacing: dp(12)
 
                 # Header section with controls - Enhanced for tablets
@@ -54,7 +68,7 @@
                                     icon: "arrow-left"
                                     size_hint_x: None
                                     width: dp(56)  # Larger touch target
-                                    user_font_size: "28sp"  # Larger icon
+                                    icon_size: "28dp"  # Larger icon
                                     on_release: root.go_back_to_dashboard()
                                     theme_icon_color: "Custom"
                                     icon_color: 0, 0, 0, 1
@@ -62,7 +76,9 @@
 
                                 MDLabel:
                                     text: "Survey Responses"
-                                    font_style: "H6"
+                                    font_style: "Headline"
+
+                                    role: "small"
                                     font_size: "22sp"  # Larger font for tablets
                                     pos_hint: {"center_y": 0.5}
                                     size_hint_x: None
@@ -89,7 +105,7 @@
                                     icon: "refresh"
                                     size_hint_x: None
                                     width: dp(56)  # Larger touch target
-                                    user_font_size: "28sp"  # Larger icon
+                                    icon_size: "28dp"  # Larger icon
                                     on_release: root.refresh_data()
                                     pos_hint: {"center_y": 0.5}
 
@@ -101,22 +117,28 @@
                             size_hint_y: None
                             height: dp(52)  # Tablet-friendly height
                             
-                            MDRaisedButton:
-                                text: "Export Selected"
+                            MDButton:
+                                style: "elevated"
                                 size_hint_x: None
                                 width: dp(140)
                                 height: dp(44)  # Tablet touch target
-                                font_size: "16sp"
                                 disabled: True
                                 
-                            MDRaisedButton:
-                                text: "Delete Selected"
+                                MDButtonText:
+                                    text: "Export Selected"
+                                    font_size: "16sp"
+                                
+                            MDButton:
+                                style: "elevated"
                                 size_hint_x: None
                                 width: dp(140)
                                 height: dp(44)
-                                font_size: "16sp"
                                 theme_bg_color: "Error"
                                 disabled: True
+                                
+                                MDButtonText:
+                                    text: "Delete Selected"
+                                    font_size: "16sp"
                                 
                             Widget:  # Spacer
                                 size_hint_x: 1
@@ -134,7 +156,7 @@
                     size_hint_y: None
                     height: dp(60)  # Increased height for tablets
                     elevation: 1
-                    md_bg_color: app.theme_cls.primary_color
+                    md_bg_color: app.theme_cls.primaryColor
                     
                     MDBoxLayout:
                         orientation: "horizontal"
@@ -151,7 +173,9 @@
                         MDLabel:
                             text: "Respondent ID"
                             size_hint_x: 0.18
-                            font_style: "Subtitle2"
+                            font_style: "Title"
+
+                            role: "medium"
                             font_size: "16sp"  # Larger font for tablets
                             halign: "left"
                             theme_text_color: "Primary"
@@ -159,7 +183,9 @@
                         MDLabel:
                             text: "Name"
                             size_hint_x: 0.18
-                            font_style: "Subtitle2"
+                            font_style: "Title"
+
+                            role: "medium"
                             font_size: "16sp"
                             halign: "left"
                             theme_text_color: "Primary"
@@ -167,7 +193,9 @@
                         MDLabel:
                             text: "Project"
                             size_hint_x: 0.25
-                            font_style: "Subtitle2"
+                            font_style: "Title"
+
+                            role: "medium"
                             font_size: "16sp"
                             halign: "left"
                             theme_text_color: "Primary"
@@ -175,13 +203,15 @@
                         MDLabel:
                             text: "Actions"
                             size_hint_x: 0.25
-                            font_style: "Subtitle2"
+                            font_style: "Title"
+
+                            role: "medium"
                             font_size: "16sp"
                             halign: "center"
                             theme_text_color: "Primary"
 
                 # Scrollable content area - Enhanced for tablets
-                MDScrollView:
+                ScrollView:
                     MDBoxLayout:
                         id: responses_grid
                         orientation: "vertical"
@@ -189,10 +219,12 @@
                         padding: [0, dp(12), 0, dp(12)]  # Increased padding
                         adaptive_height: True
                         
-            # Right Panel (Detail View) - Only visible on tablets in landscape
+            # Right Panel (Detail View) - Responsive visibility
             MDCard:
                 id: detail_panel
-                size_hint_x: 0  # Hidden by default, will be shown on tablets
+                size_hint_x: 0.4 if root.tablet_view or root.desktop_view else 0
+                opacity: 1 if root.tablet_view or root.desktop_view else 0
+                disabled: not (root.tablet_view or root.desktop_view)
                 elevation: 2
                 padding: dp(20)
                 orientation: "vertical"
@@ -200,12 +232,14 @@
                 
                 MDLabel:
                     text: "Response Details"
-                    font_style: "H6"
+                    font_style: "Headline"
+
+                    role: "small"
                     font_size: "20sp"
                     size_hint_y: None
                     height: dp(40)
                     
-                MDScrollView:
+                ScrollView:
                     id: detail_scroll
                     
                     MDBoxLayout:
@@ -222,9 +256,327 @@
                             theme_text_color: "Secondary"
 
         # Loading spinner - Larger for tablets
-        MDSpinner:
+        MDCircularProgressIndicator:
             id: spinner
             size_hint: None, None
             size: dp(56), dp(56)  # Larger spinner for tablets
             pos_hint: {'center_x': .5, 'center_y': .5}
-            active: False 
+            active: False
+
+# Modern Response Item Component
+<ResponseItem>:
+    orientation: "horizontal"
+    padding: dp(12)  # Increased padding for tablets
+    spacing: dp(8)  # Increased spacing
+    size_hint_y: None
+    height: dp(72)  # Increased height for tablets
+    elevation: 1
+    
+    # Selection checkbox
+    MDCheckbox:
+        id: selection_checkbox
+        size_hint_x: None
+        width: dp(48)  # Tablet touch target
+        pos_hint: {"center_y": 0.5}
+        on_active: root.on_checkbox_active(self.active)
+    
+    # Respondent ID
+    MDLabel:
+        id: respondent_id_label
+        size_hint_x: 0.18
+        font_style: "Body"
+
+        role: "medium"
+        font_size: "16sp"  # Larger font for tablets
+        halign: "left"
+    
+    # Display Name
+    MDLabel:
+        id: name_label
+        size_hint_x: 0.18
+        font_style: "Body"
+
+        role: "medium"
+        font_size: "16sp"  # Larger font for tablets
+        halign: "left"
+    
+    # Project Name
+    MDLabel:
+        id: project_label
+        size_hint_x: 0.25
+        font_style: "Body"
+
+        role: "medium"
+        font_size: "16sp"  # Larger font for tablets
+        halign: "left"
+    
+    # Actions (View, Edit, Delete) - Tablet optimized
+    MDBoxLayout:
+        id: actions_layout
+        orientation: "horizontal"
+        size_hint_x: 0.25
+        spacing: dp(4)  # Increased spacing
+        
+        MDButton:
+            style: "text"
+            size_hint_x: None
+            width: dp(50)
+            height: dp(36)
+            on_release: root.view_responses(None)
+            
+            MDButtonText:
+                text: "View"
+                theme_text_color: "Custom"
+                text_color: 0.2, 0.6, 1, 1
+                font_size: "12sp"
+        
+        MDButton:
+            style: "text"
+            size_hint_x: None
+            width: dp(50)
+            height: dp(36)
+            on_release: root.edit_respondent(None)
+            
+            MDButtonText:
+                text: "Edit"
+                theme_text_color: "Custom"
+                text_color: 1, 0.6, 0.2, 1
+                font_size: "12sp"
+        
+        MDButton:
+            style: "text"
+            size_hint_x: None
+            width: dp(50)
+            height: dp(36)
+            on_release: root.delete_respondent(None)
+            
+            MDButtonText:
+                text: "Delete"
+                theme_text_color: "Custom"
+                text_color: 1, 0.2, 0.2, 1
+                font_size: "12sp"
+
+# Modern Response Detail Dialog Component
+<ResponseDetailDialog>:
+    orientation: "vertical"
+    spacing: dp(10)
+    size_hint_y: None
+    height: dp(400)
+    
+    # Respondent info header
+    MDLabel:
+        id: header_label
+        font_style: "Headline"
+
+        role: "small"
+        size_hint_y: None
+        height: dp(40)
+    
+    # Project info
+    MDLabel:
+        id: project_info_label
+        font_style: "Title"
+
+        role: "large"
+        size_hint_y: None
+        height: dp(30)
+    
+    # Responses list
+    ScrollView:
+        MDBoxLayout:
+            id: responses_layout
+            orientation: "vertical"
+            spacing: dp(8)
+            adaptive_height: True
+            padding: dp(10)
+
+# Modern Response Card Component
+<ResponseCard>:
+    orientation: "vertical"
+    padding: dp(10)
+    spacing: dp(5)
+    size_hint_y: None
+    height: dp(80)
+    elevation: 2
+    
+    MDLabel:
+        id: question_label
+        font_style: "Title"
+
+        role: "medium"
+        size_hint_y: None
+        height: dp(25)
+    
+    MDLabel:
+        id: answer_label
+        font_style: "Body"
+
+        role: "large"
+        size_hint_y: None
+        height: dp(25)
+    
+    MDLabel:
+        id: time_label
+        font_style: "Label"
+
+        role: "small"
+        size_hint_y: None
+        height: dp(20)
+
+# Modern Action Button Component
+<ActionButton>:
+    size_hint_x: None
+    width: dp(50)
+    height: dp(36)
+    theme_text_color: "Custom"
+    font_size: "12sp"
+
+# Load More Button Component
+<LoadMoreButton>:
+    style: "elevated"
+    size_hint_y: None
+    height: dp(40)
+    on_release: root.load_more()
+    
+    MDButtonText:
+        text: "Load More Respondents"
+        font_size: "14sp"
+
+# No Data Label Component
+<NoDataLabel>:
+    text: "No responses found. Start collecting data to see respondents here."
+    halign: "center"
+    font_style: "Title"
+
+    role: "large"
+    font_size: "16sp"
+    size_hint_y: None
+    height: dp(60)
+
+# Response Detail Content Component
+<ResponseDetailContent>:
+    orientation: "vertical"
+    spacing: dp(10)
+    size_hint_y: None
+    height: dp(400)
+    
+    # Project info
+    MDLabel:
+        id: project_info_label
+        font_style: "Title"
+
+        role: "large"
+        size_hint_y: None
+        height: dp(30)
+    
+    # Responses list
+    ScrollView:
+        MDBoxLayout:
+            id: responses_layout
+            orientation: "vertical"
+            spacing: dp(8)
+            adaptive_height: True
+            padding: dp(10)
+
+# No Responses Label Component
+<NoResponsesLabel@MDLabel>:
+    text: "No responses found for this respondent"
+    halign: "center"
+    size_hint_y: None
+    height: dp(40)
+
+# Edit Respondent Dialog Component
+<EditRespondentDialog>:
+    title: "Edit Respondent"
+    type: "custom"
+    size_hint: 0.8, None
+    
+    MDBoxLayout:
+        orientation: "vertical"
+        spacing: dp(10)
+        size_hint_y: None
+        height: dp(300)
+        
+        MDLabel:
+            id: title_label
+            text: "Edit Respondent"
+            font_style: "Headline"
+
+            role: "small"
+            size_hint_y: None
+            height: dp(40)
+        
+        MDTextField:
+            id: name_field
+            hint_text: "Name (optional)"
+            size_hint_y: None
+            height: dp(40)
+        
+        MDTextField:
+            id: email_field
+            hint_text: "Email (optional)"
+            size_hint_y: None
+            height: dp(40)
+        
+        MDTextField:
+            id: phone_field
+            hint_text: "Phone (optional)"
+            size_hint_y: None
+            height: dp(40)
+        
+        MDBoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: dp(40)
+            spacing: dp(10)
+            
+            MDCheckbox:
+                id: anonymous_checkbox
+                size_hint_x: None
+                width: dp(30)
+            
+            MDLabel:
+                text: "Anonymous respondent"
+                size_hint_y: None
+                height: dp(40)
+    
+    MDButton:
+        style: "text"
+        on_release: root.dismiss()
+        
+        MDButtonText:
+            text: "CANCEL"
+    
+    MDButton:
+        style: "elevated"
+        on_release: root.save_changes()
+        
+        MDButtonText:
+            text: "SAVE"
+
+# Delete Confirm Dialog Component
+<DeleteConfirmDialog>:
+    title: "Confirm Delete"
+    type: "custom"
+    size_hint: 0.8, None
+    
+    MDLabel:
+        id: confirm_text
+        halign: "center"
+        size_hint_y: None
+        height: dp(100)
+    
+    MDButton:
+        style: "text"
+        on_release: root.dismiss()
+        
+        MDButtonText:
+            text: "CANCEL"
+    
+    MDButton:
+        style: "elevated"
+        theme_bg_color: "Error"
+        on_release: root.confirm_delete()
+        
+        MDButtonText:
+            text: "DELETE" 

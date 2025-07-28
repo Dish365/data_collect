@@ -1,0 +1,434 @@
+#:import dp kivy.metrics.dp
+
+<AutocompleteTextField@MDTextField>:
+    autocomplete_callback: None
+    search_timer: None
+    mode: "outlined"
+    size_hint_y: None
+    height: dp(56)
+
+<TeamMemberDialogContent>:
+    orientation: "vertical"
+    spacing: dp(20)
+    size_hint_y: None
+    height: dp(600)
+    padding: dp(24)
+
+    # Modern title with better typography
+    MDLabel:
+        text: "Manage Team Members"
+        theme_font_size: "Custom"
+        font_size: dp(24)
+        bold: True
+        theme_text_color: "Primary"
+        size_hint_y: None
+        height: dp(40)
+
+    # Project selector section
+    MDCard:
+        orientation: "vertical"
+        adaptive_height: True
+        size_hint_y: None
+        height: self.minimum_height
+        radius: dp(12)
+        elevation: 2
+        padding: dp(16)
+        md_bg_color: app.theme_cls.surfaceContainerColor
+
+        MDLabel:
+            text: "Project Selection"
+            theme_font_size: "Custom"
+            font_size: dp(16)
+            bold: True
+            theme_text_color: "Primary"
+            size_hint_y: None
+            height: dp(30)
+
+        MDBoxLayout:
+            orientation: "horizontal"
+            adaptive_height: True
+            size_hint_y: None
+            height: dp(48)
+            spacing: dp(12)
+
+            MDLabel:
+                text: "Project:"
+                theme_font_size: "Custom"
+                font_size: dp(14)
+                size_hint_x: None
+                width: dp(60)
+                pos_hint: {"center_y": 0.5}
+
+            MDButton:
+                id: project_button
+                style: "outlined"
+                size_hint_x: 1
+                size_hint_y: None
+                height: dp(48)
+                on_release: root.open_project_menu()
+
+                MDButtonText:
+                    text: "Select Project"
+                    theme_font_size: "Custom"
+                    font_size: dp(14)
+
+        MDLabel:
+            id: project_label
+            text: "Loading projects..."
+            theme_font_size: "Custom"
+            font_size: dp(12)
+            theme_text_color: "Secondary"
+            size_hint_y: None
+            height: dp(25)
+
+    # Current members section
+    MDCard:
+        orientation: "vertical"
+        adaptive_height: True
+        size_hint_y: None
+        height: self.minimum_height
+        radius: dp(12)
+        elevation: 2
+        padding: dp(16)
+        md_bg_color: app.theme_cls.surfaceContainerColor
+
+        MDLabel:
+            text: "Current Team Members"
+            theme_font_size: "Custom"
+            font_size: dp(16)
+            bold: True
+            theme_text_color: "Primary"
+            size_hint_y: None
+            height: dp(30)
+
+        MDScrollView:
+            size_hint: 1, None
+            height: dp(120)
+            bar_width: dp(4)
+            do_scroll_x: False
+
+            MDList:
+                id: members_list
+                adaptive_height: True
+
+    # Add member section
+    MDCard:
+        orientation: "vertical"
+        adaptive_height: True
+        size_hint_y: None
+        height: self.minimum_height
+        radius: dp(12)
+        elevation: 2
+        padding: dp(16)
+        md_bg_color: app.theme_cls.surfaceContainerColor
+
+        MDLabel:
+            text: "Invite Team Member"
+            theme_font_size: "Custom"
+            font_size: dp(16)
+            bold: True
+            theme_text_color: "Primary"
+            size_hint_y: None
+            height: dp(30)
+
+        # User search section
+        MDBoxLayout:
+            orientation: "vertical"
+            adaptive_height: True
+            size_hint_y: None
+            height: self.minimum_height
+            spacing: dp(8)
+
+            AutocompleteTextField:
+                id: email_field
+                mode: "outlined"
+                size_hint_y: None
+                height: dp(56)
+
+                MDTextFieldHintText:
+                    text: "Search users by name, username, or email"
+
+                MDTextFieldHelperText:
+                    text: "Start typing to search existing users, or enter any email to invite new users"
+                    mode: "on_focus"
+
+            # Dropdown card for search results
+            MDCard:
+                id: user_dropdown_card
+                orientation: "vertical"
+                adaptive_height: True
+                size_hint_y: None
+                height: dp(0)  # Initially hidden
+                radius: dp(8)
+                elevation: 4
+                md_bg_color: app.theme_cls.surfaceContainerHighColor
+                opacity: 0
+
+                MDScrollView:
+                    size_hint: 1, None
+                    height: self.parent.height
+                    bar_width: dp(4)
+
+                    MDList:
+                        id: user_dropdown_list
+                        adaptive_height: True
+
+            # Selected user display
+            MDLabel:
+                id: selected_user_label
+                text: ""
+                theme_font_size: "Custom"
+                font_size: dp(14)
+                theme_text_color: "Primary"
+                size_hint_y: None
+                height: dp(0)  # Initially hidden
+
+        # Role selection
+        MDBoxLayout:
+            orientation: "vertical"
+            adaptive_height: True
+            size_hint_y: None
+            height: self.minimum_height
+            spacing: dp(12)
+
+            MDLabel:
+                text: "Select Role"
+                theme_font_size: "Custom"
+                font_size: dp(14)
+                bold: True
+                theme_text_color: "Primary"
+                size_hint_y: None
+                height: dp(25)
+
+            MDBoxLayout:
+                id: role_layout
+                orientation: "horizontal"
+                adaptive_height: True
+                size_hint_y: None
+                height: dp(48)
+                spacing: dp(8)
+
+                MDButton:
+                    id: viewer_role_btn
+                    style: "outlined"
+                    size_hint_x: 1
+                    size_hint_y: None
+                    height: dp(48)
+                    on_release: root.select_role("viewer")
+
+                    MDButtonText:
+                        text: "Viewer"
+                        theme_font_size: "Custom"
+                        font_size: dp(12)
+
+                MDButton:
+                    id: member_role_btn
+                    style: "filled"
+                    size_hint_x: 1
+                    size_hint_y: None
+                    height: dp(48)
+                    on_release: root.select_role("member")
+
+                    MDButtonText:
+                        text: "Member"
+                        theme_font_size: "Custom"
+                        font_size: dp(12)
+
+                MDButton:
+                    id: analyst_role_btn
+                    style: "outlined"
+                    size_hint_x: 1
+                    size_hint_y: None
+                    height: dp(48)
+                    on_release: root.select_role("analyst")
+
+                    MDButtonText:
+                        text: "Analyst"
+                        theme_font_size: "Custom"
+                        font_size: dp(12)
+
+                MDButton:
+                    id: collaborator_role_btn
+                    style: "outlined"
+                    size_hint_x: 1
+                    size_hint_y: None
+                    height: dp(48)
+                    on_release: root.select_role("collaborator")
+
+                    MDButtonText:
+                        text: "Collaborator"
+                        theme_font_size: "Custom"
+                        font_size: dp(12)
+
+        # Permissions section
+        MDBoxLayout:
+            orientation: "vertical"
+            adaptive_height: True
+            size_hint_y: None
+            height: self.minimum_height
+            spacing: dp(12)
+
+            MDLabel:
+                text: "Permissions"
+                theme_font_size: "Custom"
+                font_size: dp(14)
+                bold: True
+                theme_text_color: "Primary"
+                size_hint_y: None
+                height: dp(25)
+
+            MDCard:
+                orientation: "vertical"
+                adaptive_height: True
+                size_hint_y: None
+                height: dp(140)
+                radius: dp(8)
+                elevation: 1
+                padding: dp(12)
+                md_bg_color: app.theme_cls.surfaceContainerLowColor
+
+                MDScrollView:
+                    size_hint: 1, 1
+                    bar_width: dp(4)
+
+                    MDBoxLayout:
+                        id: permissions_layout
+                        orientation: "vertical"
+                        adaptive_height: True
+                        size_hint_y: None
+                        height: self.minimum_height
+                        spacing: dp(8)
+
+    # Action buttons
+    MDCard:
+        orientation: "horizontal"
+        adaptive_height: True
+        size_hint_y: None
+        height: dp(64)
+        radius: dp(12)
+        elevation: 0
+        padding: dp(16)
+        spacing: dp(16)
+        md_bg_color: app.theme_cls.surfaceContainerColor
+
+        MDButton:
+            id: add_button
+            style: "filled"
+            size_hint_x: None
+            width: dp(140)
+            size_hint_y: None
+            height: dp(48)
+            on_release: root.add_member()
+
+            MDButtonText:
+                text: "Add Member"
+                theme_font_size: "Custom"
+                font_size: dp(14)
+
+        MDButton:
+            id: refresh_button
+            style: "outlined"
+            size_hint_x: None
+            width: dp(120)
+            size_hint_y: None
+            height: dp(48)
+            on_release: root.refresh_data()
+
+            MDButtonText:
+                text: "Refresh"
+                theme_font_size: "Custom"
+                font_size: dp(14)
+
+        Widget:  # Spacer
+
+        MDButton:
+            id: close_button
+            style: "text"
+            size_hint_x: None
+            width: dp(100)
+            size_hint_y: None
+            height: dp(48)
+            on_release: root.close_dialog()
+
+            MDButtonText:
+                text: "Close"
+                theme_font_size: "Custom"
+                font_size: dp(14)
+
+# Modern permission item widget
+<PermissionItem@MDBoxLayout>:
+    permission_id: ""
+    permission_name: ""
+    permission_description: ""
+    checkbox_active: False
+    
+    orientation: "horizontal"
+    adaptive_height: True
+    size_hint_y: None
+    height: dp(56)
+    spacing: dp(12)
+    padding: dp(8), dp(4)
+
+    MDCheckbox:
+        id: permission_checkbox
+        size_hint: None, None
+        size: dp(24), dp(24)
+        pos_hint: {"center_y": 0.5}
+        active: root.checkbox_active
+        on_active: root.on_checkbox_change(self.active)
+
+    MDBoxLayout:
+        orientation: "vertical"
+        adaptive_height: True
+        size_hint_y: None
+        height: self.minimum_height
+        spacing: dp(4)
+
+        MDLabel:
+            text: root.permission_name
+            theme_font_size: "Custom"
+            font_size: dp(14)
+            bold: True
+            theme_text_color: "Primary"
+            size_hint_y: None
+            height: self.texture_size[1]
+
+        MDLabel:
+            text: root.permission_description
+            theme_font_size: "Custom"
+            font_size: dp(12)
+            theme_text_color: "Secondary"
+            size_hint_y: None
+            height: self.texture_size[1]
+            text_size: self.width, None
+            
+# Modern member list item
+<MemberListItem@MDListItem>:
+    member_data: {}
+    
+    adaptive_height: True
+    size_hint_y: None
+    height: dp(72)
+    radius: dp(8)
+    theme_bg_color: "Custom"
+    md_bg_color: app.theme_cls.surfaceContainerLowColor
+
+    MDListItemLeadingIcon:
+        icon: "account-circle"
+        theme_icon_color: "Primary"
+
+    MDListItemHeadlineText:
+        text: root.get_member_headline()
+        theme_font_size: "Custom"
+        font_size: dp(14)
+        bold: True
+
+    MDListItemSupportingText:
+        text: root.get_member_supporting_text()
+        theme_font_size: "Custom"
+        font_size: dp(12)
+
+    MDListItemTrailingIcon:
+        icon: "delete" if not root.member_data.get('is_creator', False) else "crown"
+        theme_icon_color: "Error" if not root.member_data.get('is_creator', False) else "Primary"
+        on_release: root.on_trailing_icon_press() if not root.member_data.get('is_creator', False) else None

@@ -1,0 +1,536 @@
+#:kivy 2.0.0
+#:import Window kivy.core.window.Window
+
+<DataCollectionScreen>:
+    name: 'data_collection'
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        spacing: dp(4)
+        md_bg_color: app.theme_cls.surface_color
+
+        # Top Navigation Bar
+        TopBar:
+            id: top_bar
+            size_hint_y: None
+            height: dp(56)
+
+        # Header Section - Responsive
+        MDCard:
+            size_hint_y: None
+            height: dp(80) if Window.width > dp(600) else dp(70)
+            elevation: 2
+            padding: dp(16) if Window.width > dp(600) else dp(12)
+            spacing: dp(12) if Window.width > dp(600) else dp(8)
+            md_bg_color: app.theme_cls.surface_color
+            radius: [0, 0, dp(8), dp(8)]
+
+            MDBoxLayout:
+                orientation: 'vertical' if Window.width < dp(800) else 'horizontal'
+                spacing: dp(8)
+
+                # Title and Back Button Row
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    spacing: dp(12)
+                    size_hint_y: None if Window.width < dp(800) else 1
+                    height: dp(40) if Window.width < dp(800) else None
+
+                    # Back Button
+                    MDIconButton:
+                        icon: "arrow-left"
+                        size_hint: None, None
+                        size: dp(40), dp(40)
+                        on_release: setattr(root.manager, 'current', 'dashboard')
+                        theme_icon_color: "Primary"
+
+                    # Title
+                    MDLabel:
+                        text: "Data Collection"
+                        font_style: "H6" if Window.width > dp(600) else "Subtitle1"
+                        theme_text_color: "Primary"
+                        bold: True
+                        pos_hint: {"center_y": 0.5}
+
+                    # Spacer
+                    Widget:
+                        size_hint_x: 1
+
+                # Project Selection Section
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    spacing: dp(12)
+                    size_hint_y: None if Window.width < dp(800) else 1
+                    height: dp(48) if Window.width < dp(800) else None
+                    size_hint_x: None if Window.width >= dp(800) else 1
+                    width: dp(320) if Window.width >= dp(800) else None
+
+                    MDLabel:
+                        text: "Project:"
+                        size_hint_x: None
+                        width: dp(60) if Window.width < dp(600) else dp(80)
+                        font_style: "Subtitle2"
+                        theme_text_color: "Secondary"
+                        pos_hint: {"center_y": 0.5}
+
+                    # Project Dropdown
+                    MDDropDownItem:
+                        id: project_spinner
+                        on_release: root.open_project_menu()
+                        pos_hint: {'center_y': 0.5}
+                        size_hint_x: 1 if Window.width < dp(800) else None
+                        width: dp(220) if Window.width >= dp(800) else None
+                        height: dp(40)
+                        md_bg_color: app.theme_cls.primary_color
+                        radius: [dp(8)]
+                        elevation: 1
+
+                        MDDropDownItemText:
+                            text: 'Select Project'
+                            font_size: "14sp"
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.on_primary
+
+        # Progress Section - Initially Hidden
+        MDCard:
+            id: progress_section
+            size_hint_y: None
+            height: dp(60) if Window.width > dp(600) else dp(70)
+            elevation: 1
+            padding: dp(12)
+            spacing: dp(8)
+            md_bg_color: app.theme_cls.surface_color
+            opacity: 0
+            radius: [dp(8)]
+
+            MDBoxLayout:
+                orientation: 'horizontal' if Window.width > dp(600) else 'vertical'
+                spacing: dp(8)
+
+                # Progress Bar Section
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    spacing: dp(12)
+                    size_hint_x: 0.6 if Window.width > dp(600) else 1
+                    size_hint_y: None if Window.width <= dp(600) else 1
+                    height: dp(30) if Window.width <= dp(600) else None
+
+                    MDLabel:
+                        text: "Progress:"
+                        size_hint_x: None
+                        width: dp(70)
+                        font_size: "12sp"
+                        theme_text_color: "Secondary"
+                        pos_hint: {"center_y": 0.5}
+
+                    MDProgressBar:
+                        id: form_progress
+                        value: 0
+                        max: 100
+                        size_hint_y: None
+                        height: dp(6)
+                        pos_hint: {"center_y": 0.5}
+                        color: app.theme_cls.primary_color
+
+                    MDLabel:
+                        id: progress_text
+                        text: "0/0"
+                        size_hint_x: None
+                        width: dp(50)
+                        font_size: "12sp"
+                        theme_text_color: "Secondary"
+                        halign: "center"
+                        pos_hint: {"center_y": 0.5}
+
+                # Statistics Section
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    spacing: dp(16)
+                    size_hint_x: 0.4 if Window.width > dp(600) else 1
+                    size_hint_y: None if Window.width <= dp(600) else 1
+                    height: dp(30) if Window.width <= dp(600) else None
+
+                    MDLabel:
+                        id: question_count_label
+                        text: "0 Questions"
+                        font_size: "12sp"
+                        theme_text_color: "Secondary"
+                        halign: "center"
+
+                    MDLabel:
+                        id: completion_status
+                        text: "Not Started"
+                        font_size: "12sp"
+                        theme_text_color: "Secondary"
+                        halign: "center"
+
+        # Main Content Area - Fully Responsive
+        MDScrollView:
+            id: form_scroll_view
+            do_scroll_x: False
+            do_scroll_y: True
+            bar_width: dp(6) if Window.width < dp(600) else dp(8)
+            bar_color: app.theme_cls.outline_color
+
+            # Form Container - Responsive Layout
+            MDBoxLayout:
+                id: form_container
+                orientation: 'horizontal' if Window.width > dp(900) else 'vertical'
+                spacing: dp(16) if Window.width > dp(600) else dp(12)
+                adaptive_height: True
+                padding: dp(16) if Window.width > dp(600) else dp(12)
+
+                # Main Form Canvas
+                MDBoxLayout:
+                    id: form_canvas
+                    orientation: 'vertical'
+                    spacing: dp(16) if Window.width > dp(600) else dp(12)
+                    adaptive_height: True
+                    size_hint_x: 0.7 if Window.width > dp(900) else 1
+
+                    # Empty State - Responsive
+                    MDCard:
+                        id: empty_state
+                        orientation: 'vertical'
+                        spacing: dp(16)
+                        size_hint_y: None
+                        height: dp(300) if Window.width > dp(600) else dp(250)
+                        opacity: 1
+                        elevation: 1
+                        padding: dp(24) if Window.width > dp(600) else dp(16)
+                        radius: [dp(12)]
+                        md_bg_color: app.theme_cls.surface_color
+
+                        Widget:
+                            size_hint_y: None
+                            height: dp(20)
+
+                        MDIcon:
+                            icon: "clipboard-text-outline"
+                            size_hint: None, None
+                            size: dp(64) if Window.width > dp(600) else dp(48), dp(64) if Window.width > dp(600) else dp(48)
+                            pos_hint: {"center_x": 0.5}
+                            theme_icon_color: "Custom"
+                            icon_color: app.theme_cls.outline_color
+
+                        MDLabel:
+                            text: "No form loaded"
+                            font_style: "H6" if Window.width > dp(600) else "Subtitle1"
+                            theme_text_color: "Secondary"
+                            halign: "center"
+                            bold: True
+
+                        MDLabel:
+                            text: "Select a project above to load its data collection form"
+                            font_style: "Body1" if Window.width > dp(600) else "Body2"
+                            theme_text_color: "Secondary"
+                            halign: "center"
+                            text_size: self.width, None
+
+                        Widget:
+                            size_hint_y: None
+                            height: dp(20)
+
+                # Side Panel - Responsive
+                MDCard:
+                    id: side_panel
+                    orientation: 'vertical'
+                    spacing: dp(12)
+                    size_hint_x: 0.3 if Window.width > dp(900) else 0
+                    size_hint_y: None
+                    height: dp(400) if Window.width > dp(900) else 0
+                    elevation: 1
+                    padding: dp(16) if Window.width > dp(900) else 0
+                    opacity: 0
+                    radius: [dp(8)]
+                    md_bg_color: app.theme_cls.surface_color
+
+                    MDLabel:
+                        text: "Form Overview"
+                        font_style: "Subtitle1"
+                        theme_text_color: "Primary"
+                        size_hint_y: None
+                        height: dp(24)
+                        bold: True
+
+                    MDScrollView:
+                        MDBoxLayout:
+                            id: question_overview
+                            orientation: 'vertical'
+                            spacing: dp(6)
+                            adaptive_height: True
+
+        # Action Buttons - Responsive Footer
+        MDCard:
+            id: form_actions
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: dp(72) if Window.width > dp(600) else dp(64)
+            padding: dp(16) if Window.width > dp(600) else dp(12)
+            spacing: dp(12)
+            elevation: 3
+            md_bg_color: app.theme_cls.surface_color
+            pos_hint: {'center_x': 0.5}
+            opacity: 0
+            radius: [dp(8), dp(8), 0, 0]
+
+            # Clear Button
+            MDButton:
+                id: clear_button
+                style: "outlined"
+                size_hint: None, None
+                size: dp(100) if Window.width < dp(600) else dp(120), dp(40)
+                on_release: root.clear_current_form()
+
+                MDButtonText:
+                    text: 'Clear'
+                    font_size: "12sp" if Window.width < dp(600) else "14sp"
+
+            # Spacer
+            Widget:
+                size_hint_x: 1
+
+            # Save Draft Button
+            MDButton:
+                id: save_draft_button
+                style: "outlined"
+                size_hint: None, None
+                size: dp(100) if Window.width < dp(600) else dp(120), dp(40)
+                on_release: root.save_draft()
+
+                MDButtonText:
+                    text: 'Draft'
+                    font_size: "12sp" if Window.width < dp(600) else "14sp"
+
+            # Submit Button - Primary Action
+            MDButton:
+                id: submit_button
+                style: "elevated"
+                md_bg_color: app.theme_cls.primary_color
+                size_hint: None, None
+                size: dp(120) if Window.width < dp(600) else dp(160), dp(48)
+                elevation: 2
+                on_release: root.submit_response()
+                pos_hint: {'center_y': 0.5}
+
+                MDButtonText:
+                    text: 'Submit Response'
+                    font_size: "14sp" if Window.width < dp(600) else "16sp"
+                    theme_text_color: "Custom"
+                    text_color: app.theme_cls.on_primary
+
+# Question Widget Templates
+
+<QuestionCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: self.minimum_height
+    padding: dp(12) if Window.width < dp(600) else dp(16)
+    spacing: dp(8) if Window.width < dp(600) else dp(12)
+    elevation: 2
+    radius: [dp(8)]
+    md_bg_color: app.theme_cls.surface_color
+
+<QuestionHeader@MDBoxLayout>:
+    question_number: ""
+    question_text: ""
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: dp(32) if Window.width < dp(600) else dp(40)
+    spacing: dp(12)
+
+    # Question Number Badge
+    MDCard:
+        size_hint: None, None
+        size: dp(28) if Window.width < dp(600) else dp(32), dp(28) if Window.width < dp(600) else dp(32)
+        radius: [dp(14) if Window.width < dp(600) else dp(16)]
+        md_bg_color: app.theme_cls.primary_color
+        elevation: 1
+
+        MDLabel:
+            text: root.question_number
+            halign: 'center'
+            valign: 'center'
+            theme_text_color: "Custom"
+            text_color: app.theme_cls.on_primary
+            bold: True
+            font_size: "12sp" if Window.width < dp(600) else "14sp"
+
+    # Answer Status Indicator
+    MDCard:
+        id: answer_status
+        size_hint: None, None
+        size: dp(10), dp(10)
+        radius: [dp(5)]
+        md_bg_color: app.theme_cls.outline_color
+        elevation: 0
+        pos_hint: {'center_y': 0.5}
+
+    # Question Text
+    MDLabel:
+        text: root.question_text
+        font_style: "Subtitle2" if Window.width < dp(600) else "Subtitle1"
+        theme_text_color: "Primary"
+        size_hint_y: None
+        height: dp(32) if Window.width < dp(600) else dp(40)
+        font_size: "14sp" if Window.width < dp(600) else "16sp"
+        text_size: self.width, None
+        valign: 'center'
+
+<AnswerSection@MDCard>:
+    orientation: 'vertical'
+    spacing: dp(6) if Window.width < dp(600) else dp(8)
+    padding: dp(12) if Window.width < dp(600) else dp(16)
+    size_hint_y: None
+    height: self.minimum_height
+    md_bg_color: app.theme_cls.surface_variant
+    radius: [dp(6)]
+    elevation: 0
+
+<TextAnswer@AnswerSection>:
+    hint_text: "Enter your answer"
+    multiline: False
+    input_filter: None
+
+    MDTextField:
+        id: response_field
+        mode: "outlined"
+        multiline: root.multiline
+        input_filter: root.input_filter
+        size_hint_y: None
+        height: dp(40) if not self.multiline else dp(80)
+        font_size: "13sp" if Window.width < dp(600) else "14sp"
+
+        MDTextFieldHintText:
+            text: root.hint_text
+
+<ChoiceAnswer@AnswerSection>:
+    options: []
+    allow_multiple: False
+    question_id: ""
+
+    MDBoxLayout:
+        id: options_container
+        orientation: 'vertical'
+        spacing: dp(4) if Window.width < dp(600) else dp(6)
+        size_hint_y: None
+        height: self.minimum_height
+
+<ChoiceOption@MDBoxLayout>:
+    option_text: ""
+    group_name: ""
+    question_id: ""
+    orientation: 'horizontal'
+    spacing: dp(12) if Window.width < dp(600) else dp(16)
+    size_hint_y: None
+    height: dp(32) if Window.width < dp(600) else dp(40)
+    padding: [dp(4), 0] if Window.width < dp(600) else [dp(8), 0]
+
+    MDCheckbox:
+        group: root.group_name if root.group_name else None
+        size_hint: None, None
+        size: dp(24) if Window.width < dp(600) else dp(28), dp(24) if Window.width < dp(600) else dp(28)
+        pos_hint: {'center_y': 0.5}
+
+    MDLabel:
+        text: root.option_text
+        theme_text_color: "Primary"
+        size_hint_x: 1
+        pos_hint: {'center_y': 0.5}
+        font_size: "13sp" if Window.width < dp(600) else "14sp"
+
+<ScaleAnswer@AnswerSection>:
+    question_id: ""
+
+    # Scale Labels
+    MDBoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: dp(16) if Window.width < dp(600) else dp(20)
+
+        MDLabel:
+            text: "1"
+            halign: 'center'
+            theme_text_color: "Secondary"
+            font_size: "10sp" if Window.width < dp(600) else "12sp"
+
+        MDLabel:
+            text: "2"
+            halign: 'center'
+            theme_text_color: "Secondary"
+            font_size: "10sp" if Window.width < dp(600) else "12sp"
+
+        MDLabel:
+            text: "3"
+            halign: 'center'
+            theme_text_color: "Secondary"
+            font_size: "10sp" if Window.width < dp(600) else "12sp"
+
+        MDLabel:
+            text: "4"
+            halign: 'center'
+            theme_text_color: "Secondary"
+            font_size: "10sp" if Window.width < dp(600) else "12sp"
+
+        MDLabel:
+            text: "5"
+            halign: 'center'
+            theme_text_color: "Secondary"
+            font_size: "10sp" if Window.width < dp(600) else "12sp"
+
+    # Slider
+    MDSlider:
+        id: response_field
+        min: 1
+        max: 5
+        value: 3
+        step: 1
+        size_hint_y: None
+        height: dp(32) if Window.width < dp(600) else dp(40)
+        hint: False
+        color: app.theme_cls.primary_color
+
+    # Value Display
+    MDLabel:
+        id: value_label
+        text: "3"
+        halign: 'center'
+        theme_text_color: "Primary"
+        size_hint_y: None
+        height: dp(16) if Window.width < dp(600) else dp(20)
+        font_size: "12sp" if Window.width < dp(600) else "14sp"
+        bold: True
+
+<OverviewItem@MDCard>:
+    question_number: ""
+    question_text: ""
+    question_type: ""
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: dp(40) if Window.width < dp(600) else dp(48)
+    padding: dp(6) if Window.width < dp(600) else dp(8)
+    spacing: dp(6) if Window.width < dp(600) else dp(8)
+    elevation: 0.5
+    radius: [dp(4)]
+    md_bg_color: app.theme_cls.surface_variant
+
+    MDLabel:
+        text: root.question_number
+        size_hint_x: None
+        width: dp(20) if Window.width < dp(600) else dp(24)
+        halign: 'center'
+        font_size: "10sp" if Window.width < dp(600) else "12sp"
+        theme_text_color: "Secondary"
+
+    MDLabel:
+        text: root.question_text
+        font_size: "9sp" if Window.width < dp(600) else "11sp"
+        theme_text_color: "Primary"
+
+    MDLabel:
+        text: root.question_type
+        size_hint_x: None
+        width: dp(40) if Window.width < dp(600) else dp(48)
+        halign: 'center'
+        font_size: "8sp" if Window.width < dp(600) else "10sp"
+        theme_text_color: "Secondary"

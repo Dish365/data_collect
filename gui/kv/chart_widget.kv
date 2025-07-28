@@ -1,0 +1,45 @@
+#:import dp kivy.metrics.dp
+
+<ChartWidget>:
+    size_hint_y: None
+    height: dp(300)
+    radius: [dp(12)]
+    style: "elevated"
+    elevation: 2
+    padding: dp(16)
+    md_bg_color: app.theme_cls.surfaceColor
+
+    MDBoxLayout:
+        orientation: "vertical"
+        spacing: dp(12)
+        size_hint: 1, 1
+
+        # Chart title - updated to KivyMD 2.0.1
+        MDLabel:
+            text: root.title
+            font_style: "Headline"
+            role: "small"
+            bold: True
+            adaptive_height: True
+            size_hint_y: None
+            height: self.texture_size[1]
+            theme_text_color: "Primary"
+            halign: "center"
+
+        # Chart description - updated to KivyMD 2.0.1
+        MDLabel:
+            text: root.description
+            font_style: "Body"
+            role: "small"
+            adaptive_height: True
+            size_hint_y: None
+            height: self.texture_size[1] if self.text else 0
+            theme_text_color: "Secondary"
+            halign: "center"
+            opacity: 1 if self.text else 0
+
+        # Chart container
+        MDBoxLayout:
+            id: chart_container
+            size_hint: 1, 1
+            orientation: "vertical" 

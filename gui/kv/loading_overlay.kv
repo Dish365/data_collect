@@ -1,0 +1,34 @@
+#:import dp kivy.metrics.dp
+
+<LoadingCard@MDCard>:
+    message: ""
+    orientation: 'vertical'
+    size_hint: None, None
+    size: dp(200), dp(120)
+    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+    style: 'elevated'
+    radius: [dp(12)]
+    md_bg_color: app.theme_cls.surfaceColor
+    elevation: 8
+    
+    MDBoxLayout:
+        orientation: 'vertical'
+        spacing: dp(16)
+        padding: dp(20)
+        size_hint: 1, 1
+        
+        MDCircularProgressIndicator:
+            size_hint: None, None
+            size: dp(40), dp(40)
+            pos_hint: {'center_x': 0.5}
+            active: True
+            color: app.theme_cls.primaryColor
+        
+        MDLabel:
+            id: message_label
+            text: root.message
+            halign: 'center'
+            theme_text_color: 'Primary'
+            font_style: 'Body'
+            adaptive_height: True
+            size_hint_y: None 

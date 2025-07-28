@@ -1,0 +1,210 @@
+#:kivy 2.0
+#:import MDCard kivymd.uix.card.MDCard
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDTextField kivymd.uix.textfield.MDTextField
+#:import MDButton kivymd.uix.button.MDButton
+#:import MDButtonText kivymd.uix.button.MDButtonText
+#:import MDButtonIcon kivymd.uix.button.MDButtonIcon
+#:import MDIconButton kivymd.uix.button.MDIconButton
+#:import MDLabel kivymd.uix.label.MDLabel
+#:import MDIcon kivymd.uix.icon.MDIcon
+#:import MDSwitch kivymd.uix.selectioncontrol.MDSwitch
+#:import MDScrollView kivymd.uix.scrollview.MDScrollView
+
+# Modern QuestionBlock widget using KivyMD 2.0
+<QuestionBlock>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(200)
+    elevation: 2
+    md_bg_color: 1, 1, 1, 1
+    radius: [12, 12, 12, 12]
+    padding: [dp(16), dp(12)]
+    spacing: dp(12)
+    
+    # Question Header
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(32)
+        
+        MDIcon:
+            icon: "help-circle-outline"
+            size_hint: None, None
+            size: dp(24), dp(24)
+            theme_icon_color: "Primary"
+        
+        MDLabel:
+            text: "Question"
+            font_style: "Subtitle1"
+            theme_text_color: "Primary"
+            bold: True
+        
+        Widget:
+            size_hint_x: 1
+        
+        MDIconButton:
+            icon: "delete"
+            size_hint: None, None
+            size: dp(32), dp(32)
+            theme_icon_color: "Custom"
+            icon_color: 0.8, 0.2, 0.2, 1
+    
+    # Question Input Field
+    MDTextField:
+        id: question_input
+        hint_text: "Enter your question here..."
+        mode: "outlined"
+        size_hint_y: None
+        height: dp(56)
+    
+    # Answer Type Selection
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(40)
+        
+        MDLabel:
+            text: "Answer Type:"
+            font_style: "Body2"
+            theme_text_color: "Secondary"
+            size_hint_x: None
+            width: dp(100)
+        
+        MDButton:
+            id: type_button
+            style: "outlined"
+            size_hint_x: 1
+            height: dp(40)
+            on_release: root.open_menu(self)
+            
+            MDButtonText:
+                text: root.answer_type
+                font_size: "14sp"
+            
+            MDButtonIcon:
+                icon: "chevron-down"
+    
+    # Answer Preview Area
+    MDBoxLayout:
+        id: answer_area
+        orientation: 'vertical'
+        spacing: dp(8)
+        size_hint_y: None
+        adaptive_height: True
+
+# Preview components for different answer types
+<ShortAnswerPreview@MDTextField>:
+    hint_text: "Short answer preview"
+    mode: "outlined"
+    size_hint_y: None
+    height: dp(48)
+    disabled: True
+
+<LongAnswerPreview@MDTextField>:
+    hint_text: "Long answer preview"
+    multiline: True
+    mode: "outlined"
+    size_hint_y: None
+    height: dp(80)
+    disabled: True
+
+<MultipleChoicePreview@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(8)
+    size_hint_y: None
+    adaptive_height: True
+    
+    # Options container
+    MDScrollView:
+        id: options_scroll
+        size_hint_y: None
+        height: dp(120)
+        do_scroll_x: False
+        
+        MDBoxLayout:
+            id: options_container
+            orientation: 'vertical'
+            spacing: dp(4)
+            size_hint_y: None
+            adaptive_height: True
+    
+    # Add option button
+    MDButton:
+        style: "outlined"
+        size_hint: None, None
+        size: dp(120), dp(36)
+        on_release: root.add_option()
+        
+        MDButtonIcon:
+            icon: "plus"
+        
+        MDButtonText:
+            text: "Add Option"
+            font_size: "12sp"
+    
+    # Multiple answers toggle
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(40)
+        
+        MDLabel:
+            text: "Allow multiple answers"
+            font_style: "Body2"
+            theme_text_color: "Secondary"
+            size_hint_x: 1
+        
+        MDSwitch:
+            id: toggle_switch
+            size_hint: None, None
+            size: dp(48), dp(32)
+            active: root.allow_multiple if hasattr(root, 'allow_multiple') else False
+
+<OptionInput@MDBoxLayout>:
+    option_text: ""
+    
+    orientation: 'horizontal'
+    spacing: dp(8)
+    size_hint_y: None
+    height: dp(48)
+    
+    MDTextField:
+        id: option_field
+        hint_text: "Option text"
+        text: root.option_text
+        mode: "outlined"
+        size_hint_x: 1
+        height: dp(48)
+    
+    MDIconButton:
+        icon: "close"
+        size_hint: None, None
+        size: dp(32), dp(32)
+        theme_icon_color: "Custom"
+        icon_color: 0.8, 0.2, 0.2, 1
+        on_release: root.parent.parent.remove_option(root)
+
+# Modern styling for different question types
+<TextQuestionBlock@QuestionBlock>:
+    # Specific styling for text questions
+    pass
+
+<NumericQuestionBlock@QuestionBlock>:
+    # Specific styling for numeric questions
+    pass
+
+<ChoiceQuestionBlock@QuestionBlock>:
+    # Specific styling for choice questions
+    pass
+
+<DateQuestionBlock@QuestionBlock>:
+    # Specific styling for date questions
+    pass
+
+<MediaQuestionBlock@QuestionBlock>:
+    # Specific styling for media questions
+    pass 

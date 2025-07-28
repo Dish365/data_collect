@@ -1,28 +1,62 @@
+#:import dp kivy.metrics.dp
+
 <ProjectDialog>:
     orientation: 'vertical'
-    spacing: dp(20)
+    spacing: dp(24)
     padding: dp(24)
     size_hint_y: None
-    height: dp(220)
+    height: dp(280)
 
+    # Modern project name field
     MDTextField:
         id: name_field
-        hint_text: "Project Name"
-        required: True
+        mode: "outlined"
         size_hint_y: None
         height: dp(56)
-        font_size: "16sp"
-        mode: "rectangle"
+        required: True
+        max_text_length: 100
 
+        MDTextFieldHintText:
+            text: "Project Name"
+
+        MDTextFieldHelperText:
+            text: "Enter a descriptive name for your project"
+            mode: "persistent"
+
+        MDTextFieldMaxLengthText:
+            max_text_length: 100
+
+    # Modern project description field
     MDTextField:
         id: desc_field
-        hint_text: "Project Description (Optional)"
+        mode: "outlined"
         multiline: True
         size_hint_y: None
         height: dp(120)
-        font_size: "16sp"
-        mode: "rectangle"
+        max_text_length: 500
 
+        MDTextFieldHintText:
+            text: "Project Description (Optional)"
+
+        MDTextFieldHelperText:
+            text: "Provide additional details about your project"
+            mode: "on_focus"
+
+        MDTextFieldMaxLengthText:
+            max_text_length: 500
+
+    # Validation status indicator
+    MDLabel:
+        id: validation_label
+        text: ""
+        theme_text_color: "Error"
+        theme_font_size: "Custom"
+        font_size: dp(12)
+        size_hint_y: None
+        height: dp(20)
+        opacity: 0  # Initially hidden
+
+    # Spacer
     Widget:
         size_hint_y: None
-        height: dp(8)
+        height: dp(16)

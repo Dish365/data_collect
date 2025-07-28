@@ -22,7 +22,7 @@ from kivy.uix.popup import Popup
 from kivy.metrics import dp
 import threading
 from kivy.clock import Clock
-from kivymd.toast import toast
+from utils.cross_platform_toast import toast
 import json
 
 
@@ -1044,13 +1044,11 @@ class AutoDetectionAnalyticsHandler:
                 json.dump(export_data, f, indent=2, default=str)
             
             # Show success message
-            from kivymd.uix.snackbar import Snackbar
-            Snackbar(text=f"Results exported to {filename}").open()
+            toast(f"Results exported to {filename}")
             
         except Exception as e:
             print(f"[ERROR] Failed to export results: {e}")
-            from kivymd.uix.snackbar import Snackbar
-            Snackbar(text=f"Export failed: {str(e)}").open()
+            toast(f"Export failed: {str(e)}")
 
     def _show_additional_analysis_options(self):
         """Show dialog for additional analysis options."""

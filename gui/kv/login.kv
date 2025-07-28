@@ -1,16 +1,19 @@
 #:import dp kivy.metrics.dp
 #:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
 #:import MDCard kivymd.uix.card.MDCard
-#:import MDRaisedButton kivymd.uix.button.MDRaisedButton
+#:import MDButton kivymd.uix.button.MDButton
+#:import MDButtonText kivymd.uix.button.MDButtonText
 #:import MDTextField kivymd.uix.textfield.MDTextField
+#:import MDTextFieldHintText kivymd.uix.textfield.MDTextFieldHintText
+#:import MDTextFieldTrailingIcon kivymd.uix.textfield.MDTextFieldTrailingIcon
 #:import MDLabel kivymd.uix.label.MDLabel
-#:import MDSpinner kivymd.uix.spinner.MDSpinner
+#:import MDCircularProgressIndicator kivymd.uix.progressindicator.MDCircularProgressIndicator
 #:import MDIconButton kivymd.uix.button.MDIconButton
-#:import FloatLayout kivy.uix.floatlayout.FloatLayout
+#:import AnchorLayout kivy.uix.anchorlayout.AnchorLayout
 
 <LoginScreen>:
     name: "login"
-    md_bg_color: app.theme_cls.primary_color
+    md_bg_color: app.theme_cls.primaryColor
 
     AnchorLayout:
         anchor_x: "center"
@@ -33,42 +36,39 @@
 
                 MDLabel:
                     text: "Research Data Collector"
-                    font_style: "H5"
+                    font_style: "Display"
                     halign: "center"
                     size_hint_y: None
                     height: self.texture_size[1]
 
                 MDTextField:
                     id: username
-                    hint_text: "Username"
-                    mode: "rectangle"
+                    mode: "outlined"
                     size_hint_y: None
-                    height: dp(48)
+                    height: dp(56)
                     disabled: root.is_authenticating
 
-                FloatLayout:
-                    size_hint_y: None
-                    height: dp(48)
+                    MDTextFieldHintText:
+                        text: "Username"
 
-                    MDTextField:
-                        id: password
-                        hint_text: "Password"
-                        password: not root.password_visible
-                        mode: "rectangle"
-                        size_hint: 1, None
-                        height: dp(48)
-                        pos_hint: {"x": 0, "center_y": 0.5}
-                        disabled: root.is_authenticating
+                MDTextField:
+                    id: password
+                    password: not root.password_visible
+                    mode: "outlined"
+                    size_hint_y: None
+                    height: dp(56)
+                    disabled: root.is_authenticating
+
+                    MDTextFieldHintText:
+                        text: "Password"
 
                     MDIconButton:
                         icon: "eye-off" if root.password_visible else "eye"
                         on_release: root.toggle_password_visibility()
-                        pos_hint: {"right": 0.98, "center_y": 0.5}
-                        size_hint: None, None
-                        size: dp(32), dp(32)
-                        md_bg_color: 0, 0, 0, 0
                         theme_icon_color: "Custom"
                         icon_color: 0.5, 0.5, 0.5, 1
+                        pos_hint: {"center_y": 0.5}
+                        pos: self.parent.width - self.width - dp(8), 0
 
                 MDLabel:
                     markup: True
@@ -79,14 +79,17 @@
                     height: self.texture_size[1]
                     on_ref_press: root.on_forgot_password()
 
-                MDRaisedButton:
+                MDButton:
                     id: login_button
-                    text: "Login"
-                    size_hint_x:1
+                    style: "filled"
+                    size_hint_x: 1
                     size_hint_y: None
                     height: dp(50)
                     disabled: root.is_authenticating
                     on_release: root.login()
+                    
+                    MDButtonText:
+                        text: "Login"
 
                 # Spinner container
                 MDBoxLayout:
@@ -98,7 +101,7 @@
                     opacity: 1 if root.is_authenticating else 0
                     spacing: dp(10)
 
-                    MDSpinner:
+                    MDCircularProgressIndicator:
                         id: auth_spinner
                         size_hint: None, None
                         size: dp(20), dp(20)

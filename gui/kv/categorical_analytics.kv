@@ -1,0 +1,409 @@
+#:kivy 2.0
+#:import MDCard kivymd.uix.card.MDCard
+#:import MDLabel kivymd.uix.label.MDLabel
+#:import MDRaisedButton kivymd.uix.button.MDRaisedButton
+#:import MDFlatButton kivymd.uix.button.MDFlatButton
+#:import MDIconButton kivymd.uix.button.MDIconButton
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDDialog kivymd.uix.dialog.MDDialog
+#:import MDScrollView kivymd.uix.scrollview.MDScrollView
+#:import GridLayout kivy.uix.gridlayout.GridLayout
+#:import MDCircularProgressIndicator kivymd.uix.progressindicator.MDCircularProgressIndicator
+#:import MDCheckbox kivymd.uix.selectioncontrol.MDCheckbox
+#:import MDDropdownMenu kivymd.uix.menu.MDDropdownMenu
+#:import OneLineListItem kivymd.uix.list.OneLineListItem
+#:import TwoLineListItem kivymd.uix.list.TwoLineListItem
+
+# Categorical Analytics Components
+<CategoricalAnalyticsCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(300)
+    elevation: 3
+    radius: [16, 16, 16, 16]
+    padding: [dp(24), dp(20), dp(24), dp(20)]
+    spacing: dp(16)
+    md_bg_color: 0.98, 0.99, 1.0, 1
+
+<CategoricalSummaryCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(160)
+    elevation: 2
+    radius: [8, 8, 8, 8]
+    padding: [dp(16), dp(12), dp(16), dp(12)]
+    spacing: dp(12)
+    md_bg_color: 0.98, 1.0, 0.99, 1
+
+<CategoricalVariableCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(260)
+    elevation: 2
+    radius: [8, 8, 8, 8]
+    padding: [dp(16), dp(12), dp(16), dp(12)]
+    spacing: dp(12)
+    md_bg_color: 0.99, 0.98, 1.0, 1
+
+<CategoricalCrossTabCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(300)
+    elevation: 2
+    radius: [8, 8, 8, 8]
+    padding: [dp(16), dp(12), dp(16), dp(12)]
+    spacing: dp(12)
+    md_bg_color: 1.0, 0.99, 0.98, 1
+
+<CategoricalCrossTabItem@MDBoxLayout>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(100)
+    md_bg_color: 1, 1, 1, 0.6
+    radius: 6
+    padding: dp(12)
+    spacing: dp(8)
+
+<CategoricalInfoItem@MDBoxLayout>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(40)
+    md_bg_color: 1, 1, 1, 0.6
+    radius: 6
+    padding: dp(8)
+    spacing: dp(4)
+
+<CategoricalButton@MDRaisedButton>:
+    size_hint_y: None
+    height: dp(48)
+    font_size: "16sp"
+    elevation: 2
+
+<CategoricalIconButton@MDIconButton>:
+    size_hint: None, None
+    size: dp(48), dp(48)
+    icon_size: "20dp"
+
+<CategoricalText@MDLabel>:
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Secondary"
+
+<CategoricalTitle@MDLabel>:
+    font_style: "Headline"
+
+    role: "small"
+    theme_text_color: "Primary"
+    bold: True
+
+<CategoricalSubtitle@MDLabel>:
+    font_style: "Title"
+
+    role: "large"
+    theme_text_color: "Primary"
+
+<CategoricalCaption@MDLabel>:
+    font_style: "Label"
+
+    role: "small"
+    theme_text_color: "Hint"
+
+<CategoricalVariableHeader@MDLabel>:
+    font_style: "Headline"
+
+    role: "small"
+    theme_text_color: "Primary"
+    size_hint_y: None
+    height: dp(32)
+    bold: True
+
+<CategoricalDistributionLabel@MDLabel>:
+    font_style: "Title"
+
+    role: "medium"
+    theme_text_color: "Primary"
+    size_hint_y: None
+    height: dp(24)
+
+<CategoricalCategoryLabel@MDLabel>:
+    font_style: "Label"
+
+    role: "small"
+    theme_text_color: "Secondary"
+    size_hint_y: None
+    height: dp(16)
+
+<CategoricalCrossTabName@MDLabel>:
+    font_style: "Title"
+
+    role: "medium"
+    theme_text_color: "Primary"
+    size_hint_y: None
+    height: dp(24)
+    bold: True
+
+<CategoricalStatsLabel@MDLabel>:
+    font_style: "Label"
+
+    role: "small"
+    theme_text_color: "Secondary"
+    size_hint_y: None
+    height: dp(60)
+
+<CategoricalInfoLabel@MDLabel>:
+    font_style: "Label"
+
+    role: "small"
+    theme_text_color: "Hint"
+    size_hint_y: None
+    height: dp(14)
+
+<CategoricalInfoValue@MDLabel>:
+    font_style: "Body"
+
+    role: "medium"
+    theme_text_color: "Primary"
+    size_hint_y: None
+    height: dp(20)
+    bold: True
+
+# Header components
+<CategoricalHeaderLayout@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(8)
+    size_hint_y: None
+    height: dp(32)
+
+<CategoricalHeaderIcon@MDIconButton>:
+    icon: "chart-pie"
+    theme_icon_color: "Custom"
+    icon_color: 0.2, 0.8, 0.6, 1
+    disabled: True
+    size_hint_x: None
+    width: dp(32)
+
+<CategoricalHeaderLabel@MDLabel>:
+    text: "Categorical Analysis Summary"
+    font_style: "Headline"
+
+    role: "small"
+    theme_text_color: "Primary"
+    bold: True
+
+<CategoricalCrossTabHeaderIcon@MDIconButton>:
+    icon: "table"
+    theme_icon_color: "Custom"
+    icon_color: 0.8, 0.4, 0.2, 1
+    disabled: True
+    size_hint_x: None
+    width: dp(32)
+
+<CategoricalCrossTabHeaderLabel@MDLabel>:
+    text: "Cross-Tabulation Analysis"
+    font_style: "Headline"
+
+    role: "small"
+    theme_text_color: "Primary"
+    bold: True
+
+# Action buttons
+<CategoricalActionLayout@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(8)
+    size_hint_y: None
+    height: dp(36)
+
+<CategoricalDetailsButton@MDFlatButton>:
+    text: "View Details"
+    size_hint_x: 1
+
+<CategoricalChartsButton@MDFlatButton>:
+    text: "View Distribution"
+    size_hint_x: 1
+
+# Categories layout
+<CategoricalCategoriesLayout@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(4)
+    size_hint_y: None
+    height: dp(60)
+
+# Info grid
+<CategoricalInfoGrid@GridLayout>:
+    cols: 2
+    spacing: dp(8)
+    size_hint_y: None
+    height: dp(100)
+
+# Variable selection components
+<CategoricalVariableSelectionDialog@MDDialog>:
+    title: "Categorical Analysis - Variable Selection"
+    type: "custom"
+    size_hint: 0.8, 0.7
+
+<CategoricalVariableSelectionContent@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(12)
+    size_hint_y: None
+    height: dp(400)
+    adaptive_height: True
+
+<CategoricalVariableInstructions@MDLabel>:
+    text: "Select categorical variables for analysis:"
+    font_style: "Title"
+
+    role: "large"
+    theme_text_color: "Primary"
+    size_hint_y: None
+    height: dp(32)
+
+<CategoricalVariableLayout@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(8)
+    size_hint_y: None
+    height: dp(32)
+
+<CategoricalVariableCheckbox@MDCheckbox>:
+    size_hint_x: None
+    width: dp(32)
+    active: True
+
+<CategoricalVariableLabel@MDLabel>:
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Secondary"
+
+<CategoricalNoVariablesLabel@MDLabel>:
+    text: "No categorical variables found for analysis"
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Hint"
+    halign: "center"
+
+# Results dialog components
+<CategoricalResultsDialog@MDDialog>:
+    title: "Categorical Analysis Results"
+    type: "custom"
+    size_hint: 0.95, 0.85
+
+<CategoricalResultsContent@MDScrollView>:
+    size_hint: 1, 1
+
+<CategoricalResultsLayout@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(16)
+    size_hint_y: None
+    adaptive_height: True
+    padding: dp(16)
+
+# Summary card components
+<CategoricalSummaryHeader@CategoricalHeaderLayout>:
+    CategoricalHeaderIcon:
+    CategoricalHeaderLabel:
+        text: "Categorical Analysis Summary"
+
+<CategoricalSummaryText@CategoricalText>:
+    size_hint_y: None
+    height: dp(100)
+
+# Variable card components
+<CategoricalVariableHeaderText@CategoricalVariableHeader>:
+    text: "Variable Name"
+
+<CategoricalVariableInfoGrid@CategoricalInfoGrid>:
+    # Will be populated dynamically
+
+<CategoricalVariableDistribution@CategoricalDistributionLabel>:
+    text: "Category Distribution:"
+
+<CategoricalVariableCategories@CategoricalCategoriesLayout>:
+    # Will be populated dynamically
+
+<CategoricalVariableActions@CategoricalActionLayout>:
+    CategoricalDetailsButton:
+    CategoricalChartsButton:
+
+# Cross-tabulation components
+<CategoricalCrossTabHeader@CategoricalHeaderLayout>:
+    CategoricalCrossTabHeaderIcon:
+    CategoricalCrossTabHeaderLabel:
+
+<CategoricalCrossTabScroll@MDScrollView>:
+    size_hint_y: 1
+
+<CategoricalCrossTabLayout@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(8)
+    size_hint_y: None
+    adaptive_height: True
+
+<CategoricalCrossTabItemName@CategoricalCrossTabName>:
+    text: "Cross-tabulation Name"
+
+<CategoricalCrossTabStats@CategoricalStatsLabel>:
+    text: "Chi-square: 0.000\nP-value: 0.0000\nCramer's V: 0.000"
+
+# Error state components
+<CategoricalErrorCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(200)
+    elevation: 2
+    radius: [8, 8, 8, 8]
+    padding: [dp(16), dp(12), dp(16), dp(12)]
+    spacing: dp(12)
+    md_bg_color: 1, 0.95, 0.95, 1
+
+<CategoricalErrorIcon@MDIconButton>:
+    icon: "alert-circle-outline"
+    theme_icon_color: "Custom"
+    icon_color: 0.8, 0.2, 0.2, 1
+    disabled: True
+    size_hint_x: None
+    width: dp(48)
+
+<CategoricalErrorTitle@MDLabel>:
+    text: "Analysis Error"
+    font_style: "Headline"
+
+    role: "medium"
+    theme_text_color: "Custom"
+    text_color: 0.8, 0.2, 0.2, 1
+    bold: True
+
+<CategoricalErrorMessage@MDLabel>:
+    text: "An error occurred during analysis"
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Custom"
+    text_color: 0.6, 0.1, 0.1, 1
+    size_hint_y: None
+    height: dp(80)
+
+# Loading state components
+<CategoricalLoadingCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(150)
+    elevation: 2
+    radius: [8, 8, 8, 8]
+    padding: [dp(16), dp(12), dp(16), dp(12)]
+    spacing: dp(12)
+    md_bg_color: 0.98, 0.99, 1.0, 1
+
+<CategoricalLoadingSpinner@MDCircularProgressIndicator>:
+    size_hint: None, None
+    size: dp(48), dp(48)
+    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+<CategoricalLoadingText@MDLabel>:
+    text: "Running categorical analysis..."
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Secondary"
+    halign: "center" 

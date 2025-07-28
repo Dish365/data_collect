@@ -6,7 +6,7 @@ import json
 import threading
 from datetime import datetime
 from typing import Dict, List, Any, Optional
-from kivymd.toast import toast
+from utils.cross_platform_toast import toast
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel

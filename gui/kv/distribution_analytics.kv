@@ -1,0 +1,523 @@
+#:kivy 2.0
+#:import MDCard kivymd.uix.card.MDCard
+#:import MDLabel kivymd.uix.label.MDLabel
+#:import MDRaisedButton kivymd.uix.button.MDRaisedButton
+#:import MDFlatButton kivymd.uix.button.MDFlatButton
+#:import MDIconButton kivymd.uix.button.MDIconButton
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDDialog kivymd.uix.dialog.MDDialog
+#:import MDScrollView kivymd.uix.scrollview.MDScrollView
+#:import GridLayout kivy.uix.gridlayout.GridLayout
+#:import MDCircularProgressIndicator kivymd.uix.spinner.MDCircularProgressIndicator
+#:import MDCheckbox kivymd.uix.selectioncontrol.MDCheckbox
+#:import MDDropdownMenu kivymd.uix.menu.MDDropdownMenu
+#:import OneLineListItem kivymd.uix.list.OneLineListItem
+#:import TwoLineListItem kivymd.uix.list.TwoLineListItem
+
+# Distribution Analytics Components
+<DistributionAnalyticsCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(300)
+    elevation: 3
+    radius: [16, 16, 16, 16]
+    padding: [dp(24), dp(20), dp(24), dp(20)]
+    spacing: dp(16)
+    md_bg_color: 0.98, 0.99, 1.0, 1
+
+<DistributionSummaryCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(140)
+    elevation: 2
+    radius: [8, 8, 8, 8]
+    padding: [dp(16), dp(12), dp(16), dp(12)]
+    spacing: dp(12)
+    md_bg_color: 0.98, 0.99, 1.0, 1
+
+<DistributionVariableCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(280)
+    elevation: 2
+    radius: [8, 8, 8, 8]
+    padding: [dp(16), dp(12), dp(16), dp(12)]
+    spacing: dp(12)
+    md_bg_color: 0.99, 1.0, 0.98, 1
+
+<DistributionInfoItem@MDBoxLayout>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(50)
+    md_bg_color: 1, 1, 1, 0.6
+    radius: 6
+    padding: dp(8)
+    spacing: dp(4)
+
+<DistributionOutlierLayout@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(8)
+    size_hint_y: None
+    height: dp(40)
+
+<DistributionOutlierIcon@MDIconButton>:
+    icon: "target"
+    theme_icon_color: "Custom"
+    icon_color: 0.8, 0.4, 0.2, 1
+    disabled: True
+    size_hint_x: None
+    width: dp(32)
+
+<DistributionOutlierLabel@MDLabel>:
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Secondary"
+
+<DistributionButton@MDRaisedButton>:
+    size_hint_y: None
+    height: dp(48)
+    font_size: "16sp"
+    elevation: 2
+
+<DistributionIconButton@MDIconButton>:
+    size_hint: None, None
+    size: dp(48), dp(48)
+    icon_size: "20dp"
+
+<DistributionText@MDLabel>:
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Secondary"
+
+<DistributionTitle@MDLabel>:
+    font_style: "Headline"
+
+    role: "small"
+    theme_text_color: "Primary"
+    bold: True
+
+<DistributionSubtitle@MDLabel>:
+    font_style: "Title"
+
+    role: "large"
+    theme_text_color: "Primary"
+
+<DistributionCaption@MDLabel>:
+    font_style: "Label"
+
+    role: "small"
+    theme_text_color: "Hint"
+
+<DistributionVariableHeader@MDLabel>:
+    font_style: "Headline"
+
+    role: "small"
+    theme_text_color: "Primary"
+    size_hint_y: None
+    height: dp(32)
+    bold: True
+
+<DistributionInfoLabel@MDLabel>:
+    font_style: "Label"
+
+    role: "small"
+    theme_text_color: "Hint"
+    size_hint_y: None
+    height: dp(16)
+
+<DistributionInfoValue@MDLabel>:
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Primary"
+    size_hint_y: None
+    height: dp(24)
+    bold: True
+
+# Header components
+<DistributionHeaderLayout@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(8)
+    size_hint_y: None
+    height: dp(32)
+
+<DistributionHeaderIcon@MDIconButton>:
+    icon: "chart-histogram"
+    theme_icon_color: "Custom"
+    icon_color: 0.2, 0.6, 1.0, 1
+    disabled: True
+    size_hint_x: None
+    width: dp(32)
+
+<DistributionHeaderLabel@MDLabel>:
+    text: "Distribution Analysis Summary"
+    font_style: "Headline"
+
+    role: "small"
+    theme_text_color: "Primary"
+    bold: True
+
+# Action buttons
+<DistributionActionLayout@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(8)
+    size_hint_y: None
+    height: dp(36)
+
+<DistributionDetailsButton@MDFlatButton>:
+    text: "View Details"
+    size_hint_x: 1
+
+<DistributionOutliersButton@MDFlatButton>:
+    text: "View Outliers"
+    size_hint_x: 1
+
+# Info grid
+<DistributionInfoGrid@GridLayout>:
+    cols: 2
+    spacing: dp(8)
+    size_hint_y: None
+    height: dp(120)
+
+# Variable selection components
+<DistributionVariableSelectionDialog@MDDialog>:
+    title: "Distribution Analysis - Variable Selection"
+    type: "custom"
+    size_hint: 0.8, 0.7
+
+<DistributionVariableSelectionContent@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(12)
+    size_hint_y: None
+    height: dp(400)
+    adaptive_height: True
+
+<DistributionVariableInstructions@MDLabel>:
+    text: "Select numeric variables for distribution analysis:"
+    font_style: "Title"
+
+    role: "large"
+    theme_text_color: "Primary"
+    size_hint_y: None
+    height: dp(32)
+
+<DistributionVariableLayout@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(8)
+    size_hint_y: None
+    height: dp(32)
+
+<DistributionVariableCheckbox@MDCheckbox>:
+    size_hint_x: None
+    width: dp(32)
+    active: True
+
+<DistributionVariableLabel@MDLabel>:
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Secondary"
+
+<DistributionNoVariablesLabel@MDLabel>:
+    text: "No numeric variables found for distribution analysis"
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Hint"
+    halign: "center"
+
+# Additional analysis options
+<DistributionAdditionalAnalysisMenu@MDDropdownMenu>:
+    width_mult: 5
+    position: "center"
+
+<DistributionAnalysisOption@TwoLineListItem>:
+    height: dp(72)
+    font_size: "16sp"
+
+# Results dialog components
+<DistributionResultsDialog@MDDialog>:
+    title: "Distribution Analysis Results"
+    type: "custom"
+    size_hint: 0.95, 0.85
+
+<DistributionResultsContent@MDScrollView>:
+    size_hint: 1, 1
+
+<DistributionResultsLayout@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(16)
+    size_hint_y: None
+    adaptive_height: True
+    padding: dp(16)
+
+# Summary card components
+<DistributionSummaryHeader@DistributionHeaderLayout>:
+    DistributionHeaderIcon:
+    DistributionHeaderLabel:
+
+<DistributionSummaryText@DistributionText>:
+    size_hint_y: None
+    height: dp(80)
+
+# Variable card components
+<DistributionVariableHeaderText@DistributionVariableHeader>:
+    text: "Variable Name"
+
+<DistributionVariableInfoGrid@DistributionInfoGrid>:
+    # Will be populated dynamically
+
+<DistributionVariableOutliers@DistributionOutlierLayout>:
+    DistributionOutlierIcon:
+    DistributionOutlierLabel:
+
+<DistributionVariableActions@DistributionActionLayout>:
+    DistributionDetailsButton:
+    DistributionOutliersButton:
+
+# Error state components
+<DistributionErrorCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(200)
+    elevation: 2
+    radius: [8, 8, 8, 8]
+    padding: [dp(16), dp(12), dp(16), dp(12)]
+    spacing: dp(12)
+    md_bg_color: 1, 0.95, 0.95, 1
+
+<DistributionErrorHeader@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(12)
+    size_hint_y: None
+    height: dp(32)
+
+<DistributionErrorIcon@MDIconButton>:
+    icon: "alert-circle-outline"
+    theme_icon_color: "Custom"
+    icon_color: 0.8, 0.2, 0.2, 1
+    disabled: True
+    size_hint_x: None
+    width: dp(32)
+
+<DistributionErrorTitle@MDLabel>:
+    text: "Analysis Error"
+    font_style: "Headline"
+
+    role: "small"
+    theme_text_color: "Custom"
+    text_color: 0.8, 0.2, 0.2, 1
+    bold: True
+
+<DistributionErrorMessage@MDLabel>:
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Custom"
+    text_color: 0.6, 0.1, 0.1, 1
+    size_hint_y: None
+    height: dp(80)
+
+# Loading state components
+<DistributionLoadingCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(150)
+    elevation: 2
+    radius: [8, 8, 8, 8]
+    padding: dp(24)
+    spacing: dp(16)
+    md_bg_color: 0.98, 0.98, 0.98, 1
+
+<DistributionLoadingSpinner@MDCircularProgressIndicator>:
+    size_hint: None, None
+    size: dp(48), dp(48)
+    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+<DistributionLoadingText@MDLabel>:
+    text: "Running distribution analysis..."
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Secondary"
+    halign: "center"
+
+# Results components
+<DistributionResultsHeader@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(12)
+    size_hint_y: None
+    height: dp(48)
+
+<DistributionResultsIcon@MDIconButton>:
+    icon: "chart-bar"
+    theme_icon_color: "Custom"
+    icon_color: 0.2, 0.8, 0.6, 1
+    disabled: True
+    size_hint_x: None
+    width: dp(40)
+
+<DistributionResultsTitle@MDLabel>:
+    text: "Distribution Analysis Results"
+    font_style: "Headline"
+
+    role: "medium"
+    theme_text_color: "Primary"
+    bold: True
+
+<DistributionResultsContent@MDLabel>:
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Secondary"
+    size_hint_y: None
+    height: dp(300)
+
+# Action button components
+<DistributionActionButtonLayout@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(12)
+    size_hint_y: None
+    height: dp(48)
+
+<DistributionViewButton@MDRaisedButton>:
+    text: "View Details"
+    size_hint_x: 1
+    height: dp(48)
+
+<DistributionExportButton@MDRaisedButton>:
+    text: "Export Results"
+    size_hint_x: 1
+    height: dp(48)
+
+<DistributionCloseButton@MDFlatButton>:
+    text: "Close"
+    size_hint_x: 1
+    height: dp(48)
+
+# Distribution type indicators
+<DistributionTypeNormal@MDLabel>:
+    text: "Normal"
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Custom"
+    text_color: 0.2, 0.8, 0.2, 1
+    bold: True
+
+<DistributionTypeSkewed@MDLabel>:
+    text: "Skewed"
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Custom"
+    text_color: 0.8, 0.6, 0.2, 1
+    bold: True
+
+<DistributionTypeUnknown@MDLabel>:
+    text: "Unknown"
+    font_style: "Body"
+
+    role: "large"
+    theme_text_color: "Custom"
+    text_color: 0.6, 0.6, 0.6, 1
+    bold: True
+
+# Normality test components
+<DistributionNormalityTest@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(8)
+    size_hint_y: None
+    height: dp(60)
+    md_bg_color: 1, 1, 1, 0.8
+    radius: 6
+    padding: dp(12)
+
+<DistributionNormalityLabel@MDLabel>:
+    text: "Normality Test"
+    font_style: "Title"
+
+    role: "medium"
+    theme_text_color: "Primary"
+    size_hint_y: None
+    height: dp(20)
+
+<DistributionNormalityResult@MDLabel>:
+    font_style: "Body"
+
+    role: "medium"
+    theme_text_color: "Secondary"
+    size_hint_y: None
+    height: dp(32)
+
+# Outlier analysis components
+<DistributionOutlierAnalysis@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(8)
+    size_hint_y: None
+    height: dp(80)
+    md_bg_color: 1, 1, 1, 0.8
+    radius: 6
+    padding: dp(12)
+
+<DistributionOutlierTitle@MDLabel>:
+    text: "Outlier Analysis"
+    font_style: "Title"
+
+    role: "medium"
+    theme_text_color: "Primary"
+    size_hint_y: None
+    height: dp(20)
+
+<DistributionOutlierCount@MDLabel>:
+    font_style: "Body"
+
+    role: "medium"
+    theme_text_color: "Secondary"
+    size_hint_y: None
+    height: dp(20)
+
+<DistributionOutlierPercentage@MDLabel>:
+    font_style: "Body"
+
+    role: "medium"
+    theme_text_color: "Secondary"
+    size_hint_y: None
+    height: dp(20)
+
+# Shape statistics components
+<DistributionShapeStats@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(8)
+    size_hint_y: None
+    height: dp(80)
+    md_bg_color: 1, 1, 1, 0.8
+    radius: 6
+    padding: dp(12)
+
+<DistributionShapeTitle@MDLabel>:
+    text: "Shape Statistics"
+    font_style: "Title"
+
+    role: "medium"
+    theme_text_color: "Primary"
+    size_hint_y: None
+    height: dp(20)
+
+<DistributionSkewness@MDLabel>:
+    font_style: "Body"
+
+    role: "medium"
+    theme_text_color: "Secondary"
+    size_hint_y: None
+    height: dp(20)
+
+<DistributionKurtosis@MDLabel>:
+    font_style: "Body"
+
+    role: "medium"
+    theme_text_color: "Secondary"
+    size_hint_y: None
+    height: dp(20) 
