@@ -5,6 +5,7 @@ Specialized service for descriptive statistics and data analysis
 
 from typing import Dict, List, Any, Optional
 import threading
+import urllib.parse
 from kivy.clock import Clock
 from utils.cross_platform_toast import toast
 
@@ -12,9 +13,9 @@ from utils.cross_platform_toast import toast
 class DescriptiveAnalyticsHandler:
     """Handler for descriptive analytics operations - Business Logic Only"""
     
-    def __init__(self, analytics_service, analytics_screen):
+    def __init__(self, analytics_service, screen):
         self.analytics_service = analytics_service
-        self.analytics_screen = analytics_screen
+        self.screen = screen
         self.selected_variables = []
     
     def run_descriptive_analysis(self, project_id: str, analysis_config: Dict = None):
@@ -22,7 +23,7 @@ class DescriptiveAnalyticsHandler:
         if not project_id:
             return
             
-        self.analytics_screen.set_loading(True)
+        self.screen.set_loading(True)
         threading.Thread(
             target=self._run_descriptive_thread,
             args=(project_id, analysis_config),
@@ -45,7 +46,7 @@ class DescriptiveAnalyticsHandler:
             )
         finally:
             Clock.schedule_once(
-                lambda dt: self.analytics_screen.set_loading(False), 0
+                lambda dt: self.screen.set_loading(False), 0
             )
     
     def _handle_descriptive_results(self, results):
@@ -60,8 +61,8 @@ class DescriptiveAnalyticsHandler:
                 toast(f"Analysis Error: {error_msg}")
             return
         
-        # Delegate to analytics screen to handle UI display
-        self.analytics_screen.display_descriptive_results(results)
+        # Delegate to screen to handle UI display
+        self.screen.display_descriptive_results(results)
     
     def get_analysis_options(self, project_id: str) -> List[Dict]:
         """Get available analysis options for descriptive analytics"""
@@ -235,7 +236,7 @@ class DescriptiveAnalyticsHandler:
         print(f"[DEBUG] Running {analysis_name} analysis for project {project_id}")
         toast(f"Running {analysis_name}...")
         
-        self.analytics_screen.set_loading(True)
+        self.screen.set_loading(True)
         threading.Thread(
             target=self._specific_analysis_thread,
             args=(project_id, endpoint, analysis_name),
@@ -271,7 +272,7 @@ class DescriptiveAnalyticsHandler:
             )
         finally:
             Clock.schedule_once(
-                lambda dt: self.analytics_screen.set_loading(False), 0
+                lambda dt: self.screen.set_loading(False), 0
             )
     
     def _handle_specific_analysis_results(self, results: Dict, analysis_name: str):
@@ -281,15 +282,15 @@ class DescriptiveAnalyticsHandler:
             toast(f"{analysis_name} Error: {error_msg}")
             return
         
-        # Delegate to analytics screen to handle UI display
-        self.analytics_screen.display_specific_analysis_results(results, analysis_name)
+        # Delegate to screen to handle UI display
+        self.screen.display_specific_analysis_results(results, analysis_name)
     
     def run_comprehensive_report(self, project_id: str):
         """Run comprehensive descriptive report"""
         print(f"[DEBUG] Running comprehensive report for project {project_id}")
         toast("Generating comprehensive report...")
         
-        self.analytics_screen.set_loading(True)
+        self.screen.set_loading(True)
         threading.Thread(
             target=self._comprehensive_report_thread,
             args=(project_id,),
@@ -311,7 +312,7 @@ class DescriptiveAnalyticsHandler:
             )
         finally:
             Clock.schedule_once(
-                lambda dt: self.analytics_screen.set_loading(False), 0
+                lambda dt: self.screen.set_loading(False), 0
             )
     
     def _handle_comprehensive_report_results(self, results: Dict):
@@ -321,17 +322,17 @@ class DescriptiveAnalyticsHandler:
             toast(f"Report Error: {error_msg}")
             return
         
-        # Delegate to analytics screen to handle UI display
-        self.analytics_screen.display_comprehensive_report_results(results)
+        # Delegate to screen to handle UI display
+        self.screen.display_comprehensive_report_results(results)
     
     def show_variable_selection(self, project_id: str):
         """Show variable selection interface - delegate to UI"""
-        self.analytics_screen.show_descriptive_variable_selection_ui(project_id)
+        self.screen.show_descriptive_variable_selection_ui(project_id)
     
     def show_sample_size_recommendations(self, project_id: str):
         """Show sample size recommendations - delegate to UI"""
         recommendations = self.get_sample_size_recommendations(project_id)
-        self.analytics_screen.show_sample_size_recommendations_ui(recommendations)
+        self.screen.show_sample_size_recommendations_ui(recommendations)
     
     def export_analysis_results(self, results: Dict, analysis_name: str):
         """Export analysis results"""
@@ -365,12 +366,189 @@ class DescriptiveAnalyticsHandler:
             toast("Please select at least one variable")
             return
         
-        if not self.analytics_screen.current_project_id:
+        if not self.screen.current_project_id:
             toast("Please select a project first")
             return
         
         # Run analysis with selected variables
         self.run_descriptive_analysis(
-            self.analytics_screen.current_project_id,
+            self.screen.current_project_id,
             {'variables': self.selected_variables}
         )
+
+    # Analytics backend methods
+    def _make_analytics_request(self, endpoint: str, method: str = 'GET', data: Dict = None) -> Dict:
+        """Make authenticated request to analytics backend"""
+        try:
+            import requests
+            base_url = "http://127.0.0.1:8001"
+            url = f"{base_url}/api/v1/analytics/descriptive/{endpoint}"
+            
+            session = requests.Session()
+            session.headers.update({
+                'Content-Type': 'application/json',
+                'User-Agent': 'DataCollect-GUI/1.0'
+            })
+            
+            if method == 'GET':
+                response = session.get(url, timeout=30)
+            elif method == 'POST':
+                if data:
+                    response = session.post(url, json=data, timeout=60)
+                else:
+                    response = session.post(url, timeout=60)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
+                
+            if response.status_code == 200:
+                result = response.json()
+                if isinstance(result, dict) and 'status' in result:
+                    if result['status'] == 'success':
+                        return result.get('data', {})
+                    else:
+                        return {'error': result.get('message', 'Unknown error')}
+                return result
+            else:
+                try:
+                    error_detail = response.json()
+                    error_msg = error_detail.get('detail', f'HTTP {response.status_code}')
+                    return {'error': error_msg}
+                except:
+                    return {'error': f'HTTP {response.status_code}: {response.text}'}
+                
+        except Exception as e:
+            return {'error': f'Request error: {str(e)}'}
+
+    def run_descriptive_analysis_backend(self, project_id: str, analysis_type: str = "descriptive", 
+                                       target_variables: Optional[List[str]] = None) -> Dict:
+        """Run descriptive analysis using the analytics backend"""
+        try:
+            params = [('analysis_type', analysis_type)]
+            if target_variables and isinstance(target_variables, list):
+                for var in target_variables:
+                    params.append(('target_variables', var))
+            elif target_variables:
+                params.append(('target_variables', target_variables))
+            
+            url = f"project/{project_id}/analyze"
+            if params:
+                query_string = urllib.parse.urlencode(params)
+                url = f"{url}?{query_string}"
+            
+            result = self._make_analytics_request(url, method='POST')
+            return result
+            
+        except Exception as e:
+            return {'error': f'Descriptive analysis failed: {str(e)}'}
+
+    def run_basic_statistics_backend(self, project_id: str, variables: Optional[List[str]] = None) -> Dict:
+        """Run basic statistical analysis via backend"""
+        try:
+            params = []
+            if variables and isinstance(variables, list):
+                for var in variables:
+                    params.append(('variables', var))
+            elif variables:
+                params.append(('variables', variables))
+            
+            url = f'project/{project_id}/analyze/basic-statistics'
+            if params:
+                query_string = urllib.parse.urlencode(params)
+                url = f"{url}?{query_string}"
+            
+            result = self._make_analytics_request(url, method='POST')
+            return result
+            
+        except Exception as e:
+            return {'error': f'Basic statistics failed: {str(e)}'}
+
+    def run_distribution_analysis_backend(self, project_id: str, variables: Optional[List[str]] = None) -> Dict:
+        """Run distribution analysis via backend"""
+        try:
+            params = []
+            if variables and isinstance(variables, list):
+                for var in variables:
+                    params.append(('variables', var))
+            elif variables:
+                params.append(('variables', variables))
+            
+            url = f'project/{project_id}/analyze/distributions'
+            if params:
+                query_string = urllib.parse.urlencode(params)
+                url = f"{url}?{query_string}"
+            
+            result = self._make_analytics_request(url, method='POST')
+            return result
+            
+        except Exception as e:
+            return {'error': f'Distribution analysis failed: {str(e)}'}
+
+    def run_categorical_analysis_backend(self, project_id: str, variables: Optional[List[str]] = None) -> Dict:
+        """Run categorical analysis via backend"""
+        try:
+            params = []
+            if variables and isinstance(variables, list):
+                for var in variables:
+                    params.append(('variables', var))
+            elif variables:
+                params.append(('variables', variables))
+            
+            url = f'project/{project_id}/analyze/categorical'
+            if params:
+                query_string = urllib.parse.urlencode(params)
+                url = f"{url}?{query_string}"
+            
+            result = self._make_analytics_request(url, method='POST')
+            return result
+            
+        except Exception as e:
+            return {'error': f'Categorical analysis failed: {str(e)}'}
+
+    def run_outlier_analysis_backend(self, project_id: str, variables: Optional[List[str]] = None, 
+                                   methods: Optional[List[str]] = None) -> Dict:
+        """Run outlier detection analysis via backend"""
+        try:
+            request_data = {}
+            if variables:
+                request_data['variables'] = variables
+            if methods:
+                request_data['methods'] = methods
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/outliers', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Outlier analysis failed: {str(e)}'}
+
+    def run_missing_data_analysis_backend(self, project_id: str) -> Dict:
+        """Run missing data analysis via backend"""
+        try:
+            result = self._make_analytics_request(f'project/{project_id}/analyze/missing-data', 
+                                                method='POST')
+            return result
+            
+        except Exception as e:
+            return {'error': f'Missing data analysis failed: {str(e)}'}
+
+    def run_data_quality_analysis_backend(self, project_id: str) -> Dict:
+        """Run data quality analysis via backend"""
+        try:
+            result = self._make_analytics_request(f'project/{project_id}/analyze/data-quality', 
+                                                method='POST')
+            return result
+            
+        except Exception as e:
+            return {'error': f'Data quality analysis failed: {str(e)}'}
+
+    def generate_comprehensive_report_backend(self, project_id: str, include_plots: bool = False) -> Dict:
+        """Generate comprehensive analytics report via backend"""
+        try:
+            request_data = {'include_plots': include_plots}
+            
+            result = self._make_analytics_request(f'project/{project_id}/generate-report', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Report generation failed: {str(e)}'}

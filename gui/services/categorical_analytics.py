@@ -5,6 +5,7 @@ Specialized service for categorical data analysis and chi-square tests
 
 from typing import Dict, List, Any, Optional
 import threading
+import urllib.parse
 from kivy.clock import Clock
 from utils.cross_platform_toast import toast
 
@@ -12,9 +13,9 @@ from utils.cross_platform_toast import toast
 class CategoricalAnalyticsHandler:
     """Handler for categorical analysis operations - Business Logic Only"""
     
-    def __init__(self, analytics_service, analytics_screen):
+    def __init__(self, analytics_service, screen):
         self.analytics_service = analytics_service
-        self.analytics_screen = analytics_screen
+        self.screen = screen
         self.selected_variables = []
     
     def run_categorical_analysis(self, project_id: str, variables: Optional[List[str]] = None):
@@ -22,7 +23,7 @@ class CategoricalAnalyticsHandler:
         if not project_id:
             return
             
-        self.analytics_screen.set_loading(True)
+        self.screen.set_loading(True)
         threading.Thread(
             target=self._run_categorical_thread,
             args=(project_id, variables),
@@ -45,7 +46,7 @@ class CategoricalAnalyticsHandler:
             )
         finally:
             Clock.schedule_once(
-                lambda dt: self.analytics_screen.set_loading(False), 0
+                lambda dt: self.screen.set_loading(False), 0
             )
     
     def _handle_categorical_results(self, results):
@@ -60,8 +61,8 @@ class CategoricalAnalyticsHandler:
                 toast(f"Analysis Error: {error_msg}")
             return
         
-        # Delegate to analytics screen to handle UI display
-        self.analytics_screen.display_categorical_results(results)
+        # Delegate to screen to handle UI display
+        self.screen.display_categorical_results(results)
     
     def get_categorical_summary_data(self, summary: Dict) -> Dict:
         """Extract summary data for UI consumption"""
@@ -162,12 +163,12 @@ class CategoricalAnalyticsHandler:
     
     def run_additional_analysis(self, analysis_type: str):
         """Run additional categorical analysis"""
-        if not self.analytics_screen.current_project_id:
+        if not self.screen.current_project_id:
             toast("Please select a project first")
             return
         
-        # Delegate to analytics screen to handle UI and run analysis
-        self.analytics_screen.run_categorical_additional_analysis(analysis_type)
+        # Delegate to screen to handle UI and run analysis
+        self.screen.run_categorical_additional_analysis(analysis_type)
     
     def export_results(self, results: Dict):
         """Export categorical analysis results"""
@@ -180,7 +181,7 @@ class CategoricalAnalyticsHandler:
     
     def show_variable_selection_for_categorical(self, project_id: str):
         """Show variable selection interface - delegate to UI"""
-        self.analytics_screen.show_categorical_variable_selection_ui(project_id)
+        self.screen.show_categorical_variable_selection_ui(project_id)
     
     def _load_variables_for_selection(self, project_id: str):
         """Load variables for selection"""
@@ -202,7 +203,7 @@ class CategoricalAnalyticsHandler:
             return
         
         categorical_vars = variables.get('categorical', [])
-        self.analytics_screen.show_categorical_variable_selection(categorical_vars)
+        self.screen.show_categorical_variable_selection(categorical_vars)
     
     def update_variable_selection(self, variable: str, active: bool):
         """Update variable selection state"""
@@ -217,11 +218,121 @@ class CategoricalAnalyticsHandler:
             toast("Please select at least one variable")
             return
         
-        if not self.analytics_screen.current_project_id:
+        if not self.screen.current_project_id:
             toast("Please select a project first")
             return
         
         self.run_categorical_analysis(
-            self.analytics_screen.current_project_id, 
+            self.screen.current_project_id, 
             self.selected_variables
-        ) 
+        )
+
+    # Analytics backend methods
+    def _make_analytics_request(self, endpoint: str, method: str = 'GET', data: Dict = None) -> Dict:
+        """Make authenticated request to analytics backend"""
+        try:
+            import requests
+            base_url = "http://127.0.0.1:8001"
+            url = f"{base_url}/api/v1/analytics/descriptive/{endpoint}"
+            
+            session = requests.Session()
+            session.headers.update({
+                'Content-Type': 'application/json',
+                'User-Agent': 'DataCollect-GUI/1.0'
+            })
+            
+            if method == 'GET':
+                response = session.get(url, timeout=30)
+            elif method == 'POST':
+                if data:
+                    response = session.post(url, json=data, timeout=60)
+                else:
+                    response = session.post(url, timeout=60)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
+                
+            if response.status_code == 200:
+                result = response.json()
+                if isinstance(result, dict) and 'status' in result:
+                    if result['status'] == 'success':
+                        return result.get('data', {})
+                    else:
+                        return {'error': result.get('message', 'Unknown error')}
+                return result
+            else:
+                try:
+                    error_detail = response.json()
+                    error_msg = error_detail.get('detail', f'HTTP {response.status_code}')
+                    return {'error': error_msg}
+                except:
+                    return {'error': f'HTTP {response.status_code}: {response.text}'}
+                
+        except Exception as e:
+            return {'error': f'Request error: {str(e)}'}
+
+    def run_categorical_analysis_backend(self, project_id: str, variables: Optional[List[str]] = None) -> Dict:
+        """Run categorical analysis via backend"""
+        try:
+            params = []
+            if variables and isinstance(variables, list):
+                for var in variables:
+                    params.append(('variables', var))
+            elif variables:
+                params.append(('variables', variables))
+            
+            url = f'project/{project_id}/analyze/categorical'
+            if params:
+                query_string = urllib.parse.urlencode(params)
+                url = f"{url}?{query_string}"
+            
+            result = self._make_analytics_request(url, method='POST')
+            return result
+            
+        except Exception as e:
+            return {'error': f'Categorical analysis failed: {str(e)}'}
+
+    def run_chi_square_test_backend(self, project_id: str, var1: str, var2: str) -> Dict:
+        """Run chi-square test between two categorical variables via backend"""
+        try:
+            request_data = {
+                'test_type': 'chi_square',
+                'variable1': var1,
+                'variable2': var2
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/categorical', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Chi-square test failed: {str(e)}'}
+
+    def run_cramers_v_analysis_backend(self, project_id: str, variables: List[str]) -> Dict:
+        """Run Cramer's V analysis for categorical variables via backend"""
+        try:
+            request_data = {
+                'analysis_type': 'cramers_v',
+                'variables': variables
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/categorical', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Cramers V analysis failed: {str(e)}'}
+
+    def run_frequency_analysis_backend(self, project_id: str, variables: Optional[List[str]] = None) -> Dict:
+        """Run detailed frequency analysis via backend"""
+        try:
+            request_data = {
+                'analysis_type': 'frequency',
+                'variables': variables or []
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/categorical', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Frequency analysis failed: {str(e)}'} 

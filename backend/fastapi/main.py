@@ -15,14 +15,15 @@ async def lifespan(app: FastAPI):
     """Lifespan events for the FastAPI application."""
     # Startup
     await init_db()
-    print("Analytics engine started successfully")
+    print("Modular Analytics Engine started successfully")
+    print("Available modules: Auto-Analytics, Descriptive Analytics, Qualitative Analytics, Inferential Analytics")
     yield
     # Shutdown
-    print("Analytics engine shutting down")
+    print("Modular Analytics Engine shutting down")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    description="Streamlined analytics engine for research data collection",
+    description="Modular analytics engine for research data collection with specialized endpoints for auto-detection, descriptive, qualitative, and inferential analytics",
     version=settings.VERSION,
     lifespan=lifespan
 )
@@ -43,9 +44,17 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 @app.get("/")
 async def root():
     return {
-        "message": "Research Analytics Engine API",
+        "message": "Modular Research Analytics Engine API",
         "version": settings.VERSION,
-        "status": "running"
+        "status": "running",
+        "architecture": "modular",
+        "modules": {
+            "auto_analytics": "/api/v1/analytics/auto",
+            "descriptive_analytics": "/api/v1/analytics/descriptive",
+            "qualitative_analytics": "/api/v1/analytics/qualitative", 
+            "inferential_analytics": "/api/v1/analytics/inferential"
+        },
+        "migration_guide": "/api/v1/analytics/migration-guide"
     }
 
 if __name__ == "__main__":

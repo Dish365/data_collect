@@ -42,9 +42,9 @@
         ProjectOverviewCard:
             id: project_overview_card
         
-        # Analytics Tabs
-        AnalyticsTabsContainer:
-            id: analytics_tabs
+        # Analytics Navigation Cards
+        AnalyticsNavigationGrid:
+            id: analytics_navigation
 
 # Analytics Controls Card Component
 <AnalyticsControlsCard@MDCard>:
@@ -121,7 +121,7 @@
         size_hint_x: None
         width: dp(44)
         icon_size: "18dp"
-        on_release: app.root.get_screen('analytics').refresh_analysis()
+        on_release: app.root.get_screen('analytics').update_quick_stats()
         disabled: not app.root.get_screen('analytics').current_project_id
     
     MDIconButton:
@@ -195,112 +195,314 @@
         size_hint_y: None
         height: dp(176)
 
-# Analytics Tabs Container Component
-<AnalyticsTabsContainer@MDTabsPrimary>:
-    size_hint_y: 1
-    
-    # Tab Items (Headers)
-    MDTabsItem:
-        MDTabsItemText:
-            text: "Explore Data"
-    
-    MDTabsItem:
-        MDTabsItemText:
-            text: "Auto-Detection"
-    
-    MDTabsItem:
-        MDTabsItemText:
-            text: "Descriptive"
-    
-    MDTabsItem:
-        MDTabsItemText:
-            text: "Inferential"
-    
-    MDTabsItem:
-        MDTabsItemText:
-            text: "Qualitative"
-    
-    # Tab Content Carousel
-    MDTabsCarousel:
-        id: tabs_carousel
-        
-        # Data Exploration Tab Content
-        DataExplorationContent:
-            id: data_exploration_content
-        
-        # Auto-Detection Tab Content
-        AutoDetectionContent:
-            id: auto_detection_content
-        
-        # Descriptive Analytics Tab Content
-        DescriptiveContent:
-            id: descriptive_content
-        
-        # Inferential Statistics Tab Content
-        InferentialContent:
-            id: inferential_content
-        
-        # Qualitative Analytics Tab Content
-        QualitativeContent:
-            id: qualitative_content
-
-# Tab Content Components
-<DataExplorationContent@MDScrollView>:
-    id: data_exploration_scroll
+# Analytics Navigation Grid Component
+<AnalyticsNavigationGrid@MDScrollView>:
+    do_scroll_x: False
+    do_scroll_y: True
+    bar_width: dp(8)
     
     MDBoxLayout:
-        id: data_exploration_layout
         orientation: 'vertical'
         spacing: dp(20)
         size_hint_y: None
-        adaptive_height: True
+        height: self.minimum_height
         padding: [dp(16), dp(20), dp(16), dp(20)]
+        
+        # Welcome card (shown when no project selected)
+        AnalyticsWelcomeCard:
+            id: welcome_card
+            opacity: 0 if app.root.get_screen('analytics').current_project_id else 1
+            size_hint_y: None if app.root.get_screen('analytics').current_project_id else None
+            height: 0 if app.root.get_screen('analytics').current_project_id else dp(300)
+        
+        # Navigation grid (shown when project selected)
+        GridLayout:
+            cols: 2
+            spacing: dp(20)
+            size_hint_y: None
+            height: dp(480) if app.root.get_screen('analytics').current_project_id else 0
+            opacity: 1 if app.root.get_screen('analytics').current_project_id else 0
+            
+            # Data Exploration Card
+            DataExplorationNavigationCard:
+                id: data_exploration_card
+            
+            # Auto Detection Card
+            AutoDetectionNavigationCard:
+                id: auto_detection_card
+            
+            # Descriptive Analytics Card
+            DescriptiveAnalyticsNavigationCard:
+                id: descriptive_analytics_card
+            
+            # Qualitative Analytics Card
+            QualitativeAnalyticsNavigationCard:
+                id: qualitative_analytics_card
 
-<AutoDetectionContent@MDScrollView>:
-    id: auto_detection_scroll
+# Navigation Card Components
+<DataExplorationNavigationCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(220)
+    elevation: 3
+    md_bg_color: 0.98, 0.99, 1.0, 1
+    radius: [16, 16, 16, 16]
+    padding: [dp(20), dp(16), dp(20), dp(16)]
+    spacing: dp(12)
+    ripple_behavior: True
+    on_release: app.root.get_screen('analytics').navigate_to_data_exploration()
     
     MDBoxLayout:
-        id: auto_detection_layout
-        orientation: 'vertical'
-        spacing: dp(20)
+        orientation: 'horizontal'
+        spacing: dp(12)
         size_hint_y: None
-        adaptive_height: True
-        padding: [dp(16), dp(20), dp(16), dp(20)]
-
-<DescriptiveContent@MDScrollView>:
-    id: descriptive_scroll
+        height: dp(48)
+        
+        MDIconButton:
+            icon: "database-search"
+            theme_icon_color: "Custom"
+            icon_color: 0.2, 0.6, 1.0, 1
+            disabled: True
+            size_hint_x: None
+            width: dp(48)
+            icon_size: "32dp"
+        
+        MDLabel:
+            text: "Data Exploration"
+            theme_text_color: "Primary"
+            font_style: "Headline"
+            role: "small"
+            bold: True
+            pos_hint: {"center_y": 0.5}
+    
+    MDLabel:
+        text: "Explore and filter your survey data with advanced search, pagination, and sampling tools"
+        theme_text_color: "Secondary"
+        font_style: "Body"
+        role: "medium"
+        text_size: self.width, None
+        size_hint_y: None
+        height: dp(80)
     
     MDBoxLayout:
-        id: descriptive_layout
-        orientation: 'vertical'
-        spacing: dp(32)
+        orientation: 'horizontal'
+        spacing: dp(8)
         size_hint_y: None
-        adaptive_height: True
-        padding: [dp(16), dp(32), dp(16), dp(32)]
+        height: dp(40)
+        
+        MDButton:
+            text: "Open Explorer"
+            style: "filled"
+            size_hint_x: 1
+            theme_bg_color: "Custom"
+            md_bg_color: 0.2, 0.6, 1.0, 1
+            on_release: app.root.get_screen('analytics').navigate_to_data_exploration()
+        
+        MDIconButton:
+            icon: "arrow-right"
+            theme_icon_color: "Custom"
+            icon_color: 0.2, 0.6, 1.0, 1
+            size_hint_x: None
+            width: dp(40)
+            disabled: True
 
-<InferentialContent@MDScrollView>:
-    id: inferential_scroll
+<AutoDetectionNavigationCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(220)
+    elevation: 3
+    md_bg_color: 0.98, 1.0, 0.98, 1
+    radius: [16, 16, 16, 16]
+    padding: [dp(20), dp(16), dp(20), dp(16)]
+    spacing: dp(12)
+    ripple_behavior: True
+    on_release: app.root.get_screen('analytics').navigate_to_auto_detection()
     
     MDBoxLayout:
-        id: inferential_layout
-        orientation: 'vertical'
-        spacing: dp(20)
+        orientation: 'horizontal'
+        spacing: dp(12)
         size_hint_y: None
-        adaptive_height: True
-        padding: [dp(16), dp(20), dp(16), dp(20)]
-
-<QualitativeContent@MDScrollView>:
-    id: qualitative_scroll
+        height: dp(48)
+        
+        MDIconButton:
+            icon: "auto-fix"
+            theme_icon_color: "Custom"
+            icon_color: 0.2, 0.8, 0.6, 1
+            disabled: True
+            size_hint_x: None
+            width: dp(48)
+            icon_size: "32dp"
+        
+        MDLabel:
+            text: "Auto Detection"
+            theme_text_color: "Primary"
+            font_style: "Headline"
+            role: "small"
+            bold: True
+            pos_hint: {"center_y": 0.5}
+    
+    MDLabel:
+        text: "Intelligent analysis recommendations and automated insights based on your data characteristics"
+        theme_text_color: "Secondary"
+        font_style: "Body"
+        role: "medium"
+        text_size: self.width, None
+        size_hint_y: None
+        height: dp(80)
     
     MDBoxLayout:
-        id: qualitative_layout
-        orientation: 'vertical'
-        spacing: dp(20)
+        orientation: 'horizontal'
+        spacing: dp(8)
         size_hint_y: None
-        adaptive_height: True
-        padding: [dp(16), dp(20), dp(16), dp(20)]
+        height: dp(40)
+        
+        MDButton:
+            text: "Auto Analyze"
+            style: "filled"
+            size_hint_x: 1
+            theme_bg_color: "Custom"
+            md_bg_color: 0.2, 0.8, 0.6, 1
+            on_release: app.root.get_screen('analytics').navigate_to_auto_detection()
+        
+        MDIconButton:
+            icon: "arrow-right"
+            theme_icon_color: "Custom"
+            icon_color: 0.2, 0.8, 0.6, 1
+            size_hint_x: None
+            width: dp(40)
+            disabled: True
 
-# Tab Classes - Using standard MDTabsTab from KivyMD 2.0.1
+<DescriptiveAnalyticsNavigationCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(220)
+    elevation: 3
+    md_bg_color: 1.0, 0.98, 0.99, 1
+    radius: [16, 16, 16, 16]
+    padding: [dp(20), dp(16), dp(20), dp(16)]
+    spacing: dp(12)
+    ripple_behavior: True
+    on_release: app.root.get_screen('analytics').navigate_to_descriptive_analytics()
+    
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(48)
+        
+        MDIconButton:
+            icon: "chart-bar"
+            theme_icon_color: "Custom"
+            icon_color: 0.8, 0.2, 0.6, 1
+            disabled: True
+            size_hint_x: None
+            width: dp(48)
+            icon_size: "32dp"
+        
+        MDLabel:
+            text: "Descriptive Analytics"
+            theme_text_color: "Primary"
+            font_style: "Headline"
+            role: "small"
+            bold: True
+            pos_hint: {"center_y": 0.5}
+    
+    MDLabel:
+        text: "Comprehensive statistical analysis including distributions, correlations, and data quality assessment"
+        theme_text_color: "Secondary"
+        font_style: "Body"
+        role: "medium"
+        text_size: self.width, None
+        size_hint_y: None
+        height: dp(80)
+    
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(40)
+        
+        MDButton:
+            text: "Run Analysis"
+            style: "filled"
+            size_hint_x: 1
+            theme_bg_color: "Custom"
+            md_bg_color: 0.8, 0.2, 0.6, 1
+            on_release: app.root.get_screen('analytics').navigate_to_descriptive_analytics()
+        
+        MDIconButton:
+            icon: "arrow-right"
+            theme_icon_color: "Custom"
+            icon_color: 0.8, 0.2, 0.6, 1
+            size_hint_x: None
+            width: dp(40)
+            disabled: True
+
+<QualitativeAnalyticsNavigationCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(220)
+    elevation: 3
+    md_bg_color: 0.99, 0.98, 1.0, 1
+    radius: [16, 16, 16, 16]
+    padding: [dp(20), dp(16), dp(20), dp(16)]
+    spacing: dp(12)
+    ripple_behavior: True
+    on_release: app.root.get_screen('analytics').navigate_to_qualitative_analytics()
+    
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(48)
+        
+        MDIconButton:
+            icon: "text-box"
+            theme_icon_color: "Custom"
+            icon_color: 0.6, 0.2, 0.8, 1
+            disabled: True
+            size_hint_x: None
+            width: dp(48)
+            icon_size: "32dp"
+        
+        MDLabel:
+            text: "Qualitative Analytics"
+            theme_text_color: "Primary"
+            font_style: "Headline"
+            role: "small"
+            bold: True
+            pos_hint: {"center_y": 0.5}
+    
+    MDLabel:
+        text: "Advanced text analysis with sentiment detection, theme extraction, and qualitative insights"
+        theme_text_color: "Secondary"
+        font_style: "Body"
+        role: "medium"
+        text_size: self.width, None
+        size_hint_y: None
+        height: dp(80)
+    
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(40)
+        
+        MDButton:
+            text: "Analyze Text"
+            style: "filled"
+            size_hint_x: 1
+            theme_bg_color: "Custom"
+            md_bg_color: 0.6, 0.2, 0.8, 1
+            on_release: app.root.get_screen('analytics').navigate_to_qualitative_analytics()
+        
+        MDIconButton:
+            icon: "arrow-right"
+            theme_icon_color: "Custom"
+            icon_color: 0.6, 0.2, 0.8, 1
+            size_hint_x: None
+            width: dp(40)
+            disabled: True
 
 # Analytics Card Components
 <AnalyticsCard@MDCard>:
@@ -314,133 +516,11 @@
 
 # Note: StatCard is defined in widgets/stat_card.py and kv/stat_card.kv
 
-# State Cards - Declarative versions to replace Builder.load_string calls
-<WelcomeCard@MDCard>:
-    orientation: 'vertical'
+# Welcome Message Card (shown when no project selected)
+<AnalyticsWelcomeCard@MDCard>:
+    orientation: 'vertical'  
     size_hint_y: None
-    height: dp(600)
-    elevation: 3
-    md_bg_color: 0.98, 0.99, 1.0, 1
-    radius: [16, 16, 16, 16]
-    padding: [dp(48), dp(36), dp(48), dp(36)]
-    spacing: dp(20)
-    
-    MDBoxLayout:
-        orientation: 'vertical'
-        spacing: dp(20)
-        size_hint_y: None
-        height: dp(480)
-        pos_hint: {"center_x": 0.5}
-        
-        MDIconButton:
-            icon: "lightbulb-outline"
-            theme_icon_color: "Custom"
-            icon_color: 0.4, 0.6, 1.0, 1
-            disabled: True
-            size_hint: None, None
-            size: dp(96), dp(96)
-            pos_hint: {"center_x": 0.5}
-        
-        MDLabel:
-            text: "Analytics Dashboard"
-            font_style: "Headline"
-
-            role: "large"
-            theme_text_color: "Primary"
-            halign: "center"
-            bold: True
-            size_hint_y: None
-            height: dp(56)
-        
-        MDLabel:
-            text: "Welcome to your data analytics workspace!"
-            font_style: "Body"
-
-            role: "large"
-            theme_text_color: "Secondary"
-            halign: "center"
-            size_hint_y: None
-            height: dp(180)
-            text_size: (None, None)
-        
-        MDButton:
-            style: "filled"
-            size_hint: None, None
-            height: dp(48)
-            width: dp(200)
-            md_bg_color: 0.4, 0.6, 1.0, 1
-            pos_hint: {"center_x": 0.5}
-            on_release: app.root.get_screen('analytics').show_project_selection_guide()
-            
-            MDButtonText:
-                text: "Show Project Guide"
-                font_size: "16sp"
-
-<NoProjectsCard@MDCard>:
-    orientation: 'vertical'
-    size_hint_y: None
-    height: dp(600)
-    elevation: 3
-    md_bg_color: 0.98, 0.99, 1.0, 1
-    radius: [16, 16, 16, 16]
-    padding: [dp(48), dp(36), dp(48), dp(36)]
-    spacing: dp(20)
-    
-    MDBoxLayout:
-        orientation: 'vertical'
-        spacing: dp(20)
-        size_hint_y: None
-        height: dp(480)
-        pos_hint: {"center_x": 0.5}
-        
-        MDIconButton:
-            icon: "chart-line"
-            theme_icon_color: "Custom"
-            icon_color: 0.4, 0.6, 1.0, 1
-            disabled: True
-            size_hint: None, None
-            size: dp(96), dp(96)
-            pos_hint: {"center_x": 0.5}
-        
-        MDLabel:
-            text: "Welcome to Analytics!"
-            font_style: "Headline"
-
-            role: "large"
-            theme_text_color: "Primary"
-            halign: "center"
-            bold: True
-            size_hint_y: None
-            height: dp(56)
-        
-        MDLabel:
-            text: "To get started with data analysis:\\n\\n1. Create a new project in the Projects tab\\n2. Add some survey questions\\n3. Collect responses from participants\\n4. Return here for powerful analytics insights!"
-            font_style: "Body"
-
-            role: "large"
-            theme_text_color: "Secondary"
-            halign: "center"
-            size_hint_y: None
-            height: dp(180)
-            text_size: (None, None)
-        
-        MDButton:
-            style: "filled"
-            size_hint: None, None
-            height: dp(48)
-            width: dp(200)
-            md_bg_color: 0.4, 0.6, 1.0, 1
-            pos_hint: {"center_x": 0.5}
-            on_release: app.root.get_screen('analytics').navigate_to_projects()
-            
-            MDButtonText:
-                text: "Go to Projects"
-                font_size: "16sp"
-
-<SelectProjectCard@MDCard>:
-    orientation: 'vertical'
-    size_hint_y: None  
-    height: dp(400)
+    height: dp(300)
     elevation: 2
     radius: [16, 16, 16, 16]
     padding: [dp(32), dp(24), dp(32), dp(24)]
@@ -448,9 +528,9 @@
     md_bg_color: 0.98, 0.99, 1.0, 1
     
     MDIconButton:
-        icon: "information"
+        icon: "chart-line"
         theme_icon_color: "Custom"
-        icon_color: 0.6, 0.6, 0.6, 1
+        icon_color: 0.4, 0.6, 1.0, 1
         size_hint: None, None
         size: dp(64), dp(64)
         icon_size: "48dp"
@@ -458,174 +538,36 @@
         disabled: True
     
     MDLabel:
-        text: "Select a project to begin analysis"
+        text: "Analytics Hub"
         font_style: "Headline"
-
-        role: "medium"
-        theme_text_color: "Secondary"
+        role: "large"
+        theme_text_color: "Primary"
         halign: "center"
         bold: True
-
-<AnalyticsLoadingCard@MDCard>:
-    loading_text: "Analyzing your data..."
-    
-    orientation: 'vertical'
-    size_hint_y: None
-    height: dp(200)
-    elevation: 2
-    radius: [12, 12, 12, 12]
-    padding: dp(24)
-    spacing: dp(16)
-    md_bg_color: 0.98, 0.98, 0.98, 1
-    
-    MDCircularProgressIndicator:
-        id: loading_spinner
-        size_hint: None, None
-        size: dp(48), dp(48)
-        pos_hint: {'center_x': 0.5}
-        active: True
+        size_hint_y: None
+        height: dp(48)
     
     MDLabel:
-        text: root.loading_text
-        font_style: "Headline"
-
-        role: "small"
+        text: "Select a project above to access powerful analytics features for your survey data"
+        font_style: "Body"
+        role: "large"
         theme_text_color: "Secondary"
         halign: "center"
-
-<ErrorCard@MDCard>:
-    error_title: "Analytics Backend Unavailable"
-    error_message: "The analytics backend is not responding."
-    
-    orientation: 'vertical'
-    size_hint_y: None
-    height: dp(320)
-    elevation: 3
-    md_bg_color: 1, 0.95, 0.95, 1
-    radius: [16, 16, 16, 16]
-    padding: dp(24)
-    spacing: dp(16)
-    
-    MDBoxLayout:
-        orientation: 'horizontal'
-        spacing: dp(16)
+        text_size: self.width, None
         size_hint_y: None
-        height: dp(56)
-        
-        MDIconButton:
-            icon: "alert-circle-outline"
-            theme_icon_color: "Custom"
-            icon_color: 0.8, 0.2, 0.2, 1
-            disabled: True
-            size_hint: None, None
-            size: dp(48), dp(48)
-            pos_hint: {"center_y": 0.5}
-        
-        MDLabel:
-            text: root.error_title
-            font_style: "Headline"
-
-            role: "medium"
-            theme_text_color: "Custom"
-            text_color: 0.8, 0.2, 0.2, 1
-            bold: True
-            pos_hint: {"center_y": 0.5}
-    
-    MDLabel:
-        text: root.error_message
-        font_style: "Body"
-
-        role: "large"
-        theme_text_color: "Custom"
-        text_color: 0.6, 0.1, 0.1, 1
-        size_hint_y: None
-        height: dp(160)
-    
-    MDBoxLayout:
-        orientation: 'horizontal'
-        spacing: dp(16)
-        size_hint_y: None
-        height: dp(56)
-        
-        MDButton:
-            style: "filled"
-            size_hint_x: 1
-            height: dp(48)
-            md_bg_color: 0.8, 0.4, 0.2, 1
-            on_release: app.root.get_screen('analytics').load_tab_content()
-            
-            MDButtonText:
-                text: "Retry Connection"
-                font_size: "16sp"
-        
-        MDButton:
-            style: "text"
-            size_hint_x: 0.6
-            height: dp(48)
-            on_release: app.root.get_screen('analytics').show_backend_help()
-            
-            MDButtonText:
-                text: "Get Help"
-                font_size: "16sp"
-
-<ComingSoonCard@MDCard>:
-    feature_title: "Coming Soon"
-    feature_description: "This feature is under development."
-    feature_icon: "flask-outline"
-    
-    orientation: 'vertical'
-    size_hint_y: None
-    height: dp(350)
-    elevation: 3
-    md_bg_color: 0.99, 0.98, 1.0, 1
-    radius: [16, 16, 16, 16]
-    padding: dp(24)
-    spacing: dp(20)
-    
-    MDBoxLayout:
-        orientation: 'horizontal'
-        spacing: dp(16)
-        size_hint_y: None
-        height: dp(56)
-        
-        MDIconButton:
-            icon: root.feature_icon
-            theme_icon_color: "Custom"
-            icon_color: 0.4, 0.2, 0.8, 1
-            disabled: True
-            size_hint: None, None
-            size: dp(48), dp(48)
-            pos_hint: {"center_y": 0.5}
-        
-        MDLabel:
-            text: root.feature_title
-            font_style: "Headline"
-
-            role: "large"
-            theme_text_color: "Primary"
-            bold: True
-            pos_hint: {"center_y": 0.5}
-    
-    MDLabel:
-        text: root.feature_description
-        font_style: "Body"
-
-        role: "large"
-        theme_text_color: "Secondary"
-        size_hint_y: None
-        height: dp(220)
+        height: dp(80)
     
     MDButton:
         style: "filled"
         size_hint: None, None
         height: dp(48)
         width: dp(200)
-        md_bg_color: 0.4, 0.2, 0.8, 1
+        md_bg_color: 0.4, 0.6, 1.0, 1
         pos_hint: {"center_x": 0.5}
-        on_release: app.root.get_screen('analytics').request_early_access()
+        on_release: app.root.get_screen('analytics').navigate_to_projects()
         
         MDButtonText:
-            text: "Request Early Access"
+            text: "Go to Projects"
             font_size: "16sp"
 
 # Button Components

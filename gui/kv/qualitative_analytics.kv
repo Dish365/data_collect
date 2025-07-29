@@ -1,0 +1,916 @@
+#:kivy 2.0
+#:import MDCard kivymd.uix.card.MDCard
+#:import MDScrollView kivymd.uix.scrollview.MDScrollView
+#:import MDLabel kivymd.uix.label.MDLabel
+#:import MDButton kivymd.uix.button.MDButton
+#:import MDIconButton kivymd.uix.button.MDIconButton
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDTextField kivymd.uix.textfield.MDTextField
+#:import MDCheckbox kivymd.uix.selectioncontrol.MDCheckbox
+#:import MDDropdownMenu kivymd.uix.menu.MDDropdownMenu
+#:import MDCircularProgressIndicator kivymd.uix.progressindicator.MDCircularProgressIndicator
+#:import MDDialog kivymd.uix.dialog.MDDialog
+#:import MDDialogHeadlineText kivymd.uix.dialog.MDDialogHeadlineText
+#:import MDDialogSupportingText kivymd.uix.dialog.MDDialogSupportingText
+#:import MDDialogButtonContainer kivymd.uix.dialog.MDDialogButtonContainer
+#:import GridLayout kivy.uix.gridlayout.GridLayout
+#:import dp kivy.metrics.dp
+
+# Main Qualitative Analytics Screen Layout
+<QualitativeAnalyticsScreen>:
+    name: 'qualitative_analytics'
+    
+    MDScrollView:
+        MDBoxLayout:
+            id: main_content
+            orientation: 'vertical'
+            spacing: dp(16)
+            padding: [dp(24), dp(8), dp(24), dp(20)]
+            size_hint_y: None
+            height: self.minimum_height
+            
+            # Top Navigation Bar
+            TopBar:
+                id: top_bar
+                size_hint_y: None
+                height: dp(56)
+            
+            # Project Selection Card
+            QualitativeProjectCard:
+                id: project_selection_card
+            
+            # Analysis Controls Card
+            QualitativeControlsCard:
+                id: analysis_controls_card
+            
+            # Text Analysis Overview Card
+            QualitativeOverviewCard:
+                id: overview_card
+            
+            # Analysis Results Card
+            QualitativeResultsCard:
+                id: results_card
+            
+            # Action Buttons Card
+            QualitativeActionsCard:
+                id: actions_card
+
+# Project Selection Card Component
+<QualitativeProjectCard@MDCard>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: dp(64)
+    elevation: 2
+    md_bg_color: 0.98, 0.99, 1.0, 1
+    radius: [12, 12, 12, 12]
+    padding: [dp(20), dp(12), dp(20), dp(12)]
+    spacing: dp(16)
+    
+    # Title Section
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_x: 0.4
+        
+        MDIconButton:
+            icon: "text-box"
+            theme_icon_color: "Custom"
+            icon_color: 0.6, 0.2, 0.8, 1
+            size_hint_x: None
+            width: dp(36)
+            icon_size: "20dp"
+            disabled: True
+        
+        MDLabel:
+            text: "Qualitative Analytics"
+            theme_text_color: "Primary"
+            font_style: "Headline"
+            role: "small"
+            bold: True
+            halign: "left"
+            valign: "center"
+    
+    # Project Selector
+    MDButton:
+        id: project_selector
+        text: "Select Project"
+        style: "filled"
+        size_hint_x: 0.4
+        theme_bg_color: "Custom"
+        md_bg_color: 0.6, 0.2, 0.8, 1
+        on_release: root.show_project_menu()
+    
+    # Analysis Status
+    MDLabel:
+        id: analysis_status_label
+        text: "Status: Ready"
+        theme_text_color: "Secondary"
+        font_style: "Body"
+        role: "medium"
+        size_hint_x: 0.2
+        halign: "right"
+        valign: "center"
+
+# Analysis Controls Card Component
+<QualitativeControlsCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(180)
+    elevation: 3
+    md_bg_color: 0.98, 1.0, 0.98, 1
+    radius: [12, 12, 12, 12]
+    padding: [dp(16), dp(16), dp(16), dp(16)]
+    spacing: dp(12)
+    
+    # Header
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(36)
+        
+        MDIconButton:
+            icon: "play-circle"
+            theme_icon_color: "Custom"
+            icon_color: 0.6, 0.2, 0.8, 1
+            disabled: True
+            size_hint: None, None
+            size: dp(32), dp(32)
+        
+        MDLabel:
+            text: "Text Analysis Controls"
+            theme_text_color: "Primary"
+            font_style: "Headline"
+            role: "small"
+            bold: True
+            size_hint_y: None
+            height: dp(36)
+        
+        MDLabel:
+            text: root.get_analysis_summary()
+            theme_text_color: "Secondary"
+            font_style: "Body"
+            role: "medium"
+            halign: "right"
+            size_hint_y: None
+            height: dp(36)
+    
+    # Main analysis button
+    MDButton:
+        text: "Run Text Analysis"
+        style: "filled"
+        size_hint_y: None
+        height: dp(48)
+        theme_bg_color: "Custom"
+        md_bg_color: 0.6, 0.2, 0.8, 1
+        on_release: root.run_text_analysis()
+    
+    # Quick analysis buttons row
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(40)
+        
+        MDButton:
+            text: "Sentiment"
+            style: "outlined"
+            size_hint_x: 0.33
+            theme_outline_color: "Custom"
+            line_color: 0.2, 0.8, 0.6, 1
+            on_release: root.run_sentiment_analysis()
+        
+        MDButton:
+            text: "Themes"
+            style: "outlined"
+            size_hint_x: 0.33
+            theme_outline_color: "Custom"
+            line_color: 0.6, 0.2, 0.8, 1
+            on_release: root.run_theme_analysis()
+        
+        MDButton:
+            text: "More Options"
+            style: "text"
+            size_hint_x: 0.34
+            theme_text_color: "Custom"
+            text_color: 0.6, 0.6, 0.6, 1
+            on_release: root.show_analysis_type_dialog()
+    
+    # Analysis status row
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(24)
+        
+        MDLabel:
+            text: "Analysis Status:"
+            theme_text_color: "Secondary"
+            font_style: "Body"
+            role: "small"
+            size_hint_x: 0.3
+        
+        MDLabel:
+            text: "Complete" if root.is_analysis_complete() else "Pending"
+            theme_text_color: "Primary" if root.is_analysis_complete() else "Secondary"
+            font_style: "Body"
+            role: "small"
+            size_hint_x: 0.7
+            halign: "right"
+
+# Text Analysis Overview Card Component
+<QualitativeOverviewCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(200)
+    elevation: 2
+    md_bg_color: 0.98, 1.0, 0.98, 1
+    radius: [12, 12, 12, 12]
+    padding: [dp(16), dp(16), dp(16), dp(16)]
+    spacing: dp(12)
+    opacity: 1 if root.text_analysis_summary else 0.5
+    
+    # Header
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(36)
+        
+        MDIconButton:
+            icon: "text-box-search"
+            theme_icon_color: "Custom"
+            icon_color: 0.6, 0.2, 0.8, 1
+            disabled: True
+            size_hint: None, None
+            size: dp(32), dp(32)
+        
+        MDLabel:
+            text: "Text Analysis Overview"
+            theme_text_color: "Primary"
+            font_style: "Headline"
+            role: "small"
+            bold: True
+    
+    # Overview content
+    MDScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+        bar_width: dp(8)
+        
+        MDBoxLayout:
+            orientation: 'vertical'
+            spacing: dp(8)
+            size_hint_y: None
+            height: self.minimum_height
+            
+            # Text fields info
+            MDLabel:
+                text: f"Text Fields Analyzed: {root.text_analysis_summary.get('text_fields_analyzed', 0)}"
+                theme_text_color: "Primary"
+                font_style: "Body"
+                role: "medium"
+                size_hint_y: None
+                height: dp(24)
+            
+            # Total entries info
+            MDLabel:
+                text: f"Total Text Entries: {root.text_analysis_summary.get('total_text_entries', 'N/A')}"
+                theme_text_color: "Secondary"
+                font_style: "Body"
+                role: "small"
+                size_hint_y: None
+                height: dp(20)
+            
+            # Fields list
+            MDLabel:
+                text: f"Fields: {', '.join(root.text_analysis_summary.get('fields', []))}{'...' if root.text_analysis_summary.get('has_more_fields', False) else ''}"
+                theme_text_color: "Secondary"
+                font_style: "Body"
+                role: "small"
+                text_size: self.width, None
+                size_hint_y: None
+                height: dp(60)
+            
+            # Status
+            MDLabel:
+                text: root.text_analysis_summary.get('status', 'No analysis completed yet')
+                theme_text_color: "Primary"
+                font_style: "Body"
+                role: "medium"
+                size_hint_y: None
+                height: dp(24)
+
+# Analysis Results Card Component
+<QualitativeResultsCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(500)
+    elevation: 2
+    md_bg_color: 1, 1, 1, 1
+    radius: [12, 12, 12, 12]
+    padding: [dp(16), dp(16), dp(16), dp(16)]
+    spacing: dp(12)
+    
+    # Header
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(36)
+        
+        MDIconButton:
+            icon: "chart-donut"
+            theme_icon_color: "Custom"
+            icon_color: 0.8, 0.4, 0.2, 1
+            disabled: True
+            size_hint: None, None
+            size: dp(32), dp(32)
+        
+        MDLabel:
+            text: "Text Analysis Results"
+            theme_text_color: "Primary"
+            font_style: "Headline"
+            role: "small"
+            bold: True
+        
+        # Result type tabs
+        MDBoxLayout:
+            orientation: 'horizontal'
+            spacing: dp(4)
+            size_hint_x: 0.6
+            
+            MDButton:
+                id: text_results_tab
+                text: "Text Analysis"
+                style: "text"
+                size_hint_x: 0.33
+                theme_text_color: "Custom"
+                text_color: 0.6, 0.2, 0.8, 1
+                on_release: root.switch_results_tab("text")
+            
+            MDButton:
+                id: sentiment_tab
+                text: "Sentiment"
+                style: "text"
+                size_hint_x: 0.33
+                theme_text_color: "Custom"
+                text_color: 0.6, 0.6, 0.6, 1
+                on_release: root.switch_results_tab("sentiment")
+            
+            MDButton:
+                id: themes_tab
+                text: "Themes"
+                style: "text"
+                size_hint_x: 0.34
+                theme_text_color: "Custom"
+                text_color: 0.6, 0.6, 0.6, 1
+                on_release: root.switch_results_tab("themes")
+    
+    # Results content
+    MDScrollView:
+        id: results_content
+        do_scroll_x: False
+        do_scroll_y: True
+        bar_width: dp(8)
+        
+        MDBoxLayout:
+            id: results_display
+            orientation: 'vertical'
+            spacing: dp(12)
+            size_hint_y: None
+            height: self.minimum_height
+            
+            # Default message when no results
+            QualitativeEmptyResults:
+
+# Action Buttons Card Component
+<QualitativeActionsCard@MDCard>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: dp(80)
+    elevation: 2
+    md_bg_color: 0.96, 0.96, 0.96, 1
+    radius: [12, 12, 12, 12]
+    padding: [dp(16), dp(12), dp(16), dp(12)]
+    spacing: dp(12)
+    
+    # Export actions
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(8)
+        size_hint_x: 0.6
+        
+        MDButton:
+            text: "Export JSON"
+            style: "filled"
+            size_hint_x: 0.33
+            theme_bg_color: "Custom"
+            md_bg_color: 0.6, 0.2, 0.8, 1
+            on_release: root.export_to_json()
+        
+        MDButton:
+            text: "Export CSV"
+            style: "outlined"
+            size_hint_x: 0.33
+            theme_outline_color: "Custom"
+            line_color: 0.6, 0.2, 0.8, 1
+            on_release: root.export_to_csv()
+        
+        MDButton:
+            text: "Share Results"
+            style: "text"
+            size_hint_x: 0.34
+            theme_text_color: "Custom"
+            text_color: 0.6, 0.2, 0.8, 1
+            on_release: root.share_results()
+    
+    # Analysis actions
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(8)
+        size_hint_x: 0.4
+        
+        MDButton:
+            text: "Clear Results"
+            style: "text"
+            size_hint_x: 0.5
+            theme_text_color: "Custom"
+            text_color: 0.8, 0.4, 0.4, 1
+            on_release: root.clear_results()
+        
+        MDButton:
+            text: "View Details"
+            style: "text"
+            size_hint_x: 0.5
+            theme_text_color: "Custom"
+            text_color: 0.6, 0.6, 0.6, 1
+            on_release: root.show_detailed_text_results()
+
+# Analysis Type Selection Dialog
+<AnalysisTypeDialog@MDDialog>:
+    id: analysis_type_dialog
+    
+    MDDialogHeadlineText:
+        text: "Analysis Type Selection"
+    
+    MDDialogSupportingText:
+        text: "Choose the type of qualitative analysis to perform"
+    
+    MDBoxLayout:
+        orientation: 'vertical'
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(300)
+        padding: [dp(16), dp(16), dp(16), dp(16)]
+        
+        # Text Analysis Option
+        MDButton:
+            text: "Text Analysis"
+            style: "outlined"
+            size_hint_y: None
+            height: dp(48)
+            theme_outline_color: "Custom"
+            line_color: 0.6, 0.2, 0.8, 1
+            on_release: root.run_analysis_by_type("text")
+        
+        # Sentiment Analysis Option
+        MDButton:
+            text: "Sentiment Analysis"
+            style: "outlined"
+            size_hint_y: None
+            height: dp(48)
+            theme_outline_color: "Custom"
+            line_color: 0.2, 0.8, 0.6, 1
+            on_release: root.run_analysis_by_type("sentiment")
+        
+        # Theme Analysis Option
+        MDButton:
+            text: "Theme Analysis"
+            style: "outlined"
+            size_hint_y: None
+            height: dp(48)
+            theme_outline_color: "Custom"
+            line_color: 0.6, 0.2, 0.8, 1
+            on_release: root.run_analysis_by_type("theme")
+        
+        # Word Frequency Option
+        MDButton:
+            text: "Word Frequency Analysis"
+            style: "text"
+            size_hint_y: None
+            height: dp(48)
+            theme_text_color: "Custom"
+            text_color: 0.6, 0.6, 0.6, 1
+            on_release: root.run_analysis_by_type("word_frequency")
+    
+    MDDialogButtonContainer:
+        MDButton:
+            text: "Close"
+            style: "text"
+            on_release: analysis_type_dialog.dismiss()
+
+# Text Results Display Component
+<TextResultsDisplay@MDCard>:
+    text_data: {}
+    
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(300)
+    elevation: 1
+    md_bg_color: 1.0, 0.99, 1.0, 1
+    radius: [8, 8, 8, 8]
+    padding: [dp(12), dp(12), dp(12), dp(12)]
+    spacing: dp(8)
+    
+    MDLabel:
+        text: "Text Analysis Complete!"
+        theme_text_color: "Primary"
+        font_style: "Body"
+        role: "medium"
+        bold: True
+        size_hint_y: None
+        height: dp(24)
+    
+    GridLayout:
+        cols: 2
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(160)
+        
+        MDLabel:
+            text: f"Field Analyzed: {root.text_data.get('field_analyzed', 'N/A')}"
+            theme_text_color: "Primary"
+            font_style: "Body"
+            role: "small"
+        
+        MDLabel:
+            text: f"Total Entries: {root.text_data.get('total_entries', 'N/A')}"
+            theme_text_color: "Secondary"
+            font_style: "Body"
+            role: "small"
+        
+        MDLabel:
+            text: f"Average Length: {root.text_data.get('average_length', 0):.1f} chars"
+            theme_text_color: "Secondary"
+            font_style: "Body"
+            role: "small"
+        
+        MDLabel:
+            text: f"Word Count: {root.text_data.get('word_count', 'N/A')}"
+            theme_text_color: "Secondary"
+            font_style: "Body"
+            role: "small"
+        
+        MDLabel:
+            text: f"Unique Entries: {root.text_data.get('unique_entries', 'N/A')}"
+            theme_text_color: "Secondary"
+            font_style: "Body"
+            role: "small"
+    
+    # Action buttons
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(40)
+        
+        MDButton:
+            text: "View Details"
+            style: "filled"
+            size_hint_x: 0.6
+            theme_bg_color: "Custom"
+            md_bg_color: 0.6, 0.2, 0.8, 1
+            on_release: root.show_detailed_text_results()
+        
+        MDButton:
+            text: "Export"
+            style: "outlined"
+            size_hint_x: 0.4
+            theme_outline_color: "Custom"
+            line_color: 0.6, 0.6, 0.6, 1
+            on_release: root.export_text_results()
+
+# Sentiment Analysis Display Component
+<SentimentAnalysisDisplay@MDCard>:
+    sentiment_data: {}
+    
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(350)
+    elevation: 1
+    md_bg_color: 0.98, 1.0, 0.98, 1
+    radius: [8, 8, 8, 8]
+    padding: [dp(12), dp(12), dp(12), dp(12)]
+    spacing: dp(8)
+    
+    MDLabel:
+        text: "Sentiment Analysis Results"
+        theme_text_color: "Primary"
+        font_style: "Body"
+        role: "medium"
+        bold: True
+        size_hint_y: None
+        height: dp(24)
+    
+    # Sentiment distribution grid
+    GridLayout:
+        cols: 3
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(120)
+        
+        # Positive sentiment
+        MDCard:
+            orientation: 'vertical'
+            padding: dp(8)
+            md_bg_color: 0.2, 0.8, 0.2, 0.2
+            elevation: 1
+            radius: [8, 8, 8, 8]
+            
+            MDLabel:
+                text: "Positive"
+                theme_text_color: "Custom"
+                text_color: 0.2, 0.8, 0.2, 1
+                font_style: "Body"
+                role: "small"
+                halign: "center"
+                size_hint_y: None
+                height: dp(20)
+            
+            MDLabel:
+                text: str(root.sentiment_data.get('sentiment_distribution', [{}])[0].get('count', 0))
+                theme_text_color: "Custom"
+                text_color: 0.2, 0.8, 0.2, 1
+                font_style: "Headline"
+                role: "small"
+                halign: "center"
+                size_hint_y: None
+                height: dp(30)
+        
+        # Neutral sentiment
+        MDCard:
+            orientation: 'vertical'
+            padding: dp(8)
+            md_bg_color: 0.5, 0.5, 0.5, 0.2
+            elevation: 1
+            radius: [8, 8, 8, 8]
+            
+            MDLabel:
+                text: "Neutral"
+                theme_text_color: "Custom"
+                text_color: 0.5, 0.5, 0.5, 1
+                font_style: "Body"
+                role: "small"
+                halign: "center"
+                size_hint_y: None
+                height: dp(20)
+            
+            MDLabel:
+                text: str(root.sentiment_data.get('sentiment_distribution', [{}, {}])[1].get('count', 0))
+                theme_text_color: "Custom"
+                text_color: 0.5, 0.5, 0.5, 1
+                font_style: "Headline"
+                role: "small"
+                halign: "center"
+                size_hint_y: None
+                height: dp(30)
+        
+        # Negative sentiment
+        MDCard:
+            orientation: 'vertical'
+            padding: dp(8)
+            md_bg_color: 0.8, 0.2, 0.2, 0.2
+            elevation: 1
+            radius: [8, 8, 8, 8]
+            
+            MDLabel:
+                text: "Negative"
+                theme_text_color: "Custom"
+                text_color: 0.8, 0.2, 0.2, 1
+                font_style: "Body"
+                role: "small"
+                halign: "center"
+                size_hint_y: None
+                height: dp(20)
+            
+            MDLabel:
+                text: str(root.sentiment_data.get('sentiment_distribution', [{}, {}, {}])[2].get('count', 0))
+                theme_text_color: "Custom"
+                text_color: 0.8, 0.2, 0.2, 1
+                font_style: "Headline"
+                role: "small"
+                halign: "center"
+                size_hint_y: None
+                height: dp(30)
+    
+    # Overall sentiment summary
+    MDBoxLayout:
+        orientation: 'vertical'
+        spacing: dp(4)
+        size_hint_y: None
+        height: dp(80)
+        
+        MDLabel:
+            text: f"Overall Sentiment: {root.sentiment_data.get('overall_sentiment', 'neutral').title()}"
+            theme_text_color: "Primary"
+            font_style: "Body"
+            role: "medium"
+            size_hint_y: None
+            height: dp(24)
+        
+        MDLabel:
+            text: f"Confidence: {root.sentiment_data.get('confidence', 0):.2f}"
+            theme_text_color: "Secondary"
+            font_style: "Body"
+            role: "small"
+            size_hint_y: None
+            height: dp(20)
+        
+        MDLabel:
+            text: f"Total Analyzed: {root.sentiment_data.get('total_analyzed', 0)} responses"
+            theme_text_color: "Secondary"
+            font_style: "Body"
+            role: "small"
+            size_hint_y: None
+            height: dp(20)
+
+# Theme Analysis Display Component
+<ThemeAnalysisDisplay@MDCard>:
+    theme_data: []
+    
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(350)
+    elevation: 1
+    md_bg_color: 0.99, 0.98, 1.0, 1
+    radius: [8, 8, 8, 8]
+    padding: [dp(12), dp(12), dp(12), dp(12)]
+    spacing: dp(8)
+    
+    MDLabel:
+        text: "Theme Analysis Results"
+        theme_text_color: "Primary"
+        font_style: "Body"
+        role: "medium"
+        bold: True
+        size_hint_y: None
+        height: dp(24)
+    
+    # Themes list
+    MDScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+        bar_width: dp(8)
+        
+        MDBoxLayout:
+            orientation: 'vertical'
+            spacing: dp(4)
+            size_hint_y: None
+            height: self.minimum_height
+            
+            # Theme items - populated dynamically based on theme_data
+
+# Word Frequency Display Component
+<WordFrequencyDisplay@MDCard>:
+    word_data: []
+    
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(350)
+    elevation: 1
+    md_bg_color: 1.0, 0.99, 0.98, 1
+    radius: [8, 8, 8, 8]
+    padding: [dp(12), dp(12), dp(12), dp(12)]
+    spacing: dp(8)
+    
+    MDLabel:
+        text: "Most Common Words"
+        theme_text_color: "Primary"
+        font_style: "Body"
+        role: "medium"
+        bold: True
+        size_hint_y: None
+        height: dp(24)
+    
+    # Word frequency list
+    MDScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+        bar_width: dp(8)
+        
+        MDBoxLayout:
+            orientation: 'vertical'
+            spacing: dp(4)
+            size_hint_y: None
+            height: self.minimum_height
+            
+            # Word items - populated dynamically based on word_data
+
+# Empty Results State Component
+<QualitativeEmptyResults@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(20)
+    size_hint_y: None
+    height: dp(300)
+    padding: [dp(40), dp(30), dp(40), dp(30)]
+    
+    MDIconButton:
+        icon: "text-box-outline"
+        theme_icon_color: "Custom"
+        icon_color: 0.6, 0.6, 0.6, 1
+        disabled: True
+        size_hint: None, None
+        size: dp(48), dp(48)
+        pos_hint: {'center_x': 0.5}
+    
+    MDLabel:
+        text: "No text analysis results yet"
+        theme_text_color: "Secondary"
+        font_style: "Headline"
+        role: "small"
+        halign: "center"
+    
+    MDLabel:
+        text: "Select a project and run text analysis to see qualitative insights"
+        theme_text_color: "Hint"
+        font_style: "Body"
+        role: "medium"
+        halign: "center"
+        text_size: dp(300), None
+
+# Loading State Component
+<QualitativeLoadingCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(300)
+    elevation: 3
+    md_bg_color: 0.98, 1.0, 0.98, 1
+    radius: [12, 12, 12, 12]
+    padding: [dp(40), dp(30), dp(40), dp(30)]
+    spacing: dp(24)
+    
+    MDCircularProgressIndicator:
+        size_hint: None, None
+        size: dp(48), dp(48)
+        pos_hint: {'center_x': 0.5}
+    
+    MDLabel:
+        text: "Running text analysis..."
+        theme_text_color: "Secondary"
+        font_style: "Headline"
+        role: "small"
+        halign: "center"
+    
+    MDLabel:
+        text: "Please wait while we analyze your qualitative data"
+        theme_text_color: "Hint"
+        font_style: "Body"
+        role: "medium"
+        halign: "center"
+
+# Error State Component
+<QualitativeErrorCard@MDCard>:
+    error_message: ""
+    
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(300)
+    elevation: 3
+    md_bg_color: 1.0, 0.96, 0.96, 1
+    radius: [12, 12, 12, 12]
+    padding: [dp(40), dp(30), dp(40), dp(30)]
+    spacing: dp(24)
+    
+    MDIconButton:
+        icon: "alert-circle-outline"
+        theme_icon_color: "Custom"
+        icon_color: 0.8, 0.2, 0.2, 1
+        disabled: True
+        size_hint: None, None
+        size: dp(64), dp(64)
+        pos_hint: {'center_x': 0.5}
+    
+    MDLabel:
+        text: f"Text Analysis Error: {root.error_message}"
+        theme_text_color: "Error"
+        font_style: "Headline"
+        role: "small"
+        halign: "center"
+        text_size: dp(400), None
+    
+    MDLabel:
+        text: "Please try again or contact support if the issue persists"
+        theme_text_color: "Secondary"
+        font_style: "Body"
+        role: "medium"
+        halign: "center"
+    
+    MDButton:
+        text: "Retry Analysis"
+        style: "filled"
+        size_hint: None, None
+        size: dp(140), dp(40)
+        pos_hint: {'center_x': 0.5}
+        theme_bg_color: "Custom"
+        md_bg_color: 0.6, 0.2, 0.8, 1 

@@ -6,7 +6,19 @@ from typing import Dict, List, Any, Optional
 
 
 class AnalyticsService:
-    """Enhanced service for handling comprehensive analytics operations and backend communication"""
+    """Enhanced service for handling comprehensive analytics operations and backend communication
+    
+    Note: Many specific analytics methods have been moved to dedicated service classes:
+    - Data exploration: DataExplorationService
+    - Auto detection: AutoDetectionAnalyticsHandler  
+    - Descriptive analytics: DescriptiveAnalyticsHandler
+    - Qualitative analytics: QualitativeAnalyticsHandler
+    
+    This service now primarily handles:
+    - Core backend communication
+    - Legacy method wrappers for backward compatibility
+    - General analytics operations
+    """
     
     def __init__(self, auth_service, db_service):
         self.auth_service = auth_service
@@ -95,7 +107,7 @@ class AnalyticsService:
                 return self.cache[cache_key]['data']
         
         try:
-            result = self._make_analytics_request(f"project/{project_id}/stats")
+            result = self._make_analytics_request(f"auto/project/{project_id}/stats")
             
             if 'error' not in result:
                 # Cache successful result
@@ -120,7 +132,7 @@ class AnalyticsService:
                 return self.cache[cache_key]['data']
         
         try:
-            result = self._make_analytics_request(f'project/{project_id}/data-characteristics')
+            result = self._make_analytics_request(f'auto/project/{project_id}/data-characteristics')
             
             if 'error' not in result:
                 # Cache successful result
@@ -145,7 +157,7 @@ class AnalyticsService:
                 return self.cache[cache_key]['data']
         
         try:
-            result = self._make_analytics_request(f'project/{project_id}/recommendations')
+            result = self._make_analytics_request(f'auto/project/{project_id}/recommendations')
             
             if 'error' not in result:
                 # Cache successful result
@@ -162,7 +174,7 @@ class AnalyticsService:
     def get_available_analysis_types(self) -> Dict:
         """Get all available analysis types from backend"""
         try:
-            result = self._make_analytics_request('analysis-types')
+            result = self._make_analytics_request('auto/analysis-types')
             return result
         except Exception as e:
             return {'error': f'Error getting analysis types: {str(e)}'}
@@ -170,7 +182,7 @@ class AnalyticsService:
     def get_analytics_endpoints(self) -> Dict:
         """Get all available analytics endpoints"""
         try:
-            result = self._make_analytics_request('endpoints')
+            result = self._make_analytics_request('auto/endpoints')
             return result
         except Exception as e:
             return {'error': f'Error getting endpoints: {str(e)}'}
@@ -191,7 +203,7 @@ class AnalyticsService:
             elif target_variables:
                 params.append(('target_variables', target_variables))
             
-            url = f"project/{project_id}/analyze"
+            url = f"auto/project/{project_id}/analyze"
             if params:
                 query_string = urllib.parse.urlencode(params)
                 url = f"{url}?{query_string}"
@@ -216,7 +228,7 @@ class AnalyticsService:
             elif variables:
                 params.append(('variables', variables))
             
-            url = f'project/{project_id}/analyze/basic-statistics'
+            url = f'descriptive/project/{project_id}/analyze/basic-statistics'
             if params:
                 query_string = urllib.parse.urlencode(params)
                 url = f"{url}?{query_string}"
@@ -239,7 +251,7 @@ class AnalyticsService:
             elif variables:
                 params.append(('variables', variables))
             
-            url = f'project/{project_id}/analyze/distributions'
+            url = f'descriptive/project/{project_id}/analyze/distributions'
             if params:
                 query_string = urllib.parse.urlencode(params)
                 url = f"{url}?{query_string}"
@@ -262,7 +274,7 @@ class AnalyticsService:
             elif variables:
                 params.append(('variables', variables))
             
-            url = f'project/{project_id}/analyze/categorical'
+            url = f'descriptive/project/{project_id}/analyze/categorical'
             if params:
                 query_string = urllib.parse.urlencode(params)
                 url = f"{url}?{query_string}"
@@ -283,7 +295,7 @@ class AnalyticsService:
             if methods:
                 request_data['methods'] = methods
             
-            result = self._make_analytics_request(f'project/{project_id}/analyze/outliers', 
+            result = self._make_analytics_request(f'descriptive/project/{project_id}/analyze/outliers', 
                                                 method='POST', data=request_data)
             return result
             
@@ -293,7 +305,7 @@ class AnalyticsService:
     def run_missing_data_analysis(self, project_id: str) -> Dict:
         """Run missing data analysis"""
         try:
-            result = self._make_analytics_request(f'project/{project_id}/analyze/missing-data', 
+            result = self._make_analytics_request(f'descriptive/project/{project_id}/analyze/missing-data', 
                                                 method='POST')
             return result
             
@@ -303,7 +315,7 @@ class AnalyticsService:
     def run_data_quality_analysis(self, project_id: str) -> Dict:
         """Run data quality analysis"""
         try:
-            result = self._make_analytics_request(f'project/{project_id}/analyze/data-quality', 
+            result = self._make_analytics_request(f'descriptive/project/{project_id}/analyze/data-quality', 
                                                 method='POST')
             return result
             
@@ -318,7 +330,7 @@ class AnalyticsService:
             if value_columns:
                 request_data['value_columns'] = value_columns
             
-            result = self._make_analytics_request(f'project/{project_id}/analyze/temporal', 
+            result = self._make_analytics_request(f'descriptive/project/{project_id}/analyze/temporal', 
                                                 method='POST', data=request_data)
             return result
             
@@ -330,7 +342,7 @@ class AnalyticsService:
         try:
             request_data = {'lat_column': lat_column, 'lon_column': lon_column}
             
-            result = self._make_analytics_request(f'project/{project_id}/analyze/geospatial', 
+            result = self._make_analytics_request(f'descriptive/project/{project_id}/analyze/geospatial', 
                                                 method='POST', data=request_data)
             return result
             
@@ -342,7 +354,7 @@ class AnalyticsService:
         try:
             request_data = {'include_plots': include_plots}
             
-            result = self._make_analytics_request(f'project/{project_id}/generate-report', 
+            result = self._make_analytics_request(f'descriptive/project/{project_id}/generate-report', 
                                                 method='POST', data=request_data)
             return result
             
@@ -394,7 +406,7 @@ class AnalyticsService:
             if analysis_config:
                 request_data.update(analysis_config)
             
-            result = self._make_analytics_request(f'project/{project_id}/analyze', method='POST', data=request_data)
+            result = self._make_analytics_request(f'inferential/project/{project_id}/analyze/correlation', method='POST', data=request_data)
             
             return result
             
@@ -408,7 +420,22 @@ class AnalyticsService:
             if analysis_config and 'variables' in analysis_config:
                 target_variables = analysis_config['variables']
             
-            return self.run_analysis(project_id, "text", target_variables)
+            # Use the qualitative endpoints for text analysis
+            import urllib.parse
+            params = []
+            if target_variables and isinstance(target_variables, list):
+                for var in target_variables:
+                    params.append(('text_fields', var))
+            elif target_variables:
+                params.append(('text_fields', target_variables))
+            
+            url = f"qualitative/project/{project_id}/analyze/text"
+            if params:
+                query_string = urllib.parse.urlencode(params)
+                url = f"{url}?{query_string}"
+            
+            result = self._make_analytics_request(url, method='POST')
+            return result
             
         except Exception as e:
             return {'error': f'Qualitative analysis failed: {str(e)}'}
@@ -421,7 +448,7 @@ class AnalyticsService:
                 'analysis_type': analysis_type
             }
             
-            result = self._make_analytics_request(f'project/{project_id}/analyze/custom', method='POST', data=request_data)
+            result = self._make_analytics_request(f'descriptive/project/{project_id}/analyze/custom', method='POST', data=request_data)
             
             return result
             
@@ -519,7 +546,7 @@ class AnalyticsService:
             if date_to:
                 params.append(('date_to', date_to))
             
-            url = f'project/{project_id}/explore-data'
+            url = f'descriptive/project/{project_id}/explore-data'
             if params:
                 query_string = urllib.parse.urlencode(params)
                 url = f"{url}?{query_string}"
@@ -533,7 +560,7 @@ class AnalyticsService:
     def get_data_summary(self, project_id: str) -> Dict:
         """Get quick data summary with types and samples"""
         try:
-            result = self._make_analytics_request(f'project/{project_id}/data-summary')
+            result = self._make_analytics_request(f'descriptive/project/{project_id}/data-summary')
             return result
             
         except Exception as e:
@@ -542,7 +569,7 @@ class AnalyticsService:
     def check_backend_health(self) -> Dict:
         """Check if analytics backend is available"""
         try:
-            result = self._make_analytics_request('health')
+            result = self._make_analytics_request('auto/health')
             return result
         except Exception as e:
             return {'error': f'Backend health check failed: {str(e)}', 'available': False}

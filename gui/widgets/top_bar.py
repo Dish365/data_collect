@@ -46,7 +46,7 @@ class TopBar(MDBoxLayout):
         app = MDApp.get_running_app()
         if hasattr(app, 'root') and hasattr(app.root, 'current'):
             # Set transition direction based on screen hierarchy
-            if screen_name in ['dashboard', 'projects', 'analytics', 'data_collection', 'responses']:
+            if screen_name in ['dashboard', 'projects', 'analytics', 'data_exploration', 'qualitative_analytics', 'data_collection', 'responses']:
                 app.root.transition.direction = "left"
             else:
                 app.root.transition.direction = "right"
@@ -59,6 +59,8 @@ class TopBar(MDBoxLayout):
                 'dashboard': 'Dashboard',
                 'projects': 'Projects', 
                 'analytics': 'Analytics',
+                'data_exploration': 'Data Exploration',
+                'qualitative_analytics': 'Qualitative Analytics',
                 'data_collection': 'Data Collection',
                 'responses': 'Responses',
                 'sync': 'Sync',
@@ -89,6 +91,16 @@ class TopBar(MDBoxLayout):
                 "text": "Analytics",
                 "icon": "chart-line",
                 "on_release": lambda x="analytics": self._navigate_and_close_menu(x),
+            },
+            {
+                "text": "Data Exploration",
+                "icon": "database-search",
+                "on_release": lambda x="data_exploration": self._navigate_and_close_menu(x),
+            },
+            {
+                "text": "Qualitative Analytics",
+                "icon": "text-box",
+                "on_release": lambda x="qualitative_analytics": self._navigate_and_close_menu(x),
             },
             {
                 "text": "Data Collection",

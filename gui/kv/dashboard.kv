@@ -195,6 +195,28 @@
                                 style: "filled"
                                 size_hint: 1, None
                                 height: dp(64)
+                                on_release: root.navigate_to("data_exploration")
+                                
+                                MDButtonText:
+                                    text: "Data Exploration"
+                                    theme_font_size: "Custom"
+                                    font_size: dp(16)
+
+                            MDButton:
+                                style: "filled"
+                                size_hint: 1, None
+                                height: dp(64)
+                                on_release: root.navigate_to("qualitative_analytics")
+                                
+                                MDButtonText:
+                                    text: "Qualitative Analytics"
+                                    theme_font_size: "Custom"
+                                    font_size: dp(16)
+
+                            MDButton:
+                                style: "filled"
+                                size_hint: 1, None
+                                height: dp(64)
                                 on_release: root.navigate_to("form_builder")
                                 
                                 MDButtonText:

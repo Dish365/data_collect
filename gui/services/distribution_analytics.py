@@ -5,6 +5,7 @@ Specialized service for distribution analysis and statistical testing
 
 from typing import Dict, List, Any, Optional
 import threading
+import urllib.parse
 from kivy.clock import Clock
 from utils.cross_platform_toast import toast
 
@@ -12,9 +13,9 @@ from utils.cross_platform_toast import toast
 class DistributionAnalyticsHandler:
     """Handler for distribution analysis operations - Business Logic Only"""
     
-    def __init__(self, analytics_service, analytics_screen):
+    def __init__(self, analytics_service, screen):
         self.analytics_service = analytics_service
-        self.analytics_screen = analytics_screen
+        self.screen = screen
         self.selected_variables = []
     
     def run_distribution_analysis(self, project_id: str, variables: Optional[List[str]] = None):
@@ -22,7 +23,7 @@ class DistributionAnalyticsHandler:
         if not project_id:
             return
             
-        self.analytics_screen.set_loading(True)
+        self.screen.set_loading(True)
         threading.Thread(
             target=self._run_distribution_thread,
             args=(project_id, variables),
@@ -45,7 +46,7 @@ class DistributionAnalyticsHandler:
             )
         finally:
             Clock.schedule_once(
-                lambda dt: self.analytics_screen.set_loading(False), 0
+                lambda dt: self.screen.set_loading(False), 0
             )
     
     def _handle_distribution_results(self, results):
@@ -60,8 +61,8 @@ class DistributionAnalyticsHandler:
                 toast(f"Analysis Error: {error_msg}")
             return
         
-        # Delegate to analytics screen to handle UI display
-        self.analytics_screen.display_distribution_results(results)
+        # Delegate to screen to handle UI display
+        self.screen.display_distribution_results(results)
     
     def get_distribution_summary_data(self, summary: Dict) -> Dict:
         """Extract summary data for UI consumption"""
@@ -148,7 +149,7 @@ class DistributionAnalyticsHandler:
     
     def run_additional_analysis(self, analysis_type: str):
         """Run additional analysis type"""
-        project_id = self.analytics_screen.current_project_id
+        project_id = self.screen.current_project_id
         if not project_id:
             toast("Please select a project first")
             return
@@ -202,8 +203,8 @@ class DistributionAnalyticsHandler:
         # Extract numeric variables for distribution analysis
         numeric_vars = variables.get('numeric_variables', [])
         
-        # Delegate to analytics screen to handle UI
-        self.analytics_screen.show_distribution_variable_selection(numeric_vars)
+        # Delegate to screen to handle UI
+        self.screen.show_distribution_variable_selection(numeric_vars)
     
     def update_variable_selection(self, variable: str, active: bool):
         """Update selected variables list"""
@@ -218,10 +219,137 @@ class DistributionAnalyticsHandler:
             toast("Please select at least one variable")
             return
         
-        project_id = self.analytics_screen.current_project_id
+        project_id = self.screen.current_project_id
         if not project_id:
             toast("No project selected")
             return
         
         toast(f"Running distribution analysis on {len(self.selected_variables)} variables...")
-        self.run_distribution_analysis(project_id, self.selected_variables) 
+        self.run_distribution_analysis(project_id, self.selected_variables)
+
+    # Analytics backend methods
+    def _make_analytics_request(self, endpoint: str, method: str = 'GET', data: Dict = None) -> Dict:
+        """Make authenticated request to analytics backend"""
+        try:
+            import requests
+            base_url = "http://127.0.0.1:8001"
+            url = f"{base_url}/api/v1/analytics/descriptive/{endpoint}"
+            
+            session = requests.Session()
+            session.headers.update({
+                'Content-Type': 'application/json',
+                'User-Agent': 'DataCollect-GUI/1.0'
+            })
+            
+            if method == 'GET':
+                response = session.get(url, timeout=30)
+            elif method == 'POST':
+                if data:
+                    response = session.post(url, json=data, timeout=60)
+                else:
+                    response = session.post(url, timeout=60)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
+                
+            if response.status_code == 200:
+                result = response.json()
+                if isinstance(result, dict) and 'status' in result:
+                    if result['status'] == 'success':
+                        return result.get('data', {})
+                    else:
+                        return {'error': result.get('message', 'Unknown error')}
+                return result
+            else:
+                try:
+                    error_detail = response.json()
+                    error_msg = error_detail.get('detail', f'HTTP {response.status_code}')
+                    return {'error': error_msg}
+                except:
+                    return {'error': f'HTTP {response.status_code}: {response.text}'}
+                
+        except Exception as e:
+            return {'error': f'Request error: {str(e)}'}
+
+    def run_distribution_analysis_backend(self, project_id: str, variables: Optional[List[str]] = None) -> Dict:
+        """Run distribution analysis via backend"""
+        try:
+            params = []
+            if variables and isinstance(variables, list):
+                for var in variables:
+                    params.append(('variables', var))
+            elif variables:
+                params.append(('variables', variables))
+            
+            url = f'project/{project_id}/analyze/distributions'
+            if params:
+                query_string = urllib.parse.urlencode(params)
+                url = f"{url}?{query_string}"
+            
+            result = self._make_analytics_request(url, method='POST')
+            return result
+            
+        except Exception as e:
+            return {'error': f'Distribution analysis failed: {str(e)}'}
+
+    def run_normality_test_backend(self, project_id: str, variables: List[str]) -> Dict:
+        """Run normality tests for specified variables via backend"""
+        try:
+            request_data = {
+                'test_type': 'normality',
+                'variables': variables
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/distributions', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Normality test failed: {str(e)}'}
+
+    def run_outlier_detection_backend(self, project_id: str, variables: Optional[List[str]] = None, 
+                                    methods: Optional[List[str]] = None) -> Dict:
+        """Run outlier detection analysis via backend"""
+        try:
+            request_data = {}
+            if variables:
+                request_data['variables'] = variables
+            if methods:
+                request_data['methods'] = methods
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/outliers', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Outlier detection failed: {str(e)}'}
+
+    def run_skewness_kurtosis_backend(self, project_id: str, variables: List[str]) -> Dict:
+        """Run skewness and kurtosis analysis via backend"""
+        try:
+            request_data = {
+                'analysis_type': 'shape_statistics',
+                'variables': variables
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/distributions', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Skewness/Kurtosis analysis failed: {str(e)}'}
+
+    def run_goodness_of_fit_backend(self, project_id: str, variable: str, distribution: str = 'normal') -> Dict:
+        """Run goodness of fit test for a specific distribution via backend"""
+        try:
+            request_data = {
+                'test_type': 'goodness_of_fit',
+                'variable': variable,
+                'distribution': distribution
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/distributions', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Goodness of fit test failed: {str(e)}'} 

@@ -16,9 +16,9 @@
 #:import GridLayout kivy.uix.gridlayout.GridLayout
 #:import dp kivy.metrics.dp
 
-# Main Descriptive Analytics Screen Layout
-<DescriptiveAnalyticsScreen>:
-    name: 'descriptive_analytics'
+# Main Auto Detection Screen Layout
+<AutoDetectionScreen>:
+    name: 'auto_detection'
     
     MDScrollView:
         MDBoxLayout:
@@ -36,31 +36,31 @@
                 height: dp(56)
             
             # Project Selection Card
-            DescriptiveProjectCard:
+            AutoDetectionProjectCard:
                 id: project_selection_card
             
             # Analysis Controls Card
-            DescriptiveControlsCard:
+            AutoDetectionControlsCard:
                 id: analysis_controls_card
             
-            # Analysis Options Card
-            DescriptiveOptionsCard:
-                id: analysis_options_card
+            # Data Overview Card
+            AutoDetectionDataOverviewCard:
+                id: data_overview_card
             
-            # Sample Size Recommendations Card
-            DescriptiveSampleSizeCard:
-                id: sample_size_card
+            # Recommendations Card
+            AutoDetectionRecommendationsCard:
+                id: recommendations_card
             
             # Analysis Results Card
-            DescriptiveResultsCard:
+            AutoDetectionResultsCard:
                 id: results_card
             
             # Action Buttons Card
-            DescriptiveActionsCard:
+            AutoDetectionActionsCard:
                 id: actions_card
 
 # Project Selection Card Component
-<DescriptiveProjectCard@MDCard>:
+<AutoDetectionProjectCard@MDCard>:
     orientation: 'horizontal'
     size_hint_y: None
     height: dp(64)
@@ -77,7 +77,7 @@
         size_hint_x: 0.4
         
         MDIconButton:
-            icon: "chart-histogram"
+            icon: "auto-fix"
             theme_icon_color: "Custom"
             icon_color: app.theme_cls.primaryColor
             size_hint_x: None
@@ -86,7 +86,7 @@
             disabled: True
         
         MDLabel:
-            text: "Descriptive Analytics"
+            text: "Auto Detection Analytics"
             theme_text_color: "Primary"
             font_style: "Headline"
             role: "small"
@@ -116,7 +116,7 @@
         valign: "center"
 
 # Analysis Controls Card Component
-<DescriptiveControlsCard@MDCard>:
+<AutoDetectionControlsCard@MDCard>:
     orientation: 'vertical'
     size_hint_y: None
     height: dp(180)
@@ -162,13 +162,13 @@
     
     # Main analysis button
     MDButton:
-        text: "Run Descriptive Analysis"
+        text: "Run Auto Detection"
         style: "filled"
         size_hint_y: None
         height: dp(48)
         theme_bg_color: "Custom"
         md_bg_color: 0.2, 0.7, 0.2, 1
-        on_release: root.run_descriptive_analysis()
+        on_release: root.run_auto_detection()
     
     # Quick analysis buttons row
     MDBoxLayout:
@@ -191,15 +191,15 @@
             size_hint_x: 0.2
             theme_outline_color: "Custom"
             line_color: app.theme_cls.primaryColor
-            on_release: root.run_distribution_analysis_extended()
+            on_release: root.run_distribution_analysis()
         
         MDButton:
-            text: "Categorical"
+            text: "Correlation"
             style: "outlined"
             size_hint_x: 0.2
             theme_outline_color: "Custom"
             line_color: app.theme_cls.primaryColor
-            on_release: root.run_categorical_analysis_extended()
+            on_release: root.run_correlation_analysis()
         
         MDButton:
             text: "Outliers"
@@ -215,7 +215,7 @@
             size_hint_x: 0.2
             theme_text_color: "Custom"
             text_color: app.theme_cls.primaryColor
-            on_release: root.show_analysis_options_dialog()
+            on_release: root.show_analysis_type_dialog()
     
     # Variable selection row
     MDBoxLayout:
@@ -242,18 +242,18 @@
             halign: "center"
         
         MDButton:
-            text: "Comprehensive Report"
+            text: "Refresh"
             style: "text"
             size_hint_x: 0.3
             theme_text_color: "Custom"
-            text_color: 0.8, 0.6, 0.2, 1
-            on_release: root.run_comprehensive_report()
+            text_color: 0.6, 0.6, 0.6, 1
+            on_release: root.refresh_analysis()
 
-# Analysis Options Card Component
-<DescriptiveOptionsCard@MDCard>:
+# Data Overview Card Component
+<AutoDetectionDataOverviewCard@MDCard>:
     orientation: 'vertical'
     size_hint_y: None
-    height: dp(280)
+    height: dp(200)
     elevation: 2
     md_bg_color: 0.97, 0.98, 1.0, 1
     radius: [12, 12, 12, 12]
@@ -268,7 +268,7 @@
         height: dp(36)
         
         MDIconButton:
-            icon: "format-list-bulleted"
+            icon: "chart-bar"
             theme_icon_color: "Custom"
             icon_color: 0.13, 0.59, 0.95, 1
             disabled: True
@@ -276,76 +276,132 @@
             size: dp(32), dp(32)
         
         MDLabel:
-            text: "Analysis Options"
+            text: "Data Overview"
             theme_text_color: "Primary"
             font_style: "Headline"
             role: "small"
             bold: True
     
-    # Analysis options grid
-    MDScrollView:
-        do_scroll_x: False
-        do_scroll_y: True
-        bar_width: dp(8)
+    # Statistics row
+    MDBoxLayout:
+        id: data_overview_content
+        orientation: 'horizontal'
+        spacing: dp(16)
+        size_hint_y: None
+        height: dp(80)
         
-        GridLayout:
-            id: analysis_options_grid
-            cols: 2
-            spacing: dp(8)
-            size_hint_y: None
-            height: self.minimum_height
-            padding: [dp(4), dp(4), dp(4), dp(4)]
+        # Total responses stat
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 0.25
+            spacing: dp(4)
             
-            # Basic Statistics Option
-            DescriptiveAnalysisOptionCard:
-                option_title: "Basic Statistics"
-                option_description: "Mean, median, standard deviation, and other basic statistics"
-                option_icon: "calculator"
-                option_color: 0.2, 0.6, 1.0, 1
-                on_release: root.run_basic_statistics()
+            MDLabel:
+                id: total_responses_label
+                text: "0 responses"
+                theme_text_color: "Primary"
+                font_style: "Headline"
+                role: "medium"
+                bold: True
+                halign: "center"
             
-            # Distribution Analysis Option
-            DescriptiveAnalysisOptionCard:
-                option_title: "Distribution Analysis"
-                option_description: "Analyze data distributions and patterns"
-                option_icon: "chart-bell-curve"
-                option_color: 0.8, 0.6, 0.2, 1
-                on_release: root.run_distribution_analysis_extended()
+            MDLabel:
+                text: "Total Responses"
+                theme_text_color: "Secondary"
+                font_style: "Body"
+                role: "small"
+                halign: "center"
+        
+        # Total questions stat
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 0.25
+            spacing: dp(4)
             
-            # Categorical Analysis Option
-            DescriptiveAnalysisOptionCard:
-                option_title: "Categorical Analysis"
-                option_description: "Frequency tables and cross-tabulations"
-                option_icon: "view-list"
-                option_color: 0.2, 0.8, 0.6, 1
-                on_release: root.run_categorical_analysis_extended()
+            MDLabel:
+                id: total_questions_label
+                text: "0 questions"
+                theme_text_color: "Primary"
+                font_style: "Headline"
+                role: "medium"
+                bold: True
+                halign: "center"
             
-            # Outlier Detection Option
-            DescriptiveAnalysisOptionCard:
-                option_title: "Outlier Detection"
-                option_description: "Identify unusual data points"
-                option_icon: "target"
-                option_color: 0.8, 0.2, 0.2, 1
-                on_release: root.run_outlier_analysis()
+            MDLabel:
+                text: "Total Questions"
+                theme_text_color: "Secondary"
+                font_style: "Body"
+                role: "small"
+                halign: "center"
+        
+        # Data quality stat
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 0.25
+            spacing: dp(4)
             
-            # Missing Data Analysis Option
-            DescriptiveAnalysisOptionCard:
-                option_title: "Missing Data"
-                option_description: "Analyze patterns of missing data"
-                option_icon: "help-circle"
-                option_color: 0.6, 0.6, 0.6, 1
-                on_release: root.run_missing_data_analysis()
+            MDLabel:
+                id: data_quality_label
+                text: "0%"
+                theme_text_color: "Primary"
+                font_style: "Headline"
+                role: "medium"
+                bold: True
+                halign: "center"
             
-            # Data Quality Assessment Option
-            DescriptiveAnalysisOptionCard:
-                option_title: "Data Quality"
-                option_description: "Comprehensive data quality assessment"
-                option_icon: "check-circle"
-                option_color: 0.2, 0.8, 0.4, 1
-                on_release: root.run_data_quality_analysis()
+            MDLabel:
+                text: "Data Quality"
+                theme_text_color: "Secondary"
+                font_style: "Body"
+                role: "small"
+                halign: "center"
+        
+        # Missing data stat
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 0.25
+            spacing: dp(4)
+            
+            MDLabel:
+                id: missing_data_label
+                text: "0%"
+                theme_text_color: "Primary"
+                font_style: "Headline"
+                role: "medium"
+                bold: True
+                halign: "center"
+            
+            MDLabel:
+                text: "Missing Data"
+                theme_text_color: "Secondary"
+                font_style: "Body"
+                role: "small"
+                halign: "center"
+    
+    # Quick insights
+    MDBoxLayout:
+        orientation: 'vertical'
+        spacing: dp(4)
+        size_hint_y: None
+        height: dp(60)
+        
+        MDLabel:
+            text: "Quick Insights"
+            theme_text_color: "Primary"
+            font_style: "Body"
+            role: "medium"
+            bold: True
+        
+        MDLabel:
+            id: quick_insights_label
+            text: "Run analysis to see insights"
+            theme_text_color: "Secondary"
+            font_style: "Body"
+            role: "small"
+            text_size: self.width, None
 
-# Sample Size Recommendations Card Component
-<DescriptiveSampleSizeCard@MDCard>:
+# Recommendations Card Component
+<AutoDetectionRecommendationsCard@MDCard>:
     orientation: 'vertical'
     size_hint_y: None
     height: dp(200)
@@ -363,7 +419,7 @@
         height: dp(36)
         
         MDIconButton:
-            icon: "account-group"
+            icon: "lightbulb-on"
             theme_icon_color: "Custom"
             icon_color: 0.8, 0.6, 0.2, 1
             disabled: True
@@ -371,30 +427,21 @@
             size: dp(32), dp(32)
         
         MDLabel:
-            text: "Sample Size Recommendations"
+            text: "Smart Recommendations"
             theme_text_color: "Primary"
             font_style: "Headline"
             role: "small"
             bold: True
-        
-        MDButton:
-            text: "Show Details"
-            style: "text"
-            size_hint_x: None
-            width: dp(100)
-            theme_text_color: "Custom"
-            text_color: app.theme_cls.primaryColor
-            on_release: root.show_sample_size_recommendations()
     
-    # Sample size content
+    # Recommendations content
     MDScrollView:
-        id: sample_size_content
+        id: recommendations_content
         do_scroll_x: False
         do_scroll_y: True
         bar_width: dp(8)
         
         MDBoxLayout:
-            id: sample_size_list
+            id: recommendations_list
             orientation: 'vertical'
             spacing: dp(8)
             size_hint_y: None
@@ -402,7 +449,7 @@
             
             # Default message when no recommendations
             MDLabel:
-                text: "Select a project to see sample size recommendations"
+                text: "Run auto detection to see smart recommendations"
                 theme_text_color: "Secondary"
                 font_style: "Body"
                 role: "medium"
@@ -411,10 +458,10 @@
                 height: dp(100)
 
 # Analysis Results Card Component
-<DescriptiveResultsCard@MDCard>:
+<AutoDetectionResultsCard@MDCard>:
     orientation: 'vertical'
     size_hint_y: None
-    height: dp(500)
+    height: dp(400)
     elevation: 2
     md_bg_color: 1, 1, 1, 1
     radius: [12, 12, 12, 12]
@@ -429,7 +476,7 @@
         height: dp(36)
         
         MDIconButton:
-            icon: "chart-box"
+            icon: "chart-line-variant"
             theme_icon_color: "Custom"
             icon_color: app.theme_cls.primaryColor
             disabled: True
@@ -447,16 +494,15 @@
         MDBoxLayout:
             orientation: 'horizontal'
             spacing: dp(4)
-            size_hint_x: 0.6
+            size_hint_x: 0.5
             
             MDButton:
-                id: statistics_tab
-                text: "Statistics"
+                id: basic_stats_tab
+                text: "Basic"
                 style: "text"
                 size_hint_x: 0.25
                 theme_text_color: "Custom"
                 text_color: app.theme_cls.primaryColor
-                on_release: root.switch_results_tab("statistics")
             
             MDButton:
                 id: distribution_tab
@@ -465,25 +511,22 @@
                 size_hint_x: 0.25
                 theme_text_color: "Custom"
                 text_color: 0.6, 0.6, 0.6, 1
-                on_release: root.switch_results_tab("distribution")
             
             MDButton:
-                id: quality_tab
-                text: "Quality"
+                id: correlation_tab
+                text: "Correlation"
                 style: "text"
                 size_hint_x: 0.25
                 theme_text_color: "Custom"
                 text_color: 0.6, 0.6, 0.6, 1
-                on_release: root.switch_results_tab("quality")
             
             MDButton:
-                id: report_tab
-                text: "Report"
+                id: advanced_tab
+                text: "Advanced"
                 style: "text"
                 size_hint_x: 0.25
                 theme_text_color: "Custom"
                 text_color: 0.6, 0.6, 0.6, 1
-                on_release: root.switch_results_tab("report")
     
     # Results content
     MDScrollView:
@@ -500,10 +543,10 @@
             height: self.minimum_height
             
             # Default message when no results
-            DescriptiveEmptyResults:
+            AutoDetectionEmptyResults:
 
 # Action Buttons Card Component
-<DescriptiveActionsCard@MDCard>:
+<AutoDetectionActionsCard@MDCard>:
     orientation: 'horizontal'
     size_hint_y: None
     height: dp(80)
@@ -558,60 +601,12 @@
             on_release: root.clear_results()
         
         MDButton:
-            text: "Export Sample Analysis"
+            text: "Advanced Options"
             style: "text"
             size_hint_x: 0.5
             theme_text_color: "Custom"
             text_color: 0.6, 0.6, 0.6, 1
-            on_release: root.export_sample_size_analysis()
-
-# Analysis Option Card Component
-<DescriptiveAnalysisOptionCard@MDCard>:
-    option_title: ""
-    option_description: ""
-    option_icon: ""
-    option_color: 0.5, 0.5, 0.5, 1
-    
-    orientation: 'vertical'
-    size_hint_y: None
-    height: dp(100)
-    elevation: 1
-    md_bg_color: 0.99, 0.99, 0.99, 1
-    radius: [8, 8, 8, 8]
-    padding: [dp(12), dp(8), dp(12), dp(8)]
-    spacing: dp(4)
-    
-    MDBoxLayout:
-        orientation: 'horizontal'
-        spacing: dp(8)
-        size_hint_y: None
-        height: dp(32)
-        
-        MDIconButton:
-            icon: root.option_icon
-            theme_icon_color: "Custom"
-            icon_color: root.option_color
-            disabled: True
-            size_hint: None, None
-            size: dp(24), dp(24)
-        
-        MDLabel:
-            text: root.option_title
-            theme_text_color: "Primary"
-            font_style: "Body"
-            role: "medium"
-            bold: True
-            size_hint_y: None
-            height: dp(32)
-    
-    MDLabel:
-        text: root.option_description
-        theme_text_color: "Secondary"
-        font_style: "Body"
-        role: "small"
-        text_size: self.width, None
-        size_hint_y: None
-        height: dp(56)
+            on_release: root.show_analysis_type_dialog()
 
 # Variable Selection Dialog
 <VariableSelectionDialog@MDDialog>:
@@ -621,7 +616,7 @@
         text: "Select Variables for Analysis"
     
     MDDialogSupportingText:
-        text: "Choose the variables you want to include in the descriptive analysis"
+        text: "Choose the variables you want to include in the analysis"
     
     MDScrollView:
         size_hint_y: None
@@ -672,71 +667,70 @@
             on_release: variable_selection_dialog.dismiss()
         
         MDButton:
-            text: "Run Analysis"
+            text: "Apply Selection"
             style: "filled"
             theme_bg_color: "Custom"
             md_bg_color: app.theme_cls.primaryColor
-            on_release: root.run_analysis_with_selected_variables()
+            on_release: root.run_analysis_with_variables(root.get_selected_variables_list())
 
-# Analysis Options Dialog
-<AnalysisOptionsDialog@MDDialog>:
-    id: analysis_options_dialog
+# Analysis Type Selection Dialog
+<AnalysisTypeDialog@MDDialog>:
+    id: analysis_type_dialog
     
     MDDialogHeadlineText:
-        text: "Analysis Options"
+        text: "Select Analysis Type"
     
     MDDialogSupportingText:
-        text: "Choose from available descriptive analysis types"
+        text: "Choose the type of analysis you want to run"
     
     MDBoxLayout:
         orientation: 'vertical'
         spacing: dp(8)
         size_hint_y: None
-        height: dp(400)
+        height: dp(300)
         padding: [dp(16), dp(16), dp(16), dp(16)]
         
-        # Analysis option buttons
+        # Analysis type buttons
+        MDButton:
+            text: "Comprehensive Analysis"
+            style: "outlined"
+            size_hint_y: None
+            height: dp(48)
+            theme_outline_color: "Custom"
+            line_color: app.theme_cls.primaryColor
+            on_release: root.run_comprehensive_analysis()
+        
+        MDButton:
+            text: "Categorical Analysis"
+            style: "outlined"
+            size_hint_y: None
+            height: dp(48)
+            theme_outline_color: "Custom"
+            line_color: app.theme_cls.primaryColor
+            on_release: root.run_categorical_analysis()
+        
         MDButton:
             text: "Missing Data Analysis"
             style: "outlined"
             size_hint_y: None
             height: dp(48)
             theme_outline_color: "Custom"
-            line_color: 0.6, 0.6, 0.6, 1
+            line_color: app.theme_cls.primaryColor
             on_release: root.run_missing_data_analysis()
         
         MDButton:
-            text: "Data Quality Assessment"
-            style: "outlined"
-            size_hint_y: None
-            height: dp(48)
-            theme_outline_color: "Custom"
-            line_color: 0.2, 0.8, 0.4, 1
-            on_release: root.run_data_quality_analysis()
-        
-        MDButton:
-            text: "Comprehensive Report"
-            style: "outlined"
-            size_hint_y: None
-            height: dp(48)
-            theme_outline_color: "Custom"
-            line_color: 0.8, 0.6, 0.2, 1
-            on_release: root.run_comprehensive_report()
-        
-        MDButton:
-            text: "Custom Variable Analysis"
+            text: "Custom Analysis"
             style: "text"
             size_hint_y: None
             height: dp(48)
             theme_text_color: "Custom"
             text_color: 0.6, 0.6, 0.6, 1
-            on_release: root.show_variable_selection_dialog()
     
     MDDialogButtonContainer:
         MDButton:
             text: "Close"
             style: "text"
-            on_release: analysis_options_dialog.dismiss()
+            on_release: analysis_type_dialog.dismiss()
 
 # Analysis Results Dialog
 <AnalysisResultsDialog@MDDialog>:
@@ -780,12 +774,11 @@
             md_bg_color: app.theme_cls.primaryColor
             on_release: results_dialog.dismiss()
 
-# Sample Size Recommendation Item Component
-<SampleSizeRecommendationItem@MDCard>:
-    test_type: ""
-    current_size: ""
-    adequacy: ""
-    recommendation: ""
+# Recommendation Item Component
+<RecommendationItem@MDCard>:
+    recommendation_title: ""
+    recommendation_description: ""
+    recommendation_id: ""
     
     orientation: 'vertical'
     size_hint_y: None
@@ -799,44 +792,61 @@
     MDBoxLayout:
         orientation: 'horizontal'
         spacing: dp(8)
-        size_hint_y: None
-        height: dp(24)
         
-        MDLabel:
-            text: root.test_type
-            theme_text_color: "Primary"
-            font_style: "Body"
-            role: "medium"
-            bold: True
-            size_hint_x: 0.7
+        MDBoxLayout:
+            orientation: 'vertical'
+            spacing: dp(2)
+            size_hint_x: 0.8
+            
+            MDLabel:
+                text: root.recommendation_title
+                theme_text_color: "Primary"
+                font_style: "Body"
+                role: "medium"
+                bold: True
+                size_hint_y: None
+                height: dp(20)
+            
+            MDLabel:
+                text: root.recommendation_description
+                theme_text_color: "Secondary"
+                font_style: "Body"
+                role: "small"
+                text_size: self.width, None
+                size_hint_y: None
+                height: dp(36)
         
-        MDLabel:
-            text: f"Size: {root.current_size}"
-            theme_text_color: "Secondary"
-            font_style: "Body"
-            role: "small"
-            size_hint_x: 0.3
-            halign: "right"
-    
-    MDLabel:
-        text: root.recommendation
-        theme_text_color: "Secondary"
-        font_style: "Body"
-        role: "small"
-        text_size: self.width, None
-        size_hint_y: None
-        height: dp(44)
+        MDBoxLayout:
+            orientation: 'horizontal'
+            spacing: dp(4)
+            size_hint_x: 0.2
+            
+            MDIconButton:
+                icon: "play"
+                theme_icon_color: "Custom"
+                icon_color: 0.2, 0.7, 0.2, 1
+                size_hint: None, None
+                size: dp(24), dp(24)
+                on_release: root.run_recommended_analysis({"id": root.recommendation_id})
+            
+            MDIconButton:
+                icon: "close"
+                theme_icon_color: "Custom"
+                icon_color: 0.6, 0.6, 0.6, 1
+                size_hint: None, None
+                size: dp(24), dp(24)
+                on_release: root.dismiss_recommendation(root.recommendation_id)
 
 # Empty Results State Component
-<DescriptiveEmptyResults@MDBoxLayout>:
+<AutoDetectionEmptyResults@MDBoxLayout>:
     orientation: 'vertical'
     spacing: dp(20)
     size_hint_y: None
-    height: dp(300)
+    height: dp(250)
     padding: [dp(40), dp(30), dp(40), dp(30)]
     
     MDIconButton:
-        icon: "chart-box-outline"
+        icon: "chart-bell-curve-cumulative"
         theme_icon_color: "Custom"
         icon_color: 0.6, 0.6, 0.6, 1
         disabled: True
@@ -845,14 +855,14 @@
         pos_hint: {'center_x': 0.5}
     
     MDLabel:
-        text: "No descriptive analysis results yet"
+        text: "No analysis results yet"
         theme_text_color: "Secondary"
         font_style: "Headline"
         role: "small"
         halign: "center"
     
     MDLabel:
-        text: "Select a project and run descriptive analysis to see statistical insights"
+        text: "Select a project and run auto detection to see intelligent analysis results"
         theme_text_color: "Hint"
         font_style: "Body"
         role: "medium"
@@ -860,7 +870,7 @@
         text_size: dp(300), None
 
 # Loading State Component
-<DescriptiveLoadingCard@MDCard>:
+<AutoDetectionLoadingCard@MDCard>:
     orientation: 'vertical'
     size_hint_y: None
     height: dp(300)
@@ -876,21 +886,21 @@
         pos_hint: {'center_x': 0.5}
     
     MDLabel:
-        text: "Running descriptive analysis..."
+        text: "Running intelligent analysis..."
         theme_text_color: "Secondary"
         font_style: "Headline"
         role: "small"
         halign: "center"
     
     MDLabel:
-        text: "Please wait while we calculate statistical measures"
+        text: "Please wait while we analyze your data and generate insights"
         theme_text_color: "Hint"
         font_style: "Body"
         role: "medium"
         halign: "center"
 
 # Error State Component
-<DescriptiveErrorCard@MDCard>:
+<AutoDetectionErrorCard@MDCard>:
     error_message: ""
     
     orientation: 'vertical'
@@ -934,204 +944,4 @@
         pos_hint: {'center_x': 0.5}
         theme_bg_color: "Custom"
         md_bg_color: app.theme_cls.primaryColor
-
-# Basic Statistics Display Component
-<BasicStatisticsDisplay@MDCard>:
-    stats_data: {}
-    
-    orientation: 'vertical'
-    size_hint_y: None
-    height: dp(200)
-    elevation: 1
-    md_bg_color: 0.99, 0.99, 0.99, 1
-    radius: [8, 8, 8, 8]
-    padding: [dp(12), dp(12), dp(12), dp(12)]
-    spacing: dp(8)
-    
-    MDLabel:
-        text: "Basic Statistics Summary"
-        theme_text_color: "Primary"
-        font_style: "Body"
-        role: "medium"
-        bold: True
-        size_hint_y: None
-        height: dp(24)
-    
-    GridLayout:
-        cols: 2
-        spacing: dp(8)
-        size_hint_y: None
-        height: dp(160)
-        
-        MDLabel:
-            text: f"Total Variables: {root.stats_data.get('total_variables', 'N/A')}"
-            theme_text_color: "Secondary"
-            font_style: "Body"
-            role: "small"
-        
-        MDLabel:
-            text: f"Total Observations: {root.stats_data.get('total_observations', 'N/A')}"
-            theme_text_color: "Secondary"
-            font_style: "Body"
-            role: "small"
-
-# Data Quality Display Component
-<DataQualityDisplay@MDCard>:
-    quality_data: {}
-    
-    orientation: 'vertical'
-    size_hint_y: None
-    height: dp(200)
-    elevation: 1
-    md_bg_color: 0.99, 0.99, 0.99, 1
-    radius: [8, 8, 8, 8]
-    padding: [dp(12), dp(12), dp(12), dp(12)]
-    spacing: dp(8)
-    
-    MDLabel:
-        text: "Data Quality Assessment"
-        theme_text_color: "Primary"
-        font_style: "Body"
-        role: "medium"
-        bold: True
-        size_hint_y: None
-        height: dp(24)
-    
-    GridLayout:
-        cols: 2
-        spacing: dp(8)
-        size_hint_y: None
-        height: dp(160)
-        
-        MDLabel:
-            text: f"Overall Score: {root.quality_data.get('overall_score', 0)}%"
-            theme_text_color: "Primary"
-            font_style: "Body"
-            role: "medium"
-            bold: True
-        
-        MDLabel:
-            text: f"Completeness: {root.quality_data.get('completeness_score', 0)}%"
-            theme_text_color: "Secondary"
-            font_style: "Body"
-            role: "small"
-        
-        MDLabel:
-            text: f"Consistency: {root.quality_data.get('consistency_score', 0)}%"
-            theme_text_color: "Secondary"
-            font_style: "Body"
-            role: "small"
-        
-        MDLabel:
-            text: f"Validity: {root.quality_data.get('validity_score', 0)}%"
-            theme_text_color: "Secondary"
-            font_style: "Body"
-            role: "small"
-
-# Distribution Results Display Component
-<DistributionResultsDisplay@MDCard>:
-    distribution_data: {}
-    
-    orientation: 'vertical'
-    size_hint_y: None
-    height: dp(300)
-    elevation: 1
-    md_bg_color: 0.99, 0.99, 0.99, 1
-    radius: [8, 8, 8, 8]
-    padding: [dp(12), dp(12), dp(12), dp(12)]
-    spacing: dp(8)
-    
-    MDLabel:
-        text: "Distribution Analysis Results"
-        theme_text_color: "Primary"
-        font_style: "Body"
-        role: "medium"
-        bold: True
-        size_hint_y: None
-        height: dp(24)
-    
-    MDScrollView:
-        do_scroll_x: False
-        do_scroll_y: True
-        bar_width: dp(8)
-        
-        MDBoxLayout:
-            orientation: 'vertical'
-            spacing: dp(8)
-            size_hint_y: None
-            height: self.minimum_height
-            
-            MDLabel:
-                text: f"Variables Analyzed: {root.distribution_data.get('variables_analyzed', 'N/A')}"
-                theme_text_color: "Secondary"
-                font_style: "Body"
-                role: "small"
-                size_hint_y: None
-                height: dp(20)
-            
-            MDLabel:
-                text: f"Analysis Methods: {root.distribution_data.get('analysis_methods', 'Normality tests, skewness, kurtosis')}"
-                theme_text_color: "Secondary"
-                font_style: "Body"
-                role: "small"
-                text_size: self.width, None
-                size_hint_y: None
-                height: dp(40)
-
-# Categorical Results Display Component
-<CategoricalResultsDisplay@MDCard>:
-    categorical_data: {}
-    
-    orientation: 'vertical'
-    size_hint_y: None
-    height: dp(300)
-    elevation: 1
-    md_bg_color: 0.99, 0.99, 0.99, 1
-    radius: [8, 8, 8, 8]
-    padding: [dp(12), dp(12), dp(12), dp(12)]
-    spacing: dp(8)
-    
-    MDLabel:
-        text: "Categorical Analysis Results"
-        theme_text_color: "Primary"
-        font_style: "Body"
-        role: "medium"
-        bold: True
-        size_hint_y: None
-        height: dp(24)
-    
-    MDScrollView:
-        do_scroll_x: False
-        do_scroll_y: True
-        bar_width: dp(8)
-        
-        MDBoxLayout:
-            orientation: 'vertical'
-            spacing: dp(8)
-            size_hint_y: None
-            height: self.minimum_height
-            
-            MDLabel:
-                text: f"Variables Analyzed: {root.categorical_data.get('variables_analyzed', 'N/A')}"
-                theme_text_color: "Secondary"
-                font_style: "Body"
-                role: "small"
-                size_hint_y: None
-                height: dp(20)
-            
-            MDLabel:
-                text: f"Cross-tabs Computed: {root.categorical_data.get('cross_tabs_computed', 'N/A')}"
-                theme_text_color: "Secondary"
-                font_style: "Body"
-                role: "small"
-                size_hint_y: None
-                height: dp(20)
-            
-            MDLabel:
-                text: f"Analysis Methods: {root.categorical_data.get('analysis_methods', 'Frequency analysis, chi-square tests')}"
-                theme_text_color: "Secondary"
-                font_style: "Body"
-                role: "small"
-                text_size: self.width, None
-                size_hint_y: None
-                height: dp(40) 
+        on_release: root.refresh_analysis() 

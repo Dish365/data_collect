@@ -21,6 +21,10 @@ from screens.form_builder import FormBuilderScreen
 from screens.sync import SyncScreen
 from screens.signup import SignUpScreen
 from screens.responses import ResponsesScreen
+from screens.data_exploration import DataExplorationScreen
+from screens.qualitative_analytics import QualitativeAnalyticsScreen
+from screens.auto_detection import AutoDetectionScreen
+from screens.descriptive_analytics import DescriptiveAnalyticsScreen
 
 from kivy.modules import inspector
 
@@ -66,6 +70,10 @@ class ResearchCollectorApp(MDApp):
         sm.add_widget(FormBuilderScreen(name='form_builder'))
         sm.add_widget(SyncScreen(name='sync'))
         sm.add_widget(ResponsesScreen(name='responses'))
+        sm.add_widget(DataExplorationScreen(name='data_exploration'))
+        sm.add_widget(AutoDetectionScreen(name='auto_detection'))
+        sm.add_widget(DescriptiveAnalyticsScreen(name='descriptive_analytics'))
+        sm.add_widget(QualitativeAnalyticsScreen(name='qualitative_analytics'))
 
         inspector.create_inspector(Window, sm)
         

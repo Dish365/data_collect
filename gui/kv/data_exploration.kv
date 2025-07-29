@@ -1,0 +1,720 @@
+#:kivy 2.0
+#:import MDCard kivymd.uix.card.MDCard
+#:import MDScrollView kivymd.uix.scrollview.MDScrollView
+#:import MDLabel kivymd.uix.label.MDLabel
+#:import MDButton kivymd.uix.button.MDButton
+#:import MDIconButton kivymd.uix.button.MDIconButton
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDTextField kivymd.uix.textfield.MDTextField
+#:import MDCheckbox kivymd.uix.selectioncontrol.MDCheckbox
+#:import MDDropdownMenu kivymd.uix.menu.MDDropdownMenu
+#:import MDCircularProgressIndicator kivymd.uix.progressindicator.MDCircularProgressIndicator
+#:import GridLayout kivy.uix.gridlayout.GridLayout
+#:import dp kivy.metrics.dp
+
+# Main Data Exploration Screen Layout
+<DataExplorationScreen>:
+    name: 'data_exploration'
+    
+    MDBoxLayout:
+        id: main_content
+        orientation: 'vertical'
+        spacing: dp(16)
+        padding: [dp(24), dp(8), dp(24), dp(20)]
+        
+        # Top Navigation Bar
+        TopBar:
+            id: top_bar
+            size_hint_y: None
+            height: dp(56)
+        
+        # Project Selection Card
+        DataExplorationProjectCard:
+            id: project_selection_card
+        
+        # Filters Card
+        DataExplorationFiltersCard:
+            id: filters_card
+        
+        # Selection and Sampling Card
+        DataExplorationSelectionCard:
+            id: selection_card
+        
+        # Data Preview Card
+        DataExplorationPreviewCard:
+            id: preview_card
+
+# Project Selection Card Component
+<DataExplorationProjectCard@MDCard>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: dp(64)
+    elevation: 2
+    md_bg_color: 0.98, 0.99, 1.0, 1
+    radius: [12, 12, 12, 12]
+    padding: [dp(20), dp(12), dp(20), dp(12)]
+    spacing: dp(16)
+    
+    # Title Section
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_x: 0.4
+        
+        MDIconButton:
+            icon: "database-search"
+            theme_icon_color: "Custom"
+            icon_color: app.theme_cls.primaryColor
+            size_hint_x: None
+            width: dp(36)
+            icon_size: "20dp"
+            disabled: True
+        
+        MDLabel:
+            text: "Data Exploration"
+            theme_text_color: "Primary"
+            font_style: "Headline"
+            role: "small"
+            bold: True
+            halign: "left"
+            valign: "center"
+    
+    # Project Selector
+    MDButton:
+        id: project_selector
+        text: "Select Project"
+        style: "filled"
+        size_hint_x: 0.4
+        theme_bg_color: "Custom"
+        md_bg_color: app.theme_cls.primaryColor
+        on_release: root.show_project_menu()
+    
+    # Project Info
+    MDLabel:
+        id: project_info_label
+        text: ""
+        theme_text_color: "Secondary"
+        font_style: "Body"
+        role: "medium"
+        size_hint_x: 0.2
+        halign: "right"
+        valign: "center"
+
+# Filters Card Component
+<DataExplorationFiltersCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(160)
+    elevation: 3
+    md_bg_color: 0.98, 0.99, 1.0, 1
+    radius: [12, 12, 12, 12]
+    padding: [dp(16), dp(16), dp(16), dp(16)]
+    spacing: dp(12)
+    
+    # Header
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(36)
+        
+        MDIconButton:
+            icon: "filter-variant"
+            theme_icon_color: "Custom"
+            icon_color: 0.13, 0.59, 0.95, 1
+            disabled: True
+            size_hint: None, None
+            size: dp(32), dp(32)
+        
+        MDLabel:
+            text: "Filter & Search Data"
+            theme_text_color: "Primary"
+            font_style: "Headline"
+            role: "small"
+            bold: True
+            size_hint_y: None
+            height: dp(36)
+        
+        MDLabel:
+            id: filter_status_label
+            text: ""
+            theme_text_color: "Secondary"
+            font_style: "Body"
+            role: "medium"
+            halign: "right"
+            size_hint_y: None
+            height: dp(36)
+    
+    # Main filters row
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(56)
+        padding: [dp(0), dp(4), dp(0), dp(4)]
+        
+        # Search field
+        MDTextField:
+            id: search_field
+            mode: "outlined"
+            helper_text: "Search responses..."
+            size_hint_x: 0.35
+            on_text_validate: root.apply_filters()
+        
+        # Question filter button
+        MDButton:
+            id: question_filter_btn
+            text: "All Questions"
+            style: "filled"
+            size_hint_x: 0.25
+            theme_bg_color: "Custom"
+            md_bg_color: 0.95, 0.97, 1.0, 1
+            on_release: root.show_question_filter_menu()
+        
+        # Respondent filter field
+        MDTextField:
+            id: respondent_field
+            mode: "outlined"
+            helper_text: "Respondent ID..."
+            size_hint_x: 0.2
+            on_text_validate: root.apply_filters()
+        
+        # Action buttons
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint_x: 0.2
+            spacing: dp(8)
+            
+            MDButton:
+                text: "Apply"
+                style: "filled"
+                size_hint_x: 0.6
+                theme_bg_color: "Custom"
+                md_bg_color: app.theme_cls.primaryColor
+                on_release: root.apply_filters()
+            
+            MDIconButton:
+                icon: "filter-remove"
+                theme_icon_color: "Custom"
+                icon_color: 0.76, 0.76, 0.76, 1
+                size_hint_x: 0.4
+                on_release: root.clear_filters()
+    
+    # Filter summary row
+    MDBoxLayout:
+        id: filter_summary_row
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: dp(20)
+        spacing: dp(8)
+        padding: [dp(4), dp(0), dp(4), dp(0)]
+        
+        MDLabel:
+            id: filter_summary_label
+            text: ""
+            theme_text_color: "Secondary"
+            font_style: "Body"
+            role: "small"
+            size_hint_y: None
+            height: dp(20)
+
+# Selection and Sampling Card Component
+<DataExplorationSelectionCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(140)
+    elevation: 2
+    md_bg_color: 0.98, 1.0, 0.98, 1
+    radius: [12, 12, 12, 12]
+    padding: [dp(12), dp(12), dp(12), dp(12)]
+    spacing: dp(8)
+    
+    # Header
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(36)
+        
+        MDIconButton:
+            icon: "checkbox-multiple-marked"
+            theme_icon_color: "Custom"
+            icon_color: 0.2, 0.7, 0.2, 1
+            disabled: True
+            size_hint: None, None
+            size: dp(28), dp(28)
+        
+        MDLabel:
+            text: "Response Selection & Sampling"
+            theme_text_color: "Primary"
+            font_style: "Headline"
+            role: "small"
+            bold: True
+    
+    # Selection controls row
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(40)
+        padding: [dp(4), dp(4), dp(4), dp(4)]
+        
+        # Sample size field
+        MDTextField:
+            id: sample_size_field
+            mode: "outlined"
+            helper_text: "Sample size"
+            text: "50"
+            size_hint_x: 0.15
+            input_filter: "int"
+        
+        # Sample random button
+        MDButton:
+            text: "Random Sample"
+            style: "filled"
+            size_hint_x: 0.2
+            theme_bg_color: "Custom"
+            md_bg_color: 0.2, 0.7, 0.2, 1
+            on_release: root.sample_random()
+        
+        # Select all button
+        MDButton:
+            text: "Select All"
+            style: "filled"
+            size_hint_x: 0.15
+            theme_bg_color: "Custom"
+            md_bg_color: app.theme_cls.primaryColor
+            on_release: root.select_all_responses()
+        
+        # Clear selection button
+        MDButton:
+            text: "Clear"
+            style: "outlined"
+            size_hint_x: 0.1
+            theme_outline_color: "Custom"
+            line_color: 0.6, 0.6, 0.6, 1
+            on_release: root.clear_selection()
+        
+        # Selection info label
+        MDLabel:
+            id: selection_info_label
+            text: "No responses selected"
+            theme_text_color: "Secondary"
+            font_style: "Body"
+            role: "medium"
+            size_hint_x: 0.4
+            halign: "right"
+    
+    # Advanced sampling row
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(32)
+        padding: [dp(4), dp(4), dp(4), dp(4)]
+        
+        # First N responses
+        MDButton:
+            text: "First N"
+            style: "text"
+            size_hint_x: 0.12
+            theme_text_color: "Custom"
+            text_color: app.theme_cls.primaryColor
+            on_release: root.sample_first_n()
+        
+        # Latest N responses
+        MDButton:
+            text: "Latest N"
+            style: "text"
+            size_hint_x: 0.12
+            theme_text_color: "Custom"
+            text_color: app.theme_cls.primaryColor
+            on_release: root.sample_latest_n()
+        
+        # High quality only
+        MDButton:
+            text: "High Quality"
+            style: "text"
+            size_hint_x: 0.15
+            theme_text_color: "Custom"
+            text_color: app.theme_cls.primaryColor
+            on_release: root.sample_high_quality()
+        
+        # Spacer
+        MDLabel:
+            size_hint_x: 0.41
+        
+        # Export selected button
+        MDButton:
+            text: "Export Selected"
+            style: "filled"
+            size_hint_x: 0.2
+            theme_bg_color: "Custom"
+            md_bg_color: 0.8, 0.4, 0.2, 1
+            on_release: root.export_selected_responses()
+
+# Data Preview Card Component
+<DataExplorationPreviewCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(600)
+    elevation: 2
+    md_bg_color: 1, 1, 1, 1
+    radius: [12, 12, 12, 12]
+    padding: [dp(12), dp(12), dp(12), dp(12)]
+    spacing: dp(8)
+    
+    # Header
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(36)
+        
+        MDIconButton:
+            icon: "table-eye"
+            theme_icon_color: "Custom"
+            icon_color: app.theme_cls.primaryColor
+            disabled: True
+            size_hint: None, None
+            size: dp(28), dp(28)
+        
+        MDLabel:
+            text: "Data Preview & Selection"
+            theme_text_color: "Primary"
+            font_style: "Headline"
+            role: "small"
+            bold: True
+        
+        # Status info
+        MDLabel:
+            id: page_info_label
+            text: ""
+            theme_text_color: "Secondary"
+            font_style: "Body"
+            role: "medium"
+            halign: "right"
+    
+    # Data container with scroll
+    MDScrollView:
+        do_scroll_x: True
+        do_scroll_y: True
+        bar_width: dp(10)
+        
+        DataExplorationTable:
+            id: data_table
+            size_hint_y: None
+            height: dp(500)
+    
+    # Pagination controls
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(40)
+        padding: [dp(4), dp(4), dp(4), dp(4)]
+        
+        # Spacer
+        MDLabel:
+        
+        MDIconButton:
+            id: prev_btn
+            icon: "chevron-left"
+            theme_icon_color: "Custom"
+            icon_color: app.theme_cls.primaryColor
+            disabled: True
+            size_hint: None, None
+            size: dp(32), dp(32)
+            on_release: root.load_previous_page()
+        
+        MDIconButton:
+            id: next_btn
+            icon: "chevron-right"
+            theme_icon_color: "Custom"
+            icon_color: app.theme_cls.primaryColor
+            disabled: True
+            size_hint: None, None
+            size: dp(32), dp(32)
+            on_release: root.load_next_page()
+        
+        # Spacer
+        MDLabel:
+
+# Data Table Component
+<DataExplorationTable@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(2)
+    padding: [dp(4), dp(4), dp(4), dp(4)]
+    
+    # Table header
+    DataExplorationTableHeader:
+        id: table_header
+        size_hint_y: None
+        height: dp(40)
+    
+    # Table rows container
+    MDBoxLayout:
+        id: table_rows_container
+        orientation: 'vertical'
+        spacing: dp(1)
+        size_hint_y: None
+        height: self.minimum_height
+
+# Table Header Component
+<DataExplorationTableHeader@MDBoxLayout>:
+    orientation: 'horizontal'
+    spacing: dp(4)
+    padding: [dp(8), dp(4), dp(8), dp(4)]
+    md_bg_color: 0.95, 0.95, 0.95, 1
+    
+    # Select all checkbox
+    MDCheckbox:
+        id: select_all_checkbox
+        size_hint: None, None
+        size: dp(24), dp(24)
+        active: False
+        on_active: root.toggle_page_selection(self.active)
+    
+    # Column headers
+    MDLabel:
+        text: "Question"
+        theme_text_color: "Primary"
+        font_style: "Body"
+        role: "medium"
+        bold: True
+        halign: "left"
+        size_hint_x: 0.28
+    
+    MDLabel:
+        text: "Response"
+        theme_text_color: "Primary"
+        font_style: "Body"
+        role: "medium"
+        bold: True
+        halign: "left"
+        size_hint_x: 0.23
+    
+    MDLabel:
+        text: " Respondent"
+        theme_text_color: "Primary"
+        font_style: "Body"
+        role: "medium"
+        bold: True
+        halign: "left"
+        size_hint_x: 0.18
+    
+    MDLabel:
+        text: " Date"
+        theme_text_color: "Primary"
+        font_style: "Body"
+        role: "medium"
+        bold: True
+        halign: "center"
+        size_hint_x: 0.15
+    
+    MDLabel:
+        text: " Type"
+        theme_text_color: "Primary"
+        font_style: "Body"
+        role: "medium"
+        bold: True
+        halign: "center"
+        size_hint_x: 0.08
+    
+    MDLabel:
+        text: "ID"
+        theme_text_color: "Primary"
+        font_style: "Body"
+        role: "medium"
+        bold: True
+        halign: "center"
+        size_hint_x: 0.08
+
+# Data Row Component Template (will be created dynamically)
+<DataExplorationTableRow@MDBoxLayout>:
+    response_id: ""
+    question_text: ""
+    response_value: ""
+    respondent_id: ""
+    date_text: ""
+    type_text: ""
+    
+    orientation: 'horizontal'
+    spacing: dp(4)
+    padding: [dp(8), dp(2), dp(8), dp(2)]
+    size_hint_y: None
+    height: dp(36)
+    
+    # Selection checkbox
+    MDCheckbox:
+        id: row_checkbox
+        size_hint: None, None
+        size: dp(20), dp(20)
+        active: False
+        on_active: root.toggle_response_selection(root.response_id, self.active)
+    
+    # Question column
+    MDLabel:
+        text: root.question_text[:25] + "..." if len(root.question_text) > 25 else root.question_text
+        theme_text_color: "Primary"
+        font_style: "Body"
+        role: "medium"
+        size_hint_x: 0.28
+        halign: "left"
+        text_size: self.width, None
+    
+    # Response column
+    MDLabel:
+        text: root.response_value[:18] + "..." if len(root.response_value) > 18 else root.response_value
+        theme_text_color: "Primary"
+        font_style: "Body"
+        role: "medium"
+        size_hint_x: 0.23
+        halign: "left"
+        text_size: self.width, None
+    
+    # Respondent column
+    MDLabel:
+        text: root.respondent_id[:10]
+        theme_text_color: "Secondary"
+        font_style: "Body"
+        role: "medium"
+        size_hint_x: 0.18
+        halign: "left"
+    
+    # Date column
+    MDLabel:
+        text: root.date_text
+        theme_text_color: "Secondary"
+        font_style: "Body"
+        role: "small"
+        size_hint_x: 0.15
+        halign: "center"
+    
+    # Type column
+    MDLabel:
+        text: root.type_text[:6]
+        theme_text_color: "Secondary"
+        font_style: "Body"
+        role: "small"
+        size_hint_x: 0.08
+        halign: "center"
+    
+    # ID column
+    MDLabel:
+        text: root.response_id[:6] if root.response_id else 'N/A'
+        theme_text_color: "Hint"
+        font_style: "Body"
+        role: "small"
+        size_hint_x: 0.08
+        halign: "center"
+
+# Loading State Component
+<DataExplorationLoadingCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(300)
+    elevation: 3
+    md_bg_color: 0.97, 0.98, 1.0, 1
+    radius: [12, 12, 12, 12]
+    padding: [dp(40), dp(30), dp(40), dp(30)]
+    spacing: dp(24)
+    
+    MDCircularProgressIndicator:
+        size_hint: None, None
+        size: dp(48), dp(48)
+        pos_hint: {'center_x': 0.5}
+    
+    MDLabel:
+        text: "Loading data exploration..."
+        theme_text_color: "Secondary"
+        font_style: "Headline"
+        role: "small"
+        halign: "center"
+    
+    MDLabel:
+        text: "Please wait while we prepare your data"
+        theme_text_color: "Hint"
+        font_style: "Body"
+        role: "medium"
+        halign: "center"
+
+# Error State Component
+<DataExplorationErrorCard@MDCard>:
+    error_message: ""
+    
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(350)
+    elevation: 3
+    md_bg_color: 1.0, 0.96, 0.96, 1
+    radius: [12, 12, 12, 12]
+    padding: [dp(40), dp(30), dp(40), dp(30)]
+    spacing: dp(24)
+    
+    MDIconButton:
+        icon: "alert-circle-outline"
+        theme_icon_color: "Custom"
+        icon_color: 0.8, 0.2, 0.2, 1
+        disabled: True
+        size_hint: None, None
+        size: dp(64), dp(64)
+        pos_hint: {'center_x': 0.5}
+    
+    MDLabel:
+        text: f"{root.error_message}"
+        theme_text_color: "Error"
+        font_style: "Headline"
+        role: "small"
+        halign: "center"
+        text_size: dp(400), None
+    
+    MDLabel:
+        text: "Please try refreshing or contact support if the issue persists"
+        theme_text_color: "Secondary"
+        font_style: "Body"
+        role: "medium"
+        halign: "center"
+    
+    MDButton:
+        text: "Retry"
+        style: "filled"
+        size_hint: None, None
+        size: dp(120), dp(40)
+        pos_hint: {'center_x': 0.5}
+        theme_bg_color: "Custom"
+        md_bg_color: app.theme_cls.primaryColor
+
+# Empty State Component
+<DataExplorationEmptyCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(250)
+    elevation: 2
+    md_bg_color: 0.98, 0.98, 0.98, 1
+    radius: [12, 12, 12, 12]
+    padding: [dp(40), dp(30), dp(40), dp(30)]
+    spacing: dp(20)
+    
+    MDIconButton:
+        icon: "database-off-outline"
+        theme_icon_color: "Custom"
+        icon_color: 0.6, 0.6, 0.6, 1
+        disabled: True
+        size_hint: None, None
+        size: dp(48), dp(48)
+        pos_hint: {'center_x': 0.5}
+    
+    MDLabel:
+        text: "No data found with current filters"
+        theme_text_color: "Secondary"
+        font_style: "Headline"
+        role: "small"
+        halign: "center"
+    
+    MDLabel:
+        text: "Try adjusting your search criteria or clearing filters"
+        theme_text_color: "Hint"
+        font_style: "Body"
+        role: "medium"
+        halign: "center" 
