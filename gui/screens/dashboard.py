@@ -396,13 +396,19 @@ class DashboardScreen(MDScreen):
             
             # Update stat cards with enhanced information
             if hasattr(self.ids, 'total_responses_card') and self.ids.total_responses_card:
-                self.ids.total_responses_card.value = str(stats.get('total_respondents', 'N/A'))
+                value = str(stats.get('total_respondents', 'N/A'))
+                self.ids.total_responses_card.value = value
+                print(f"Updated total_responses_card to: {value}")
                 
             if hasattr(self.ids, 'active_projects_card') and self.ids.active_projects_card:
-                self.ids.active_projects_card.value = str(stats.get('active_projects', 'N/A'))
+                value = str(stats.get('active_projects', 'N/A'))
+                self.ids.active_projects_card.value = value
+                print(f"Updated active_projects_card to: {value}")
                 
             if hasattr(self.ids, 'pending_sync_card') and self.ids.pending_sync_card:
-                self.ids.pending_sync_card.value = str(stats.get('pending_sync', 'N/A'))
+                value = str(stats.get('pending_sync', 'N/A'))
+                self.ids.pending_sync_card.value = value
+                print(f"Updated pending_sync_card to: {value}")
             
             # Enhanced team members display using dedicated method
             team_members_count = stats.get('team_members', 'N/A')
@@ -457,7 +463,10 @@ class DashboardScreen(MDScreen):
             
         except Exception as e:
             print(f"Error updating UI: {e}")
-            self._handle_error(f"UI update error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            # Don't call _handle_error as it sets cards to "Error" - just log the error
+            self.show_loader(False)
 
     def reset_for_new_user(self):
         """Reset dashboard state for a new user login"""

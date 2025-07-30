@@ -42,6 +42,7 @@ class DataCollectionScreen(Screen):
         self.clear_current_form()
         if hasattr(self.ids, 'top_bar'):
             self.ids.top_bar.set_title("Collect Data")
+            self.ids.top_bar.set_current_screen("data_collection")
         Clock.schedule_once(self._delayed_load, 0)
         self.update_responsive_layout()
 

@@ -59,6 +59,7 @@ class FormBuilderScreen(Screen):
             # Set top bar title for consistency
             if hasattr(self.ids, 'top_bar'):
                 self.ids.top_bar.set_title("Form Builder")
+                self.ids.top_bar.set_current_screen("form_builder")
             
             # Check if user is authenticated
             app = App.get_running_app()

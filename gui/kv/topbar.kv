@@ -112,7 +112,7 @@
     Widget:
         size_hint_x: 1
 
-    # Title - responsive
+    # Title - responsive (hidden on dashboard since it has its own title)
     MDLabel:
         id: top_title
         text: "Dashboard"
@@ -120,11 +120,12 @@
         role: "large"
         theme_text_color: "Custom"
         text_color: 1, 1, 1, 1
+        text_size: self.width, None
         size_hint_x: None
         width: self.texture_size[0]
         pos_hint: {"center_y": 0.5}
         halign: "center"
-        opacity: 1 if Window.width > dp(600) else 0
+        opacity: 0 if (root.current_screen in ["dashboard", "projects", "analytics", "data_collection", "responses", "sync", "qualitative_analytics", "descriptive_analytics", "data_exploration", "inferential_analytics", "form_builder"]) else (1 if Window.width > dp(600) else 0)
 
     # Spacer
     Widget:

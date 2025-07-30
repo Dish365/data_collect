@@ -151,6 +151,12 @@ class AnalyticsScreen(Screen):
         if not self.project_list:
             toast("No projects available")
             return
+        
+        # Check if project_selector exists
+        if not hasattr(self.ids, 'project_selector') or not self.ids.project_selector:
+            print("Warning: project_selector not found in analytics screen")
+            toast("Project selector not available")
+            return
             
         menu_items = []
         for project in self.project_list:

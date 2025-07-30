@@ -81,6 +81,7 @@ class DataExplorationScreen(Screen):
         """Called when the screen is entered"""
         if hasattr(self.ids, 'top_bar') and self.ids.top_bar:
             self.ids.top_bar.set_title("Data Exploration")
+            self.ids.top_bar.set_current_screen("data_exploration")
         
         # Initialize responsive layout
         self.update_responsive_layout()

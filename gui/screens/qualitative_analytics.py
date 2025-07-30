@@ -187,6 +187,7 @@ class QualitativeAnalyticsScreen(Screen):
         """Called when the screen is entered"""
         if hasattr(self.ids, 'top_bar') and self.ids.top_bar:
             self.ids.top_bar.set_title("Qualitative Analytics")
+            self.ids.top_bar.set_current_screen("qualitative_analytics")
         
         # Initialize responsive layout
         self.update_responsive_layout()

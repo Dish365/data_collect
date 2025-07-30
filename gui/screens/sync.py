@@ -20,6 +20,7 @@ class SyncScreen(Screen):
     def on_enter(self):
         """Called when the screen is entered"""
         self.ids.top_bar.set_title("Sync")
+        self.ids.top_bar.set_current_screen("sync")
         self.load_pending_items()
         
     def load_pending_items(self):

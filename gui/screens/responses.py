@@ -151,10 +151,15 @@ class ResponsesScreen(MDScreen, MDResponsiveLayout):
         self.mobile_view = True
         self.tablet_view = False
         self.desktop_view = False
+    
+    def update_responsive_layout(self):
+        """Update responsive layout - alias for configure_responsive_layout"""
+        self.configure_responsive_layout()
 
     def on_enter(self):
         """Called when screen is entered"""
         self.ids.top_bar.set_title("Responses")
+        self.ids.top_bar.set_current_screen("responses")
         
         # Initialize responsive layout
         self.update_responsive_layout()
