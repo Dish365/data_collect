@@ -419,6 +419,14 @@ class InferentialAnalyticsScreen(Screen):
             return f"{value:.{decimals}f}"
         return str(value)
     
+    def set_significance_level(self, value):
+        """Set significance level from text field"""
+        self.significance_level = value
+    
+    def set_confidence_level(self, value):
+        """Set confidence level from text field"""
+        self.confidence_level = value
+    
     def on_enter(self):
         """Called when entering the screen"""
         if not self.analytics_service:

@@ -1,8 +1,6 @@
 #:kivy 2.0
 #:import MDCard kivymd.uix.card.MDCard
 #:import MDLabel kivymd.uix.label.MDLabel
-#:import MDRaisedButton kivymd.uix.button.MDRaisedButton
-#:import MDFlatButton kivymd.uix.button.MDFlatButton
 #:import MDIconButton kivymd.uix.button.MDIconButton
 #:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
 #:import MDDialog kivymd.uix.dialog.MDDialog
@@ -74,7 +72,7 @@
     role: "large"
     theme_text_color: "Secondary"
 
-<DistributionButton@MDRaisedButton>:
+<DistributionButton@MDButton>:
     size_hint_y: None
     height: dp(48)
     font_size: "16sp"
@@ -166,11 +164,11 @@
     size_hint_y: None
     height: dp(36)
 
-<DistributionDetailsButton@MDFlatButton>:
+<DistributionDetailsButton@MDButton>:
     text: "View Details"
     size_hint_x: 1
 
-<DistributionOutliersButton@MDFlatButton>:
+<DistributionOutliersButton@MDButton>:
     text: "View Outliers"
     size_hint_x: 1
 
@@ -382,17 +380,17 @@
     size_hint_y: None
     height: dp(48)
 
-<DistributionViewButton@MDRaisedButton>:
+<DistributionViewButton@MDButton>:
     text: "View Details"
     size_hint_x: 1
     height: dp(48)
 
-<DistributionExportButton@MDRaisedButton>:
+<DistributionExportButton@MDButton>:
     text: "Export Results"
     size_hint_x: 1
     height: dp(48)
 
-<DistributionCloseButton@MDFlatButton>:
+<DistributionCloseButton@MDButton>:
     text: "Close"
     size_hint_x: 1
     height: dp(48)

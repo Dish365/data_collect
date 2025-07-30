@@ -79,7 +79,8 @@
     MDLabel:
         text: "Project Selection"
         theme_text_color: "Primary"
-        font_style: "H6"
+        font_style: "Headline"
+        role: "small"
         size_hint_y: None
         height: dp(32)
     
@@ -96,10 +97,12 @@
             mode: "outlined"
         
         MDButton:
-            text: "Select Project"
+            style: "filled"
             size_hint_x: 0.3
-            theme_bg_color: "Primary"
             on_release: root.show_project_dialog()
+            
+            MDButtonText:
+                text: "Select Project"
 
 # Analysis Type Selection Card
 <InferentialAnalysisTypeCard@MDCard>:
@@ -113,7 +116,8 @@
     MDLabel:
         text: "Analysis Type"
         theme_text_color: "Primary"
-        font_style: "H6"
+        font_style: "Headline"
+        role: "small"
         size_hint_y: None
         height: dp(32)
     
@@ -125,23 +129,28 @@
         
         MDButton:
             id: analysis_type_button
-            text: "Select Analysis Type"
+            style: "filled"
             size_hint_x: 0.5
-            theme_bg_color: "Primary"
-            on_release: root.show_analysis_menu(self)
+            on_release: app.root.get_screen('inferential_analytics').show_analysis_menu(self)
+            
+            MDButtonText:
+                text: "Select Analysis Type"
         
         MDButton:
             id: test_method_button
-            text: "Select Test Method"
+            style: "tonal"
             size_hint_x: 0.5
-            theme_bg_color: "Secondary"
-            on_release: root.show_test_method_menu(self)
-            disabled: not root.selected_analysis_type
+            on_release: app.root.get_screen('inferential_analytics').show_test_method_menu(self)
+            disabled: False
+            
+            MDButtonText:
+                text: "Select Test Method"
     
     MDLabel:
-        text: f"Selected: {root.selected_analysis_type.replace('_', ' ').title()} - {root.selected_test_method.replace('_', ' ').title()}" if root.selected_analysis_type and root.selected_test_method else "No analysis selected"
+        text: "No analysis selected"
         theme_text_color: "Secondary"
-        font_style: "Caption"
+        font_style: "Label"
+        role: "small"
         size_hint_y: None
         height: dp(20)
 
@@ -149,7 +158,7 @@
 <InferentialVariableCard@MDCard>:
     orientation: 'vertical'
     size_hint_y: None
-    height: dp(300) if root.project_variables else dp(100)
+    height: dp(300)
     padding: dp(16)
     elevation: 2
     md_bg_color: app.theme_cls.surfaceColor
@@ -157,20 +166,22 @@
     MDLabel:
         text: "Variable Selection"
         theme_text_color: "Primary"
-        font_style: "H6"
+        font_style: "Headline"
+        role: "small"
         size_hint_y: None
         height: dp(32)
     
     MDLabel:
-        text: f"Select variables for analysis ({len(root.selected_variables)} selected)"
+        text: "Select variables for analysis"
         theme_text_color: "Secondary"
-        font_style: "Body2"
+        font_style: "Body"
+        role: "medium"
         size_hint_y: None
         height: dp(24)
     
     MDScrollView:
         size_hint_y: None
-        height: dp(200) if root.project_variables else dp(40)
+        height: dp(200)
         
         MDBoxLayout:
             orientation: 'vertical'
@@ -181,7 +192,7 @@
             # Variable checkboxes
             BoxLayout:
                 size_hint_y: None
-                height: dp(200) if root.project_variables else dp(40)
+                height: dp(200)
                 
                 RecycleView:
                     id: variables_rv
@@ -207,7 +218,8 @@
     MDLabel:
         text: "Analysis Configuration"
         theme_text_color: "Primary"
-        font_style: "H6"
+        font_style: "Headline"
+        role: "small"
         size_hint_y: None
         height: dp(32)
     
@@ -220,22 +232,20 @@
         MDTextField:
             id: significance_level_field
             hint_text: "Significance Level"
-            text: root.significance_level
+            text: "0.05"
             helper_text: "Alpha (e.g., 0.05)"
             helper_text_mode: "persistent"
             size_hint_x: 0.5
             mode: "outlined"
-            on_text: root.significance_level = self.text
         
         MDTextField:
             id: confidence_level_field
             hint_text: "Confidence Level"
-            text: root.confidence_level
+            text: "0.95"
             helper_text: "CI Level (e.g., 0.95)"
             helper_text_mode: "persistent"
             size_hint_x: 0.5
             mode: "outlined"
-            on_text: root.confidence_level = self.text
     
     # Additional configuration options based on analysis type
     MDBoxLayout:
@@ -247,7 +257,8 @@
         MDLabel:
             text: "Additional options will appear based on selected analysis type"
             theme_text_color: "Secondary"
-            font_style: "Caption"
+            font_style: "Label"
+            role: "small"
             halign: "center"
 
 # Analysis Controls Card
@@ -262,7 +273,8 @@
     MDLabel:
         text: "Analysis Controls"
         theme_text_color: "Primary"
-        font_style: "H6"
+        font_style: "Headline"
+        role: "small"
         size_hint_y: None
         height: dp(32)
     
@@ -273,30 +285,34 @@
         height: dp(56)
         
         MDButton:
-            text: "Run Analysis"
-            theme_bg_color: "Primary"
+            style: "filled"
             size_hint_x: 0.4
-            disabled: not (root.current_project_id and root.selected_analysis_type and root.selected_variables)
             on_release: root.run_analysis()
+            
+            MDButtonText:
+                text: "Run Analysis"
         
         MDButton:
-            text: "Clear"
-            theme_bg_color: "Secondary"
+            style: "outlined"
             size_hint_x: 0.3
             on_release: root.clear_analysis()
+            
+            MDButtonText:
+                text: "Clear"
         
         MDButton:
-            text: "Export"
-            theme_bg_color: "Secondary"
+            style: "outlined"
             size_hint_x: 0.3
-            disabled: not root.analysis_results
             on_release: root.export_results()
+            
+            MDButtonText:
+                text: "Export"
 
 # Analysis Results Card
 <InferentialResultsCard@MDCard>:
     orientation: 'vertical'
     size_hint_y: None
-    height: dp(400) if root.current_analysis_type else dp(100)
+    height: dp(400)
     padding: dp(16)
     elevation: 2
     md_bg_color: app.theme_cls.surfaceColor
@@ -304,13 +320,14 @@
     MDLabel:
         text: "Analysis Results"
         theme_text_color: "Primary"
-        font_style: "H6"
+        font_style: "Headline"
+        role: "small"
         size_hint_y: None
         height: dp(32)
     
     MDScrollView:
         size_hint_y: None
-        height: dp(320) if root.current_analysis_type else dp(40)
+        height: dp(320)
         
         MDBoxLayout:
             id: results_container
@@ -321,71 +338,72 @@
             
             # Results will be populated dynamically based on analysis type
             MDLabel:
-                text: "Run an analysis to see results here" if not root.current_analysis_type else f"Results for {root.current_analysis_type.replace('_', ' ').title()}"
+                text: "Run an analysis to see results here"
                 theme_text_color: "Secondary"
-                font_style: "Body2"
+                font_style: "Body"
+                role: "medium"
                 size_hint_y: None
                 height: dp(24)
                 halign: "center"
             
             # Correlation Results
             InferentialCorrelationResults:
-                opacity: 1 if root.current_analysis_type == "correlation" else 0
-                height: dp(200) if root.current_analysis_type == "correlation" else 0
+                opacity: 0
+                height: 0
                 size_hint_y: None
             
             # T-Test Results
             InferentialTTestResults:
-                opacity: 1 if root.current_analysis_type == "t_test" else 0
-                height: dp(200) if root.current_analysis_type == "t_test" else 0
+                opacity: 0
+                height: 0
                 size_hint_y: None
             
             # ANOVA Results
             InferentialAnovaResults:
-                opacity: 1 if root.current_analysis_type == "anova" else 0
-                height: dp(200) if root.current_analysis_type == "anova" else 0
+                opacity: 0
+                height: 0
                 size_hint_y: None
             
             # Regression Results
             InferentialRegressionResults:
-                opacity: 1 if root.current_analysis_type == "regression" else 0
-                height: dp(200) if root.current_analysis_type == "regression" else 0
+                opacity: 0
+                height: 0
                 size_hint_y: None
             
             # Chi-Square Results
             InferentialChiSquareResults:
-                opacity: 1 if root.current_analysis_type == "chi_square" else 0
-                height: dp(200) if root.current_analysis_type == "chi_square" else 0
+                opacity: 0
+                height: 0
                 size_hint_y: None
             
             # Nonparametric Results
             InferentialNonparametricResults:
-                opacity: 1 if root.current_analysis_type == "nonparametric" else 0
-                height: dp(200) if root.current_analysis_type == "nonparametric" else 0
+                opacity: 0
+                height: 0
                 size_hint_y: None
             
             # Bayesian Results
             InferentialBayesianResults:
-                opacity: 1 if root.current_analysis_type == "bayesian" else 0
-                height: dp(200) if root.current_analysis_type == "bayesian" else 0
+                opacity: 0
+                height: 0
                 size_hint_y: None
             
             # Effect Size Results
             InferentialEffectSizeResults:
-                opacity: 1 if root.current_analysis_type == "effect_size" else 0
-                height: dp(200) if root.current_analysis_type == "effect_size" else 0
+                opacity: 0
+                height: 0
                 size_hint_y: None
             
             # Power Analysis Results
             InferentialPowerAnalysisResults:
-                opacity: 1 if root.current_analysis_type == "power_analysis" else 0
-                height: dp(200) if root.current_analysis_type == "power_analysis" else 0
+                opacity: 0
+                height: 0
                 size_hint_y: None
             
             # Confidence Intervals Results
             InferentialConfidenceIntervalsResults:
-                opacity: 1 if root.current_analysis_type == "confidence_intervals" else 0
-                height: dp(200) if root.current_analysis_type == "confidence_intervals" else 0
+                opacity: 0
+                height: 0
                 size_hint_y: None
 
 # Action Buttons Card
@@ -400,7 +418,8 @@
     MDLabel:
         text: "Additional Actions"
         theme_text_color: "Primary"
-        font_style: "H6"
+        font_style: "Headline"
+        role: "small"
         size_hint_y: None
         height: dp(32)
     
@@ -411,23 +430,28 @@
         height: dp(56)
         
         MDButton:
-            text: "View Assumptions"
-            theme_bg_color: "Secondary"
+            style: "outlined"
             size_hint_x: 0.33
             on_release: root.show_assumptions_dialog()
+            
+            MDButtonText:
+                text: "View Assumptions"
         
         MDButton:
-            text: "Compare Methods"
-            theme_bg_color: "Secondary"
+            style: "outlined"
             size_hint_x: 0.33
             on_release: root.show_comparison_dialog()
+            
+            MDButtonText:
+                text: "Compare Methods"
         
         MDButton:
-            text: "Save Analysis"
-            theme_bg_color: "Secondary"
+            style: "outlined"
             size_hint_x: 0.34
-            disabled: not root.analysis_results
             on_release: root.save_analysis()
+            
+            MDButtonText:
+                text: "Save Analysis"
 
 # Variable Checkbox Item
 <VariableCheckboxItem@MDBoxLayout>:
@@ -450,13 +474,15 @@
     MDLabel:
         text: f"{root.variable_name} ({root.variable_type})"
         theme_text_color: "Primary"
-        font_style: "Body2"
+        font_style: "Body"
+        role: "medium"
         valign: "center"
     
     MDLabel:
         text: root.variable_type.upper()
         theme_text_color: "Secondary"
-        font_style: "Caption"
+        font_style: "Label"
+        role: "small"
         size_hint_x: None
         width: dp(60)
         halign: "center"
@@ -472,7 +498,8 @@
     MDLabel:
         text: "Correlation Matrix"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(24)
     
@@ -484,19 +511,22 @@
         MDLabel:
             text: f"Method: {root.parent.parent.parent.parent.correlation_results.get('method', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'correlation_results') else "Method: N/A"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
             size_hint_x: 0.5
         
         MDLabel:
             text: f"Significant pairs: {root.parent.parent.parent.parent.correlation_results.get('summary', {}).get('significant_pairs', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'correlation_results') else "Significant pairs: N/A"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
             size_hint_x: 0.5
     
     MDLabel:
         text: "Correlation coefficients and p-values would be displayed here in a table format"
         theme_text_color: "Secondary"
-        font_style: "Caption"
+        font_style: "Label"
+        role: "small"
         size_hint_y: None
         height: dp(40)
         halign: "center"
@@ -509,7 +539,8 @@
     MDLabel:
         text: "T-Test Results"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(24)
     
@@ -522,32 +553,38 @@
         MDLabel:
             text: "Test Statistic:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.t_test_results.get('t_statistic', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 't_test_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: "P-Value:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.t_test_results.get('p_value', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 't_test_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: "Effect Size:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.t_test_results.get('effect_size', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 't_test_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
 
 # ANOVA Results
 <InferentialAnovaResults@MDBoxLayout>:
@@ -557,7 +594,8 @@
     MDLabel:
         text: "ANOVA Results"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(24)
     
@@ -570,32 +608,38 @@
         MDLabel:
             text: "F-Statistic:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.anova_results.get('f_statistic', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'anova_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: "P-Value:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.anova_results.get('p_value', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'anova_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: "Eta Squared:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.anova_results.get('eta_squared', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'anova_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
 
 # Regression Results
 <InferentialRegressionResults@MDBoxLayout>:
@@ -605,7 +649,8 @@
     MDLabel:
         text: "Regression Results"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(24)
     
@@ -618,32 +663,38 @@
         MDLabel:
             text: "R-Squared:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.regression_results.get('r_squared', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'regression_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: "F-Statistic:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.regression_results.get('f_statistic', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'regression_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: "P-Value (Model):"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.regression_results.get('p_value_model', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'regression_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
 
 # Chi-Square Results
 <InferentialChiSquareResults@MDBoxLayout>:
@@ -653,7 +704,8 @@
     MDLabel:
         text: "Chi-Square Test Results"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(24)
     
@@ -666,32 +718,38 @@
         MDLabel:
             text: "Chi-Square:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.chi_square_results.get('chi_square', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'chi_square_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: "P-Value:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.chi_square_results.get('p_value', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'chi_square_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: "Cramér's V:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.chi_square_results.get('cramers_v', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'chi_square_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
 
 # Nonparametric Results
 <InferentialNonparametricResults@MDBoxLayout>:
@@ -701,7 +759,8 @@
     MDLabel:
         text: "Nonparametric Test Results"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(24)
     
@@ -714,32 +773,38 @@
         MDLabel:
             text: "Test Statistic:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.nonparametric_results.get('test_statistic', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'nonparametric_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: "P-Value:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.nonparametric_results.get('p_value', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'nonparametric_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: "Effect Size:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.nonparametric_results.get('effect_size', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'nonparametric_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
 
 # Bayesian Results
 <InferentialBayesianResults@MDBoxLayout>:
@@ -749,7 +814,8 @@
     MDLabel:
         text: "Bayesian Analysis Results"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(24)
     
@@ -762,32 +828,38 @@
         MDLabel:
             text: "Bayes Factor:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.bayesian_results.get('bayes_factor', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'bayesian_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: "Posterior Mean:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.bayesian_results.get('posterior_mean', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'bayesian_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: "Credible Interval:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.bayesian_results.get('credible_interval', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'bayesian_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
 
 # Effect Size Results
 <InferentialEffectSizeResults@MDBoxLayout>:
@@ -797,7 +869,8 @@
     MDLabel:
         text: "Effect Size Results"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(24)
     
@@ -810,32 +883,38 @@
         MDLabel:
             text: "Effect Size:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.effect_size_results.get('effect_size', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'effect_size_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: "Interpretation:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.effect_size_results.get('interpretation', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'effect_size_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: "Confidence Interval:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.effect_size_results.get('confidence_interval', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'effect_size_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
 
 # Power Analysis Results
 <InferentialPowerAnalysisResults@MDBoxLayout>:
@@ -845,7 +924,8 @@
     MDLabel:
         text: "Power Analysis Results"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(24)
     
@@ -858,32 +938,38 @@
         MDLabel:
             text: "Statistical Power:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.power_analysis_results.get('power', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'power_analysis_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: "Sample Size:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.power_analysis_results.get('sample_size', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'power_analysis_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: "Effect Size:"
             theme_text_color: "Secondary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
         
         MDLabel:
             text: f"{root.parent.parent.parent.parent.power_analysis_results.get('effect_size', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'power_analysis_results') else "N/A"
             theme_text_color: "Primary"
-            font_style: "Body2"
+            font_style: "Body"
+            role: "medium"
 
 # Confidence Intervals Results
 <InferentialConfidenceIntervalsResults@MDBoxLayout>:
@@ -893,14 +979,16 @@
     MDLabel:
         text: "Confidence Intervals Results"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(24)
     
     MDLabel:
         text: "Confidence intervals for selected variables would be displayed here"
         theme_text_color: "Secondary"
-        font_style: "Body2"
+        font_style: "Body"
+        role: "medium"
         size_hint_y: None
         height: dp(40)
         halign: "center"
@@ -908,7 +996,8 @@
     MDLabel:
         text: f"Confidence Level: {root.parent.parent.parent.parent.confidence_intervals_results.get('confidence_level', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'confidence_intervals_results') else "Confidence Level: N/A"
         theme_text_color: "Secondary"
-        font_style: "Caption"
+        font_style: "Label"
+        role: "small"
         size_hint_y: None
         height: dp(20)
         halign: "center"

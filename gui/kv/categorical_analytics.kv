@@ -1,8 +1,6 @@
 #:kivy 2.0
 #:import MDCard kivymd.uix.card.MDCard
 #:import MDLabel kivymd.uix.label.MDLabel
-#:import MDRaisedButton kivymd.uix.button.MDRaisedButton
-#:import MDFlatButton kivymd.uix.button.MDFlatButton
 #:import MDIconButton kivymd.uix.button.MDIconButton
 #:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
 #:import MDDialog kivymd.uix.dialog.MDDialog
@@ -73,7 +71,7 @@
     padding: dp(8)
     spacing: dp(4)
 
-<CategoricalButton@MDRaisedButton>:
+<CategoricalButton@MDButton>:
     size_hint_y: None
     height: dp(48)
     font_size: "16sp"
@@ -214,11 +212,11 @@
     size_hint_y: None
     height: dp(36)
 
-<CategoricalDetailsButton@MDFlatButton>:
+<CategoricalDetailsButton@MDButton>:
     text: "View Details"
     size_hint_x: 1
 
-<CategoricalChartsButton@MDFlatButton>:
+<CategoricalChartsButton@MDButton>:
     text: "View Distribution"
     size_hint_x: 1
 

@@ -340,23 +340,29 @@
                                         font_size: "15sp"  # Smaller font
 
                                 # Date & Time Buttons
-                                MDRaisedButton:
-                                    text: "Date"
+                                MDButton:
+                                    style: "elevated"
                                     on_release: root.add_question('date')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.2, 0.7, 0.4, 1
                                     font_size: "13sp"
                                     elevation: 1
+                                    
+                                    MDButtonText:
+                                        text: "Date"
 
-                                MDRaisedButton:
-                                    text: "Date & Time"
+                                MDButton:
+                                    style: "elevated"
                                     on_release: root.add_question('datetime')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.2, 0.7, 0.4, 1
                                     font_size: "13sp"
                                     elevation: 1
+                                    
+                                    MDButtonText:
+                                        text: "Date & Time"
 
                             # LOCATION & GPS SECTION
                             MDBoxLayout:
@@ -388,23 +394,29 @@
                                         font_size: "15sp"
 
                                 # Location Buttons
-                                MDRaisedButton:
-                                    text: "GPS Location"
+                                MDButton:
+                                    style: "elevated"
                                     on_release: root.add_question('geopoint')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.6, 0.2, 0.8, 1
                                     font_size: "13sp"
                                     elevation: 1
+                                    
+                                    MDButtonText:
+                                        text: "GPS Location"
 
-                                MDRaisedButton:
-                                    text: "GPS Area"
+                                MDButton:
+                                    style: "elevated"
                                     on_release: root.add_question('geoshape')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.6, 0.2, 0.8, 1
                                     font_size: "13sp"
                                     elevation: 1
+                                    
+                                    MDButtonText:
+                                        text: "GPS Area"
 
                             # MEDIA SECTION
                             MDBoxLayout:
@@ -436,41 +448,53 @@
                                         font_size: "15sp"
 
                                 # Media Buttons
-                                MDRaisedButton:
-                                    text: "Photo/Image"
+                                MDButton:
+                                    style: "elevated"
                                     on_release: root.add_question('image')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.2, 0.8, 0.8, 1
                                     font_size: "13sp"
                                     elevation: 1
+                                    
+                                    MDButtonText:
+                                        text: "Photo/Image"
 
-                                MDRaisedButton:
-                                    text: "Audio Recording"
+                                MDButton:
+                                    style: "elevated"
                                     on_release: root.add_question('audio')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.2, 0.8, 0.8, 1
                                     font_size: "13sp"
                                     elevation: 1
+                                    
+                                    MDButtonText:
+                                        text: "Audio Recording"
 
-                                MDRaisedButton:
-                                    text: "Video Recording"
+                                MDButton:
+                                    style: "elevated"
                                     on_release: root.add_question('video')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.2, 0.8, 0.8, 1
                                     font_size: "13sp"
                                     elevation: 1
+                                    
+                                    MDButtonText:
+                                        text: "Video Recording"
 
-                                MDRaisedButton:
-                                    text: "File Upload"
+                                MDButton:
+                                    style: "elevated"
                                     on_release: root.add_question('file')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.2, 0.8, 0.8, 1
                                     font_size: "13sp"
                                     elevation: 1
+                                    
+                                    MDButtonText:
+                                        text: "File Upload"
 
                             # SPECIAL SECTION
                             MDBoxLayout:
@@ -502,32 +526,41 @@
                                         font_size: "15sp"
 
                                 # Special Buttons
-                                MDRaisedButton:
-                                    text: "Digital Signature"
+                                MDButton:
+                                    style: "elevated"
                                     on_release: root.add_question('signature')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.4, 0.4, 0.4, 1
                                     font_size: "13sp"
                                     elevation: 1
+                                    
+                                    MDButtonText:
+                                        text: "Digital Signature"
 
-                                MDRaisedButton:
-                                    text: "Barcode/QR Code"
+                                MDButton:
+                                    style: "elevated"
                                     on_release: root.add_question('barcode')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.4, 0.4, 0.4, 1
                                     font_size: "13sp"
                                     elevation: 1
+                                    
+                                    MDButtonText:
+                                        text: "Barcode/QR Code"
 
-                                MDRaisedButton:
-                                    text: "Rating Scale"
+                                MDButton:
+                                    style: "elevated"
                                     on_release: root.add_question('scale_rating')
                                     size_hint_y: None
                                     height: dp(36)
                                     md_bg_color: 0.4, 0.4, 0.4, 1
                                     font_size: "13sp"
                                     elevation: 1
+                                    
+                                    MDButtonText:
+                                        text: "Rating Scale"
 
                 # Right Panel - Form Canvas
                 MDCard:

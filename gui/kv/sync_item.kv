@@ -9,7 +9,7 @@
     style: "elevated"
     radius: [dp(12)]
     elevation: 1
-    md_bg_color: app.theme_cls.surfaceColorColor
+    md_bg_color: app.theme_cls.surfaceColor
 
     # Main content layout
     MDBoxLayout:
@@ -94,7 +94,7 @@
 
                 role: "small"
                 theme_text_color: "Custom"
-                text_color: app.theme_cls.warningColor if root.status == 'pending' else app.theme_cls.primaryColor if root.status == 'synced' else app.theme_cls.errorColor
+                text_color: app.theme_cls.errorColor if root.status == 'pending' else app.theme_cls.primaryColor if root.status == 'synced' else app.theme_cls.errorColor
                 size_hint_y: None
                 height: dp(16)
                 halign: "center" 

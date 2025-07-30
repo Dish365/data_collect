@@ -1,164 +1,135 @@
 #!/usr/bin/env python3
 """
-KivyMD 2.0.1 Font Style Migration Script
-
-This script automatically updates KV files from KivyMD 1.x font styles 
-to KivyMD 2.0.1 font styles and theme properties.
-
-Usage:
-    python fix_kivymd_fonts.py
-
-The script will:
-1. Find all .kv files in the current directory and subdirectories
-2. Update font styles to the new KivyMD 2.0.1 format
-3. Update theme property names
-4. Update icon property names
-5. Create backups of original files (with .backup extension)
+Script to fix KivyMD 1.x font styles to KivyMD 2.0 compatible font styles
 """
 
 import os
 import re
-import shutil
 from pathlib import Path
 
-def create_backup(file_path):
-    """Create a backup of the original file"""
-    backup_path = f"{file_path}.backup"
-    if not os.path.exists(backup_path):
-        shutil.copy2(file_path, backup_path)
-        print(f"  📋 Created backup: {backup_path}")
+# Font style mappings from KivyMD 1.x to 2.0
+FONT_STYLE_MAPPINGS = {
+    # Old H1-H6 styles to new styles
+    'H1': {'font_style': 'Display', 'role': 'large'},
+    'H2': {'font_style': 'Display', 'role': 'medium'}, 
+    'H3': {'font_style': 'Display', 'role': 'small'},
+    'H4': {'font_style': 'Headline', 'role': 'large'},
+    'H5': {'font_style': 'Headline', 'role': 'medium'},
+    'H6': {'font_style': 'Headline', 'role': 'small'},
+    
+    # Old subtitle styles
+    'Subtitle1': {'font_style': 'Title', 'role': 'large'},
+    'Subtitle2': {'font_style': 'Title', 'role': 'medium'},
+    
+    # Old body styles  
+    'Body1': {'font_style': 'Body', 'role': 'large'},
+    'Body2': {'font_style': 'Body', 'role': 'medium'},
+    
+    # Other old styles
+    'Button': {'font_style': 'Label', 'role': 'large'},
+    'Caption': {'font_style': 'Label', 'role': 'small'},
+    'Overline': {'font_style': 'Label', 'role': 'small'},
+}
 
-def update_font_styles(content):
-    """Update font styles to KivyMD 2.0.1 format"""
+def fix_font_styles(content):
+    """Fix font styles in KV content"""
+    lines = content.split('\n')
+    result_lines = []
     
-    # Font style replacements with proper indentation
-    font_replacements = {
-        # Headers -> Display/Headline
-        (r'(\s+)font_style:\s*"H1"', r'\1font_style: "Display"\n\1role: "large"'),
-        (r'(\s+)font_style:\s*"H2"', r'\1font_style: "Display"\n\1role: "medium"'),
-        (r'(\s+)font_style:\s*"H3"', r'\1font_style: "Display"\n\1role: "small"'),
-        (r'(\s+)font_style:\s*"H4"', r'\1font_style: "Headline"\n\1role: "large"'),
-        (r'(\s+)font_style:\s*"H5"', r'\1font_style: "Headline"\n\1role: "medium"'),
-        (r'(\s+)font_style:\s*"H6"', r'\1font_style: "Headline"\n\1role: "small"'),
+    for i, line in enumerate(lines):
+        # Check if line contains font_style
+        if 'font_style:' in line:
+            # Extract the font style value
+            match = re.search(r'font_style:\s*["\']([^"\']+)["\']', line)
+            if match:
+                old_style = match.group(1)
+                if old_style in FONT_STYLE_MAPPINGS:
+                    mapping = FONT_STYLE_MAPPINGS[old_style]
+                    
+                    # Get the indentation
+                    indent = len(line) - len(line.lstrip())
+                    
+                    # Replace the font_style line
+                    new_line = line.replace(f'"{old_style}"', f'"{mapping["font_style"]}"')
+                    new_line = new_line.replace(f"'{old_style}'", f'"{mapping["font_style"]}"')
+                    result_lines.append(new_line)
+                    
+                    # Check if the next lines already have a role property
+                    has_role = False
+                    j = i + 1
+                    while j < len(lines) and lines[j].strip():
+                        next_line = lines[j]
+                        next_indent = len(next_line) - len(next_line.lstrip())
+                        
+                        # If we've moved to a different indentation level, stop
+                        if next_line.strip() and next_indent <= indent:
+                            break
+                            
+                        if 'role:' in next_line:
+                            has_role = True
+                            break
+                            
+                        j += 1
+                    
+                    # Add role if it doesn't exist
+                    if not has_role:
+                        result_lines.append(' ' * indent + f'role: "{mapping["role"]}"')
+                    
+                    continue
         
-        # Subtitles -> Title
-        (r'(\s+)font_style:\s*"Subtitle1"', r'\1font_style: "Title"\n\1role: "large"'),
-        (r'(\s+)font_style:\s*"Subtitle2"', r'\1font_style: "Title"\n\1role: "medium"'),
-        
-        # Body text -> Body
-        (r'(\s+)font_style:\s*"Body1"', r'\1font_style: "Body"\n\1role: "large"'),
-        (r'(\s+)font_style:\s*"Body2"', r'\1font_style: "Body"\n\1role: "medium"'),
-        
-        # Small text -> Label
-        (r'(\s+)font_style:\s*"Caption"', r'\1font_style: "Label"\n\1role: "small"'),
-        (r'(\s+)font_style:\s*"Button"', r'\1font_style: "Label"\n\1role: "large"'),
-        (r'(\s+)font_style:\s*"Overline"', r'\1font_style: "Label"\n\1role: "small"'),
-    }
+        result_lines.append(line)
     
-    for pattern, replacement in font_replacements:
-        content = re.sub(pattern, replacement, content)
-    
-    return content
+    return '\n'.join(result_lines)
 
-def update_theme_properties(content):
-    """Update theme property names to KivyMD 2.0.1 format"""
-    
-    theme_replacements = {
-        # Color properties
-        r'app\.theme_cls\.primary_color': 'app.theme_cls.primaryColor',
-        r'app\.theme_cls\.accent_color': 'app.theme_cls.secondaryColor',
-        r'app\.theme_cls\.bg_light': 'app.theme_cls.backgroundColor',
-        r'app\.theme_cls\.surface': 'app.theme_cls.surfaceColor',
-        r'app\.theme_cls\.bg_dark': 'app.theme_cls.surfaceContainerColor',
-        r'app\.theme_cls\.bg_normal': 'app.theme_cls.surfaceColor',
-        
-        # Icon properties
-        r'user_font_size:\s*"(\d+)sp"': r'icon_size: "\1dp"',
-        r'font_size:\s*dp\((\d+)\)': r'icon_size: "\1dp"',
-    }
-    
-    for pattern, replacement in theme_replacements.items():
-        content = re.sub(pattern, replacement, content)
-    
-    return content
-
-def update_kv_file(file_path):
-    """Update a single KV file"""
+def fix_kv_file(file_path):
+    """Fix a single KV file"""
     try:
-        # Read the file
         with open(file_path, 'r', encoding='utf-8') as f:
-            original_content = f.read()
+            content = f.read()
         
-        # Check if file needs updating
-        if not any(old_style in original_content for old_style in 
-                  ['font_style: "H', 'font_style: "Body', 'font_style: "Caption"', 
-                   'font_style: "Subtitle', 'primary_color', 'user_font_size']):
-            return False
+        original_content = content
         
-        # Create backup
-        create_backup(file_path)
+        # Apply font style fixes
+        content = fix_font_styles(content)
         
-        # Apply updates
-        updated_content = original_content
-        updated_content = update_font_styles(updated_content)
-        updated_content = update_theme_properties(updated_content)
+        # Only write if changes were made
+        if content != original_content:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            return True
         
-        # Write updated content
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(updated_content)
-        
-        return True
+        return False
         
     except Exception as e:
-        print(f"  ❌ Error updating {file_path}: {e}")
+        print(f"Error processing {file_path}: {e}")
         return False
 
-def find_kv_files(directory="."):
-    """Find all KV files in the directory and subdirectories"""
-    kv_files = []
-    for root, dirs, files in os.walk(directory):
-        for file in files:
-            if file.endswith('.kv'):
-                kv_files.append(os.path.join(root, file))
-    return kv_files
-
 def main():
-    """Main function"""
-    print("🚀 KivyMD 2.0.1 Font Style Migration Script")
-    print("=" * 50)
+    """Main function to fix all KV files"""
+    gui_dir = Path('gui')
+    if not gui_dir.exists():
+        gui_dir = Path('.')
     
-    # Find all KV files
-    kv_files = find_kv_files()
+    kv_files = list(gui_dir.rglob('*.kv'))
     
     if not kv_files:
-        print("❌ No .kv files found in current directory and subdirectories")
+        print("No KV files found!")
         return
     
-    print(f"📁 Found {len(kv_files)} KV files:")
-    for file in kv_files:
-        print(f"   • {file}")
+    print(f"Found {len(kv_files)} KV files to check...")
     
-    print("\n🔄 Processing files...")
+    fixed_files = []
     
-    updated_count = 0
-    for file_path in kv_files:
-        print(f"\n📝 Processing: {file_path}")
-        if update_kv_file(file_path):
-            updated_count += 1
-            print(f"  ✅ Updated successfully")
-        else:
-            print(f"  ⏭️  No changes needed")
+    for kv_file in kv_files:
+        if fix_kv_file(kv_file):
+            fixed_files.append(str(kv_file))
     
-    print(f"\n🎉 Migration complete!")
-    print(f"   • {updated_count} files updated")
-    print(f"   • {len(kv_files) - updated_count} files unchanged")
-    
-    if updated_count > 0:
-        print(f"\n💡 Next steps:")
-        print(f"   1. Test your application: python main.py")
-        print(f"   2. Check for any remaining issues")
-        print(f"   3. If everything works, you can delete .backup files")
-        print(f"   4. If issues occur, restore from .backup files")
+    if fixed_files:
+        print(f"\n✅ Fixed {len(fixed_files)} files:")
+        for file in fixed_files:
+            print(f"  - {file}")
+    else:
+        print("\n✅ No changes needed - all font styles are already compatible!")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main() 

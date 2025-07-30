@@ -98,7 +98,7 @@
                                     height: dp(52)  # Tablet-friendly height
                                     font_size: "16sp"  # Larger font
                                     pos_hint: {"center_y": 0.5}
-                                    mode: "rectangle"
+                                    mode: "outlined"
                                     on_text: root.search_respondents(self.text)
 
                                 MDIconButton:
@@ -133,7 +133,8 @@
                                 size_hint_x: None
                                 width: dp(140)
                                 height: dp(44)
-                                theme_bg_color: "Error"
+                                theme_bg_color: "Custom"
+                                md_bg_color: app.theme_cls.errorColor
                                 disabled: True
                                 
                                 MDButtonText:
@@ -575,7 +576,8 @@
     
     MDButton:
         style: "elevated"
-        theme_bg_color: "Error"
+        theme_bg_color: "Custom"
+        md_bg_color: app.theme_cls.errorColor
         on_release: root.confirm_delete()
         
         MDButtonText:

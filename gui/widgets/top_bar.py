@@ -64,6 +64,7 @@ class TopBar(MDBoxLayout):
                 'data_collection': 'Data Collection',
                 'responses': 'Responses',
                 'sync': 'Sync',
+                'form_builder': 'Form Builder',
                 'login': 'Login',
                 'signup': 'Sign Up'
             }
@@ -73,6 +74,21 @@ class TopBar(MDBoxLayout):
             
             # Show navigation feedback
             self.show_toast(f"Navigated to {title}")
+    
+    def refresh_dashboard(self):
+        """Refresh dashboard data"""
+        app = MDApp.get_running_app()
+        if hasattr(app, 'root') and hasattr(app.root, 'get_screen'):
+            try:
+                dashboard_screen = app.root.get_screen('dashboard')
+                if hasattr(dashboard_screen, 'refresh_dashboard'):
+                    dashboard_screen.refresh_dashboard()
+                    self.show_toast("Dashboard refreshed")
+                else:
+                    self.show_toast("Dashboard refresh not available")
+            except Exception as e:
+                print(f"Error refreshing dashboard: {e}")
+                self.show_toast("Error refreshing dashboard")
     
     def show_navigation_menu(self):
         """Show navigation menu for small screens"""

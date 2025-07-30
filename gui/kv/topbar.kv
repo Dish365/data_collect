@@ -3,245 +3,225 @@
 
 <TopBar>:
     size_hint_y: None
-    height: dp(64) if Window.width > dp(600) else dp(56)  # Responsive height
+    height: dp(64)
     md_bg_color: app.theme_cls.primaryColor
     orientation: 'horizontal'
-    padding: dp(16) if Window.width > dp(800) else dp(8), dp(8)
-    spacing: dp(12) if Window.width > dp(600) else dp(8)
-    elevation: 4
+    padding: dp(16), dp(8)
+    spacing: dp(12)
+    elevation: 2
 
-    # Navigation hamburger menu for small screens
-    MDIconButton:
-        id: hamburger_menu
-        icon: "menu"
-        icon_color: 1, 1, 1, 0.9
-        pos_hint: {"center_y": 0.5}
-        size_hint: None, None
-        size: dp(40), dp(40)
-        radius: dp(20)
-        theme_bg_color: "Custom"
-        md_bg_color: 1, 1, 1, 0.1
-        on_release: root.show_navigation_menu()
-        ripple_scale: 0.85
-        opacity: 1 if Window.width <= dp(600) else 0  # Show only on small screens
-
-    # Main navigation section - responsive
+    # Navigation section - responsive
     MDBoxLayout:
-        id: main_navigation
+        id: navigation_section
         orientation: 'horizontal'
         adaptive_width: True
-        spacing: dp(8) if Window.width > dp(600) else dp(4)
+        spacing: dp(8)
         pos_hint: {"center_y": 0.5}
-        opacity: 1 if Window.width > dp(600) else 0  # Hide on small screens
 
-        # Dashboard navigation button
+        # Hamburger menu for mobile/small screens
         MDIconButton:
-            icon: "view-dashboard"
+            id: hamburger_menu
+            icon: "menu"
+            theme_icon_color: "Custom"
             icon_color: 1, 1, 1, 0.9
-            pos_hint: {"center_y": 0.5}
             size_hint: None, None
-            size: (dp(48), dp(48)) if Window.width > dp(600) else (dp(40), dp(40))
-            radius: dp(24) if Window.width > dp(600) else dp(20)
-            theme_bg_color: "Custom"
-            md_bg_color: (1, 1, 1, 0.1) if root.current_screen == "dashboard" else (0, 0, 0, 0)
-            on_release: root.navigate_to_screen('dashboard')
-            ripple_scale: 0.85
+            size: dp(40), dp(40)
+            on_release: root.show_navigation_menu()
+            opacity: 1 if Window.width <= dp(800) else 0
+            disabled: Window.width > dp(800)
 
-        # Projects navigation button
-        MDIconButton:
-            icon: "folder-multiple"
-            icon_color: 1, 1, 1, 0.9
-            pos_hint: {"center_y": 0.5}
-            size_hint: None, None
-            size: (dp(48), dp(48)) if Window.width > dp(600) else (dp(40), dp(40))
-            radius: dp(24) if Window.width > dp(600) else dp(20)
-            theme_bg_color: "Custom"
-            md_bg_color: (1, 1, 1, 0.1) if root.current_screen == "projects" else (0, 0, 0, 0)
-            on_release: root.navigate_to_screen('projects')
-            ripple_scale: 0.85
+        # Desktop navigation buttons
+        MDBoxLayout:
+            id: desktop_navigation
+            orientation: 'horizontal'
+            adaptive_width: True
+            spacing: dp(4)
+            opacity: 1 if Window.width > dp(800) else 0
 
-        # Analytics navigation button
-        MDIconButton:
-            icon: "chart-line"
-            icon_color: 1, 1, 1, 0.9
-            pos_hint: {"center_y": 0.5}
-            size_hint: None, None
-            size: (dp(48), dp(48)) if Window.width > dp(600) else (dp(40), dp(40))
-            radius: dp(24) if Window.width > dp(600) else dp(20)
-            theme_bg_color: "Custom"
-            md_bg_color: (1, 1, 1, 0.1) if root.current_screen == "analytics" else (0, 0, 0, 0)
-            on_release: root.navigate_to_screen('analytics')
-            ripple_scale: 0.85
+            MDIconButton:
+                icon: "view-dashboard"
+                theme_icon_color: "Custom"
+                icon_color: (1, 1, 1, 1) if root.current_screen == "dashboard" else (1, 1, 1, 0.7)
+                size_hint: None, None
+                size: dp(40), dp(40)
+                theme_bg_color: "Custom"
+                md_bg_color: (1, 1, 1, 0.15) if root.current_screen == "dashboard" else (0, 0, 0, 0)
+                on_release: root.navigate_to_screen('dashboard')
 
-        # Data Exploration navigation button
-        MDIconButton:
-            icon: "database-search"
-            icon_color: 1, 1, 1, 0.9
-            pos_hint: {"center_y": 0.5}
-            size_hint: None, None
-            size: (dp(48), dp(48)) if Window.width > dp(600) else (dp(40), dp(40))
-            radius: dp(24) if Window.width > dp(600) else dp(20)
-            theme_bg_color: "Custom"
-            md_bg_color: (1, 1, 1, 0.1) if root.current_screen == "data_exploration" else (0, 0, 0, 0)
-            on_release: root.navigate_to_screen('data_exploration')
-            ripple_scale: 0.85
+            MDIconButton:
+                icon: "folder-multiple"
+                theme_icon_color: "Custom"
+                icon_color: (1, 1, 1, 1) if root.current_screen == "projects" else (1, 1, 1, 0.7)
+                size_hint: None, None
+                size: dp(40), dp(40)
+                theme_bg_color: "Custom"
+                md_bg_color: (1, 1, 1, 0.15) if root.current_screen == "projects" else (0, 0, 0, 0)
+                on_release: root.navigate_to_screen('projects')
 
-        # Qualitative Analytics navigation button
-        MDIconButton:
-            icon: "text-box"
-            icon_color: 1, 1, 1, 0.9
-            pos_hint: {"center_y": 0.5}
-            size_hint: None, None
-            size: (dp(48), dp(48)) if Window.width > dp(600) else (dp(40), dp(40))
-            radius: dp(24) if Window.width > dp(600) else dp(20)
-            theme_bg_color: "Custom"
-            md_bg_color: (1, 1, 1, 0.1) if root.current_screen == "qualitative_analytics" else (0, 0, 0, 0)
-            on_release: root.navigate_to_screen('qualitative_analytics')
-            ripple_scale: 0.85
+            MDIconButton:
+                icon: "chart-line"
+                theme_icon_color: "Custom"
+                icon_color: (1, 1, 1, 1) if root.current_screen == "analytics" else (1, 1, 1, 0.7)
+                size_hint: None, None
+                size: dp(40), dp(40)
+                theme_bg_color: "Custom"
+                md_bg_color: (1, 1, 1, 0.15) if root.current_screen == "analytics" else (0, 0, 0, 0)
+                on_release: root.navigate_to_screen('analytics')
 
-        # Data Collection navigation button
-        MDIconButton:
-            icon: "clipboard-text"
-            icon_color: 1, 1, 1, 0.9
-            pos_hint: {"center_y": 0.5}
-            size_hint: None, None
-            size: (dp(48), dp(48)) if Window.width > dp(600) else (dp(40), dp(40))
-            radius: dp(24) if Window.width > dp(600) else dp(20)
-            theme_bg_color: "Custom"
-            md_bg_color: (1, 1, 1, 0.1) if root.current_screen == "data_collection" else (0, 0, 0, 0)
-            on_release: root.navigate_to_screen('data_collection')
-            ripple_scale: 0.85
+            MDIconButton:
+                icon: "database-search"
+                theme_icon_color: "Custom"
+                icon_color: (1, 1, 1, 1) if root.current_screen == "data_exploration" else (1, 1, 1, 0.7)
+                size_hint: None, None
+                size: dp(40), dp(40)
+                theme_bg_color: "Custom"
+                md_bg_color: (1, 1, 1, 0.15) if root.current_screen == "data_exploration" else (0, 0, 0, 0)
+                on_release: root.navigate_to_screen('data_exploration')
 
-        # Responses navigation button
-        MDIconButton:
-            icon: "format-list-bulleted"
-            icon_color: 1, 1, 1, 0.9
-            pos_hint: {"center_y": 0.5}
-            size_hint: None, None
-            size: (dp(48), dp(48)) if Window.width > dp(600) else (dp(40), dp(40))
-            radius: dp(24) if Window.width > dp(600) else dp(20)
-            theme_bg_color: "Custom"
-            md_bg_color: (1, 1, 1, 0.1) if root.current_screen == "responses" else (0, 0, 0, 0)
-            on_release: root.navigate_to_screen('responses')
-            ripple_scale: 0.85
+            MDIconButton:
+                icon: "text-box-search"
+                theme_icon_color: "Custom"
+                icon_color: (1, 1, 1, 1) if root.current_screen == "qualitative_analytics" else (1, 1, 1, 0.7)
+                size_hint: None, None
+                size: dp(40), dp(40)
+                theme_bg_color: "Custom"
+                md_bg_color: (1, 1, 1, 0.15) if root.current_screen == "qualitative_analytics" else (0, 0, 0, 0)
+                on_release: root.navigate_to_screen('qualitative_analytics')
 
-    # Spacer for responsive design
+            MDIconButton:
+                icon: "clipboard-text"
+                theme_icon_color: "Custom"
+                icon_color: (1, 1, 1, 1) if root.current_screen == "data_collection" else (1, 1, 1, 0.7)
+                size_hint: None, None
+                size: dp(40), dp(40)
+                theme_bg_color: "Custom"
+                md_bg_color: (1, 1, 1, 0.15) if root.current_screen == "data_collection" else (0, 0, 0, 0)
+                on_release: root.navigate_to_screen('data_collection')
+
+            MDIconButton:
+                icon: "format-list-bulleted"
+                theme_icon_color: "Custom"
+                icon_color: (1, 1, 1, 1) if root.current_screen == "responses" else (1, 1, 1, 0.7)
+                size_hint: None, None
+                size: dp(40), dp(40)
+                theme_bg_color: "Custom"
+                md_bg_color: (1, 1, 1, 0.15) if root.current_screen == "responses" else (0, 0, 0, 0)
+                on_release: root.navigate_to_screen('responses')
+
+    # Spacer
     Widget:
         size_hint_x: 1
 
-    # Center title - responsive typography with modern Material Design 3 styling
+    # Title - responsive
     MDLabel:
         id: top_title
         text: "Dashboard"
-        font_style: "Headline"
-        role: "small" if Window.width > dp(800) else "medium"
-        bold: True
+        font_style: "Title"
+        role: "large"
         theme_text_color: "Custom"
         text_color: 1, 1, 1, 1
         size_hint_x: None
         width: self.texture_size[0]
         pos_hint: {"center_y": 0.5}
         halign: "center"
-        opacity: 1 if Window.width > dp(500) else 0  # Hide title on small screens
+        opacity: 1 if Window.width > dp(600) else 0
 
-    # Spacer for responsive design
+    # Spacer
     Widget:
         size_hint_x: 1
 
-    # Right side controls - responsive layout with modern styling
+    # Right side controls
     MDBoxLayout:
         orientation: 'horizontal'
         adaptive_width: True
         pos_hint: {"center_y": 0.5}
-        spacing: dp(12) if Window.width > dp(600) else dp(8)
+        spacing: dp(8)
 
-        # Modern notification button with badge
+        # Refresh button
+        MDIconButton:
+            icon: "refresh"
+            theme_icon_color: "Custom"
+            icon_color: 1, 1, 1, 0.8
+            size_hint: None, None
+            size: dp(40), dp(40)
+            on_release: root.refresh_dashboard()
+
+        # Notification button with badge
         RelativeLayout:
             size_hint: None, None
-            size: (dp(48), dp(48)) if Window.width > dp(600) else (dp(40), dp(40))
+            size: dp(40), dp(40)
             pos_hint: {"center_y": 0.5}
 
             MDIconButton:
                 id: notification_button
                 icon: "bell-outline"
-                icon_color: 1, 1, 1, 0.9
+                theme_icon_color: "Custom"
+                icon_color: 1, 1, 1, 0.8
                 pos_hint: {"center_x": 0.5, "center_y": 0.5}
                 size_hint: None, None
-                size: (dp(48), dp(48)) if Window.width > dp(600) else (dp(40), dp(40))
-                radius: dp(24) if Window.width > dp(600) else dp(20)
-                theme_bg_color: "Custom"
-                md_bg_color: 1, 1, 1, 0.1
+                size: dp(40), dp(40)
                 on_release: root.show_notifications()
-                ripple_scale: 0.85
 
-            # Modern notification badge - responsive with Material Design 3 styling
+            # Notification badge
             MDLabel:
                 id: notification_badge
                 text: "0"
                 font_style: "Label"
                 role: "small"
-                bold: True
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
                 size_hint: None, None
-                size: (dp(18), dp(18)) if Window.width > dp(600) else (dp(16), dp(16))
+                size: dp(16), dp(16)
                 pos_hint: {"center_x": 0.75, "center_y": 0.75}
                 halign: "center"
                 valign: "center"
-                opacity: 0  # Initially hidden
+                opacity: 0
                 canvas.before:
                     Color:
-                        rgba: app.theme_cls.errorColor if hasattr(app.theme_cls, 'errorColor') else (1, 0.2, 0.2, 1)
+                        rgba: app.theme_cls.errorColor
                     Ellipse:
                         pos: self.pos
                         size: self.size
 
-        # User profile section - responsive with modern Material Design 3 styling
+        # User profile section
         MDBoxLayout:
             orientation: "horizontal"
             adaptive_width: True
             pos_hint: {"center_y": 0.5}
-            spacing: dp(8) if Window.width > dp(600) else dp(4)
-            padding: (dp(12), dp(8)) if Window.width > dp(600) else (dp(8), dp(6))
-            opacity: 1 if Window.width > dp(400) else 0  # Hide on very small screens
+            spacing: dp(8)
+            padding: dp(8), dp(4)
+            opacity: 1 if Window.width > dp(500) else 0
             canvas.before:
                 Color:
-                    rgba: app.theme_cls.surfaceVariantColor if hasattr(app.theme_cls, 'surfaceVariantColor') else (1, 1, 1, 0.1)
+                    rgba: 1, 1, 1, 0.1
                 RoundedRectangle:
                     pos: self.pos
                     size: self.size
-                    radius: [dp(24) if Window.width > dp(600) else dp(16)]
+                    radius: [dp(20)]
 
             MDIconButton:
                 icon: "account-circle"
+                theme_icon_color: "Custom"
                 icon_color: 1, 1, 1, 0.9
-                pos_hint: {"center_y": 0.5}
                 size_hint: None, None
-                size: (dp(32), dp(32)) if Window.width > dp(600) else (dp(28), dp(28))
+                size: dp(28), dp(28)
 
             MDLabel:
                 id: user_name
                 text: app.user_display_name
                 font_style: "Body"
-                role: "medium" if Window.width > dp(600) else "small"
-                bold: True
+                role: "medium"
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
                 adaptive_width: True
                 pos_hint: {"center_y": 0.5}
-                max_lines: 1
-                text_size: None, None
-                opacity: 1 if Window.width > dp(500) else 0  # Hide text on small screens
+                opacity: 1 if Window.width > dp(600) else 0
 
-        # Logout button with modern Material Design 3 styling - responsive
+        # Logout button
         MDIconButton:
             icon: "logout"
-            icon_color: 1, 1, 1, 0.9
-            pos_hint: {"center_y": 0.5}
+            theme_icon_color: "Custom"
+            icon_color: 1, 1, 1, 0.8
             size_hint: None, None
-            size: (dp(48), dp(48)) if Window.width > dp(600) else (dp(40), dp(40))
-            radius: dp(24) if Window.width > dp(600) else dp(20)
-            theme_bg_color: "Custom"
-            md_bg_color: app.theme_cls.surfaceVariantColor if hasattr(app.theme_cls, 'surfaceVariantColor') else (1, 1, 1, 0.1)
+            size: dp(40), dp(40)
             on_release: root.logout()
-            ripple_scale: 0.85

@@ -117,14 +117,16 @@
     MDLabel:
         text: "Text Analysis Complete"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(32)
     
     MDLabel:
         text: "Basic text statistics and patterns have been analyzed"
         theme_text_color: "Secondary"
-        font_style: "Body2"
+        font_style: "Body"
+        role: "medium"
         size_hint_y: None
         height: dp(24)
 
@@ -136,7 +138,8 @@
     MDLabel:
         text: "Sentiment Analysis Results"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(32)
     
@@ -199,14 +202,16 @@
     MDLabel:
         text: "Theme Analysis Results"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(32)
     
     MDLabel:
         text: "Key themes and topics have been identified"
         theme_text_color: "Secondary"
-        font_style: "Body2"
+        font_style: "Body"
+        role: "medium"
         size_hint_y: None
         height: dp(24)
 
@@ -218,14 +223,16 @@
     MDLabel:
         text: "Word Frequency Analysis"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(32)
     
     MDLabel:
         text: "Most frequent words and patterns identified"
         theme_text_color: "Secondary"
-        font_style: "Body2"
+        font_style: "Body"
+        role: "medium"
         size_hint_y: None
         height: dp(24)
 
@@ -237,14 +244,16 @@
     MDLabel:
         text: "Content Analysis Results"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(32)
     
     MDLabel:
         text: "Systematic content analysis completed"
         theme_text_color: "Secondary"
-        font_style: "Body2"
+        font_style: "Body"
+        role: "medium"
         size_hint_y: None
         height: dp(24)
 
@@ -256,14 +265,16 @@
     MDLabel:
         text: "Qualitative Coding Results"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(32)
     
     MDLabel:
         text: "Codes and categories have been identified"
         theme_text_color: "Secondary"
-        font_style: "Body2"
+        font_style: "Body"
+        role: "medium"
         size_hint_y: None
         height: dp(24)
 
@@ -275,14 +286,16 @@
     MDLabel:
         text: "Survey Analysis Results"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(32)
     
     MDLabel:
         text: "Comprehensive survey response analysis completed"
         theme_text_color: "Secondary"
-        font_style: "Body2"
+        font_style: "Body"
+        role: "medium"
         size_hint_y: None
         height: dp(24)
 
@@ -294,14 +307,16 @@
     MDLabel:
         text: "Qualitative Statistics"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(32)
     
     MDLabel:
         text: "Statistical summary of qualitative data"
         theme_text_color: "Secondary"
-        font_style: "Body2"
+        font_style: "Body"
+        role: "medium"
         size_hint_y: None
         height: dp(24)
 
@@ -313,14 +328,16 @@
     MDLabel:
         text: "Sentiment Trends Analysis"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(32)
     
     MDLabel:
         text: "Sentiment patterns over time and categories"
         theme_text_color: "Secondary"
-        font_style: "Body2"
+        font_style: "Body"
+        role: "medium"
         size_hint_y: None
         height: dp(24)
 
@@ -332,14 +349,16 @@
     MDLabel:
         text: "Text Similarity Analysis"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(32)
     
     MDLabel:
         text: "Similar text responses and patterns identified"
         theme_text_color: "Secondary"
-        font_style: "Body2"
+        font_style: "Body"
+        role: "medium"
         size_hint_y: None
         height: dp(24)
 
@@ -351,14 +370,16 @@
     MDLabel:
         text: "Theme Evolution Analysis"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(32)
     
     MDLabel:
         text: "How themes change and evolve over time"
         theme_text_color: "Secondary"
-        font_style: "Body2"
+        font_style: "Body"
+        role: "medium"
         size_hint_y: None
         height: dp(24)
 
@@ -370,17 +391,18 @@
     MDLabel:
         text: "Quote Extraction Results"
         theme_text_color: "Primary"
-        font_style: "Subtitle1"
+        font_style: "Title"
+        role: "large"
         size_hint_y: None
         height: dp(32)
     
     MDLabel:
         text: "Representative quotes extracted for themes"
         theme_text_color: "Secondary"
-        font_style: "Body2"
+        font_style: "Body"
+        role: "medium"
         size_hint_y: None
         height: dp(24)
-        on_release: root.show_project_menu()
     
     # Analysis Status
     MDLabel:
@@ -421,27 +443,32 @@
         
         MDButton:
             id: analysis_type_button
-            text: root.selected_analysis_type.replace('_', ' ').title() if root.selected_analysis_type else "Select Analysis Type"
             style: "filled"
             size_hint_x: 0.5
             theme_bg_color: "Custom"
             md_bg_color: 0.6, 0.2, 0.8, 1
             on_release: root.show_analysis_type_menu()
+            
+            MDButtonText:
+                text: "Select Analysis Type"
         
         MDButton:
             id: analysis_method_button
-            text: root.selected_method.replace('_', ' ').title() if root.selected_method else "Select Method"
             style: "outlined"
             size_hint_x: 0.5
             theme_outline_color: "Custom"
             line_color: 0.6, 0.2, 0.8, 1
-            disabled: not root.selected_analysis_type
+            disabled: False
             on_release: root.show_analysis_method_menu()
+            
+            MDButtonText:
+                text: "Select Method"
     
     MDLabel:
-        text: f"Selected: {root.selected_analysis_type.replace('_', ' ').title()} - {root.selected_method.replace('_', ' ').title()}" if root.selected_analysis_type and root.selected_method else "No analysis type selected"
+        text: "No analysis type selected"
         theme_text_color: "Secondary"
-        font_style: "Caption"
+        font_style: "Label"
+        role: "small"
         size_hint_y: None
         height: dp(20)
 
@@ -449,7 +476,7 @@
 <QualitativeTextFieldCard@MDCard>:
     orientation: 'vertical'
     size_hint_y: None
-    height: dp(200) if root.text_fields else dp(80)
+    height: dp(200)
     elevation: 2
     md_bg_color: 0.99, 0.98, 1.0, 1
     radius: [12, 12, 12, 12]
@@ -466,7 +493,7 @@
         height: dp(32)
     
     MDLabel:
-        text: f"Select text fields for analysis ({len(root.selected_text_fields)} selected)"
+        text: "Select text fields for analysis"
         theme_text_color: "Secondary"
         font_style: "Body"
         role: "medium"
@@ -475,7 +502,7 @@
     
     MDScrollView:
         size_hint_y: None
-        height: dp(120) if root.text_fields else dp(24)
+        height: dp(120)
         
         MDBoxLayout:
             orientation: 'vertical'
@@ -485,9 +512,9 @@
             
             # Text field checkboxes - populated dynamically
             Label:
-                text: "Text fields will appear here after project selection" if not root.text_fields else ""
+                text: "Text fields will appear here after project selection"
                 size_hint_y: None
-                height: dp(24) if not root.text_fields else 0
+                height: dp(24)
 
 # Analysis Controls Card Component
 <QualitativeControlsCard@MDCard>:
@@ -525,7 +552,7 @@
             height: dp(32)
         
         MDLabel:
-            text: f"Status: {'Complete' if root.is_analysis_complete() else 'Ready'}"
+            text: "Status: Ready"
             theme_text_color: "Secondary"
             font_style: "Body"
             role: "medium"
@@ -546,7 +573,7 @@
             size_hint_x: 0.4
             theme_bg_color: "Custom"
             md_bg_color: 0.6, 0.2, 0.8, 1
-            disabled: not (root.current_project_id and root.selected_analysis_type)
+            disabled: False
             on_release: root.run_analysis_by_type(root.selected_analysis_type)
         
         MDButton:
@@ -563,7 +590,7 @@
             size_hint_x: 0.3
             theme_text_color: "Custom"
             text_color: 0.6, 0.6, 0.6, 1
-            disabled: not root.analysis_results
+            disabled: False
             on_release: root.export_text_results()
 
 # Text Analysis Overview Card Component
@@ -576,7 +603,7 @@
     radius: [12, 12, 12, 12]
     padding: [dp(16), dp(16), dp(16), dp(16)]
     spacing: dp(12)
-    opacity: 1 if root.text_analysis_summary else 0.5
+    opacity: 1
     
     # Header
     MDBoxLayout:
@@ -614,7 +641,7 @@
             
             # Text fields info
             MDLabel:
-                text: f"Text Fields Analyzed: {root.text_analysis_summary.get('text_fields_analyzed', 0)}"
+                text: f"Text Fields Analyzed: {root.text_fields_analyzed}"
                 theme_text_color: "Primary"
                 font_style: "Body"
                 role: "medium"
@@ -623,7 +650,7 @@
             
             # Total entries info
             MDLabel:
-                text: f"Total Text Entries: {root.text_analysis_summary.get('total_text_entries', 'N/A')}"
+                text: f"Total Text Entries: {root.total_text_entries}"
                 theme_text_color: "Secondary"
                 font_style: "Body"
                 role: "small"
@@ -632,7 +659,7 @@
             
             # Fields list
             MDLabel:
-                text: f"Fields: {', '.join(root.text_analysis_summary.get('fields', []))}{'...' if root.text_analysis_summary.get('has_more_fields', False) else ''}"
+                text: root.analyzed_fields_text
                 theme_text_color: "Secondary"
                 font_style: "Body"
                 role: "small"
@@ -642,7 +669,7 @@
             
             # Status
             MDLabel:
-                text: root.text_analysis_summary.get('status', 'No analysis completed yet')
+                text: root.analysis_status
                 theme_text_color: "Primary"
                 font_style: "Body"
                 role: "medium"
@@ -684,7 +711,7 @@
         
         # Current analysis type indicator
         MDLabel:
-            text: f"Showing: {root.current_analysis_type.replace('_', ' ').title()}" if root.current_analysis_type else "No analysis completed"
+            text: "No analysis completed"
             theme_text_color: "Secondary"
             font_style: "Body"
             role: "medium"
@@ -712,63 +739,63 @@
             
             # Text Analysis Results
             QualitativeTextResults:
-                opacity: 1 if root.current_analysis_type == "text" else 0
-                height: dp(300) if root.current_analysis_type == "text" else 0
+                opacity: 0
+                height: 0
             
             # Sentiment Analysis Results  
             QualitativeSentimentResults:
-                opacity: 1 if root.current_analysis_type == "sentiment" else 0
-                height: dp(300) if root.current_analysis_type == "sentiment" else 0
+                opacity: 0
+                height: 0
             
             # Theme Analysis Results
             QualitativeThemeResults:
-                opacity: 1 if root.current_analysis_type == "themes" else 0
-                height: dp(300) if root.current_analysis_type == "themes" else 0
+                opacity: 0
+                height: 0
             
             # Word Frequency Results
             QualitativeWordFrequencyResults:
-                opacity: 1 if root.current_analysis_type == "word_frequency" else 0
-                height: dp(300) if root.current_analysis_type == "word_frequency" else 0
+                opacity: 0
+                height: 0
             
             # Content Analysis Results
             QualitativeContentAnalysisResults:
-                opacity: 1 if root.current_analysis_type == "content_analysis" else 0
-                height: dp(300) if root.current_analysis_type == "content_analysis" else 0
+                opacity: 0
+                height: 0
             
             # Qualitative Coding Results
             QualitativeQualitativeCodingResults:
-                opacity: 1 if root.current_analysis_type == "qualitative_coding" else 0
-                height: dp(300) if root.current_analysis_type == "qualitative_coding" else 0
+                opacity: 0
+                height: 0
             
             # Survey Analysis Results
             QualitativeSurveyAnalysisResults:
-                opacity: 1 if root.current_analysis_type == "survey_analysis" else 0
-                height: dp(300) if root.current_analysis_type == "survey_analysis" else 0
+                opacity: 0
+                height: 0
             
             # Qualitative Statistics Results
             QualitativeStatisticsResults:
-                opacity: 1 if root.current_analysis_type == "qualitative_statistics" else 0
-                height: dp(300) if root.current_analysis_type == "qualitative_statistics" else 0
-            
+                opacity: 0
+                height: 0
+                
             # Sentiment Trends Results
             QualitativeSentimentTrendsResults:
-                opacity: 1 if root.current_analysis_type == "sentiment_trends" else 0
-                height: dp(300) if root.current_analysis_type == "sentiment_trends" else 0
+                opacity: 0
+                height: 0
             
             # Text Similarity Results
             QualitativeTextSimilarityResults:
-                opacity: 1 if root.current_analysis_type == "text_similarity" else 0
-                height: dp(300) if root.current_analysis_type == "text_similarity" else 0
+                opacity: 0
+                height: 0
             
             # Theme Evolution Results
             QualitativeThemeEvolutionResults:
-                opacity: 1 if root.current_analysis_type == "theme_evolution" else 0
-                height: dp(300) if root.current_analysis_type == "theme_evolution" else 0
+                opacity: 0
+                height: 0
             
             # Quote Extraction Results
             QualitativeQuoteExtractionResults:
-                opacity: 1 if root.current_analysis_type == "quote_extraction" else 0
-                height: dp(300) if root.current_analysis_type == "quote_extraction" else 0
+                opacity: 0
+                height: 0
 
 # Action Buttons Card Component
 <QualitativeActionsCard@MDCard>:

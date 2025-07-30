@@ -392,15 +392,17 @@ class DashboardScreen(MDScreen):
     def _update_ui(self, stats):
         """Updates the UI with new stats."""
         try:
+            print(f"Updating UI with stats: {stats}")
+            
             # Update stat cards with enhanced information
             if hasattr(self.ids, 'total_responses_card') and self.ids.total_responses_card:
-                self.ids.total_responses_card.value = stats.get('total_respondents', 'N/A')
+                self.ids.total_responses_card.value = str(stats.get('total_respondents', 'N/A'))
                 
             if hasattr(self.ids, 'active_projects_card') and self.ids.active_projects_card:
-                self.ids.active_projects_card.value = stats.get('active_projects', 'N/A')
+                self.ids.active_projects_card.value = str(stats.get('active_projects', 'N/A'))
                 
             if hasattr(self.ids, 'pending_sync_card') and self.ids.pending_sync_card:
-                self.ids.pending_sync_card.value = stats.get('pending_sync', 'N/A')
+                self.ids.pending_sync_card.value = str(stats.get('pending_sync', 'N/A'))
             
             # Enhanced team members display using dedicated method
             team_members_count = stats.get('team_members', 'N/A')
@@ -575,13 +577,7 @@ class DashboardScreen(MDScreen):
     def on_window_resize(self, width, height):
         """Handle window resize for responsive layout adjustments"""
         try:
-            from widgets.responsive_layout import ResponsiveHelper
-            
-            # Determine screen size category and orientation
-            category = ResponsiveHelper.get_screen_size_category()
-            is_landscape = ResponsiveHelper.is_landscape()
-            
-            print(f"Dashboard: Window resized to {width}x{height} - {category} {'landscape' if is_landscape else 'portrait'}")
+            print(f"Dashboard: Window resized to {width}x{height}")
             
             # Update responsive properties
             self.update_responsive_layout()
@@ -592,13 +588,6 @@ class DashboardScreen(MDScreen):
     def update_responsive_layout(self):
         """Update layout based on current screen size"""
         try:
-            try:
-                from widgets.responsive_layout import ResponsiveHelper
-            except ImportError:
-                # Fallback responsive logic
-                self._fallback_responsive_layout()
-                return
-                
             from kivy.core.window import Window
             
             # Get current window dimensions
@@ -607,45 +596,41 @@ class DashboardScreen(MDScreen):
             
             print(f"Dashboard: Window dimensions: {window_width}x{window_height}")
             
+            # Simple responsive spacing and padding
+            if window_width < 600:
+                spacing = 12
+                padding = 16
+            elif window_width < 1200:
+                spacing = 16
+                padding = 20
+            else:
+                spacing = 24
+                padding = 24
+            
             # Update spacing and padding based on screen size
             if hasattr(self.ids, 'content_layout') and self.ids.content_layout:
-                self.ids.content_layout.spacing = ResponsiveHelper.get_responsive_spacing()
-                self.ids.content_layout.padding = ResponsiveHelper.get_responsive_padding()
+                self.ids.content_layout.spacing = spacing
+                self.ids.content_layout.padding = [padding, padding/2, padding, padding]
             
             # Calculate responsive columns
             if hasattr(self.ids, 'stats_container') and self.ids.stats_container:
-                category = ResponsiveHelper.get_screen_size_category()
-                is_landscape = ResponsiveHelper.is_landscape()
-                
-                # Conservative width-based column calculation
-                min_card_width = 180
-                spacing = 16
-                padding = 48
-                available_width = window_width - padding
-                
-                max_possible_cols = max(1, int(available_width / (min_card_width + spacing)))
-                
-                # Responsive column decision
+                # Simple responsive column calculation
                 if window_width < 700:
                     stats_cols = 1
                     actions_cols = 1
                 elif window_width < 1200:
-                    stats_cols = 1
+                    stats_cols = 2
                     actions_cols = 2
                 elif window_width < 1600:
-                    stats_cols = min(2, max_possible_cols)
-                    actions_cols = 2
+                    stats_cols = 2
+                    actions_cols = 3
                 else:
-                    if is_landscape and category in ["tablet", "large_tablet"]:
-                        stats_cols = min(4, max_possible_cols)
-                        actions_cols = 3
-                    else:
-                        stats_cols = min(2, max_possible_cols)
-                        actions_cols = 2
+                    stats_cols = 4
+                    actions_cols = 4
                 
                 # Safety checks
                 stats_cols = min(max(stats_cols, 1), 4)
-                actions_cols = min(max(actions_cols, 1), 3)
+                actions_cols = min(max(actions_cols, 1), 4)
                 
                 print(f"Dashboard: Using {stats_cols} stats columns, {actions_cols} action columns")
                 
@@ -654,7 +639,7 @@ class DashboardScreen(MDScreen):
                 self.set_actions_grid_columns(actions_cols)
                 
                 # Update card sizes
-                self.update_card_sizes(stats_cols, window_width, category)
+                self.update_card_sizes(stats_cols, window_width)
             
         except Exception as e:
             print(f"Error in responsive layout: {e}")
@@ -662,29 +647,9 @@ class DashboardScreen(MDScreen):
             self.set_stats_grid_columns(1)
             self.set_actions_grid_columns(1)
 
-    def _fallback_responsive_layout(self):
-        """Fallback responsive layout when ResponsiveHelper is not available"""
-        try:
-            from kivy.core.window import Window
-            window_width = Window.width
-            
-            if window_width < 800:
-                stats_cols = 1
-                actions_cols = 1
-            elif window_width < 1200:
-                stats_cols = 2
-                actions_cols = 2
-            else:
-                stats_cols = 2
-                actions_cols = 3
-                
-            self.set_stats_grid_columns(stats_cols)
-            self.set_actions_grid_columns(actions_cols)
-            
-        except Exception as e:
-            print(f"Error in fallback responsive layout: {e}")
 
-    def update_card_sizes(self, cols, window_width, category):
+
+    def update_card_sizes(self, cols, window_width):
         """Update StatCard sizes based on layout and screen size"""
         try:
             if window_width < 500:

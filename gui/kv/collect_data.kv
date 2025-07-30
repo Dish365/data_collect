@@ -34,7 +34,7 @@
                     orientation: 'horizontal'
                     spacing: dp(12)
                     size_hint_y: None if Window.width < dp(800) else 1
-                    height: dp(40) if Window.width < dp(800) else None
+                    height: dp(40) if Window.width < dp(800) else dp(40)
 
                     # Back Button
                     MDIconButton:
@@ -63,9 +63,9 @@
                     orientation: 'horizontal'
                     spacing: dp(12)
                     size_hint_y: None if Window.width < dp(800) else 1
-                    height: dp(48) if Window.width < dp(800) else None
+                    height: dp(48) if Window.width < dp(800) else dp(48)
                     size_hint_x: None if Window.width >= dp(800) else 1
-                    width: dp(320) if Window.width >= dp(800) else None
+                    width: dp(320) if Window.width >= dp(800) else dp(320)
 
                     MDLabel:
                         text: "Project:"
@@ -83,9 +83,9 @@
                         on_release: root.open_project_menu()
                         pos_hint: {'center_y': 0.5}
                         size_hint_x: 1 if Window.width < dp(800) else None
-                        width: dp(220) if Window.width >= dp(800) else None
+                        width: dp(220) if Window.width >= dp(800) else dp(220)
                         height: dp(40)
-                        md_bg_color: app.theme_cls.primaryColor
+                        theme_bg_color: "Primary"
                         radius: [dp(8)]
                         elevation: 1
 
@@ -93,7 +93,7 @@
                             text: 'Select Project'
                             font_size: "14sp"
                             theme_text_color: "Custom"
-                            text_color: app.theme_cls.on_primary
+                            text_color: app.theme_cls.onPrimaryColor
 
         # Progress Section - Initially Hidden
         MDCard:
@@ -117,7 +117,7 @@
                     spacing: dp(12)
                     size_hint_x: 0.6 if Window.width > dp(600) else 1
                     size_hint_y: None if Window.width <= dp(600) else 1
-                    height: dp(30) if Window.width <= dp(600) else None
+                    height: dp(30) if Window.width <= dp(600) else dp(30)
 
                     MDLabel:
                         text: "Progress:"
@@ -150,9 +150,9 @@
                 MDBoxLayout:
                     orientation: 'horizontal'
                     spacing: dp(16)
-                    size_hint_x: 0.4 if Window.width > dp(600) else 1
+                    size_hint_x: 0.4 if Window.width > dp(600) else 1 
                     size_hint_y: None if Window.width <= dp(600) else 1
-                    height: dp(30) if Window.width <= dp(600) else None
+                    height: dp(30) if Window.width <= dp(600) else dp(30)
 
                     MDLabel:
                         id: question_count_label
@@ -174,7 +174,7 @@
             do_scroll_x: False
             do_scroll_y: True
             bar_width: dp(6) if Window.width < dp(600) else dp(8)
-            bar_color: app.theme_cls.outline_color
+            bar_color: app.theme_cls.outlineColor
 
             # Form Container - Responsive Layout
             MDBoxLayout:
@@ -215,7 +215,7 @@
                             size: dp(64) if Window.width > dp(600) else dp(48), dp(64) if Window.width > dp(600) else dp(48)
                             pos_hint: {"center_x": 0.5}
                             theme_icon_color: "Custom"
-                            icon_color: app.theme_cls.outline_color
+                            icon_color: app.theme_cls.outlineColor
 
                         MDLabel:
                             text: "No form loaded"
@@ -327,7 +327,7 @@
                     text: 'Submit Response'
                     font_size: "14sp" if Window.width < dp(600) else "16sp"
                     theme_text_color: "Custom"
-                    text_color: app.theme_cls.on_primary
+                    text_color: app.theme_cls.onPrimaryColor
 
 # Question Widget Templates
 
@@ -362,7 +362,7 @@
             halign: 'center'
             valign: 'center'
             theme_text_color: "Custom"
-            text_color: app.theme_cls.on_primary
+            text_color: app.theme_cls.onPrimaryColor
             bold: True
             font_size: "12sp" if Window.width < dp(600) else "14sp"
 
@@ -372,7 +372,7 @@
         size_hint: None, None
         size: dp(10), dp(10)
         radius: [dp(5)]
-        md_bg_color: app.theme_cls.outline_color
+        md_bg_color: app.theme_cls.outlineColor
         elevation: 0
         pos_hint: {'center_y': 0.5}
 

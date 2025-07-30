@@ -121,8 +121,8 @@
         size_hint_x: None
         width: dp(44)
         icon_size: "18dp"
-        on_release: app.root.get_screen('analytics').update_quick_stats()
-        disabled: not app.root.get_screen('analytics').current_project_id
+        on_release: app.root.get_screen('analytics').update_quick_stats() if app.root else None
+        disabled: not (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id)
     
     MDIconButton:
         icon: "download"
@@ -131,7 +131,7 @@
         size_hint_x: None
         width: dp(44)
         icon_size: "18dp"
-        disabled: not app.root.get_screen('analytics').current_project_id
+        disabled: not (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id)
 
 # Project Overview Card Component
 <ProjectOverviewCard@MDCard>:
@@ -211,17 +211,17 @@
         # Welcome card (shown when no project selected)
         AnalyticsWelcomeCard:
             id: welcome_card
-            opacity: 0 if app.root.get_screen('analytics').current_project_id else 1
-            size_hint_y: None if app.root.get_screen('analytics').current_project_id else None
-            height: 0 if app.root.get_screen('analytics').current_project_id else dp(300)
+            opacity: 0 if (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id) else 1
+            size_hint_y: None if (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id) else None
+            height: 0 if (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id) else dp(300)
         
         # Navigation grid (shown when project selected)
         GridLayout:
             cols: 2
             spacing: dp(20)
             size_hint_y: None
-            height: dp(480) if app.root.get_screen('analytics').current_project_id else 0
-            opacity: 1 if app.root.get_screen('analytics').current_project_id else 0
+            height: dp(480) if (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id) else 0
+            opacity: 1 if (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id) else 0
             
             # Data Exploration Card
             DataExplorationNavigationCard:

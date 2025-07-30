@@ -62,21 +62,28 @@ except ImportError as e:
         print(f"Warning: Could not import descriptive auto-detection: {e}")
 
 try:
-    from ..inferential.auto_detection import InferentialAutoDetector
+    # Use lazy import to avoid circular imports
+    InferentialAutoDetector = None
     inferential_available = True
-except ImportError as e:
-    try:
-        # Try absolute import when relative import fails
-        import sys
-        import os
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        parent_dir = os.path.dirname(current_dir)
-        if parent_dir not in sys.path:
-            sys.path.insert(0, parent_dir)
-        from inferential.auto_detection import InferentialAutoDetector
-        inferential_available = True
-    except ImportError:
-        print(f"Warning: Could not import inferential auto-detection: {e}")
+    
+    def get_inferential_detector():
+        global InferentialAutoDetector
+        if InferentialAutoDetector is None:
+            try:
+                from ..inferential.auto_detection import InferentialAutoDetector as IAD
+                InferentialAutoDetector = IAD
+            except ImportError:
+                try:
+                    from inferential.auto_detection import InferentialAutoDetector as IAD
+                    InferentialAutoDetector = IAD
+                except ImportError as e:
+                    print(f"Warning: Could not import inferential auto-detection: {e}")
+                    return None
+        return InferentialAutoDetector
+        
+except Exception as e:
+    print(f"Warning: Could not setup inferential auto-detection: {e}")
+    inferential_available = False
 
 try:
     from ..qualitative.auto_detection import QualitativeAutoDetector
@@ -109,7 +116,9 @@ class UnifiedAutoDetector:
         if descriptive_available:
             self.detectors['descriptive'] = DescriptiveAutoDetector()
         if inferential_available:
-            self.detectors['inferential'] = InferentialAutoDetector()
+            detector_class = get_inferential_detector()
+            if detector_class:
+                self.detectors['inferential'] = detector_class()
         if qualitative_available:
             self.detectors['qualitative'] = QualitativeAutoDetector()
     
@@ -550,7 +559,11 @@ def create_auto_detector(analysis_type: str):
     if analysis_type == "descriptive" and descriptive_available:
         return DescriptiveAutoDetector()
     elif analysis_type == "inferential" and inferential_available:
-        return InferentialAutoDetector()
+        detector_class = get_inferential_detector()
+        if detector_class:
+            return detector_class()
+        else:
+            raise ImportError("Inferential auto-detection not available")
     elif analysis_type == "qualitative" and qualitative_available:
         return QualitativeAutoDetector()
     elif analysis_type == "unified":

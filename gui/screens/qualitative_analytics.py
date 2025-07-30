@@ -8,6 +8,7 @@ from kivy.core.window import Window
 
 from utils.cross_platform_toast import toast
 from kivymd.uix.menu import MDDropdownMenu
+from kivymd.uix.card import MDCard
 
 import json
 import threading
@@ -16,6 +17,17 @@ from typing import Dict, List, Any, Optional
 
 from widgets.loading_overlay import LoadingOverlay
 from services.qualitative_analytics import QualitativeAnalyticsHandler
+
+class QualitativeOverviewCard(MDCard):
+    """Custom card widget for displaying qualitative analysis overview"""
+    text_fields_analyzed = StringProperty("0")
+    total_text_entries = StringProperty("N/A")
+    analyzed_fields_text = StringProperty("Fields: None")
+    analysis_status = StringProperty("No analysis completed yet")
+
+class QualitativeResultsCard(MDCard):
+    """Custom card widget for displaying qualitative analysis results"""
+    current_analysis_type = StringProperty("")
 
 Builder.load_file("kv/qualitative_analytics.kv")
 
@@ -39,6 +51,12 @@ class QualitativeAnalyticsScreen(Screen):
     sentiment_data = ObjectProperty({})
     theme_data = ListProperty([])
     word_frequency_data = ListProperty([])
+    
+    # Computed properties for UI binding
+    text_fields_analyzed = StringProperty("0")
+    total_text_entries = StringProperty("N/A")
+    analyzed_fields_text = StringProperty("")
+    analysis_status = StringProperty("No analysis completed yet")
     
     # All analysis results
     text_results = ObjectProperty({})
@@ -104,6 +122,10 @@ class QualitativeAnalyticsScreen(Screen):
         self.theme_evolution_results = {}
         self.quote_extraction_results = {}
         
+        # Bind property updates
+        self.bind(text_analysis_summary=self.update_computed_properties)
+        self.bind(current_analysis_type=self.update_results_card)
+        
         # Initialize UI state
         self.selected_analysis_type = ""
         self.selected_method = ""
@@ -115,6 +137,51 @@ class QualitativeAnalyticsScreen(Screen):
         
         # Bind to window resize for responsive updates
         Window.bind(size=self.on_window_resize)
+
+    def update_computed_properties(self, instance, value):
+        """Update computed properties when text_analysis_summary changes"""
+        if not value:
+            text_fields_analyzed = "0"
+            total_text_entries = "N/A"
+            analyzed_fields_text = "Fields: None"
+            analysis_status = "No analysis completed yet"
+        else:
+            text_fields_analyzed = str(value.get('text_fields_analyzed', 0))
+            total_text_entries = str(value.get('total_text_entries', 'N/A'))
+            
+            fields = value.get('fields', [])
+            has_more = value.get('has_more_fields', False)
+            if fields:
+                fields_text = ', '.join(fields)
+                if has_more:
+                    fields_text += '...'
+                analyzed_fields_text = f"Fields: {fields_text}"
+            else:
+                analyzed_fields_text = "Fields: None"
+            
+            analysis_status = value.get('status', 'Analysis completed')
+        
+        # Update screen properties
+        self.text_fields_analyzed = text_fields_analyzed
+        self.total_text_entries = total_text_entries
+        self.analyzed_fields_text = analyzed_fields_text
+        self.analysis_status = analysis_status
+        
+        # Update overview card if it exists
+        if hasattr(self.ids, 'overview_card') and self.ids.overview_card:
+            self.ids.overview_card.text_fields_analyzed = text_fields_analyzed
+            self.ids.overview_card.total_text_entries = total_text_entries
+            self.ids.overview_card.analyzed_fields_text = analyzed_fields_text
+            self.ids.overview_card.analysis_status = analysis_status
+        
+        # Update results card if it exists
+        if hasattr(self.ids, 'results_card') and self.ids.results_card:
+            self.ids.results_card.current_analysis_type = self.current_analysis_type
+
+    def update_results_card(self, instance, value):
+        """Update results card when current_analysis_type changes"""
+        if hasattr(self.ids, 'results_card') and self.ids.results_card:
+            self.ids.results_card.current_analysis_type = value
 
     def on_enter(self):
         """Called when the screen is entered"""

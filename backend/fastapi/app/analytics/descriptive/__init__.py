@@ -25,7 +25,9 @@ from .categorical_analysis import (
     analyze_categorical,
     calculate_chi_square,
     calculate_cramers_v,
-    analyze_cross_tabulation
+    analyze_cross_tabulation,
+    calculate_diversity_metrics,
+    analyze_categorical_associations
 )
 
 from .outlier_detection import (
@@ -39,7 +41,9 @@ from .outlier_detection import (
 from .missing_data import (
     analyze_missing_data,
     get_missing_patterns,
-    calculate_missing_correlations
+    calculate_missing_correlations,
+    create_missing_data_heatmap,
+    analyze_missing_by_group
 )
 
 from .temporal_analysis import (

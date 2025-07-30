@@ -39,8 +39,10 @@ class ResearchCollectorApp(MDApp):
     user_display_name = StringProperty("Guest")
 
     def build(self):
+        # Modern Material Design 3 theme
         self.theme_cls.primary_palette = "Blue"    
-        self.theme_cls.primary_hue     = "500" 
+        self.theme_cls.primary_hue = "500"
+        self.theme_cls.theme_style = "Light"  # Use Light theme by default
         
         # Responsive window sizing for tablet optimization
         if platform != 'android':
