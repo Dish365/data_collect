@@ -25,6 +25,7 @@ from screens.data_exploration import DataExplorationScreen
 from screens.qualitative_analytics import QualitativeAnalyticsScreen
 from screens.auto_detection import AutoDetectionScreen
 from screens.descriptive_analytics import DescriptiveAnalyticsScreen
+from screens.inferential_analytics import InferentialAnalyticsScreen
 
 from kivy.modules import inspector
 
@@ -73,6 +74,7 @@ class ResearchCollectorApp(MDApp):
         sm.add_widget(DataExplorationScreen(name='data_exploration'))
         sm.add_widget(AutoDetectionScreen(name='auto_detection'))
         sm.add_widget(DescriptiveAnalyticsScreen(name='descriptive_analytics'))
+        sm.add_widget(InferentialAnalyticsScreen(name='inferential_analytics'))
         sm.add_widget(QualitativeAnalyticsScreen(name='qualitative_analytics'))
 
         inspector.create_inspector(Window, sm)

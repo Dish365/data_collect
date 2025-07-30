@@ -58,6 +58,25 @@
             # Action Buttons Card
             DescriptiveActionsCard:
                 id: actions_card
+    
+    # Dialog instances (invisible until opened)
+    AdvancedAnalysisDialog:
+        id: advanced_analysis_dialog
+    
+    GeospatialAnalysisDialog:
+        id: geospatial_dialog
+    
+    TemporalAnalysisDialog:
+        id: temporal_dialog
+    
+    CrossTabulationDialog:
+        id: cross_tabulation_dialog
+    
+    WeightedStatsDialog:
+        id: weighted_stats_dialog
+    
+    ExportOptionsDialog:
+        id: export_options_dialog
 
 # Project Selection Card Component
 <DescriptiveProjectCard@MDCard>:
@@ -244,16 +263,24 @@
         MDButton:
             text: "Comprehensive Report"
             style: "text"
-            size_hint_x: 0.3
+            size_hint_x: 0.2
             theme_text_color: "Custom"
             text_color: 0.8, 0.6, 0.2, 1
             on_release: root.run_comprehensive_report()
+        
+        MDButton:
+            text: "Executive Summary"
+            style: "text"
+            size_hint_x: 0.1
+            theme_text_color: "Custom"
+            text_color: 0.6, 0.4, 0.8, 1
+            on_release: root.generate_executive_summary()
 
 # Analysis Options Card Component
 <DescriptiveOptionsCard@MDCard>:
     orientation: 'vertical'
     size_hint_y: None
-    height: dp(280)
+    height: dp(420)
     elevation: 2
     md_bg_color: 0.97, 0.98, 1.0, 1
     radius: [12, 12, 12, 12]
@@ -290,7 +317,7 @@
         
         GridLayout:
             id: analysis_options_grid
-            cols: 2
+            cols: 3
             spacing: dp(8)
             size_hint_y: None
             height: self.minimum_height
@@ -343,6 +370,54 @@
                 option_icon: "check-circle"
                 option_color: 0.2, 0.8, 0.4, 1
                 on_release: root.run_data_quality_analysis()
+            
+            # Geospatial Analysis Option
+            DescriptiveAnalysisOptionCard:
+                option_title: "Geospatial Analysis"
+                option_description: "Spatial distribution and clustering analysis"
+                option_icon: "map-marker"
+                option_color: 0.8, 0.4, 0.6, 1
+                on_release: root.show_geospatial_dialog()
+            
+            # Temporal Analysis Option
+            DescriptiveAnalysisOptionCard:
+                option_title: "Temporal Analysis"
+                option_description: "Time series and seasonality analysis"
+                option_icon: "clock-outline"
+                option_color: 0.6, 0.8, 0.4, 1
+                on_release: root.show_temporal_dialog()
+            
+            # Cross-Tabulation Option
+            DescriptiveAnalysisOptionCard:
+                option_title: "Cross-Tabulation"
+                option_description: "Chi-square tests and association measures"
+                option_icon: "table"
+                option_color: 0.4, 0.6, 0.8, 1
+                on_release: root.show_cross_tabulation_dialog()
+            
+            # Normality Testing Option
+            DescriptiveAnalysisOptionCard:
+                option_title: "Normality Tests"
+                option_description: "Comprehensive normality testing"
+                option_icon: "chart-bell-curve-cumulative"
+                option_color: 0.8, 0.6, 0.4, 1
+                on_release: root.run_normality_tests()
+            
+            # Distribution Fitting Option
+            DescriptiveAnalysisOptionCard:
+                option_title: "Distribution Fitting"
+                option_description: "Fit statistical distributions to data"
+                option_icon: "chart-multiline"
+                option_color: 0.4, 0.8, 0.8, 1
+                on_release: root.run_distribution_fitting()
+            
+            # Advanced Analytics Button
+            DescriptiveAnalysisOptionCard:
+                option_title: "Advanced Analytics"
+                option_description: "Access all advanced analysis methods"
+                option_icon: "cog"
+                option_color: 0.6, 0.4, 0.8, 1
+                on_release: root.show_advanced_analysis_menu()
 
 # Sample Size Recommendations Card Component
 <DescriptiveSampleSizeCard@MDCard>:
@@ -444,46 +519,86 @@
             bold: True
         
         # Result type tabs
-        MDBoxLayout:
-            orientation: 'horizontal'
-            spacing: dp(4)
+        MDScrollView:
+            do_scroll_x: True
+            do_scroll_y: False
             size_hint_x: 0.6
             
-            MDButton:
-                id: statistics_tab
-                text: "Statistics"
-                style: "text"
-                size_hint_x: 0.25
-                theme_text_color: "Custom"
-                text_color: app.theme_cls.primaryColor
-                on_release: root.switch_results_tab("statistics")
-            
-            MDButton:
-                id: distribution_tab
-                text: "Distribution"
-                style: "text"
-                size_hint_x: 0.25
-                theme_text_color: "Custom"
-                text_color: 0.6, 0.6, 0.6, 1
-                on_release: root.switch_results_tab("distribution")
-            
-            MDButton:
-                id: quality_tab
-                text: "Quality"
-                style: "text"
-                size_hint_x: 0.25
-                theme_text_color: "Custom"
-                text_color: 0.6, 0.6, 0.6, 1
-                on_release: root.switch_results_tab("quality")
-            
-            MDButton:
-                id: report_tab
-                text: "Report"
-                style: "text"
-                size_hint_x: 0.25
-                theme_text_color: "Custom"
-                text_color: 0.6, 0.6, 0.6, 1
-                on_release: root.switch_results_tab("report")
+            MDBoxLayout:
+                orientation: 'horizontal'
+                spacing: dp(4)
+                size_hint_x: None
+                width: self.minimum_width
+                
+                MDButton:
+                    id: statistics_tab
+                    text: "Statistics"
+                    style: "text"
+                    size_hint_x: None
+                    width: dp(80)
+                    theme_text_color: "Custom"
+                    text_color: app.theme_cls.primaryColor
+                    on_release: root.switch_results_tab("statistics")
+                
+                MDButton:
+                    id: distribution_tab
+                    text: "Distribution"
+                    style: "text"
+                    size_hint_x: None
+                    width: dp(90)
+                    theme_text_color: "Custom"
+                    text_color: 0.6, 0.6, 0.6, 1
+                    on_release: root.switch_results_tab("distribution")
+                
+                MDButton:
+                    id: categorical_tab
+                    text: "Categorical"
+                    style: "text"
+                    size_hint_x: None
+                    width: dp(90)
+                    theme_text_color: "Custom"
+                    text_color: 0.6, 0.6, 0.6, 1
+                    on_release: root.switch_results_tab("categorical")
+                
+                MDButton:
+                    id: geospatial_tab
+                    text: "Geospatial"
+                    style: "text"
+                    size_hint_x: None
+                    width: dp(80)
+                    theme_text_color: "Custom"
+                    text_color: 0.6, 0.6, 0.6, 1
+                    on_release: root.switch_results_tab("geospatial")
+                
+                MDButton:
+                    id: temporal_tab
+                    text: "Temporal"
+                    style: "text"
+                    size_hint_x: None
+                    width: dp(70)
+                    theme_text_color: "Custom"
+                    text_color: 0.6, 0.6, 0.6, 1
+                    on_release: root.switch_results_tab("temporal")
+                
+                MDButton:
+                    id: quality_tab
+                    text: "Quality"
+                    style: "text"
+                    size_hint_x: None
+                    width: dp(60)
+                    theme_text_color: "Custom"
+                    text_color: 0.6, 0.6, 0.6, 1
+                    on_release: root.switch_results_tab("quality")
+                
+                MDButton:
+                    id: report_tab
+                    text: "Report"
+                    style: "text"
+                    size_hint_x: None
+                    width: dp(60)
+                    theme_text_color: "Custom"
+                    text_color: 0.6, 0.6, 0.6, 1
+                    on_release: root.switch_results_tab("report")
     
     # Results content
     MDScrollView:
@@ -536,12 +651,12 @@
             on_release: root.export_to_csv()
         
         MDButton:
-            text: "Share Results"
+            text: "Export Report"
             style: "text"
             size_hint_x: 0.34
             theme_text_color: "Custom"
             text_color: 0.2, 0.6, 0.8, 1
-            on_release: root.share_results()
+            on_release: root.show_export_options_dialog()
     
     # Analysis actions
     MDBoxLayout:
@@ -1134,4 +1249,436 @@
                 role: "small"
                 text_size: self.width, None
                 size_hint_y: None
-                height: dp(40) 
+                height: dp(40)
+
+# ===== NEW ADVANCED ANALYTICS DIALOGS =====
+
+# Advanced Analysis Menu Dialog
+<AdvancedAnalysisDialog@MDDialog>:
+    id: advanced_analysis_dialog
+    
+    MDDialogHeadlineText:
+        text: "Advanced Analytics"
+    
+    MDDialogSupportingText:
+        text: "Choose from advanced descriptive analysis methods"
+    
+    MDScrollView:
+        size_hint_y: None
+        height: dp(500)
+        
+        MDBoxLayout:
+            orientation: 'vertical'
+            spacing: dp(12)
+            size_hint_y: None
+            height: self.minimum_height
+            padding: [dp(16), dp(16), dp(16), dp(16)]
+            
+            # Geospatial Analysis
+            MDButton:
+                text: "Geospatial Analysis"
+                style: "outlined"
+                size_hint_y: None
+                height: dp(48)
+                theme_outline_color: "Custom" 
+                line_color: 0.8, 0.4, 0.6, 1
+                on_release: root.show_geospatial_dialog()
+            
+            # Temporal Analysis
+            MDButton:
+                text: "Temporal Analysis"
+                style: "outlined"
+                size_hint_y: None
+                height: dp(48)
+                theme_outline_color: "Custom"
+                line_color: 0.6, 0.8, 0.4, 1
+                on_release: root.show_temporal_dialog()
+            
+            # Cross-Tabulation
+            MDButton:
+                text: "Cross-Tabulation Analysis"
+                style: "outlined"
+                size_hint_y: None
+                height: dp(48)
+                theme_outline_color: "Custom"
+                line_color: 0.4, 0.6, 0.8, 1
+                on_release: root.show_cross_tabulation_dialog()
+            
+            # Weighted Statistics
+            MDButton:
+                text: "Weighted Statistics"
+                style: "outlined"
+                size_hint_y: None
+                height: dp(48)
+                theme_outline_color: "Custom"
+                line_color: 0.8, 0.6, 0.4, 1
+                on_release: root.show_weighted_stats_dialog()
+            
+            # Normality Tests
+            MDButton:
+                text: "Normality Tests"
+                style: "outlined"
+                size_hint_y: None
+                height: dp(48)
+                theme_outline_color: "Custom"
+                line_color: 0.8, 0.6, 0.4, 1
+                on_release: root.run_normality_tests()
+            
+            # Distribution Fitting
+            MDButton:
+                text: "Distribution Fitting"
+                style: "outlined"
+                size_hint_y: None
+                height: dp(48)
+                theme_outline_color: "Custom"
+                line_color: 0.4, 0.8, 0.8, 1
+                on_release: root.run_distribution_fitting()
+            
+            # Diversity Metrics
+            MDButton:
+                text: "Diversity Metrics"
+                style: "outlined"
+                size_hint_y: None
+                height: dp(48)
+                theme_outline_color: "Custom"
+                line_color: 0.6, 0.4, 0.8, 1
+                on_release: root.run_diversity_metrics()
+            
+            # Categorical Associations
+            MDButton:
+                text: "Categorical Associations"
+                style: "outlined"
+                size_hint_y: None
+                height: dp(48)
+                theme_outline_color: "Custom"
+                line_color: 0.4, 0.8, 0.6, 1
+                on_release: root.run_categorical_associations()
+            
+            # Missing Patterns
+            MDButton:
+                text: "Missing Data Patterns"
+                style: "outlined"
+                size_hint_y: None
+                height: dp(48)
+                theme_outline_color: "Custom"
+                line_color: 0.6, 0.6, 0.6, 1
+                on_release: root.run_missing_patterns_analysis()
+            
+            # Export Options
+            MDButton:
+                text: "Export Options"
+                style: "text"
+                size_hint_y: None
+                height: dp(48)
+                theme_text_color: "Custom"
+                text_color: app.theme_cls.primaryColor
+                on_release: root.show_export_options_dialog()
+    
+    MDDialogButtonContainer:
+        MDButton:
+            text: "Close"
+            style: "text"
+            on_release: advanced_analysis_dialog.dismiss()
+
+# Geospatial Analysis Dialog
+<GeospatialAnalysisDialog@MDDialog>:
+    id: geospatial_dialog
+    
+    MDDialogHeadlineText:
+        text: "Geospatial Analysis Parameters"
+    
+    MDDialogSupportingText:
+        text: "Configure parameters for spatial analysis"
+    
+    MDBoxLayout:
+        orientation: 'vertical'
+        spacing: dp(16)
+        size_hint_y: None
+        height: dp(300)
+        padding: [dp(16), dp(16), dp(16), dp(16)]
+        
+        MDTextField:
+            id: lat_column_field
+            hint_text: "Latitude Column Name"
+            helper_text: "Column containing latitude coordinates"
+            helper_text_mode: "on_focus"
+        
+        MDTextField:
+            id: lon_column_field
+            hint_text: "Longitude Column Name"
+            helper_text: "Column containing longitude coordinates"
+            helper_text_mode: "on_focus"
+        
+        MDTextField:
+            id: value_column_field
+            hint_text: "Value Column (Optional)"
+            helper_text: "Column for weighted spatial analysis"
+            helper_text_mode: "on_focus"
+        
+        MDTextField:
+            id: max_distance_field
+            hint_text: "Max Distance (km)"
+            text: "10.0"
+            helper_text: "Maximum distance for spatial autocorrelation"
+            helper_text_mode: "on_focus"
+        
+        MDTextField:
+            id: n_clusters_field
+            hint_text: "Number of Clusters"
+            text: "5"
+            helper_text: "Number of location clusters to create"
+            helper_text_mode: "on_focus"
+    
+    MDDialogButtonContainer:
+        MDButton:
+            text: "Cancel"
+            style: "text"
+            on_release: geospatial_dialog.dismiss()
+        
+        MDButton:
+            text: "Run Analysis"
+            style: "filled"
+            theme_bg_color: "Custom"
+            md_bg_color: app.theme_cls.primaryColor
+            on_release: root.run_geospatial_analysis(lat_column_field.text, lon_column_field.text, value_column_field.text if value_column_field.text else None, float(max_distance_field.text) if max_distance_field.text else 10.0, int(n_clusters_field.text) if n_clusters_field.text else 5)
+
+# Temporal Analysis Dialog
+<TemporalAnalysisDialog@MDDialog>:
+    id: temporal_dialog
+    
+    MDDialogHeadlineText:
+        text: "Temporal Analysis Parameters"
+    
+    MDDialogSupportingText:
+        text: "Configure parameters for time series analysis"
+    
+    MDBoxLayout:
+        orientation: 'vertical'
+        spacing: dp(16)
+        size_hint_y: None
+        height: dp(250)
+        padding: [dp(16), dp(16), dp(16), dp(16)]
+        
+        MDTextField:
+            id: date_column_field
+            hint_text: "Date/Time Column Name"
+            helper_text: "Column containing date/time data"
+            helper_text_mode: "on_focus"
+        
+        MDTextField:
+            id: value_columns_field
+            hint_text: "Value Columns (comma-separated)"
+            helper_text: "Columns to analyze over time (leave empty for all numeric)"
+            helper_text_mode: "on_focus"
+        
+        MDCheckbox:
+            id: detect_seasonal_checkbox
+            active: True
+            size_hint_x: None
+            width: dp(48)
+        
+        MDLabel:
+            text: "Detect Seasonality"
+            theme_text_color: "Primary"
+            size_hint_x: None
+            width: dp(150)
+        
+        MDTextField:
+            id: seasonal_period_field
+            hint_text: "Seasonal Period (Optional)"
+            helper_text: "Period for seasonality detection (auto-detect if empty)"
+            helper_text_mode: "on_focus"
+    
+    MDDialogButtonContainer:
+        MDButton:
+            text: "Cancel"
+            style: "text"
+            on_release: temporal_dialog.dismiss()
+        
+        MDButton:
+            text: "Run Analysis"
+            style: "filled"
+            theme_bg_color: "Custom"
+            md_bg_color: app.theme_cls.primaryColor
+            on_release: root.run_temporal_analysis(date_column_field.text, value_columns_field.text.split(',') if value_columns_field.text else None, detect_seasonal_checkbox.active, int(seasonal_period_field.text) if seasonal_period_field.text else None)
+
+# Cross-Tabulation Dialog
+<CrossTabulationDialog@MDDialog>:
+    id: cross_tabulation_dialog
+    
+    MDDialogHeadlineText:
+        text: "Cross-Tabulation Parameters"
+    
+    MDDialogSupportingText:
+        text: "Configure variables for cross-tabulation analysis"
+    
+    MDBoxLayout:
+        orientation: 'vertical'
+        spacing: dp(16)
+        size_hint_y: None
+        height: dp(200)
+        padding: [dp(16), dp(16), dp(16), dp(16)]
+        
+        MDTextField:
+            id: var1_field
+            hint_text: "First Variable (Rows)"
+            helper_text: "Categorical variable for table rows"
+            helper_text_mode: "on_focus"
+        
+        MDTextField:
+            id: var2_field
+            hint_text: "Second Variable (Columns)"
+            helper_text: "Categorical variable for table columns"
+            helper_text_mode: "on_focus"
+        
+        MDTextField:
+            id: normalize_field
+            hint_text: "Normalization (Optional)"
+            helper_text: "Options: index, columns, all (leave empty for none)"
+            helper_text_mode: "on_focus"
+    
+    MDDialogButtonContainer:
+        MDButton:
+            text: "Cancel"
+            style: "text"
+            on_release: cross_tabulation_dialog.dismiss()
+        
+        MDButton:
+            text: "Run Analysis"
+            style: "filled"
+            theme_bg_color: "Custom"
+            md_bg_color: app.theme_cls.primaryColor
+            on_release: root.run_cross_tabulation(var1_field.text, var2_field.text, normalize_field.text if normalize_field.text else None)
+
+# Weighted Statistics Dialog
+<WeightedStatsDialog@MDDialog>:
+    id: weighted_stats_dialog
+    
+    MDDialogHeadlineText:
+        text: "Weighted Statistics Parameters"
+    
+    MDDialogSupportingText:
+        text: "Configure columns for weighted statistical analysis"
+    
+    MDBoxLayout:
+        orientation: 'vertical'
+        spacing: dp(16)
+        size_hint_y: None
+        height: dp(150)
+        padding: [dp(16), dp(16), dp(16), dp(16)]
+        
+        MDTextField:
+            id: value_column_field
+            hint_text: "Value Column"
+            helper_text: "Column containing values to analyze"
+            helper_text_mode: "on_focus"
+        
+        MDTextField:
+            id: weight_column_field
+            hint_text: "Weight Column"
+            helper_text: "Column containing weights for each observation"
+            helper_text_mode: "on_focus"
+    
+    MDDialogButtonContainer:
+        MDButton:
+            text: "Cancel"
+            style: "text"
+            on_release: weighted_stats_dialog.dismiss()
+        
+        MDButton:
+            text: "Run Analysis"
+            style: "filled"
+            theme_bg_color: "Custom"
+            md_bg_color: app.theme_cls.primaryColor
+            on_release: root.run_weighted_statistics(value_column_field.text, weight_column_field.text)
+
+# Export Options Dialog
+<ExportOptionsDialog@MDDialog>:
+    id: export_options_dialog
+    
+    MDDialogHeadlineText:
+        text: "Export Report Options"
+    
+    MDDialogSupportingText:
+        text: "Choose export format and analysis type"
+    
+    MDBoxLayout:
+        orientation: 'vertical'
+        spacing: dp(16)
+        size_hint_y: None
+        height: dp(250)
+        padding: [dp(16), dp(16), dp(16), dp(16)]
+        
+        MDLabel:
+            text: "Export Format:"
+            theme_text_color: "Primary"
+            font_style: "Body"
+            role: "medium"
+            size_hint_y: None
+            height: dp(24)
+        
+        MDBoxLayout:
+            orientation: 'horizontal'
+            spacing: dp(8)
+            size_hint_y: None
+            height: dp(48)
+            
+            MDButton:
+                text: "JSON"
+                style: "outlined"
+                size_hint_x: 0.33
+                theme_outline_color: "Custom"
+                line_color: app.theme_cls.primaryColor
+                on_release: root.export_analysis_report('json')
+            
+            MDButton:
+                text: "HTML"
+                style: "outlined"
+                size_hint_x: 0.33
+                theme_outline_color: "Custom"
+                line_color: app.theme_cls.primaryColor
+                on_release: root.export_analysis_report('html')
+            
+            MDButton:
+                text: "Markdown"
+                style: "outlined"
+                size_hint_x: 0.34
+                theme_outline_color: "Custom"
+                line_color: app.theme_cls.primaryColor
+                on_release: root.export_analysis_report('markdown')
+        
+        MDLabel:
+            text: "Analysis Type:"
+            theme_text_color: "Primary"
+            font_style: "Body"
+            role: "medium"
+            size_hint_y: None
+            height: dp(24)
+        
+        MDBoxLayout:
+            orientation: 'horizontal'
+            spacing: dp(8)
+            size_hint_y: None
+            height: dp(48)
+            
+            MDButton:
+                text: "Comprehensive"
+                style: "filled"
+                size_hint_x: 0.5
+                theme_bg_color: "Custom"
+                md_bg_color: app.theme_cls.primaryColor
+                on_release: root.export_analysis_report('json', 'comprehensive')
+            
+            MDButton:
+                text: "Executive"
+                style: "outlined"
+                size_hint_x: 0.5
+                theme_outline_color: "Custom"
+                line_color: app.theme_cls.primaryColor
+                on_release: root.export_analysis_report('json', 'executive')
+    
+    MDDialogButtonContainer:
+        MDButton:
+            text: "Close"
+            style: "text"
+            on_release: export_options_dialog.dismiss() 

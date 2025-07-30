@@ -507,6 +507,293 @@ async def analyze_nonparametric(
     except Exception as e:
         return AnalyticsUtils.handle_analysis_error(e, "non-parametric test")
 
+@router.post("/project/{project_id}/analyze/bayesian-t-test")
+async def analyze_bayesian_t_test(
+    project_id: str,
+    variable1: str,
+    variable2: str,
+    prior_mean: float = 0,
+    prior_variance: float = 1,
+    credible_level: float = 0.95,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Run Bayesian t-test analysis.
+    
+    Args:
+        project_id: Project identifier
+        variable1: First variable for comparison
+        variable2: Second variable for comparison
+        prior_mean: Prior mean for effect size
+        prior_variance: Prior variance for effect size
+        credible_level: Credible interval level
+        db: Database session
+        
+    Returns:
+        Bayesian t-test results
+    """
+    try:
+        df = await AnalyticsUtils.get_project_data(project_id)
+        
+        if df.empty:
+            return AnalyticsUtils.format_api_response(
+                'error', None, 'No data available for analysis'
+            )
+        
+        results = AnalyticsUtils.run_bayesian_t_test(
+            df, variable1, variable2, prior_mean, prior_variance, credible_level
+        )
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'analysis_type': 'bayesian_t_test',
+            'variable1': variable1,
+            'variable2': variable2,
+            'prior_mean': prior_mean,
+            'prior_variance': prior_variance,
+            'credible_level': credible_level,
+            'results': results
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "Bayesian t-test")
+
+@router.post("/project/{project_id}/analyze/bayesian-proportion-test")
+async def analyze_bayesian_proportion_test(
+    project_id: str,
+    group_variable: str,
+    success_variable: str,
+    prior_alpha: float = 1,
+    prior_beta: float = 1,
+    credible_level: float = 0.95,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Run Bayesian proportion test.
+    
+    Args:
+        project_id: Project identifier
+        group_variable: Variable defining groups
+        success_variable: Binary variable indicating success
+        prior_alpha: Beta prior alpha parameter
+        prior_beta: Beta prior beta parameter
+        credible_level: Credible interval level
+        db: Database session
+        
+    Returns:
+        Bayesian proportion test results
+    """
+    try:
+        df = await AnalyticsUtils.get_project_data(project_id)
+        
+        if df.empty:
+            return AnalyticsUtils.format_api_response(
+                'error', None, 'No data available for analysis'
+            )
+        
+        results = AnalyticsUtils.run_bayesian_proportion_test(
+            df, group_variable, success_variable, prior_alpha, prior_beta, credible_level
+        )
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'analysis_type': 'bayesian_proportion_test',
+            'group_variable': group_variable,
+            'success_variable': success_variable,
+            'prior_alpha': prior_alpha,
+            'prior_beta': prior_beta,
+            'credible_level': credible_level,
+            'results': results
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "Bayesian proportion test")
+
+@router.post("/project/{project_id}/analyze/multiple-comparisons")
+async def analyze_multiple_comparisons(
+    project_id: str,
+    p_values: List[float],
+    alpha: float = 0.05,
+    correction_methods: Optional[List[str]] = None,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Apply multiple comparisons corrections to p-values.
+    
+    Args:
+        project_id: Project identifier
+        p_values: List of p-values to correct
+        alpha: Family-wise error rate
+        correction_methods: Methods to apply (bonferroni, holm, benjamini_hochberg, etc.)
+        db: Database session
+        
+    Returns:
+        Multiple comparisons correction results
+    """
+    try:
+        if not correction_methods:
+            correction_methods = ['bonferroni', 'holm', 'benjamini_hochberg']
+        
+        results = AnalyticsUtils.run_multiple_comparisons_correction(
+            p_values, alpha, correction_methods
+        )
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'analysis_type': 'multiple_comparisons_correction',
+            'original_p_values': p_values,
+            'alpha': alpha,
+            'correction_methods': correction_methods,
+            'results': results
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "multiple comparisons correction")
+
+@router.post("/project/{project_id}/analyze/post-hoc-tests")
+async def analyze_post_hoc_tests(
+    project_id: str,
+    group_variable: str,
+    dependent_variable: str,
+    test_type: str = "tukey",
+    alpha: float = 0.05,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Run post-hoc tests after ANOVA.
+    
+    Args:
+        project_id: Project identifier
+        group_variable: Variable defining groups
+        dependent_variable: Dependent variable
+        test_type: Type of post-hoc test (tukey, games_howell, dunnett)
+        alpha: Significance level
+        db: Database session
+        
+    Returns:
+        Post-hoc test results
+    """
+    try:
+        df = await AnalyticsUtils.get_project_data(project_id)
+        
+        if df.empty:
+            return AnalyticsUtils.format_api_response(
+                'error', None, 'No data available for analysis'
+            )
+        
+        results = AnalyticsUtils.run_post_hoc_tests(
+            df, group_variable, dependent_variable, test_type, alpha
+        )
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'analysis_type': 'post_hoc_tests',
+            'group_variable': group_variable,
+            'dependent_variable': dependent_variable,
+            'test_type': test_type,
+            'alpha': alpha,
+            'results': results
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "post-hoc tests")
+
+@router.post("/project/{project_id}/analyze/time-series/stationarity")
+async def analyze_stationarity(
+    project_id: str,
+    variable: str,
+    test_types: List[str] = None,
+    alpha: float = 0.05,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Test for stationarity in time series data.
+    
+    Args:
+        project_id: Project identifier
+        variable: Time series variable to test
+        test_types: Types of stationarity tests (adf, kpss, pp)
+        alpha: Significance level
+        db: Database session
+        
+    Returns:
+        Stationarity test results
+    """
+    try:
+        df = await AnalyticsUtils.get_project_data(project_id)
+        
+        if df.empty:
+            return AnalyticsUtils.format_api_response(
+                'error', None, 'No data available for analysis'
+            )
+        
+        if test_types is None:
+            test_types = ['adf', 'kpss']
+        
+        results = AnalyticsUtils.run_stationarity_test(
+            df, variable, test_types, alpha
+        )
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'analysis_type': 'stationarity_test',
+            'variable': variable,
+            'test_types': test_types,
+            'alpha': alpha,
+            'results': results
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "stationarity test")
+
+@router.post("/project/{project_id}/analyze/time-series/granger-causality")
+async def analyze_granger_causality(
+    project_id: str,
+    cause_variable: str,
+    effect_variable: str,
+    max_lag: int = 10,
+    alpha: float = 0.05,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Test for Granger causality between time series variables.
+    
+    Args:
+        project_id: Project identifier
+        cause_variable: Potential causal variable
+        effect_variable: Effect variable
+        max_lag: Maximum lag to test
+        alpha: Significance level
+        db: Database session
+        
+    Returns:
+        Granger causality test results
+    """
+    try:
+        df = await AnalyticsUtils.get_project_data(project_id)
+        
+        if df.empty:
+            return AnalyticsUtils.format_api_response(
+                'error', None, 'No data available for analysis'
+            )
+        
+        results = AnalyticsUtils.run_granger_causality_test(
+            df, cause_variable, effect_variable, max_lag, alpha
+        )
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'analysis_type': 'granger_causality_test',
+            'cause_variable': cause_variable,
+            'effect_variable': effect_variable,
+            'max_lag': max_lag,
+            'alpha': alpha,
+            'results': results
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "Granger causality test")
+
 @router.get("/analysis-types")
 async def get_inferential_analysis_types() -> Dict[str, Any]:
     """
@@ -535,7 +822,7 @@ async def get_inferential_analysis_types() -> Dict[str, Any]:
                 },
                 'regression': {
                     'description': 'Regression analysis for predictive modeling',
-                    'types': ['linear', 'logistic', 'polynomial', 'ridge', 'lasso'],
+                    'types': ['linear', 'multiple', 'logistic', 'poisson', 'ridge', 'lasso', 'robust'],
                     'includes': ['coefficients', 'r_squared', 'residual_analysis', 'diagnostics']
                 },
                 'chi_square': {
@@ -555,7 +842,7 @@ async def get_inferential_analysis_types() -> Dict[str, Any]:
                 },
                 'effect_size': {
                     'description': 'Effect size calculations',
-                    'measures': ['cohen_d', 'eta_squared', 'cramers_v', 'odds_ratio'],
+                    'measures': ['cohen_d', 'hedges_g', 'glass_delta', 'eta_squared', 'omega_squared', 'cramers_v', 'odds_ratio'],
                     'includes': ['magnitude_interpretation', 'confidence_intervals']
                 },
                 'power_analysis': {
@@ -565,15 +852,33 @@ async def get_inferential_analysis_types() -> Dict[str, Any]:
                 },
                 'nonparametric': {
                     'description': 'Non-parametric statistical tests',
-                    'tests': ['mann_whitney', 'wilcoxon', 'kruskal_wallis', 'friedman'],
+                    'tests': ['mann_whitney', 'wilcoxon', 'kruskal_wallis', 'friedman', 'kolmogorov_smirnov', 'shapiro_wilk', 'anderson_darling', 'runs_test'],
                     'includes': ['rank_based_tests', 'distribution_free_methods']
+                },
+                'bayesian_inference': {
+                    'description': 'Bayesian statistical methods',
+                    'tests': ['bayesian_t_test', 'bayesian_proportion_test', 'bayesian_ab_test'],
+                    'includes': ['posterior_distributions', 'credible_intervals', 'bayes_factors', 'prior_specifications']
+                },
+                'multiple_comparisons': {
+                    'description': 'Multiple comparisons and post-hoc tests',
+                    'corrections': ['bonferroni', 'holm', 'benjamini_hochberg', 'benjamini_yekutieli'],
+                    'post_hoc_tests': ['tukey_hsd', 'games_howell', 'dunnett'],
+                    'includes': ['family_wise_error_control', 'false_discovery_rate']
+                },
+                'time_series_inference': {
+                    'description': 'Time series statistical inference',
+                    'tests': ['stationarity', 'autocorrelation', 'seasonality', 'granger_causality', 'cointegration'],
+                    'includes': ['unit_root_tests', 'lag_selection', 'change_point_detection']
                 }
             },
             'statistical_assumptions': {
                 'normality': 'Data should be normally distributed',
                 'independence': 'Observations should be independent',
                 'homoscedasticity': 'Equal variances across groups',
-                'linearity': 'Linear relationship between variables'
+                'linearity': 'Linear relationship between variables',
+                'stationarity': 'Time series should be stationary (for time series tests)',
+                'sphericity': 'Equal variances of differences (for repeated measures)'
             }
         }
         
@@ -593,6 +898,7 @@ async def get_inferential_endpoints() -> Dict[str, Any]:
     try:
         endpoints = {
             'inferential_analytics_endpoints': {
+                # Core statistical tests
                 'POST /project/{project_id}/analyze/correlation': 'Run correlation analysis',
                 'POST /project/{project_id}/analyze/t-test': 'Run t-test analysis',
                 'POST /project/{project_id}/analyze/anova': 'Run ANOVA analysis',
@@ -603,6 +909,20 @@ async def get_inferential_endpoints() -> Dict[str, Any]:
                 'POST /project/{project_id}/analyze/effect-size': 'Calculate effect sizes',
                 'POST /project/{project_id}/analyze/power-analysis': 'Run power analysis',
                 'POST /project/{project_id}/analyze/nonparametric': 'Run non-parametric tests',
+                
+                # Bayesian inference
+                'POST /project/{project_id}/analyze/bayesian-t-test': 'Run Bayesian t-test',
+                'POST /project/{project_id}/analyze/bayesian-proportion-test': 'Run Bayesian proportion test',
+                
+                # Multiple comparisons and post-hoc tests
+                'POST /project/{project_id}/analyze/multiple-comparisons': 'Apply multiple comparisons corrections',
+                'POST /project/{project_id}/analyze/post-hoc-tests': 'Run post-hoc tests after ANOVA',
+                
+                # Time series inference
+                'POST /project/{project_id}/analyze/time-series/stationarity': 'Test for stationarity in time series',
+                'POST /project/{project_id}/analyze/time-series/granger-causality': 'Test for Granger causality',
+                
+                # Information endpoints
                 'GET /analysis-types': 'Get available inferential analysis types',
                 'GET /endpoints': 'Get all inferential analytics endpoints'
             }

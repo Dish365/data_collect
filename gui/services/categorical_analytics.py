@@ -227,6 +227,192 @@ class CategoricalAnalyticsHandler:
             self.selected_variables
         )
 
+    # New Advanced Categorical Analytics Methods
+
+    def run_cross_tabulation(self, project_id: str, var1: str, var2: str, 
+                            normalize: Optional[str] = None):
+        """Run cross-tabulation analysis between two categorical variables"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_cross_tabulation_thread,
+            args=(project_id, var1, var2, normalize),
+            daemon=True
+        ).start()
+
+    def _run_cross_tabulation_thread(self, project_id: str, var1: str, var2: str, 
+                                    normalize: Optional[str]):
+        """Background thread for cross-tabulation analysis"""
+        try:
+            results = self.analytics_service.run_cross_tabulation_backend(
+                project_id, var1, var2, normalize
+            )
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_cross_tabulation_results(results), 0
+            )
+        except Exception as e:
+            print(f"Error in cross-tabulation analysis: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Cross-tabulation analysis failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+
+    def _handle_cross_tabulation_results(self, results):
+        """Handle cross-tabulation analysis results"""
+        if not results or 'error' in results:
+            error_msg = results.get('error', 'No results available') if results else 'No results available'
+            toast(f"Cross-tabulation Error: {error_msg}")
+            return
+        
+        self.screen.display_cross_tabulation_results(results)
+
+    def run_diversity_metrics(self, project_id: str, variables: Optional[List[str]] = None):
+        """Run diversity metrics analysis for categorical variables"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_diversity_metrics_thread,
+            args=(project_id, variables),
+            daemon=True
+        ).start()
+
+    def _run_diversity_metrics_thread(self, project_id: str, variables: Optional[List[str]]):
+        """Background thread for diversity metrics analysis"""
+        try:
+            results = self.analytics_service.run_diversity_metrics_backend(
+                project_id, variables
+            )
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_diversity_metrics_results(results), 0
+            )
+        except Exception as e:
+            print(f"Error in diversity metrics analysis: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Diversity metrics analysis failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+
+    def _handle_diversity_metrics_results(self, results):
+        """Handle diversity metrics analysis results"""
+        if not results or 'error' in results:
+            error_msg = results.get('error', 'No results available') if results else 'No results available'
+            toast(f"Diversity Metrics Error: {error_msg}")
+            return
+        
+        self.screen.display_diversity_metrics_results(results)
+
+    def run_categorical_associations(self, project_id: str, variables: Optional[List[str]] = None,
+                                   method: str = 'cramers_v'):
+        """Run categorical associations analysis"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_categorical_associations_thread,
+            args=(project_id, variables, method),
+            daemon=True
+        ).start()
+
+    def _run_categorical_associations_thread(self, project_id: str, variables: Optional[List[str]], 
+                                           method: str):
+        """Background thread for categorical associations analysis"""
+        try:
+            results = self.analytics_service.run_categorical_associations_backend(
+                project_id, variables, method
+            )
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_categorical_associations_results(results), 0
+            )
+        except Exception as e:
+            print(f"Error in categorical associations analysis: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Categorical associations analysis failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+
+    def _handle_categorical_associations_results(self, results):
+        """Handle categorical associations analysis results"""
+        if not results or 'error' in results:
+            error_msg = results.get('error', 'No results available') if results else 'No results available'
+            toast(f"Categorical Associations Error: {error_msg}")
+            return
+        
+        self.screen.display_categorical_associations_results(results)
+
+    # Data extraction methods for new analyses
+
+    def get_cross_tabulation_data(self, cross_tab_data: Dict) -> Dict:
+        """Extract cross-tabulation data for UI consumption"""
+        if 'error' in cross_tab_data:
+            return {
+                'has_error': True,
+                'error_message': cross_tab_data['error']
+            }
+        
+        results = cross_tab_data.get('results', {})
+        
+        return {
+            'has_error': False,
+            'var1': cross_tab_data.get('var1', 'Variable 1'),
+            'var2': cross_tab_data.get('var2', 'Variable 2'),
+            'crosstab': results.get('crosstab', {}),
+            'row_percentages': results.get('row_percentages', {}),
+            'column_percentages': results.get('column_percentages', {}),
+            'chi_square': results.get('chi_square', {}),
+            'grand_total': results.get('grand_total', 0)
+        }
+
+    def get_diversity_metrics_data(self, diversity_data: Dict) -> Dict:
+        """Extract diversity metrics data for UI consumption"""
+        if 'error' in diversity_data:
+            return {
+                'has_error': True,
+                'error_message': diversity_data['error']
+            }
+        
+        results = diversity_data.get('results', {})
+        
+        return {
+            'has_error': False,
+            'metrics_by_variable': results,
+            'total_variables': len(results)
+        }
+
+    def get_categorical_associations_data(self, associations_data: Dict) -> Dict:
+        """Extract categorical associations data for UI consumption"""
+        if 'error' in associations_data:
+            return {
+                'has_error': True,
+                'error_message': associations_data['error']
+            }
+        
+        results = associations_data.get('results', {})
+        method = associations_data.get('method', 'cramers_v')
+        
+        return {
+            'has_error': False,
+            'method': method,
+            'association_matrix': results,
+            'variables_analyzed': len(results) if isinstance(results, dict) else 0
+        }
+
     # Analytics backend methods
     def _make_analytics_request(self, endpoint: str, method: str = 'GET', data: Dict = None) -> Dict:
         """Make authenticated request to analytics backend"""
@@ -335,4 +521,55 @@ class CategoricalAnalyticsHandler:
             return result
             
         except Exception as e:
-            return {'error': f'Frequency analysis failed: {str(e)}'} 
+            return {'error': f'Frequency analysis failed: {str(e)}'}
+
+    # New Advanced Categorical Analytics Backend Methods
+
+    def run_cross_tabulation_backend(self, project_id: str, var1: str, var2: str, 
+                                    normalize: Optional[str] = None) -> Dict:
+        """Run cross-tabulation analysis via backend"""
+        try:
+            request_data = {
+                'var1': var1,
+                'var2': var2
+            }
+            if normalize:
+                request_data['normalize'] = normalize
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/cross-tabulation', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Cross-tabulation analysis failed: {str(e)}'}
+
+    def run_diversity_metrics_backend(self, project_id: str, variables: Optional[List[str]] = None) -> Dict:
+        """Run diversity metrics analysis via backend"""
+        try:
+            request_data = {}
+            if variables:
+                request_data['variables'] = variables
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/diversity-metrics', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Diversity metrics analysis failed: {str(e)}'}
+
+    def run_categorical_associations_backend(self, project_id: str, variables: Optional[List[str]] = None,
+                                           method: str = 'cramers_v') -> Dict:
+        """Run categorical associations analysis via backend"""
+        try:
+            request_data = {
+                'method': method
+            }
+            if variables:
+                request_data['variables'] = variables
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/categorical-associations', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Categorical associations analysis failed: {str(e)}'} 

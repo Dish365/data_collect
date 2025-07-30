@@ -270,4 +270,596 @@ class QualitativeAnalyticsHandler:
 
     def run_theme_analysis_backend(self, project_id: str, text_fields: List[str] = None, num_themes: int = 5) -> Dict:
         """Run theme analysis specifically via backend"""
-        return self.run_text_analysis_backend(project_id, "text", text_fields) 
+        return self.run_text_analysis_backend(project_id, "text", text_fields)
+
+    # COMPREHENSIVE QUALITATIVE ANALYTICS METHODS
+    
+    def run_sentiment_analysis_full(self, project_id: str, config: Dict = None):
+        """Run comprehensive sentiment analysis"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_sentiment_analysis_thread,
+            args=(project_id, config),
+            daemon=True
+        ).start()
+    
+    def _run_sentiment_analysis_thread(self, project_id: str, config: Dict):
+        """Background thread for sentiment analysis"""
+        try:
+            text_fields = config.get('text_fields') if config else None
+            sentiment_method = config.get('sentiment_method', 'vader') if config else 'vader'
+            
+            request_data = {
+                'text_fields': text_fields,
+                'sentiment_method': sentiment_method
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/sentiment', 
+                                                method='POST', data=request_data)
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_sentiment_results(result), 0
+            )
+        except Exception as e:
+            print(f"Error in sentiment analysis: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Sentiment analysis failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+    
+    def _handle_sentiment_results(self, results):
+        """Handle sentiment analysis results"""
+        if 'error' in results:
+            toast(f"Error: {results['error']}")
+            return
+            
+        self.screen.sentiment_results = results
+        self.screen.current_analysis_type = "sentiment"
+        toast("Sentiment analysis completed successfully")
+    
+    def run_theme_analysis_full(self, project_id: str, config: Dict = None):
+        """Run comprehensive theme analysis"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_theme_analysis_thread,
+            args=(project_id, config),
+            daemon=True
+        ).start()
+    
+    def _run_theme_analysis_thread(self, project_id: str, config: Dict):
+        """Background thread for theme analysis"""
+        try:
+            text_fields = config.get('text_fields') if config else None
+            num_themes = config.get('num_themes', 5) if config else 5
+            theme_method = config.get('theme_method', 'lda') if config else 'lda'
+            
+            request_data = {
+                'text_fields': text_fields,
+                'num_themes': num_themes,
+                'theme_method': theme_method
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/themes', 
+                                                method='POST', data=request_data)
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_theme_results(result), 0
+            )
+        except Exception as e:
+            print(f"Error in theme analysis: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Theme analysis failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+    
+    def _handle_theme_results(self, results):
+        """Handle theme analysis results"""
+        if 'error' in results:
+            toast(f"Error: {results['error']}")
+            return
+            
+        self.screen.theme_results = results
+        self.screen.current_analysis_type = "themes"
+        toast("Theme analysis completed successfully")
+    
+    def run_word_frequency_analysis(self, project_id: str, config: Dict = None):
+        """Run word frequency analysis"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_word_frequency_thread,
+            args=(project_id, config),
+            daemon=True
+        ).start()
+    
+    def _run_word_frequency_thread(self, project_id: str, config: Dict):
+        """Background thread for word frequency analysis"""
+        try:
+            text_fields = config.get('text_fields') if config else None
+            top_n = config.get('top_n', 50) if config else 50
+            min_word_length = config.get('min_word_length', 3) if config else 3
+            remove_stopwords = config.get('remove_stopwords', True) if config else True
+            
+            request_data = {
+                'text_fields': text_fields,
+                'top_n': top_n,
+                'min_word_length': min_word_length,
+                'remove_stopwords': remove_stopwords
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/word-frequency', 
+                                                method='POST', data=request_data)
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_word_frequency_results(result), 0
+            )
+        except Exception as e:
+            print(f"Error in word frequency analysis: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Word frequency analysis failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+    
+    def _handle_word_frequency_results(self, results):
+        """Handle word frequency analysis results"""
+        if 'error' in results:
+            toast(f"Error: {results['error']}")
+            return
+            
+        self.screen.word_frequency_results = results
+        self.screen.current_analysis_type = "word_frequency"
+        toast("Word frequency analysis completed successfully")
+    
+    def run_content_analysis(self, project_id: str, config: Dict = None):
+        """Run content analysis"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_content_analysis_thread,
+            args=(project_id, config),
+            daemon=True
+        ).start()
+    
+    def _run_content_analysis_thread(self, project_id: str, config: Dict):
+        """Background thread for content analysis"""
+        try:
+            text_fields = config.get('text_fields') if config else None
+            analysis_framework = config.get('analysis_framework', 'inductive') if config else 'inductive'
+            coding_scheme = config.get('coding_scheme') if config else None
+            
+            request_data = {
+                'text_fields': text_fields,
+                'analysis_framework': analysis_framework,
+                'coding_scheme': coding_scheme
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/content-analysis', 
+                                                method='POST', data=request_data)
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_content_analysis_results(result), 0
+            )
+        except Exception as e:
+            print(f"Error in content analysis: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Content analysis failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+    
+    def _handle_content_analysis_results(self, results):
+        """Handle content analysis results"""
+        if 'error' in results:
+            toast(f"Error: {results['error']}")
+            return
+            
+        self.screen.content_analysis_results = results
+        self.screen.current_analysis_type = "content_analysis"
+        toast("Content analysis completed successfully")
+    
+    def run_qualitative_coding(self, project_id: str, config: Dict = None):
+        """Run qualitative coding analysis"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_qualitative_coding_thread,
+            args=(project_id, config),
+            daemon=True
+        ).start()
+    
+    def _run_qualitative_coding_thread(self, project_id: str, config: Dict):
+        """Background thread for qualitative coding"""
+        try:
+            text_fields = config.get('text_fields') if config else None
+            coding_method = config.get('coding_method', 'open') if config else 'open'
+            auto_code = config.get('auto_code', True) if config else True
+            
+            request_data = {
+                'text_fields': text_fields,
+                'coding_method': coding_method,
+                'auto_code': auto_code
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/qualitative-coding', 
+                                                method='POST', data=request_data)
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_qualitative_coding_results(result), 0
+            )
+        except Exception as e:
+            print(f"Error in qualitative coding: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Qualitative coding failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+    
+    def _handle_qualitative_coding_results(self, results):
+        """Handle qualitative coding results"""
+        if 'error' in results:
+            toast(f"Error: {results['error']}")
+            return
+            
+        self.screen.qualitative_coding_results = results
+        self.screen.current_analysis_type = "qualitative_coding"
+        toast("Qualitative coding completed successfully")
+    
+    def run_survey_analysis(self, project_id: str, config: Dict = None):
+        """Run survey analysis"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_survey_analysis_thread,
+            args=(project_id, config),
+            daemon=True
+        ).start()
+    
+    def _run_survey_analysis_thread(self, project_id: str, config: Dict):
+        """Background thread for survey analysis"""
+        try:
+            response_fields = config.get('response_fields') if config else None
+            question_metadata = config.get('question_metadata') if config else None
+            
+            request_data = {
+                'response_fields': response_fields,
+                'question_metadata': question_metadata
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/survey', 
+                                                method='POST', data=request_data)
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_survey_analysis_results(result), 0
+            )
+        except Exception as e:
+            print(f"Error in survey analysis: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Survey analysis failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+    
+    def _handle_survey_analysis_results(self, results):
+        """Handle survey analysis results"""
+        if 'error' in results:
+            toast(f"Error: {results['error']}")
+            return
+            
+        self.screen.survey_analysis_results = results
+        self.screen.current_analysis_type = "survey_analysis"
+        toast("Survey analysis completed successfully")
+    
+    def run_qualitative_statistics(self, project_id: str, config: Dict = None):
+        """Run qualitative statistics"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_qualitative_statistics_thread,
+            args=(project_id, config),
+            daemon=True
+        ).start()
+    
+    def _run_qualitative_statistics_thread(self, project_id: str, config: Dict):
+        """Background thread for qualitative statistics"""
+        try:
+            text_fields = config.get('text_fields') if config else None
+            analysis_type = config.get('analysis_type', 'general') if config else 'general'
+            
+            request_data = {
+                'text_fields': text_fields,
+                'analysis_type': analysis_type
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/qualitative-statistics', 
+                                                method='POST', data=request_data)
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_qualitative_statistics_results(result), 0
+            )
+        except Exception as e:
+            print(f"Error in qualitative statistics: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Qualitative statistics failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+    
+    def _handle_qualitative_statistics_results(self, results):
+        """Handle qualitative statistics results"""
+        if 'error' in results:
+            toast(f"Error: {results['error']}")
+            return
+            
+        self.screen.qualitative_statistics_results = results
+        self.screen.current_analysis_type = "qualitative_statistics"
+        toast("Qualitative statistics completed successfully")
+    
+    def run_sentiment_trends(self, project_id: str, config: Dict = None):
+        """Run sentiment trends analysis"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_sentiment_trends_thread,
+            args=(project_id, config),
+            daemon=True
+        ).start()
+    
+    def _run_sentiment_trends_thread(self, project_id: str, config: Dict):
+        """Background thread for sentiment trends"""
+        try:
+            text_fields = config.get('text_fields') if config else None
+            time_field = config.get('time_field') if config else None
+            category_field = config.get('category_field') if config else None
+            sentiment_method = config.get('sentiment_method', 'vader') if config else 'vader'
+            
+            request_data = {
+                'text_fields': text_fields,
+                'time_field': time_field,
+                'category_field': category_field,
+                'sentiment_method': sentiment_method
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/sentiment-trends', 
+                                                method='POST', data=request_data)
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_sentiment_trends_results(result), 0
+            )
+        except Exception as e:
+            print(f"Error in sentiment trends: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Sentiment trends analysis failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+    
+    def _handle_sentiment_trends_results(self, results):
+        """Handle sentiment trends results"""
+        if 'error' in results:
+            toast(f"Error: {results['error']}")
+            return
+            
+        self.screen.sentiment_trends_results = results
+        self.screen.current_analysis_type = "sentiment_trends"
+        toast("Sentiment trends analysis completed successfully")
+    
+    def run_text_similarity(self, project_id: str, config: Dict = None):
+        """Run text similarity analysis"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_text_similarity_thread,
+            args=(project_id, config),
+            daemon=True
+        ).start()
+    
+    def _run_text_similarity_thread(self, project_id: str, config: Dict):
+        """Background thread for text similarity"""
+        try:
+            text_fields = config.get('text_fields') if config else None
+            similarity_threshold = config.get('similarity_threshold', 0.5) if config else 0.5
+            max_comparisons = config.get('max_comparisons', 100) if config else 100
+            
+            request_data = {
+                'text_fields': text_fields,
+                'similarity_threshold': similarity_threshold,
+                'max_comparisons': max_comparisons
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/text-similarity', 
+                                                method='POST', data=request_data)
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_text_similarity_results(result), 0
+            )
+        except Exception as e:
+            print(f"Error in text similarity: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Text similarity analysis failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+    
+    def _handle_text_similarity_results(self, results):
+        """Handle text similarity results"""
+        if 'error' in results:
+            toast(f"Error: {results['error']}")
+            return
+            
+        self.screen.text_similarity_results = results
+        self.screen.current_analysis_type = "text_similarity"
+        toast("Text similarity analysis completed successfully")
+    
+    def run_theme_evolution(self, project_id: str, config: Dict = None):
+        """Run theme evolution analysis"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_theme_evolution_thread,
+            args=(project_id, config),
+            daemon=True
+        ).start()
+    
+    def _run_theme_evolution_thread(self, project_id: str, config: Dict):
+        """Background thread for theme evolution"""
+        try:
+            text_fields = config.get('text_fields') if config else None
+            time_field = config.get('time_field') if config else None
+            num_themes = config.get('num_themes', 5) if config else 5
+            
+            request_data = {
+                'text_fields': text_fields,
+                'time_field': time_field,
+                'num_themes': num_themes
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/theme-evolution', 
+                                                method='POST', data=request_data)
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_theme_evolution_results(result), 0
+            )
+        except Exception as e:
+            print(f"Error in theme evolution: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Theme evolution analysis failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+    
+    def _handle_theme_evolution_results(self, results):
+        """Handle theme evolution results"""
+        if 'error' in results:
+            toast(f"Error: {results['error']}")
+            return
+            
+        self.screen.theme_evolution_results = results
+        self.screen.current_analysis_type = "theme_evolution"
+        toast("Theme evolution analysis completed successfully")
+    
+    def run_quote_extraction(self, project_id: str, config: Dict = None):
+        """Run quote extraction analysis"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_quote_extraction_thread,
+            args=(project_id, config),
+            daemon=True
+        ).start()
+    
+    def _run_quote_extraction_thread(self, project_id: str, config: Dict):
+        """Background thread for quote extraction"""
+        try:
+            text_fields = config.get('text_fields') if config else None
+            theme_keywords = config.get('theme_keywords') if config else None
+            max_quotes = config.get('max_quotes', 5) if config else 5
+            auto_extract_themes = config.get('auto_extract_themes', True) if config else True
+            
+            request_data = {
+                'text_fields': text_fields,
+                'theme_keywords': theme_keywords,
+                'max_quotes': max_quotes,
+                'auto_extract_themes': auto_extract_themes
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/extract-quotes', 
+                                                method='POST', data=request_data)
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_quote_extraction_results(result), 0
+            )
+        except Exception as e:
+            print(f"Error in quote extraction: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Quote extraction failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+    
+    def _handle_quote_extraction_results(self, results):
+        """Handle quote extraction results"""
+        if 'error' in results:
+            toast(f"Error: {results['error']}")
+            return
+            
+        self.screen.quote_extraction_results = results
+        self.screen.current_analysis_type = "quote_extraction"
+        toast("Quote extraction completed successfully")
+
+    # ANALYSIS TYPE HELPERS
+    def get_analysis_types(self):
+        """Get available qualitative analysis types"""
+        return [
+            {'id': 'text', 'name': 'Text Analysis', 'icon': 'text-box'},
+            {'id': 'sentiment', 'name': 'Sentiment Analysis', 'icon': 'emoticon'},
+            {'id': 'themes', 'name': 'Theme Analysis', 'icon': 'lightbulb'},
+            {'id': 'word_frequency', 'name': 'Word Frequency', 'icon': 'format-list-numbered'},
+            {'id': 'content_analysis', 'name': 'Content Analysis', 'icon': 'file-document-outline'},
+            {'id': 'qualitative_coding', 'name': 'Qualitative Coding', 'icon': 'code-tags'},
+            {'id': 'survey_analysis', 'name': 'Survey Analysis', 'icon': 'poll'},
+            {'id': 'qualitative_statistics', 'name': 'Qualitative Statistics', 'icon': 'chart-bar'},
+            {'id': 'sentiment_trends', 'name': 'Sentiment Trends', 'icon': 'trending-up'},
+            {'id': 'text_similarity', 'name': 'Text Similarity', 'icon': 'compare'},
+            {'id': 'theme_evolution', 'name': 'Theme Evolution', 'icon': 'timeline'},
+            {'id': 'quote_extraction', 'name': 'Quote Extraction', 'icon': 'format-quote-close'}
+        ]
+    
+    def get_analysis_methods(self, analysis_type: str):
+        """Get analysis methods for specific type"""
+        methods = {
+            'sentiment': ['vader', 'textblob'],
+            'themes': ['lda', 'nmf', 'clustering'],
+            'content_analysis': ['inductive', 'deductive', 'mixed'],
+            'qualitative_coding': ['open', 'axial', 'selective'],
+            'qualitative_statistics': ['survey', 'interview', 'general']
+        }
+        return methods.get(analysis_type, []) 

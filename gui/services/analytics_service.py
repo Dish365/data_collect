@@ -30,7 +30,7 @@ class AnalyticsService:
         self.available_analysis_types = [
             'auto', 'descriptive', 'basic', 'comprehensive', 'distribution', 
             'categorical', 'outlier', 'missing', 'temporal', 'geospatial', 
-            'quality', 'correlation', 'text'
+            'quality', 'correlation', 'text', 'inferential'
         ]
         
     def _setup_session_headers(self):
@@ -413,6 +413,226 @@ class AnalyticsService:
         except Exception as e:
             return {'error': f'Inferential analysis failed: {str(e)}'}
 
+    # SPECIFIC INFERENTIAL ANALYTICS METHODS
+    
+    def run_correlation_analysis(self, project_id: str, variables: Optional[List[str]] = None, 
+                                method: str = "pearson", significance_level: float = 0.05) -> Dict:
+        """Run correlation analysis"""
+        try:
+            request_data = {
+                'variables': variables,
+                'correlation_method': method,
+                'significance_level': significance_level
+            }
+            
+            result = self._make_analytics_request(f'inferential/project/{project_id}/analyze/correlation', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Correlation analysis failed: {str(e)}'}
+    
+    def run_t_test(self, project_id: str, dependent_variable: str, independent_variable: Optional[str] = None,
+                   test_type: str = "two_sample", alternative: str = "two_sided", confidence_level: float = 0.95) -> Dict:
+        """Run t-test analysis"""
+        try:
+            request_data = {
+                'dependent_variable': dependent_variable,
+                'independent_variable': independent_variable,
+                'test_type': test_type,
+                'alternative': alternative,
+                'confidence_level': confidence_level
+            }
+            
+            result = self._make_analytics_request(f'inferential/project/{project_id}/analyze/t-test', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'T-test analysis failed: {str(e)}'}
+    
+    def run_anova(self, project_id: str, dependent_variable: str, independent_variables: List[str],
+                  anova_type: str = "one_way", post_hoc: bool = True, post_hoc_method: str = "tukey") -> Dict:
+        """Run ANOVA analysis"""
+        try:
+            request_data = {
+                'dependent_variable': dependent_variable,
+                'independent_variables': independent_variables,
+                'anova_type': anova_type,
+                'post_hoc': post_hoc,
+                'post_hoc_method': post_hoc_method
+            }
+            
+            result = self._make_analytics_request(f'inferential/project/{project_id}/analyze/anova', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'ANOVA analysis failed: {str(e)}'}
+    
+    def run_regression_analysis(self, project_id: str, dependent_variable: str, independent_variables: List[str],
+                               regression_type: str = "linear", include_diagnostics: bool = True, confidence_level: float = 0.95) -> Dict:
+        """Run regression analysis"""
+        try:
+            request_data = {
+                'dependent_variable': dependent_variable,
+                'independent_variables': independent_variables,
+                'regression_type': regression_type,
+                'include_diagnostics': include_diagnostics,
+                'confidence_level': confidence_level
+            }
+            
+            result = self._make_analytics_request(f'inferential/project/{project_id}/analyze/regression', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Regression analysis failed: {str(e)}'}
+    
+    def run_chi_square_test(self, project_id: str, variable1: str, variable2: Optional[str] = None,
+                           test_type: str = "independence", expected_frequencies: Optional[List[float]] = None) -> Dict:
+        """Run chi-square test"""
+        try:
+            request_data = {
+                'variable1': variable1,
+                'variable2': variable2,
+                'test_type': test_type,
+                'expected_frequencies': expected_frequencies
+            }
+            
+            result = self._make_analytics_request(f'inferential/project/{project_id}/analyze/chi-square', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Chi-square test failed: {str(e)}'}
+    
+    def run_nonparametric_test(self, project_id: str, test_type: str, variables: List[str],
+                              groups: Optional[str] = None, alternative: str = "two_sided") -> Dict:
+        """Run nonparametric test"""
+        try:
+            request_data = {
+                'test_type': test_type,
+                'variables': variables,
+                'groups': groups,
+                'alternative': alternative
+            }
+            
+            result = self._make_analytics_request(f'inferential/project/{project_id}/analyze/nonparametric', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Nonparametric test failed: {str(e)}'}
+    
+    def run_bayesian_t_test(self, project_id: str, variable1: str, variable2: str,
+                           prior_mean: float = 0, prior_variance: float = 1, credible_level: float = 0.95) -> Dict:
+        """Run Bayesian t-test"""
+        try:
+            request_data = {
+                'variable1': variable1,
+                'variable2': variable2,
+                'prior_mean': prior_mean,
+                'prior_variance': prior_variance,
+                'credible_level': credible_level
+            }
+            
+            result = self._make_analytics_request(f'inferential/project/{project_id}/analyze/bayesian-t-test', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Bayesian t-test failed: {str(e)}'}
+    
+    def calculate_effect_size(self, project_id: str, dependent_variable: str, independent_variable: str,
+                             effect_size_measure: str = "cohen_d") -> Dict:
+        """Calculate effect size"""
+        try:
+            request_data = {
+                'dependent_variable': dependent_variable,
+                'independent_variable': independent_variable,
+                'effect_size_measure': effect_size_measure
+            }
+            
+            result = self._make_analytics_request(f'inferential/project/{project_id}/analyze/effect-size', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Effect size calculation failed: {str(e)}'}
+    
+    def run_power_analysis(self, project_id: str, test_type: str, effect_size: Optional[float] = None,
+                          sample_size: Optional[int] = None, power: Optional[float] = None, significance_level: float = 0.05) -> Dict:
+        """Run power analysis"""
+        try:
+            request_data = {
+                'test_type': test_type,
+                'effect_size': effect_size,
+                'sample_size': sample_size,
+                'power': power,
+                'significance_level': significance_level
+            }
+            
+            result = self._make_analytics_request(f'inferential/project/{project_id}/analyze/power-analysis', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Power analysis failed: {str(e)}'}
+    
+    def calculate_confidence_intervals(self, project_id: str, variables: List[str], confidence_level: float = 0.95,
+                                     interval_type: str = "mean", bootstrap_samples: int = 1000) -> Dict:
+        """Calculate confidence intervals"""
+        try:
+            request_data = {
+                'variables': variables,
+                'confidence_level': confidence_level,
+                'interval_type': interval_type,
+                'bootstrap_samples': bootstrap_samples
+            }
+            
+            result = self._make_analytics_request(f'inferential/project/{project_id}/analyze/confidence-intervals', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Confidence intervals calculation failed: {str(e)}'}
+    
+    def run_multiple_comparisons_correction(self, project_id: str, p_values: List[float], alpha: float = 0.05,
+                                          methods: Optional[List[str]] = None) -> Dict:
+        """Run multiple comparisons correction"""
+        try:
+            request_data = {
+                'p_values': p_values,
+                'alpha': alpha,
+                'correction_methods': methods
+            }
+            
+            result = self._make_analytics_request(f'inferential/project/{project_id}/analyze/multiple-comparisons', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Multiple comparisons correction failed: {str(e)}'}
+    
+    def run_post_hoc_tests(self, project_id: str, group_variable: str, dependent_variable: str,
+                          test_type: str = "tukey", alpha: float = 0.05) -> Dict:
+        """Run post-hoc tests"""
+        try:
+            request_data = {
+                'group_variable': group_variable,
+                'dependent_variable': dependent_variable,
+                'test_type': test_type,
+                'alpha': alpha
+            }
+            
+            result = self._make_analytics_request(f'inferential/project/{project_id}/analyze/post-hoc-tests', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Post-hoc tests failed: {str(e)}'}
+
     def run_qualitative_analysis(self, project_id: str, analysis_config: Dict) -> Dict:
         """Run qualitative text analysis"""
         try:
@@ -439,6 +659,197 @@ class AnalyticsService:
             
         except Exception as e:
             return {'error': f'Qualitative analysis failed: {str(e)}'}
+
+    # COMPREHENSIVE QUALITATIVE ANALYTICS METHODS
+    
+    def run_sentiment_analysis(self, project_id: str, text_fields: Optional[List[str]] = None, 
+                              sentiment_method: str = "vader") -> Dict:
+        """Run sentiment analysis"""
+        try:
+            request_data = {
+                'text_fields': text_fields,
+                'sentiment_method': sentiment_method
+            }
+            
+            result = self._make_analytics_request(f'qualitative/project/{project_id}/analyze/sentiment', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Sentiment analysis failed: {str(e)}'}
+    
+    def run_theme_analysis(self, project_id: str, text_fields: Optional[List[str]] = None, 
+                          num_themes: int = 5, theme_method: str = "lda") -> Dict:
+        """Run theme analysis"""
+        try:
+            request_data = {
+                'text_fields': text_fields,
+                'num_themes': num_themes,
+                'theme_method': theme_method
+            }
+            
+            result = self._make_analytics_request(f'qualitative/project/{project_id}/analyze/themes', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Theme analysis failed: {str(e)}'}
+    
+    def run_word_frequency_analysis(self, project_id: str, text_fields: Optional[List[str]] = None, 
+                                   top_n: int = 50, min_word_length: int = 3, remove_stopwords: bool = True) -> Dict:
+        """Run word frequency analysis"""
+        try:
+            request_data = {
+                'text_fields': text_fields,
+                'top_n': top_n,
+                'min_word_length': min_word_length,
+                'remove_stopwords': remove_stopwords
+            }
+            
+            result = self._make_analytics_request(f'qualitative/project/{project_id}/analyze/word-frequency', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Word frequency analysis failed: {str(e)}'}
+    
+    def run_content_analysis(self, project_id: str, text_fields: Optional[List[str]] = None, 
+                            analysis_framework: str = "inductive", coding_scheme: Optional[Dict[str, List[str]]] = None) -> Dict:
+        """Run content analysis"""
+        try:
+            request_data = {
+                'text_fields': text_fields,
+                'analysis_framework': analysis_framework,
+                'coding_scheme': coding_scheme
+            }
+            
+            result = self._make_analytics_request(f'qualitative/project/{project_id}/analyze/content-analysis', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Content analysis failed: {str(e)}'}
+    
+    def run_qualitative_coding(self, project_id: str, text_fields: Optional[List[str]] = None, 
+                              coding_method: str = "open", auto_code: bool = True) -> Dict:
+        """Run qualitative coding"""
+        try:
+            request_data = {
+                'text_fields': text_fields,
+                'coding_method': coding_method,
+                'auto_code': auto_code
+            }
+            
+            result = self._make_analytics_request(f'qualitative/project/{project_id}/analyze/qualitative-coding', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Qualitative coding failed: {str(e)}'}
+    
+    def run_survey_analysis(self, project_id: str, response_fields: Optional[List[str]] = None, 
+                           question_metadata: Optional[Dict[str, str]] = None) -> Dict:
+        """Run survey analysis"""
+        try:
+            request_data = {
+                'response_fields': response_fields,
+                'question_metadata': question_metadata
+            }
+            
+            result = self._make_analytics_request(f'qualitative/project/{project_id}/analyze/survey', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Survey analysis failed: {str(e)}'}
+    
+    def run_qualitative_statistics(self, project_id: str, text_fields: Optional[List[str]] = None, 
+                                  analysis_type: str = "general") -> Dict:
+        """Run qualitative statistics"""
+        try:
+            request_data = {
+                'text_fields': text_fields,
+                'analysis_type': analysis_type
+            }
+            
+            result = self._make_analytics_request(f'qualitative/project/{project_id}/analyze/qualitative-statistics', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Qualitative statistics failed: {str(e)}'}
+    
+    def run_sentiment_trends(self, project_id: str, text_fields: Optional[List[str]] = None, 
+                            time_field: Optional[str] = None, category_field: Optional[str] = None, 
+                            sentiment_method: str = "vader") -> Dict:
+        """Run sentiment trends analysis"""
+        try:
+            request_data = {
+                'text_fields': text_fields,
+                'time_field': time_field,
+                'category_field': category_field,
+                'sentiment_method': sentiment_method
+            }
+            
+            result = self._make_analytics_request(f'qualitative/project/{project_id}/analyze/sentiment-trends', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Sentiment trends analysis failed: {str(e)}'}
+    
+    def run_text_similarity(self, project_id: str, text_fields: Optional[List[str]] = None, 
+                           similarity_threshold: float = 0.5, max_comparisons: int = 100) -> Dict:
+        """Run text similarity analysis"""
+        try:
+            request_data = {
+                'text_fields': text_fields,
+                'similarity_threshold': similarity_threshold,
+                'max_comparisons': max_comparisons
+            }
+            
+            result = self._make_analytics_request(f'qualitative/project/{project_id}/analyze/text-similarity', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Text similarity analysis failed: {str(e)}'}
+    
+    def run_theme_evolution(self, project_id: str, text_fields: Optional[List[str]] = None, 
+                           time_field: Optional[str] = None, num_themes: int = 5) -> Dict:
+        """Run theme evolution analysis"""
+        try:
+            request_data = {
+                'text_fields': text_fields,
+                'time_field': time_field,
+                'num_themes': num_themes
+            }
+            
+            result = self._make_analytics_request(f'qualitative/project/{project_id}/analyze/theme-evolution', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Theme evolution analysis failed: {str(e)}'}
+    
+    def run_quote_extraction(self, project_id: str, text_fields: Optional[List[str]] = None, 
+                            theme_keywords: Optional[List[str]] = None, max_quotes: int = 5, 
+                            auto_extract_themes: bool = True) -> Dict:
+        """Run quote extraction"""
+        try:
+            request_data = {
+                'text_fields': text_fields,
+                'theme_keywords': theme_keywords,
+                'max_quotes': max_quotes,
+                'auto_extract_themes': auto_extract_themes
+            }
+            
+            result = self._make_analytics_request(f'qualitative/project/{project_id}/analyze/extract-quotes', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Quote extraction failed: {str(e)}'}
 
     def run_custom_analysis(self, project_id: str, data: Dict[str, Any], analysis_type: str = "auto") -> Dict:
         """Run analysis on custom data"""

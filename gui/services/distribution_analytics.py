@@ -227,6 +227,182 @@ class DistributionAnalyticsHandler:
         toast(f"Running distribution analysis on {len(self.selected_variables)} variables...")
         self.run_distribution_analysis(project_id, self.selected_variables)
 
+    # New Advanced Distribution Analytics Methods
+
+    def run_normality_tests(self, project_id: str, variables: Optional[List[str]] = None,
+                           alpha: float = 0.05):
+        """Run comprehensive normality tests for variables"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_normality_tests_thread,
+            args=(project_id, variables, alpha),
+            daemon=True
+        ).start()
+
+    def _run_normality_tests_thread(self, project_id: str, variables: Optional[List[str]], alpha: float):
+        """Background thread for normality tests"""
+        try:
+            results = self.analytics_service.run_normality_tests_backend(
+                project_id, variables, alpha
+            )
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_normality_tests_results(results), 0
+            )
+        except Exception as e:
+            print(f"Error in normality tests: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Normality tests failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+
+    def _handle_normality_tests_results(self, results):
+        """Handle normality tests results"""
+        if not results or 'error' in results:
+            error_msg = results.get('error', 'No results available') if results else 'No results available'
+            toast(f"Normality Tests Error: {error_msg}")
+            return
+        
+        self.screen.display_normality_tests_results(results)
+
+    def run_distribution_fitting(self, project_id: str, variables: Optional[List[str]] = None,
+                                distributions: Optional[List[str]] = None):
+        """Run distribution fitting analysis for variables"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_distribution_fitting_thread,
+            args=(project_id, variables, distributions),
+            daemon=True
+        ).start()
+
+    def _run_distribution_fitting_thread(self, project_id: str, variables: Optional[List[str]], 
+                                        distributions: Optional[List[str]]):
+        """Background thread for distribution fitting"""
+        try:
+            results = self.analytics_service.run_distribution_fitting_backend(
+                project_id, variables, distributions
+            )
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_distribution_fitting_results(results), 0
+            )
+        except Exception as e:
+            print(f"Error in distribution fitting: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Distribution fitting failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+
+    def _handle_distribution_fitting_results(self, results):
+        """Handle distribution fitting results"""
+        if not results or 'error' in results:
+            error_msg = results.get('error', 'No results available') if results else 'No results available'
+            toast(f"Distribution Fitting Error: {error_msg}")
+            return
+        
+        self.screen.display_distribution_fitting_results(results)
+
+    # Data extraction methods for new analyses
+
+    def get_normality_tests_data(self, normality_data: Dict) -> Dict:
+        """Extract normality tests data for UI consumption"""
+        if 'error' in normality_data:
+            return {
+                'has_error': True,
+                'error_message': normality_data['error']
+            }
+        
+        results = normality_data.get('results', {})
+        alpha = normality_data.get('alpha', 0.05)
+        
+        return {
+            'has_error': False,
+            'alpha': alpha,
+            'variables_tested': len(results),
+            'normality_results': results
+        }
+
+    def get_distribution_fitting_data(self, fitting_data: Dict) -> Dict:
+        """Extract distribution fitting data for UI consumption"""
+        if 'error' in fitting_data:
+            return {
+                'has_error': True,
+                'error_message': fitting_data['error']
+            }
+        
+        results = fitting_data.get('results', {})
+        
+        return {
+            'has_error': False,
+            'variables_fitted': len(results),
+            'fitting_results': results
+        }
+
+    def get_normality_variable_details_text(self, variable: str, tests: Dict) -> str:
+        """Generate detailed normality test text for a variable"""
+        details_text = f"Normality Tests for {variable}\n\n"
+        
+        if 'shapiro_wilk' in tests:
+            sw = tests['shapiro_wilk']
+            details_text += f"Shapiro-Wilk Test:\n"
+            details_text += f"• Statistic: {sw.get('statistic', 'N/A'):.4f}\n"
+            details_text += f"• P-value: {sw.get('p_value', 'N/A'):.4f}\n"
+            details_text += f"• Is Normal: {'Yes' if sw.get('is_normal', False) else 'No'}\n\n"
+        
+        if 'dagostino_pearson' in tests:
+            dp = tests['dagostino_pearson']
+            details_text += f"D'Agostino-Pearson Test:\n"
+            details_text += f"• Statistic: {dp.get('statistic', 'N/A'):.4f}\n"
+            details_text += f"• P-value: {dp.get('p_value', 'N/A'):.4f}\n"
+            details_text += f"• Is Normal: {'Yes' if dp.get('is_normal', False) else 'No'}\n\n"
+        
+        if 'kolmogorov_smirnov' in tests:
+            ks = tests['kolmogorov_smirnov']
+            details_text += f"Kolmogorov-Smirnov Test:\n"
+            details_text += f"• Statistic: {ks.get('statistic', 'N/A'):.4f}\n"
+            details_text += f"• P-value: {ks.get('p_value', 'N/A'):.4f}\n"
+            details_text += f"• Is Normal: {'Yes' if ks.get('is_normal', False) else 'No'}\n\n"
+        
+        if 'overall_assessment' in tests:
+            overall = tests['overall_assessment']
+            details_text += f"Overall Assessment:\n"
+            details_text += f"• Is Normal: {'Yes' if overall.get('is_normal', False) else 'No'}\n"
+            details_text += f"• Confidence: {overall.get('confidence', 'N/A')}\n"
+        
+        return details_text
+
+    def get_distribution_fitting_variable_details_text(self, variable: str, fits: Dict) -> str:
+        """Generate detailed distribution fitting text for a variable"""
+        details_text = f"Distribution Fitting for {variable}\n\n"
+        
+        if 'best_fit' in fits:
+            best = fits['best_fit']
+            details_text += f"Best Fit Distribution:\n"
+            details_text += f"• Distribution: {best.get('distribution', 'N/A')}\n"
+            details_text += f"• AIC Score: {best.get('aic', 'N/A'):.4f}\n\n"
+        
+        # Show other distribution results
+        for dist_name, dist_results in fits.items():
+            if dist_name != 'best_fit' and isinstance(dist_results, dict) and 'error' not in dist_results:
+                details_text += f"{dist_name.capitalize()} Distribution:\n"
+                details_text += f"• AIC: {dist_results.get('aic', 'N/A'):.4f}\n"
+                details_text += f"• Log Likelihood: {dist_results.get('log_likelihood', 'N/A'):.4f}\n"
+                details_text += f"• KS P-value: {dist_results.get('ks_p_value', 'N/A'):.4f}\n\n"
+        
+        return details_text
+
     # Analytics backend methods
     def _make_analytics_request(self, endpoint: str, method: str = 'GET', data: Dict = None) -> Dict:
         """Make authenticated request to analytics backend"""
@@ -352,4 +528,40 @@ class DistributionAnalyticsHandler:
             return result
             
         except Exception as e:
-            return {'error': f'Goodness of fit test failed: {str(e)}'} 
+            return {'error': f'Goodness of fit test failed: {str(e)}'}
+
+    # New Advanced Distribution Analytics Backend Methods
+
+    def run_normality_tests_backend(self, project_id: str, variables: Optional[List[str]] = None,
+                                   alpha: float = 0.05) -> Dict:
+        """Run comprehensive normality tests via backend"""
+        try:
+            request_data = {
+                'alpha': alpha
+            }
+            if variables:
+                request_data['variables'] = variables
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/normality', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Normality tests failed: {str(e)}'}
+
+    def run_distribution_fitting_backend(self, project_id: str, variables: Optional[List[str]] = None,
+                                        distributions: Optional[List[str]] = None) -> Dict:
+        """Run distribution fitting analysis via backend"""
+        try:
+            request_data = {}
+            if variables:
+                request_data['variables'] = variables
+            if distributions:
+                request_data['distributions'] = distributions
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/distribution-fitting', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Distribution fitting failed: {str(e)}'} 

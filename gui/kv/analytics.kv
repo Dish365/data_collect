@@ -235,6 +235,10 @@
             DescriptiveAnalyticsNavigationCard:
                 id: descriptive_analytics_card
             
+            # Inferential Analytics Card
+            InferentialAnalyticsNavigationCard:
+                id: inferential_analytics_card
+            
             # Qualitative Analytics Card
             QualitativeAnalyticsNavigationCard:
                 id: qualitative_analytics_card
@@ -434,6 +438,72 @@
             icon: "arrow-right"
             theme_icon_color: "Custom"
             icon_color: 0.8, 0.2, 0.6, 1
+            size_hint_x: None
+            width: dp(40)
+            disabled: True
+
+<InferentialAnalyticsNavigationCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(220)
+    elevation: 3
+    md_bg_color: 0.96, 0.98, 1.0, 1
+    radius: [16, 16, 16, 16]
+    padding: [dp(20), dp(16), dp(20), dp(16)]
+    spacing: dp(12)
+    ripple_behavior: True
+    on_release: app.root.get_screen('analytics').navigate_to_inferential_analytics()
+    
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(48)
+        
+        MDIconButton:
+            icon: "chart-scatter-plot"
+            theme_icon_color: "Custom"
+            icon_color: 0.2, 0.4, 0.8, 1
+            disabled: True
+            size_hint_x: None
+            width: dp(48)
+            icon_size: "32dp"
+        
+        MDLabel:
+            text: "Inferential Analytics"
+            theme_text_color: "Primary"
+            font_style: "Headline"
+            role: "small"
+            bold: True
+            pos_hint: {"center_y": 0.5}
+    
+    MDLabel:
+        text: "Statistical hypothesis testing, regression analysis, ANOVA, Bayesian methods, and advanced statistical inference"
+        theme_text_color: "Secondary"
+        font_style: "Body"
+        role: "medium"
+        text_size: self.width, None
+        size_hint_y: None
+        height: dp(80)
+    
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(40)
+        
+        MDButton:
+            text: "Run Analysis"
+            style: "filled"
+            size_hint_x: 1
+            theme_bg_color: "Custom"
+            md_bg_color: 0.2, 0.4, 0.8, 1
+            on_release: app.root.get_screen('analytics').navigate_to_inferential_analytics()
+        
+        MDIconButton:
+            icon: "arrow-right"
+            theme_icon_color: "Custom"
+            icon_color: 0.2, 0.4, 0.8, 1
             size_hint_x: None
             width: dp(40)
             disabled: True

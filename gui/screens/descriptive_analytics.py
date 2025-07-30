@@ -12,7 +12,7 @@ from kivymd.uix.menu import MDDropdownMenu
 import json
 import threading
 import uuid
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Union
 
 from widgets.loading_overlay import LoadingOverlay
 from services.descriptive_analytics import DescriptiveAnalyticsHandler
@@ -727,33 +727,19 @@ class DescriptiveAnalyticsScreen(Screen):
     def switch_results_tab(self, tab_name: str):
         """Switch between different result tabs"""
         try:
-            # Update tab button colors
-            if hasattr(self.ids, 'statistics_tab'):
-                self.ids.statistics_tab.text_color = (0.6, 0.6, 0.6, 1)
-            if hasattr(self.ids, 'distribution_tab'):
-                self.ids.distribution_tab.text_color = (0.6, 0.6, 0.6, 1)
-            if hasattr(self.ids, 'quality_tab'):
-                self.ids.quality_tab.text_color = (0.6, 0.6, 0.6, 1)
-            if hasattr(self.ids, 'report_tab'):
-                self.ids.report_tab.text_color = (0.6, 0.6, 0.6, 1)
+            # Update tab button colors - reset all to inactive
+            tab_ids = ['statistics_tab', 'distribution_tab', 'categorical_tab', 
+                      'geospatial_tab', 'temporal_tab', 'quality_tab', 'report_tab']
+            
+            for tab_id in tab_ids:
+                if hasattr(self.ids, tab_id):
+                    getattr(self.ids, tab_id).text_color = (0.6, 0.6, 0.6, 1)
             
             # Activate selected tab
-            if tab_name == "statistics":
-                if hasattr(self.ids, 'statistics_tab'):
-                    app = App.get_running_app()
-                    self.ids.statistics_tab.text_color = app.theme_cls.primaryColor
-            elif tab_name == "distribution":
-                if hasattr(self.ids, 'distribution_tab'):
-                    app = App.get_running_app()
-                    self.ids.distribution_tab.text_color = app.theme_cls.primaryColor
-            elif tab_name == "quality":
-                if hasattr(self.ids, 'quality_tab'):
-                    app = App.get_running_app()
-                    self.ids.quality_tab.text_color = app.theme_cls.primaryColor
-            elif tab_name == "report":
-                if hasattr(self.ids, 'report_tab'):
-                    app = App.get_running_app()
-                    self.ids.report_tab.text_color = app.theme_cls.primaryColor
+            active_tab_id = f"{tab_name}_tab"
+            if hasattr(self.ids, active_tab_id):
+                app = App.get_running_app()
+                getattr(self.ids, active_tab_id).text_color = app.theme_cls.primaryColor
             
             # Update results display based on tab
             self.update_results_display_for_tab(tab_name)
@@ -773,6 +759,18 @@ class DescriptiveAnalyticsScreen(Screen):
                 # Show distribution results
                 if self.distribution_results:
                     self.update_results_display({'distribution': self.distribution_results})
+            elif tab_name == "categorical":
+                # Show categorical results
+                if self.categorical_results:
+                    self.update_results_display({'categorical': self.categorical_results})
+            elif tab_name == "geospatial":
+                # Show geospatial results  
+                if 'geospatial_analysis' in self.analysis_results:
+                    self.update_results_display({'geospatial': self.analysis_results['geospatial_analysis']})
+            elif tab_name == "temporal":
+                # Show temporal results
+                if 'temporal_analysis' in self.analysis_results:
+                    self.update_results_display({'temporal': self.analysis_results['temporal_analysis']})
             elif tab_name == "quality":
                 # Show data quality results
                 if self.data_quality_data:
@@ -781,6 +779,362 @@ class DescriptiveAnalyticsScreen(Screen):
                 # Show comprehensive report
                 if self.comprehensive_report_data:
                     self.update_results_display({'comprehensive_report': self.comprehensive_report_data})
+                elif 'executive_summary' in self.analysis_results:
+                    self.update_results_display({'executive_summary': self.analysis_results['executive_summary']})
                     
         except Exception as e:
-            print(f"Error updating results display for tab: {e}") 
+            print(f"Error updating results display for tab: {e}")
+
+    # ===== NEW ADVANCED ANALYTICS METHODS =====
+
+    # Geospatial Analysis Methods
+    def run_geospatial_analysis(self, lat_column: str, lon_column: str, 
+                               value_column: str = None, max_distance_km: float = 10.0,
+                               n_clusters: int = 5):
+        """Run geospatial analysis for the project"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+        
+        if not self.descriptive_handler:
+            toast("Descriptive analytics service not available")
+            return
+        
+        self.descriptive_handler.run_geospatial_analysis(
+            self.current_project_id, lat_column, lon_column, value_column, max_distance_km, n_clusters
+        )
+
+    def display_geospatial_results(self, results: Dict):
+        """Display geospatial analysis results - called by service"""
+        self.analysis_results['geospatial_analysis'] = results
+        self.update_results_display(self.analysis_results)
+        toast("Geospatial analysis completed")
+
+    # Temporal Analysis Methods
+    def run_temporal_analysis(self, date_column: str, value_columns: List[str] = None,
+                             detect_seasonal: bool = True, seasonal_period: int = None):
+        """Run temporal analysis for the project"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+        
+        if not self.descriptive_handler:
+            toast("Descriptive analytics service not available")
+            return
+        
+        self.descriptive_handler.run_temporal_analysis(
+            self.current_project_id, date_column, value_columns, detect_seasonal, seasonal_period
+        )
+
+    def display_temporal_results(self, results: Dict):
+        """Display temporal analysis results - called by service"""
+        self.analysis_results['temporal_analysis'] = results
+        self.update_results_display(self.analysis_results)
+        toast("Temporal analysis completed")
+
+    # Weighted Statistics Methods
+    def run_weighted_statistics(self, value_column: str, weight_column: str):
+        """Run weighted statistics analysis"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+        
+        if not self.descriptive_handler:
+            toast("Descriptive analytics service not available")
+            return
+        
+        self.descriptive_handler.run_weighted_statistics(
+            self.current_project_id, value_column, weight_column
+        )
+
+    def display_weighted_statistics_results(self, results: Dict):
+        """Display weighted statistics results - called by service"""
+        self.analysis_results['weighted_statistics'] = results
+        self.update_results_display(self.analysis_results)
+        toast("Weighted statistics completed")
+
+    # Grouped Statistics Methods
+    def run_grouped_statistics(self, group_by: Union[str, List[str]], 
+                              target_columns: List[str] = None,
+                              stats_functions: List[str] = None):
+        """Run grouped statistics analysis"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+        
+        if not self.descriptive_handler:
+            toast("Descriptive analytics service not available")
+            return
+        
+        self.descriptive_handler.run_grouped_statistics(
+            self.current_project_id, group_by, target_columns, stats_functions
+        )
+
+    def display_grouped_statistics_results(self, results: Dict):
+        """Display grouped statistics results - called by service"""
+        self.analysis_results['grouped_statistics'] = results
+        self.update_results_display(self.analysis_results)
+        toast("Grouped statistics completed")
+
+    # Missing Patterns Methods
+    def run_missing_patterns_analysis(self, max_patterns: int = 20, group_column: str = None):
+        """Run missing data patterns analysis"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+        
+        if not self.descriptive_handler:
+            toast("Descriptive analytics service not available")
+            return
+        
+        self.descriptive_handler.run_missing_patterns_analysis(
+            self.current_project_id, max_patterns, group_column
+        )
+
+    def display_missing_patterns_results(self, results: Dict):
+        """Display missing patterns results - called by service"""
+        self.analysis_results['missing_patterns'] = results
+        self.update_results_display(self.analysis_results)
+        toast("Missing patterns analysis completed")
+
+    # Executive Summary Methods
+    def generate_executive_summary(self):
+        """Generate executive summary report"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+        
+        if not self.descriptive_handler:
+            toast("Descriptive analytics service not available")
+            return
+        
+        self.descriptive_handler.generate_executive_summary(self.current_project_id)
+
+    def display_executive_summary_results(self, results: Dict):
+        """Display executive summary results - called by service"""
+        self.analysis_results['executive_summary'] = results
+        self.update_results_display(self.analysis_results)
+        toast("Executive summary generated")
+
+    # Export Report Methods
+    def export_analysis_report(self, format: str = 'json', analysis_type: str = 'comprehensive',
+                              include_metadata: bool = True):
+        """Export analysis report in specified format"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+        
+        if not self.descriptive_handler:
+            toast("Descriptive analytics service not available")
+            return
+        
+        self.descriptive_handler.export_analysis_report(
+            self.current_project_id, format, analysis_type, include_metadata
+        )
+
+    def display_export_report_results(self, results: Dict, format: str):
+        """Display export report results - called by service"""
+        if 'content' in results:
+            # Save or display the exported content
+            content = results['content']
+            if format == 'json':
+                toast("JSON report generated successfully")
+            elif format == 'html':
+                toast("HTML report generated successfully")
+            elif format == 'markdown':
+                toast("Markdown report generated successfully")
+            
+            # Store the exported content for further use
+            self.analysis_results['exported_report'] = {
+                'format': format,
+                'content': content
+            }
+
+    # Cross-Tabulation Methods (Categorical)
+    def run_cross_tabulation(self, var1: str, var2: str, normalize: str = None):
+        """Run cross-tabulation analysis"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+        
+        if not self.categorical_handler:
+            toast("Categorical analytics service not available")
+            return
+        
+        self.categorical_handler.run_cross_tabulation(
+            self.current_project_id, var1, var2, normalize
+        )
+
+    def display_cross_tabulation_results(self, results: Dict):
+        """Display cross-tabulation results - called by service"""
+        self.analysis_results['cross_tabulation'] = results
+        self.update_results_display(self.analysis_results)
+        toast("Cross-tabulation analysis completed")
+
+    # Diversity Metrics Methods (Categorical)
+    def run_diversity_metrics(self, variables: List[str] = None):
+        """Run diversity metrics analysis"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+        
+        if not self.categorical_handler:
+            toast("Categorical analytics service not available")
+            return
+        
+        self.categorical_handler.run_diversity_metrics(self.current_project_id, variables)
+
+    def display_diversity_metrics_results(self, results: Dict):
+        """Display diversity metrics results - called by service"""
+        self.analysis_results['diversity_metrics'] = results
+        self.update_results_display(self.analysis_results)
+        toast("Diversity metrics analysis completed")
+
+    # Categorical Associations Methods
+    def run_categorical_associations(self, variables: List[str] = None, method: str = 'cramers_v'):
+        """Run categorical associations analysis"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+        
+        if not self.categorical_handler:
+            toast("Categorical analytics service not available")
+            return
+        
+        self.categorical_handler.run_categorical_associations(
+            self.current_project_id, variables, method
+        )
+
+    def display_categorical_associations_results(self, results: Dict):
+        """Display categorical associations results - called by service"""
+        self.analysis_results['categorical_associations'] = results
+        self.update_results_display(self.analysis_results)
+        toast("Categorical associations analysis completed")
+
+    # Normality Testing Methods (Distribution)
+    def run_normality_tests(self, variables: List[str] = None, alpha: float = 0.05):
+        """Run comprehensive normality tests"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+        
+        if not self.distribution_handler:
+            toast("Distribution analytics service not available")
+            return
+        
+        self.distribution_handler.run_normality_tests(self.current_project_id, variables, alpha)
+
+    def display_normality_tests_results(self, results: Dict):
+        """Display normality tests results - called by service"""
+        self.analysis_results['normality_tests'] = results
+        self.update_results_display(self.analysis_results)
+        toast("Normality tests completed")
+
+    # Distribution Fitting Methods
+    def run_distribution_fitting(self, variables: List[str] = None, 
+                                distributions: List[str] = None):
+        """Run distribution fitting analysis"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+        
+        if not self.distribution_handler:
+            toast("Distribution analytics service not available")
+            return
+        
+        self.distribution_handler.run_distribution_fitting(
+            self.current_project_id, variables, distributions
+        )
+
+    def display_distribution_fitting_results(self, results: Dict):
+        """Display distribution fitting results - called by service"""
+        self.analysis_results['distribution_fitting'] = results
+        self.update_results_display(self.analysis_results)
+        toast("Distribution fitting completed")
+
+    # Advanced Analysis Menu Methods
+    def show_advanced_analysis_menu(self):
+        """Show advanced analysis options menu"""
+        if hasattr(self.ids, 'advanced_analysis_dialog'):
+            self.ids.advanced_analysis_dialog.open()
+
+    def show_geospatial_dialog(self):
+        """Show geospatial analysis parameter dialog"""
+        if hasattr(self.ids, 'geospatial_dialog'):
+            self.ids.geospatial_dialog.open()
+
+    def show_temporal_dialog(self):
+        """Show temporal analysis parameter dialog"""
+        if hasattr(self.ids, 'temporal_dialog'):
+            self.ids.temporal_dialog.open()
+
+    def show_cross_tabulation_dialog(self):
+        """Show cross-tabulation parameter dialog"""
+        if hasattr(self.ids, 'cross_tabulation_dialog'):
+            self.ids.cross_tabulation_dialog.open()
+
+    def show_weighted_stats_dialog(self):
+        """Show weighted statistics parameter dialog"""
+        if hasattr(self.ids, 'weighted_stats_dialog'):
+            self.ids.weighted_stats_dialog.open()
+
+    def show_export_options_dialog(self):
+        """Show export options dialog"""
+        if hasattr(self.ids, 'export_options_dialog'):
+            self.ids.export_options_dialog.open()
+
+    # Utility Methods for Advanced Analytics
+    def get_numeric_variables(self) -> List[str]:
+        """Get numeric variables from project"""
+        if not self.analytics_service or not self.current_project_id:
+            return []
+        
+        try:
+            variables = self.analytics_service.get_project_variables(self.current_project_id)
+            if variables and 'numeric' in variables:
+                return variables['numeric']
+        except Exception as e:
+            print(f"Error getting numeric variables: {e}")
+        
+        return []
+
+    def get_categorical_variables(self) -> List[str]:
+        """Get categorical variables from project"""
+        if not self.analytics_service or not self.current_project_id:
+            return []
+        
+        try:
+            variables = self.analytics_service.get_project_variables(self.current_project_id)
+            if variables and 'categorical' in variables:
+                return variables['categorical']
+        except Exception as e:
+            print(f"Error getting categorical variables: {e}")
+        
+        return []
+
+    def get_datetime_variables(self) -> List[str]:
+        """Get datetime variables from project"""
+        if not self.analytics_service or not self.current_project_id:
+            return []
+        
+        try:
+            variables = self.analytics_service.get_project_variables(self.current_project_id)
+            if variables and 'datetime' in variables:
+                return variables['datetime']
+        except Exception as e:
+            print(f"Error getting datetime variables: {e}")
+        
+        return []
+
+    def get_analysis_results_summary(self) -> Dict[str, Any]:
+        """Get summary of all analysis results for display"""
+        return {
+            'total_analyses': len(self.analysis_results),
+            'analyses_completed': list(self.analysis_results.keys()),
+            'has_basic_stats': 'basic_statistics' in self.analysis_results,
+            'has_distribution': 'distribution_analysis' in self.analysis_results,
+            'has_categorical': 'categorical_analysis' in self.analysis_results,
+            'has_geospatial': 'geospatial_analysis' in self.analysis_results,
+            'has_temporal': 'temporal_analysis' in self.analysis_results,
+            'has_executive_summary': 'executive_summary' in self.analysis_results,
+        } 

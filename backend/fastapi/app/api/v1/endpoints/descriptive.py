@@ -5,12 +5,66 @@ Handles comprehensive statistical analysis including distributions, correlations
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union
 import pandas as pd
 from asgiref.sync import sync_to_async
 
 from core.database import get_db
 from app.utils.shared import AnalyticsUtils
+
+# Import descriptive analytics modules for comprehensive functionality
+from app.analytics.descriptive import (
+    # Basic statistics
+    calculate_basic_stats,
+    calculate_percentiles,
+    calculate_grouped_stats,
+    calculate_weighted_stats,
+    calculate_correlation_matrix,
+    calculate_covariance_matrix,
+    
+    # Distributions
+    analyze_distribution,
+    test_normality,
+    calculate_skewness_kurtosis,
+    fit_distribution,
+    
+    # Categorical analysis
+    analyze_categorical,
+    calculate_chi_square,
+    calculate_cramers_v,
+    analyze_cross_tabulation,
+    calculate_diversity_metrics,
+    analyze_categorical_associations,
+    
+    # Outlier detection
+    detect_outliers_iqr,
+    detect_outliers_zscore,
+    detect_outliers_isolation_forest,
+    detect_outliers_mad,
+    get_outlier_summary,
+    
+    # Missing data
+    analyze_missing_data,
+    get_missing_patterns,
+    calculate_missing_correlations,
+    create_missing_data_heatmap,
+    analyze_missing_by_group,
+    
+    # Temporal analysis
+    analyze_temporal_patterns,
+    calculate_time_series_stats,
+    detect_seasonality,
+    
+    # Geospatial analysis
+    analyze_spatial_distribution,
+    calculate_spatial_autocorrelation,
+    create_location_clusters,
+    
+    # Summary generation
+    generate_full_report,
+    generate_executive_summary,
+    export_statistics
+)
 
 router = APIRouter()
 
@@ -599,6 +653,605 @@ async def get_data_summary(
     except Exception as e:
         return AnalyticsUtils.handle_analysis_error(e, "data summary")
 
+@router.post("/project/{project_id}/analyze/geospatial")
+async def analyze_geospatial_data(
+    project_id: str,
+    lat_column: str,
+    lon_column: str,
+    value_column: Optional[str] = None,
+    max_distance_km: float = 10.0,
+    n_clusters: int = 5,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Run comprehensive geospatial analysis on project data.
+    
+    Args:
+        project_id: Project identifier
+        lat_column: Name of latitude column
+        lon_column: Name of longitude column
+        value_column: Optional value column for weighted analysis
+        max_distance_km: Maximum distance for spatial autocorrelation
+        n_clusters: Number of location clusters to create
+        db: Database session
+        
+    Returns:
+        Geospatial analysis results
+    """
+    try:
+        df = await AnalyticsUtils.get_project_data(project_id)
+        
+        if df.empty:
+            return AnalyticsUtils.format_api_response(
+                'error', None, 'No data available for analysis'
+            )
+        
+        # Check if required columns exist
+        if lat_column not in df.columns or lon_column not in df.columns:
+            return AnalyticsUtils.format_api_response(
+                'error', None, f'Required columns {lat_column} or {lon_column} not found'
+            )
+        
+        results = {}
+        
+        # Spatial distribution analysis
+        results['spatial_distribution'] = analyze_spatial_distribution(
+            df, lat_column, lon_column, value_column
+        )
+        
+        # Spatial autocorrelation
+        if value_column and value_column in df.columns:
+            results['spatial_autocorrelation'] = calculate_spatial_autocorrelation(
+                df, lat_column, lon_column, value_column, max_distance_km
+            )
+        
+        # Location clustering
+        clustered_df = create_location_clusters(df, lat_column, lon_column, n_clusters)
+        results['location_clusters'] = {
+            'n_clusters': n_clusters,
+            'cluster_summary': clustered_df['location_cluster'].value_counts().to_dict()
+        }
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'analysis_type': 'geospatial_analysis',
+            'results': results
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "geospatial analysis")
+
+@router.post("/project/{project_id}/analyze/temporal")
+async def analyze_temporal_data(
+    project_id: str,
+    date_column: str,
+    value_columns: Optional[List[str]] = None,
+    detect_seasonal: bool = True,
+    seasonal_period: Optional[int] = None,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Run comprehensive temporal analysis on project data.
+    
+    Args:
+        project_id: Project identifier
+        date_column: Name of date/datetime column
+        value_columns: List of value columns to analyze
+        detect_seasonal: Whether to perform seasonality detection
+        seasonal_period: Period for seasonality analysis (auto-detect if None)
+        db: Database session
+        
+    Returns:
+        Temporal analysis results
+    """
+    try:
+        df = await AnalyticsUtils.get_project_data(project_id)
+        
+        if df.empty:
+            return AnalyticsUtils.format_api_response(
+                'error', None, 'No data available for analysis'
+            )
+        
+        # Check if date column exists
+        if date_column not in df.columns:
+            return AnalyticsUtils.format_api_response(
+                'error', None, f'Date column {date_column} not found'
+            )
+        
+        results = {}
+        
+        # Temporal patterns analysis
+        results['temporal_patterns'] = analyze_temporal_patterns(
+            df, date_column, value_columns
+        )
+        
+        # Time series statistics
+        if value_columns is None:
+            value_columns = df.select_dtypes(include=['number']).columns.tolist()
+        
+        for col in value_columns:
+            if col in df.columns:
+                # Convert to datetime index for time series analysis
+                temp_df = df[[date_column, col]].dropna()
+                temp_df[date_column] = pd.to_datetime(temp_df[date_column])
+                temp_df = temp_df.set_index(date_column).sort_index()
+                
+                results[f'{col}_time_series'] = calculate_time_series_stats(
+                    temp_df[col], temp_df.index
+                )
+                
+                # Seasonality detection
+                if detect_seasonal:
+                    results[f'{col}_seasonality'] = detect_seasonality(
+                        temp_df[col], temp_df.index, seasonal_period
+                    )
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'analysis_type': 'temporal_analysis',
+            'results': results
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "temporal analysis")
+
+@router.post("/project/{project_id}/analyze/cross-tabulation")
+async def analyze_cross_tabulation_data(
+    project_id: str,
+    var1: str,
+    var2: str,
+    normalize: Optional[str] = None,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Run cross-tabulation analysis between two categorical variables.
+    
+    Args:
+        project_id: Project identifier
+        var1: First categorical variable (rows)
+        var2: Second categorical variable (columns)
+        normalize: How to normalize ('index', 'columns', 'all', or None)
+        db: Database session
+        
+    Returns:
+        Cross-tabulation analysis results
+    """
+    try:
+        df = await AnalyticsUtils.get_project_data(project_id)
+        
+        if df.empty:
+            return AnalyticsUtils.format_api_response(
+                'error', None, 'No data available for analysis'
+            )
+        
+        # Check if variables exist
+        if var1 not in df.columns or var2 not in df.columns:
+            return AnalyticsUtils.format_api_response(
+                'error', None, f'Variables {var1} or {var2} not found'
+            )
+        
+        # Perform cross-tabulation analysis
+        results = analyze_cross_tabulation(df, var1, var2, normalize)
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'analysis_type': 'cross_tabulation',
+            'var1': var1,
+            'var2': var2,
+            'results': results
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "cross-tabulation analysis")
+
+@router.post("/project/{project_id}/analyze/normality")
+async def test_normality_data(
+    project_id: str,
+    variables: Optional[List[str]] = None,
+    alpha: float = 0.05,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Run normality tests on numeric variables.
+    
+    Args:
+        project_id: Project identifier
+        variables: List of variables to test (all numeric if None)
+        alpha: Significance level for tests
+        db: Database session
+        
+    Returns:
+        Normality test results
+    """
+    try:
+        df = await AnalyticsUtils.get_project_data(project_id)
+        
+        if df.empty:
+            return AnalyticsUtils.format_api_response(
+                'error', None, 'No data available for analysis'
+            )
+        
+        # Select variables
+        if variables is None:
+            variables = df.select_dtypes(include=['number']).columns.tolist()
+        
+        results = {}
+        for var in variables:
+            if var in df.columns and pd.api.types.is_numeric_dtype(df[var]):
+                results[var] = test_normality(df[var], alpha)
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'analysis_type': 'normality_tests',
+            'alpha': alpha,
+            'results': results
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "normality testing")
+
+@router.post("/project/{project_id}/analyze/distribution-fitting")
+async def fit_distributions_data(
+    project_id: str,
+    variables: Optional[List[str]] = None,
+    distributions: Optional[List[str]] = None,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Fit various statistical distributions to numeric variables.
+    
+    Args:
+        project_id: Project identifier
+        variables: List of variables to analyze (all numeric if None)
+        distributions: List of distributions to fit
+        db: Database session
+        
+    Returns:
+        Distribution fitting results
+    """
+    try:
+        df = await AnalyticsUtils.get_project_data(project_id)
+        
+        if df.empty:
+            return AnalyticsUtils.format_api_response(
+                'error', None, 'No data available for analysis'
+            )
+        
+        # Select variables
+        if variables is None:
+            variables = df.select_dtypes(include=['number']).columns.tolist()
+        
+        results = {}
+        for var in variables:
+            if var in df.columns and pd.api.types.is_numeric_dtype(df[var]):
+                results[var] = fit_distribution(df[var], distributions)
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'analysis_type': 'distribution_fitting',
+            'results': results
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "distribution fitting")
+
+@router.post("/project/{project_id}/analyze/weighted-statistics")
+async def calculate_weighted_statistics(
+    project_id: str,
+    value_column: str,
+    weight_column: str,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Calculate weighted statistics for a value column.
+    
+    Args:
+        project_id: Project identifier
+        value_column: Column containing values
+        weight_column: Column containing weights
+        db: Database session
+        
+    Returns:
+        Weighted statistics results
+    """
+    try:
+        df = await AnalyticsUtils.get_project_data(project_id)
+        
+        if df.empty:
+            return AnalyticsUtils.format_api_response(
+                'error', None, 'No data available for analysis'
+            )
+        
+        # Check if columns exist
+        if value_column not in df.columns or weight_column not in df.columns:
+            return AnalyticsUtils.format_api_response(
+                'error', None, f'Columns {value_column} or {weight_column} not found'
+            )
+        
+        # Calculate weighted statistics
+        results = calculate_weighted_stats(df, value_column, weight_column)
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'analysis_type': 'weighted_statistics',
+            'value_column': value_column,
+            'weight_column': weight_column,
+            'results': results
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "weighted statistics")
+
+@router.post("/project/{project_id}/analyze/grouped-statistics")
+async def calculate_grouped_statistics(
+    project_id: str,
+    group_by: Union[str, List[str]],
+    target_columns: Optional[List[str]] = None,
+    stats_functions: Optional[List[str]] = None,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Calculate statistics grouped by categorical variables.
+    
+    Args:
+        project_id: Project identifier
+        group_by: Column(s) to group by
+        target_columns: Columns to calculate statistics for
+        stats_functions: List of statistics to calculate
+        db: Database session
+        
+    Returns:
+        Grouped statistics results
+    """
+    try:
+        df = await AnalyticsUtils.get_project_data(project_id)
+        
+        if df.empty:
+            return AnalyticsUtils.format_api_response(
+                'error', None, 'No data available for analysis'
+            )
+        
+        # Check if group columns exist
+        group_cols = [group_by] if isinstance(group_by, str) else group_by
+        missing_cols = [col for col in group_cols if col not in df.columns]
+        if missing_cols:
+            return AnalyticsUtils.format_api_response(
+                'error', None, f'Grouping columns not found: {missing_cols}'
+            )
+        
+        # Calculate grouped statistics
+        results = calculate_grouped_stats(df, group_by, target_columns, stats_functions)
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'analysis_type': 'grouped_statistics',
+            'group_by': group_by,
+            'results': results.to_dict() if hasattr(results, 'to_dict') else results
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "grouped statistics")
+
+@router.post("/project/{project_id}/analyze/missing-patterns")
+async def analyze_missing_patterns(
+    project_id: str,
+    max_patterns: int = 20,
+    group_column: Optional[str] = None,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Analyze patterns in missing data.
+    
+    Args:
+        project_id: Project identifier
+        max_patterns: Maximum number of patterns to return
+        group_column: Optional column to group missing analysis by
+        db: Database session
+        
+    Returns:
+        Missing data patterns analysis
+    """
+    try:
+        df = await AnalyticsUtils.get_project_data(project_id)
+        
+        if df.empty:
+            return AnalyticsUtils.format_api_response(
+                'error', None, 'No data available for analysis'
+            )
+        
+        results = {}
+        
+        # Missing patterns
+        results['patterns'] = get_missing_patterns(df, max_patterns)
+        
+        # Missing correlations
+        results['correlations'] = calculate_missing_correlations(df)
+        if hasattr(results['correlations'], 'to_dict'):
+            results['correlations'] = results['correlations'].to_dict()
+        
+        # Heatmap data
+        results['heatmap_data'] = create_missing_data_heatmap(df)
+        
+        # Grouped missing analysis
+        if group_column and group_column in df.columns:
+            results['grouped_analysis'] = analyze_missing_by_group(df, group_column)
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'analysis_type': 'missing_patterns',
+            'results': results
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "missing patterns analysis")
+
+@router.post("/project/{project_id}/analyze/diversity-metrics")
+async def calculate_diversity_metrics_data(
+    project_id: str,
+    variables: Optional[List[str]] = None,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Calculate diversity metrics for categorical variables.
+    
+    Args:
+        project_id: Project identifier
+        variables: List of categorical variables (all categorical if None)
+        db: Database session
+        
+    Returns:
+        Diversity metrics results
+    """
+    try:
+        df = await AnalyticsUtils.get_project_data(project_id)
+        
+        if df.empty:
+            return AnalyticsUtils.format_api_response(
+                'error', None, 'No data available for analysis'
+            )
+        
+        # Select categorical variables
+        if variables is None:
+            variables = df.select_dtypes(include=['object', 'category']).columns.tolist()
+        
+        results = {}
+        for var in variables:
+            if var in df.columns:
+                value_counts = df[var].value_counts()
+                results[var] = calculate_diversity_metrics(value_counts)
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'analysis_type': 'diversity_metrics',
+            'results': results
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "diversity metrics calculation")
+
+@router.post("/project/{project_id}/analyze/categorical-associations")
+async def analyze_categorical_associations_data(
+    project_id: str,
+    variables: Optional[List[str]] = None,
+    method: str = 'cramers_v',
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Calculate pairwise associations between categorical variables.
+    
+    Args:
+        project_id: Project identifier
+        variables: List of categorical variables
+        method: Association measure ('cramers_v' or 'theil_u')
+        db: Database session
+        
+    Returns:
+        Categorical associations results
+    """
+    try:
+        df = await AnalyticsUtils.get_project_data(project_id)
+        
+        if df.empty:
+            return AnalyticsUtils.format_api_response(
+                'error', None, 'No data available for analysis'
+            )
+        
+        # Calculate associations
+        associations = analyze_categorical_associations(df, variables, method)
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'analysis_type': 'categorical_associations',
+            'method': method,
+            'results': associations.to_dict() if hasattr(associations, 'to_dict') else associations
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "categorical associations analysis")
+
+@router.post("/project/{project_id}/generate-executive-summary")
+async def generate_executive_summary_report(
+    project_id: str,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Generate an executive summary of the project data.
+    
+    Args:
+        project_id: Project identifier
+        db: Database session
+        
+    Returns:
+        Executive summary report
+    """
+    try:
+        df = await AnalyticsUtils.get_project_data(project_id)
+        
+        if df.empty:
+            return AnalyticsUtils.format_api_response(
+                'error', None, 'No data available for analysis'
+            )
+        
+        # Generate executive summary
+        results = generate_executive_summary(df)
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'report_type': 'executive_summary',
+            'results': results
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "executive summary generation")
+
+@router.post("/project/{project_id}/export-report")
+async def export_analysis_report(
+    project_id: str,
+    format: str = 'json',
+    analysis_type: str = 'comprehensive',
+    include_metadata: bool = True,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Export analysis results in various formats.
+    
+    Args:
+        project_id: Project identifier
+        format: Export format ('json', 'html', 'markdown')
+        analysis_type: Type of analysis to export
+        include_metadata: Include analysis metadata
+        db: Database session
+        
+    Returns:
+        Exported report in specified format
+    """
+    try:
+        df = await AnalyticsUtils.get_project_data(project_id)
+        
+        if df.empty:
+            return AnalyticsUtils.format_api_response(
+                'error', None, 'No data available for analysis'
+            )
+        
+        # Generate analysis results
+        if analysis_type == 'executive':
+            analysis_results = generate_executive_summary(df)
+        else:
+            analysis_results = generate_full_report(df, project_name=f"Project {project_id}")
+        
+        # Export in specified format
+        exported_content = export_statistics(analysis_results, format, include_metadata)
+        
+        return AnalyticsUtils.format_api_response('success', {
+            'project_id': project_id,
+            'export_format': format,
+            'analysis_type': analysis_type,
+            'content': exported_content
+        })
+        
+    except Exception as e:
+        return AnalyticsUtils.handle_analysis_error(e, "report export")
+
 @router.get("/analysis-types")
 async def get_descriptive_analysis_types() -> Dict[str, Any]:
     """
@@ -612,15 +1265,15 @@ async def get_descriptive_analysis_types() -> Dict[str, Any]:
             'descriptive_analysis_types': {
                 'basic_statistics': {
                     'description': 'Basic statistical analysis (means, medians, standard deviations)',
-                    'includes': ['basic_statistics', 'percentiles']
+                    'includes': ['basic_statistics', 'percentiles', 'correlations', 'covariances']
                 },
                 'distributions': {
                     'description': 'Distribution analysis for numeric variables',
-                    'includes': ['normality_tests', 'skewness_kurtosis', 'outlier_detection']
+                    'includes': ['normality_tests', 'skewness_kurtosis', 'distribution_fitting']
                 },
                 'categorical': {
                     'description': 'Categorical variable analysis',
-                    'includes': ['frequency_analysis', 'cross_tabulations', 'chi_square_tests']
+                    'includes': ['frequency_analysis', 'cross_tabulations', 'chi_square_tests', 'diversity_metrics']
                 },
                 'outliers': {
                     'description': 'Outlier detection using multiple methods',
@@ -628,22 +1281,73 @@ async def get_descriptive_analysis_types() -> Dict[str, Any]:
                 },
                 'missing_data': {
                     'description': 'Missing data pattern analysis',
-                    'includes': ['missing_patterns', 'missing_correlations']
+                    'includes': ['missing_patterns', 'missing_correlations', 'heatmap_data']
                 },
                 'data_quality': {
                     'description': 'Data quality assessment',
                     'includes': ['completeness', 'consistency', 'validity']
                 },
+                'geospatial': {
+                    'description': 'Spatial analysis for location-based data',
+                    'includes': ['spatial_distribution', 'spatial_autocorrelation', 'location_clustering']
+                },
+                'temporal': {
+                    'description': 'Time-based analysis and trends',
+                    'includes': ['temporal_patterns', 'time_series_stats', 'seasonality_detection']
+                },
+                'weighted_statistics': {
+                    'description': 'Weighted statistical analysis',
+                    'includes': ['weighted_mean', 'weighted_variance', 'weighted_median']
+                },
+                'grouped_statistics': {
+                    'description': 'Statistics grouped by categorical variables',
+                    'includes': ['group_by_analysis', 'comparative_statistics']
+                },
+                'cross_tabulation': {
+                    'description': 'Cross-tabulation analysis between categorical variables',
+                    'includes': ['contingency_tables', 'chi_square_tests', 'association_measures']
+                },
+                'normality_testing': {
+                    'description': 'Comprehensive normality testing',
+                    'methods': ['shapiro_wilk', 'dagostino_pearson', 'kolmogorov_smirnov', 'anderson_darling']
+                },
+                'distribution_fitting': {
+                    'description': 'Fit statistical distributions to data',
+                    'distributions': ['normal', 'lognormal', 'exponential', 'gamma', 'beta', 'uniform']
+                },
+                'diversity_metrics': {
+                    'description': 'Diversity metrics for categorical data',
+                    'metrics': ['shannon_entropy', 'simpson_index', 'gini_simpson', 'evenness']
+                },
+                'categorical_associations': {
+                    'description': 'Association measures between categorical variables',
+                    'methods': ['cramers_v', 'theil_u']
+                },
                 'comprehensive_report': {
                     'description': 'Full comprehensive report with all descriptive analyses',
                     'includes': ['all_above']
+                },
+                'executive_summary': {
+                    'description': 'Executive summary with key insights and recommendations',
+                    'includes': ['overview', 'key_insights', 'recommendations']
                 }
             },
             'outlier_detection_methods': {
                 'iqr': 'Interquartile Range method',
-                'zscore': 'Z-score method',
+                'zscore': 'Z-score method (assumes normal distribution)',
                 'isolation_forest': 'Isolation Forest algorithm (for larger datasets)',
-                'mad': 'Median Absolute Deviation method'
+                'mad': 'Median Absolute Deviation method (robust to non-normal data)'
+            },
+            'export_formats': {
+                'json': 'JSON format for programmatic access',
+                'html': 'HTML format for web display',
+                'markdown': 'Markdown format for documentation'
+            },
+            'analysis_scopes': {
+                'basic': 'Basic statistics and quality checks',
+                'comprehensive': 'Full statistical analysis including advanced methods',
+                'quality': 'Focus on data quality assessment',
+                'auto': 'Automatic method selection based on data characteristics'
             }
         }
         
@@ -663,6 +1367,7 @@ async def get_descriptive_endpoints() -> Dict[str, Any]:
     try:
         endpoints = {
             'descriptive_analytics_endpoints': {
+                # Basic Analysis Endpoints
                 'POST /project/{project_id}/analyze/basic-statistics': 'Run basic statistical analysis',
                 'POST /project/{project_id}/analyze/distributions': 'Run distribution analysis',
                 'POST /project/{project_id}/analyze/categorical': 'Run categorical analysis',
@@ -670,11 +1375,71 @@ async def get_descriptive_endpoints() -> Dict[str, Any]:
                 'POST /project/{project_id}/analyze/missing-data': 'Run missing data analysis',
                 'POST /project/{project_id}/analyze/data-quality': 'Run data quality analysis',
                 'POST /project/{project_id}/analyze/descriptive': 'Run comprehensive descriptive analysis',
-                'POST /project/{project_id}/generate-report': 'Generate comprehensive report',
-                'GET /project/{project_id}/explore-data': 'Explore project data with filtering',
-                'GET /project/{project_id}/data-summary': 'Get quick data summary',
-                'GET /analysis-types': 'Get available descriptive analysis types',
+                
+                # Advanced Analysis Endpoints
+                'POST /project/{project_id}/analyze/geospatial': 'Run geospatial analysis with spatial distribution and clustering',
+                'POST /project/{project_id}/analyze/temporal': 'Run temporal analysis with time series and seasonality detection',
+                'POST /project/{project_id}/analyze/cross-tabulation': 'Run cross-tabulation analysis between categorical variables',
+                'POST /project/{project_id}/analyze/normality': 'Run comprehensive normality tests on numeric variables',
+                'POST /project/{project_id}/analyze/distribution-fitting': 'Fit statistical distributions to numeric data',
+                'POST /project/{project_id}/analyze/weighted-statistics': 'Calculate weighted statistics for value columns',
+                'POST /project/{project_id}/analyze/grouped-statistics': 'Calculate statistics grouped by categorical variables',
+                'POST /project/{project_id}/analyze/missing-patterns': 'Analyze patterns and correlations in missing data',
+                'POST /project/{project_id}/analyze/diversity-metrics': 'Calculate diversity metrics for categorical variables',
+                'POST /project/{project_id}/analyze/categorical-associations': 'Calculate pairwise associations between categorical variables',
+                
+                # Report Generation Endpoints
+                'POST /project/{project_id}/generate-report': 'Generate comprehensive descriptive statistics report',
+                'POST /project/{project_id}/generate-executive-summary': 'Generate executive summary with key insights',
+                'POST /project/{project_id}/export-report': 'Export analysis results in various formats (JSON, HTML, Markdown)',
+                
+                # Data Exploration Endpoints
+                'GET /project/{project_id}/explore-data': 'Explore project data with filtering and pagination',
+                'GET /project/{project_id}/data-summary': 'Get quick data summary with overview statistics',
+                
+                # Metadata Endpoints
+                'GET /analysis-types': 'Get available descriptive analysis types and methods',
                 'GET /endpoints': 'Get all descriptive analytics endpoints'
+            },
+            'endpoint_categories': {
+                'basic_analysis': [
+                    'basic-statistics', 'distributions', 'categorical', 'outliers',
+                    'missing-data', 'data-quality', 'descriptive'
+                ],
+                'advanced_analysis': [
+                    'geospatial', 'temporal', 'cross-tabulation', 'normality',
+                    'distribution-fitting', 'weighted-statistics', 'grouped-statistics',
+                    'missing-patterns', 'diversity-metrics', 'categorical-associations'
+                ],
+                'reporting': [
+                    'generate-report', 'generate-executive-summary', 'export-report'
+                ],
+                'exploration': [
+                    'explore-data', 'data-summary'
+                ],
+                'metadata': [
+                    'analysis-types', 'endpoints'
+                ]
+            },
+            'parameter_requirements': {
+                'geospatial': ['lat_column', 'lon_column'],
+                'temporal': ['date_column'],
+                'cross_tabulation': ['var1', 'var2'],
+                'weighted_statistics': ['value_column', 'weight_column'],
+                'grouped_statistics': ['group_by'],
+                'export_report': ['format']
+            },
+            'optional_parameters': {
+                'geospatial': ['value_column', 'max_distance_km', 'n_clusters'],
+                'temporal': ['value_columns', 'detect_seasonal', 'seasonal_period'],
+                'cross_tabulation': ['normalize'],
+                'normality': ['variables', 'alpha'],
+                'distribution_fitting': ['variables', 'distributions'],
+                'grouped_statistics': ['target_columns', 'stats_functions'],
+                'missing_patterns': ['max_patterns', 'group_column'],
+                'diversity_metrics': ['variables'],
+                'categorical_associations': ['variables', 'method'],
+                'export_report': ['analysis_type', 'include_metadata']
             }
         }
         

@@ -1,0 +1,914 @@
+#:kivy 2.0
+#:import MDCard kivymd.uix.card.MDCard
+#:import MDScrollView kivymd.uix.scrollview.MDScrollView
+#:import MDLabel kivymd.uix.label.MDLabel
+#:import MDButton kivymd.uix.button.MDButton
+#:import MDIconButton kivymd.uix.button.MDIconButton
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDTextField kivymd.uix.textfield.MDTextField
+#:import MDCheckbox kivymd.uix.selectioncontrol.MDCheckbox
+#:import MDDropdownMenu kivymd.uix.menu.MDDropdownMenu
+#:import MDCircularProgressIndicator kivymd.uix.progressindicator.MDCircularProgressIndicator
+#:import MDDialog kivymd.uix.dialog.MDDialog
+#:import MDDialogHeadlineText kivymd.uix.dialog.MDDialogHeadlineText
+#:import MDDialogSupportingText kivymd.uix.dialog.MDDialogSupportingText
+#:import MDDialogButtonContainer kivymd.uix.dialog.MDDialogButtonContainer
+#:import GridLayout kivy.uix.gridlayout.GridLayout
+#:import dp kivy.metrics.dp
+
+# Main Inferential Analytics Screen Layout
+<InferentialAnalyticsScreen>:
+    name: 'inferential_analytics'
+    
+    MDScrollView:
+        MDBoxLayout:
+            id: main_content
+            orientation: 'vertical'
+            spacing: dp(16)
+            padding: [dp(24), dp(8), dp(24), dp(20)]
+            size_hint_y: None
+            height: self.minimum_height
+            
+            # Top Navigation Bar
+            TopBar:
+                id: top_bar
+                size_hint_y: None
+                height: dp(56)
+            
+            # Project Selection Card
+            InferentialProjectCard:
+                id: project_selection_card
+            
+            # Analysis Type Selection Card
+            InferentialAnalysisTypeCard:
+                id: analysis_type_card
+            
+            # Variable Selection Card
+            InferentialVariableCard:
+                id: variable_selection_card
+            
+            # Analysis Configuration Card
+            InferentialConfigCard:
+                id: analysis_config_card
+            
+            # Analysis Controls Card
+            InferentialControlsCard:
+                id: analysis_controls_card
+            
+            # Analysis Results Card
+            InferentialResultsCard:
+                id: results_card
+            
+            # Action Buttons Card
+            InferentialActionsCard:
+                id: actions_card
+    
+    # Loading Overlay
+    LoadingOverlay:
+        id: loading_overlay
+
+# Project Selection Card
+<InferentialProjectCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(120)
+    padding: dp(16)
+    elevation: 2
+    md_bg_color: app.theme_cls.surfaceColor
+    
+    MDLabel:
+        text: "Project Selection"
+        theme_text_color: "Primary"
+        font_style: "H6"
+        size_hint_y: None
+        height: dp(32)
+    
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(56)
+        
+        MDTextField:
+            id: project_search
+            hint_text: "Search projects..."
+            size_hint_x: 0.7
+            mode: "outlined"
+        
+        MDButton:
+            text: "Select Project"
+            size_hint_x: 0.3
+            theme_bg_color: "Primary"
+            on_release: root.show_project_dialog()
+
+# Analysis Type Selection Card
+<InferentialAnalysisTypeCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(140)
+    padding: dp(16)
+    elevation: 2
+    md_bg_color: app.theme_cls.surfaceColor
+    
+    MDLabel:
+        text: "Analysis Type"
+        theme_text_color: "Primary"
+        font_style: "H6"
+        size_hint_y: None
+        height: dp(32)
+    
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(56)
+        
+        MDButton:
+            id: analysis_type_button
+            text: "Select Analysis Type"
+            size_hint_x: 0.5
+            theme_bg_color: "Primary"
+            on_release: root.show_analysis_menu(self)
+        
+        MDButton:
+            id: test_method_button
+            text: "Select Test Method"
+            size_hint_x: 0.5
+            theme_bg_color: "Secondary"
+            on_release: root.show_test_method_menu(self)
+            disabled: not root.selected_analysis_type
+    
+    MDLabel:
+        text: f"Selected: {root.selected_analysis_type.replace('_', ' ').title()} - {root.selected_test_method.replace('_', ' ').title()}" if root.selected_analysis_type and root.selected_test_method else "No analysis selected"
+        theme_text_color: "Secondary"
+        font_style: "Caption"
+        size_hint_y: None
+        height: dp(20)
+
+# Variable Selection Card
+<InferentialVariableCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(300) if root.project_variables else dp(100)
+    padding: dp(16)
+    elevation: 2
+    md_bg_color: app.theme_cls.surfaceColor
+    
+    MDLabel:
+        text: "Variable Selection"
+        theme_text_color: "Primary"
+        font_style: "H6"
+        size_hint_y: None
+        height: dp(32)
+    
+    MDLabel:
+        text: f"Select variables for analysis ({len(root.selected_variables)} selected)"
+        theme_text_color: "Secondary"
+        font_style: "Body2"
+        size_hint_y: None
+        height: dp(24)
+    
+    MDScrollView:
+        size_hint_y: None
+        height: dp(200) if root.project_variables else dp(40)
+        
+        MDBoxLayout:
+            orientation: 'vertical'
+            spacing: dp(8)
+            size_hint_y: None
+            height: self.minimum_height
+            
+            # Variable checkboxes
+            BoxLayout:
+                size_hint_y: None
+                height: dp(200) if root.project_variables else dp(40)
+                
+                RecycleView:
+                    id: variables_rv
+                    viewclass: 'VariableCheckboxItem'
+                    
+                    RecycleBoxLayout:
+                        orientation: 'vertical'
+                        spacing: dp(4)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        default_size_hint: 1, None
+                        default_size: None, dp(40)
+
+# Analysis Configuration Card
+<InferentialConfigCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(180)
+    padding: dp(16)
+    elevation: 2
+    md_bg_color: app.theme_cls.surfaceColor
+    
+    MDLabel:
+        text: "Analysis Configuration"
+        theme_text_color: "Primary"
+        font_style: "H6"
+        size_hint_y: None
+        height: dp(32)
+    
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(56)
+        
+        MDTextField:
+            id: significance_level_field
+            hint_text: "Significance Level"
+            text: root.significance_level
+            helper_text: "Alpha (e.g., 0.05)"
+            helper_text_mode: "persistent"
+            size_hint_x: 0.5
+            mode: "outlined"
+            on_text: root.significance_level = self.text
+        
+        MDTextField:
+            id: confidence_level_field
+            hint_text: "Confidence Level"
+            text: root.confidence_level
+            helper_text: "CI Level (e.g., 0.95)"
+            helper_text_mode: "persistent"
+            size_hint_x: 0.5
+            mode: "outlined"
+            on_text: root.confidence_level = self.text
+    
+    # Additional configuration options based on analysis type
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(56)
+        
+        MDLabel:
+            text: "Additional options will appear based on selected analysis type"
+            theme_text_color: "Secondary"
+            font_style: "Caption"
+            halign: "center"
+
+# Analysis Controls Card
+<InferentialControlsCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(120)
+    padding: dp(16)
+    elevation: 2
+    md_bg_color: app.theme_cls.surfaceColor
+    
+    MDLabel:
+        text: "Analysis Controls"
+        theme_text_color: "Primary"
+        font_style: "H6"
+        size_hint_y: None
+        height: dp(32)
+    
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(56)
+        
+        MDButton:
+            text: "Run Analysis"
+            theme_bg_color: "Primary"
+            size_hint_x: 0.4
+            disabled: not (root.current_project_id and root.selected_analysis_type and root.selected_variables)
+            on_release: root.run_analysis()
+        
+        MDButton:
+            text: "Clear"
+            theme_bg_color: "Secondary"
+            size_hint_x: 0.3
+            on_release: root.clear_analysis()
+        
+        MDButton:
+            text: "Export"
+            theme_bg_color: "Secondary"
+            size_hint_x: 0.3
+            disabled: not root.analysis_results
+            on_release: root.export_results()
+
+# Analysis Results Card
+<InferentialResultsCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(400) if root.current_analysis_type else dp(100)
+    padding: dp(16)
+    elevation: 2
+    md_bg_color: app.theme_cls.surfaceColor
+    
+    MDLabel:
+        text: "Analysis Results"
+        theme_text_color: "Primary"
+        font_style: "H6"
+        size_hint_y: None
+        height: dp(32)
+    
+    MDScrollView:
+        size_hint_y: None
+        height: dp(320) if root.current_analysis_type else dp(40)
+        
+        MDBoxLayout:
+            id: results_container
+            orientation: 'vertical'
+            spacing: dp(8)
+            size_hint_y: None
+            height: self.minimum_height
+            
+            # Results will be populated dynamically based on analysis type
+            MDLabel:
+                text: "Run an analysis to see results here" if not root.current_analysis_type else f"Results for {root.current_analysis_type.replace('_', ' ').title()}"
+                theme_text_color: "Secondary"
+                font_style: "Body2"
+                size_hint_y: None
+                height: dp(24)
+                halign: "center"
+            
+            # Correlation Results
+            InferentialCorrelationResults:
+                opacity: 1 if root.current_analysis_type == "correlation" else 0
+                height: dp(200) if root.current_analysis_type == "correlation" else 0
+                size_hint_y: None
+            
+            # T-Test Results
+            InferentialTTestResults:
+                opacity: 1 if root.current_analysis_type == "t_test" else 0
+                height: dp(200) if root.current_analysis_type == "t_test" else 0
+                size_hint_y: None
+            
+            # ANOVA Results
+            InferentialAnovaResults:
+                opacity: 1 if root.current_analysis_type == "anova" else 0
+                height: dp(200) if root.current_analysis_type == "anova" else 0
+                size_hint_y: None
+            
+            # Regression Results
+            InferentialRegressionResults:
+                opacity: 1 if root.current_analysis_type == "regression" else 0
+                height: dp(200) if root.current_analysis_type == "regression" else 0
+                size_hint_y: None
+            
+            # Chi-Square Results
+            InferentialChiSquareResults:
+                opacity: 1 if root.current_analysis_type == "chi_square" else 0
+                height: dp(200) if root.current_analysis_type == "chi_square" else 0
+                size_hint_y: None
+            
+            # Nonparametric Results
+            InferentialNonparametricResults:
+                opacity: 1 if root.current_analysis_type == "nonparametric" else 0
+                height: dp(200) if root.current_analysis_type == "nonparametric" else 0
+                size_hint_y: None
+            
+            # Bayesian Results
+            InferentialBayesianResults:
+                opacity: 1 if root.current_analysis_type == "bayesian" else 0
+                height: dp(200) if root.current_analysis_type == "bayesian" else 0
+                size_hint_y: None
+            
+            # Effect Size Results
+            InferentialEffectSizeResults:
+                opacity: 1 if root.current_analysis_type == "effect_size" else 0
+                height: dp(200) if root.current_analysis_type == "effect_size" else 0
+                size_hint_y: None
+            
+            # Power Analysis Results
+            InferentialPowerAnalysisResults:
+                opacity: 1 if root.current_analysis_type == "power_analysis" else 0
+                height: dp(200) if root.current_analysis_type == "power_analysis" else 0
+                size_hint_y: None
+            
+            # Confidence Intervals Results
+            InferentialConfidenceIntervalsResults:
+                opacity: 1 if root.current_analysis_type == "confidence_intervals" else 0
+                height: dp(200) if root.current_analysis_type == "confidence_intervals" else 0
+                size_hint_y: None
+
+# Action Buttons Card
+<InferentialActionsCard@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(120)
+    padding: dp(16)
+    elevation: 2
+    md_bg_color: app.theme_cls.surfaceColor
+    
+    MDLabel:
+        text: "Additional Actions"
+        theme_text_color: "Primary"
+        font_style: "H6"
+        size_hint_y: None
+        height: dp(32)
+    
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(56)
+        
+        MDButton:
+            text: "View Assumptions"
+            theme_bg_color: "Secondary"
+            size_hint_x: 0.33
+            on_release: root.show_assumptions_dialog()
+        
+        MDButton:
+            text: "Compare Methods"
+            theme_bg_color: "Secondary"
+            size_hint_x: 0.33
+            on_release: root.show_comparison_dialog()
+        
+        MDButton:
+            text: "Save Analysis"
+            theme_bg_color: "Secondary"
+            size_hint_x: 0.34
+            disabled: not root.analysis_results
+            on_release: root.save_analysis()
+
+# Variable Checkbox Item
+<VariableCheckboxItem@MDBoxLayout>:
+    variable_name: ""
+    variable_type: ""
+    is_selected: False
+    
+    orientation: 'horizontal'
+    spacing: dp(8)
+    size_hint_y: None
+    height: dp(40)
+    padding: [0, dp(4), 0, dp(4)]
+    
+    MDCheckbox:
+        size_hint_x: None
+        width: dp(32)
+        active: root.is_selected
+        on_active: app.root.get_screen('inferential_analytics').toggle_variable_selection(root.variable_name, self.active)
+    
+    MDLabel:
+        text: f"{root.variable_name} ({root.variable_type})"
+        theme_text_color: "Primary"
+        font_style: "Body2"
+        valign: "center"
+    
+    MDLabel:
+        text: root.variable_type.upper()
+        theme_text_color: "Secondary"
+        font_style: "Caption"
+        size_hint_x: None
+        width: dp(60)
+        halign: "center"
+        valign: "center"
+
+# Result Components
+
+# Correlation Results
+<InferentialCorrelationResults@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(8)
+    
+    MDLabel:
+        text: "Correlation Matrix"
+        theme_text_color: "Primary"
+        font_style: "Subtitle1"
+        size_hint_y: None
+        height: dp(24)
+    
+    MDBoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: dp(60)
+        
+        MDLabel:
+            text: f"Method: {root.parent.parent.parent.parent.correlation_results.get('method', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'correlation_results') else "Method: N/A"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+            size_hint_x: 0.5
+        
+        MDLabel:
+            text: f"Significant pairs: {root.parent.parent.parent.parent.correlation_results.get('summary', {}).get('significant_pairs', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'correlation_results') else "Significant pairs: N/A"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+            size_hint_x: 0.5
+    
+    MDLabel:
+        text: "Correlation coefficients and p-values would be displayed here in a table format"
+        theme_text_color: "Secondary"
+        font_style: "Caption"
+        size_hint_y: None
+        height: dp(40)
+        halign: "center"
+
+# T-Test Results
+<InferentialTTestResults@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(8)
+    
+    MDLabel:
+        text: "T-Test Results"
+        theme_text_color: "Primary"
+        font_style: "Subtitle1"
+        size_hint_y: None
+        height: dp(24)
+    
+    GridLayout:
+        cols: 2
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(120)
+        
+        MDLabel:
+            text: "Test Statistic:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.t_test_results.get('t_statistic', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 't_test_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: "P-Value:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.t_test_results.get('p_value', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 't_test_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: "Effect Size:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.t_test_results.get('effect_size', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 't_test_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+
+# ANOVA Results
+<InferentialAnovaResults@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(8)
+    
+    MDLabel:
+        text: "ANOVA Results"
+        theme_text_color: "Primary"
+        font_style: "Subtitle1"
+        size_hint_y: None
+        height: dp(24)
+    
+    GridLayout:
+        cols: 2
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(120)
+        
+        MDLabel:
+            text: "F-Statistic:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.anova_results.get('f_statistic', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'anova_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: "P-Value:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.anova_results.get('p_value', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'anova_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: "Eta Squared:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.anova_results.get('eta_squared', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'anova_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+
+# Regression Results
+<InferentialRegressionResults@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(8)
+    
+    MDLabel:
+        text: "Regression Results"
+        theme_text_color: "Primary"
+        font_style: "Subtitle1"
+        size_hint_y: None
+        height: dp(24)
+    
+    GridLayout:
+        cols: 2
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(120)
+        
+        MDLabel:
+            text: "R-Squared:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.regression_results.get('r_squared', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'regression_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: "F-Statistic:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.regression_results.get('f_statistic', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'regression_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: "P-Value (Model):"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.regression_results.get('p_value_model', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'regression_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+
+# Chi-Square Results
+<InferentialChiSquareResults@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(8)
+    
+    MDLabel:
+        text: "Chi-Square Test Results"
+        theme_text_color: "Primary"
+        font_style: "Subtitle1"
+        size_hint_y: None
+        height: dp(24)
+    
+    GridLayout:
+        cols: 2
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(120)
+        
+        MDLabel:
+            text: "Chi-Square:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.chi_square_results.get('chi_square', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'chi_square_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: "P-Value:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.chi_square_results.get('p_value', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'chi_square_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: "Cramér's V:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.chi_square_results.get('cramers_v', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'chi_square_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+
+# Nonparametric Results
+<InferentialNonparametricResults@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(8)
+    
+    MDLabel:
+        text: "Nonparametric Test Results"
+        theme_text_color: "Primary"
+        font_style: "Subtitle1"
+        size_hint_y: None
+        height: dp(24)
+    
+    GridLayout:
+        cols: 2
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(120)
+        
+        MDLabel:
+            text: "Test Statistic:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.nonparametric_results.get('test_statistic', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'nonparametric_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: "P-Value:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.nonparametric_results.get('p_value', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'nonparametric_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: "Effect Size:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.nonparametric_results.get('effect_size', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'nonparametric_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+
+# Bayesian Results
+<InferentialBayesianResults@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(8)
+    
+    MDLabel:
+        text: "Bayesian Analysis Results"
+        theme_text_color: "Primary"
+        font_style: "Subtitle1"
+        size_hint_y: None
+        height: dp(24)
+    
+    GridLayout:
+        cols: 2
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(120)
+        
+        MDLabel:
+            text: "Bayes Factor:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.bayesian_results.get('bayes_factor', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'bayesian_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: "Posterior Mean:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.bayesian_results.get('posterior_mean', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'bayesian_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: "Credible Interval:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.bayesian_results.get('credible_interval', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'bayesian_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+
+# Effect Size Results
+<InferentialEffectSizeResults@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(8)
+    
+    MDLabel:
+        text: "Effect Size Results"
+        theme_text_color: "Primary"
+        font_style: "Subtitle1"
+        size_hint_y: None
+        height: dp(24)
+    
+    GridLayout:
+        cols: 2
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(120)
+        
+        MDLabel:
+            text: "Effect Size:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.effect_size_results.get('effect_size', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'effect_size_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: "Interpretation:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.effect_size_results.get('interpretation', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'effect_size_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: "Confidence Interval:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.effect_size_results.get('confidence_interval', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'effect_size_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+
+# Power Analysis Results
+<InferentialPowerAnalysisResults@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(8)
+    
+    MDLabel:
+        text: "Power Analysis Results"
+        theme_text_color: "Primary"
+        font_style: "Subtitle1"
+        size_hint_y: None
+        height: dp(24)
+    
+    GridLayout:
+        cols: 2
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(120)
+        
+        MDLabel:
+            text: "Statistical Power:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.power_analysis_results.get('power', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'power_analysis_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: "Sample Size:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.power_analysis_results.get('sample_size', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'power_analysis_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: "Effect Size:"
+            theme_text_color: "Secondary"
+            font_style: "Body2"
+        
+        MDLabel:
+            text: f"{root.parent.parent.parent.parent.power_analysis_results.get('effect_size', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'power_analysis_results') else "N/A"
+            theme_text_color: "Primary"
+            font_style: "Body2"
+
+# Confidence Intervals Results
+<InferentialConfidenceIntervalsResults@MDBoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(8)
+    
+    MDLabel:
+        text: "Confidence Intervals Results"
+        theme_text_color: "Primary"
+        font_style: "Subtitle1"
+        size_hint_y: None
+        height: dp(24)
+    
+    MDLabel:
+        text: "Confidence intervals for selected variables would be displayed here"
+        theme_text_color: "Secondary"
+        font_style: "Body2"
+        size_hint_y: None
+        height: dp(40)
+        halign: "center"
+    
+    MDLabel:
+        text: f"Confidence Level: {root.parent.parent.parent.parent.confidence_intervals_results.get('confidence_level', 'N/A')}" if hasattr(root.parent.parent.parent.parent, 'confidence_intervals_results') else "Confidence Level: N/A"
+        theme_text_color: "Secondary"
+        font_style: "Caption"
+        size_hint_y: None
+        height: dp(20)
+        halign: "center"

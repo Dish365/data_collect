@@ -3,7 +3,7 @@ Descriptive Analytics Handler
 Specialized service for descriptive statistics and data analysis
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Union
 import threading
 import urllib.parse
 from kivy.clock import Clock
@@ -376,6 +376,307 @@ class DescriptiveAnalyticsHandler:
             {'variables': self.selected_variables}
         )
 
+    # New Advanced Analytics Methods
+
+    def run_geospatial_analysis(self, project_id: str, lat_column: str, lon_column: str,
+                               value_column: Optional[str] = None, max_distance_km: float = 10.0,
+                               n_clusters: int = 5):
+        """Run geospatial analysis for the project"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_geospatial_thread,
+            args=(project_id, lat_column, lon_column, value_column, max_distance_km, n_clusters),
+            daemon=True
+        ).start()
+
+    def _run_geospatial_thread(self, project_id: str, lat_column: str, lon_column: str,
+                              value_column: Optional[str], max_distance_km: float, n_clusters: int):
+        """Background thread for geospatial analysis"""
+        try:
+            results = self.analytics_service.run_geospatial_analysis_backend(
+                project_id, lat_column, lon_column, value_column, max_distance_km, n_clusters
+            )
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_geospatial_results(results), 0
+            )
+        except Exception as e:
+            print(f"Error in geospatial analysis: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Geospatial analysis failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+
+    def _handle_geospatial_results(self, results):
+        """Handle geospatial analysis results"""
+        if not results or 'error' in results:
+            error_msg = results.get('error', 'No results available') if results else 'No results available'
+            toast(f"Geospatial Error: {error_msg}")
+            return
+        
+        self.screen.display_geospatial_results(results)
+
+    def run_temporal_analysis(self, project_id: str, date_column: str,
+                             value_columns: Optional[List[str]] = None, 
+                             detect_seasonal: bool = True,
+                             seasonal_period: Optional[int] = None):
+        """Run temporal analysis for the project"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_temporal_thread,
+            args=(project_id, date_column, value_columns, detect_seasonal, seasonal_period),
+            daemon=True
+        ).start()
+
+    def _run_temporal_thread(self, project_id: str, date_column: str,
+                            value_columns: Optional[List[str]], detect_seasonal: bool, 
+                            seasonal_period: Optional[int]):
+        """Background thread for temporal analysis"""
+        try:
+            results = self.analytics_service.run_temporal_analysis_backend(
+                project_id, date_column, value_columns, detect_seasonal, seasonal_period
+            )
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_temporal_results(results), 0
+            )
+        except Exception as e:
+            print(f"Error in temporal analysis: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Temporal analysis failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+
+    def _handle_temporal_results(self, results):
+        """Handle temporal analysis results"""
+        if not results or 'error' in results:
+            error_msg = results.get('error', 'No results available') if results else 'No results available'
+            toast(f"Temporal Error: {error_msg}")
+            return
+        
+        self.screen.display_temporal_results(results)
+
+    def run_weighted_statistics(self, project_id: str, value_column: str, weight_column: str):
+        """Run weighted statistics analysis"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_weighted_stats_thread,
+            args=(project_id, value_column, weight_column),
+            daemon=True
+        ).start()
+
+    def _run_weighted_stats_thread(self, project_id: str, value_column: str, weight_column: str):
+        """Background thread for weighted statistics"""
+        try:
+            results = self.analytics_service.run_weighted_statistics_backend(
+                project_id, value_column, weight_column
+            )
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_weighted_stats_results(results), 0
+            )
+        except Exception as e:
+            print(f"Error in weighted statistics: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Weighted statistics failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+
+    def _handle_weighted_stats_results(self, results):
+        """Handle weighted statistics results"""
+        if not results or 'error' in results:
+            error_msg = results.get('error', 'No results available') if results else 'No results available'
+            toast(f"Weighted Stats Error: {error_msg}")
+            return
+        
+        self.screen.display_weighted_statistics_results(results)
+
+    def run_grouped_statistics(self, project_id: str, group_by: Union[str, List[str]],
+                              target_columns: Optional[List[str]] = None,
+                              stats_functions: Optional[List[str]] = None):
+        """Run grouped statistics analysis"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_grouped_stats_thread,
+            args=(project_id, group_by, target_columns, stats_functions),
+            daemon=True
+        ).start()
+
+    def _run_grouped_stats_thread(self, project_id: str, group_by: Union[str, List[str]],
+                                 target_columns: Optional[List[str]], stats_functions: Optional[List[str]]):
+        """Background thread for grouped statistics"""
+        try:
+            results = self.analytics_service.run_grouped_statistics_backend(
+                project_id, group_by, target_columns, stats_functions
+            )
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_grouped_stats_results(results), 0
+            )
+        except Exception as e:
+            print(f"Error in grouped statistics: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Grouped statistics failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+
+    def _handle_grouped_stats_results(self, results):
+        """Handle grouped statistics results"""
+        if not results or 'error' in results:
+            error_msg = results.get('error', 'No results available') if results else 'No results available'
+            toast(f"Grouped Stats Error: {error_msg}")
+            return
+        
+        self.screen.display_grouped_statistics_results(results)
+
+    def run_missing_patterns_analysis(self, project_id: str, max_patterns: int = 20,
+                                     group_column: Optional[str] = None):
+        """Run missing data patterns analysis"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._run_missing_patterns_thread,
+            args=(project_id, max_patterns, group_column),
+            daemon=True
+        ).start()
+
+    def _run_missing_patterns_thread(self, project_id: str, max_patterns: int, group_column: Optional[str]):
+        """Background thread for missing patterns analysis"""
+        try:
+            results = self.analytics_service.run_missing_patterns_analysis_backend(
+                project_id, max_patterns, group_column
+            )
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_missing_patterns_results(results), 0
+            )
+        except Exception as e:
+            print(f"Error in missing patterns analysis: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Missing patterns analysis failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+
+    def _handle_missing_patterns_results(self, results):
+        """Handle missing patterns results"""
+        if not results or 'error' in results:
+            error_msg = results.get('error', 'No results available') if results else 'No results available'
+            toast(f"Missing Patterns Error: {error_msg}")
+            return
+        
+        self.screen.display_missing_patterns_results(results)
+
+    def generate_executive_summary(self, project_id: str):
+        """Generate executive summary"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._generate_executive_summary_thread,
+            args=(project_id,),
+            daemon=True
+        ).start()
+
+    def _generate_executive_summary_thread(self, project_id: str):
+        """Background thread for executive summary"""
+        try:
+            results = self.analytics_service.generate_executive_summary_backend(project_id)
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_executive_summary_results(results), 0
+            )
+        except Exception as e:
+            print(f"Error in executive summary: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Executive summary generation failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+
+    def _handle_executive_summary_results(self, results):
+        """Handle executive summary results"""
+        if not results or 'error' in results:
+            error_msg = results.get('error', 'No results available') if results else 'No results available'
+            toast(f"Executive Summary Error: {error_msg}")
+            return
+        
+        self.screen.display_executive_summary_results(results)
+
+    def export_analysis_report(self, project_id: str, format: str = 'json',
+                              analysis_type: str = 'comprehensive',
+                              include_metadata: bool = True):
+        """Export analysis report"""
+        if not project_id:
+            return
+            
+        self.screen.set_loading(True)
+        threading.Thread(
+            target=self._export_report_thread,
+            args=(project_id, format, analysis_type, include_metadata),
+            daemon=True
+        ).start()
+
+    def _export_report_thread(self, project_id: str, format: str, analysis_type: str, include_metadata: bool):
+        """Background thread for report export"""
+        try:
+            results = self.analytics_service.export_analysis_report_backend(
+                project_id, format, analysis_type, include_metadata
+            )
+            
+            Clock.schedule_once(
+                lambda dt: self._handle_export_report_results(results, format), 0
+            )
+        except Exception as e:
+            print(f"Error in report export: {e}")
+            Clock.schedule_once(
+                lambda dt: toast("Report export failed"), 0
+            )
+        finally:
+            Clock.schedule_once(
+                lambda dt: self.screen.set_loading(False), 0
+            )
+
+    def _handle_export_report_results(self, results, format: str):
+        """Handle export report results"""
+        if not results or 'error' in results:
+            error_msg = results.get('error', 'No results available') if results else 'No results available'
+            toast(f"Export Error: {error_msg}")
+            return
+        
+        self.screen.display_export_report_results(results, format)
+
     # Analytics backend methods
     def _make_analytics_request(self, endpoint: str, method: str = 'GET', data: Dict = None) -> Dict:
         """Make authenticated request to analytics backend"""
@@ -552,3 +853,128 @@ class DescriptiveAnalyticsHandler:
             
         except Exception as e:
             return {'error': f'Report generation failed: {str(e)}'}
+
+    # New Advanced Analytics Backend Methods
+    
+    def run_geospatial_analysis_backend(self, project_id: str, lat_column: str, lon_column: str,
+                                       value_column: Optional[str] = None, max_distance_km: float = 10.0,
+                                       n_clusters: int = 5) -> Dict:
+        """Run geospatial analysis via backend"""
+        try:
+            request_data = {
+                'lat_column': lat_column,
+                'lon_column': lon_column,
+                'max_distance_km': max_distance_km,
+                'n_clusters': n_clusters
+            }
+            if value_column:
+                request_data['value_column'] = value_column
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/geospatial', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Geospatial analysis failed: {str(e)}'}
+
+    def run_temporal_analysis_backend(self, project_id: str, date_column: str,
+                                     value_columns: Optional[List[str]] = None, 
+                                     detect_seasonal: bool = True,
+                                     seasonal_period: Optional[int] = None) -> Dict:
+        """Run temporal analysis via backend"""
+        try:
+            request_data = {
+                'date_column': date_column,
+                'detect_seasonal': detect_seasonal
+            }
+            if value_columns:
+                request_data['value_columns'] = value_columns
+            if seasonal_period:
+                request_data['seasonal_period'] = seasonal_period
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/temporal', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Temporal analysis failed: {str(e)}'}
+
+    def run_weighted_statistics_backend(self, project_id: str, value_column: str, weight_column: str) -> Dict:
+        """Run weighted statistics analysis via backend"""
+        try:
+            request_data = {
+                'value_column': value_column,
+                'weight_column': weight_column
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/weighted-statistics', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Weighted statistics failed: {str(e)}'}
+
+    def run_grouped_statistics_backend(self, project_id: str, group_by: Union[str, List[str]],
+                                      target_columns: Optional[List[str]] = None,
+                                      stats_functions: Optional[List[str]] = None) -> Dict:
+        """Run grouped statistics analysis via backend"""
+        try:
+            request_data = {
+                'group_by': group_by
+            }
+            if target_columns:
+                request_data['target_columns'] = target_columns
+            if stats_functions:
+                request_data['stats_functions'] = stats_functions
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/grouped-statistics', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Grouped statistics failed: {str(e)}'}
+
+    def run_missing_patterns_analysis_backend(self, project_id: str, max_patterns: int = 20,
+                                            group_column: Optional[str] = None) -> Dict:
+        """Run missing data patterns analysis via backend"""
+        try:
+            request_data = {
+                'max_patterns': max_patterns
+            }
+            if group_column:
+                request_data['group_column'] = group_column
+            
+            result = self._make_analytics_request(f'project/{project_id}/analyze/missing-patterns', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Missing patterns analysis failed: {str(e)}'}
+
+    def generate_executive_summary_backend(self, project_id: str) -> Dict:
+        """Generate executive summary via backend"""
+        try:
+            result = self._make_analytics_request(f'project/{project_id}/generate-executive-summary', 
+                                                method='POST')
+            return result
+            
+        except Exception as e:
+            return {'error': f'Executive summary generation failed: {str(e)}'}
+
+    def export_analysis_report_backend(self, project_id: str, format: str = 'json',
+                                      analysis_type: str = 'comprehensive',
+                                      include_metadata: bool = True) -> Dict:
+        """Export analysis report via backend"""
+        try:
+            request_data = {
+                'format': format,
+                'analysis_type': analysis_type,
+                'include_metadata': include_metadata
+            }
+            
+            result = self._make_analytics_request(f'project/{project_id}/export-report', 
+                                                method='POST', data=request_data)
+            return result
+            
+        except Exception as e:
+            return {'error': f'Report export failed: {str(e)}'}

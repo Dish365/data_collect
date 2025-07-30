@@ -220,6 +220,15 @@ class AnalyticsScreen(Screen):
         app.root.current = 'descriptive_analytics'
         toast("Opening Descriptive Analytics...")
 
+    def navigate_to_inferential_analytics(self):
+        """Navigate to inferential analytics screen"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+        app = App.get_running_app()
+        app.root.current = 'inferential_analytics'
+        toast("Opening Inferential Analytics...")
+
     def navigate_to_auto_detection(self):
         """Navigate to auto detection screen"""
         if not self.current_project_id:
