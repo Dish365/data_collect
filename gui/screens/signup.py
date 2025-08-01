@@ -6,7 +6,7 @@ from kivy.properties import BooleanProperty
 import re
 import json
 
-Builder.load_file("kv/signup.kv")
+# KV file loaded by main app after theme initialization
 
 class SignUpScreen(MDScreen):
     is_registering = BooleanProperty(False)
@@ -186,14 +186,15 @@ class SignUpScreen(MDScreen):
     
     def on_enter(self):
         """Called when screen is entered"""
-        # Clear previous input and errors
-        self.ids.username.text = ""
-        self.ids.first_name.text = ""
-        self.ids.last_name.text = ""
-        self.ids.email.text = ""
-        self.ids.institution.text = ""
-        self.ids.password.text = ""
-        self.ids.confirm_password.text = ""
+        # Clear previous input and errors (only if IDs are loaded)
+        if hasattr(self, 'ids') and all(field in self.ids for field in ['username', 'first_name', 'last_name', 'email', 'institution', 'password', 'confirm_password']):
+            self.ids.username.text = ""
+            self.ids.first_name.text = ""
+            self.ids.last_name.text = ""
+            self.ids.email.text = ""
+            self.ids.institution.text = ""
+            self.ids.password.text = ""
+            self.ids.confirm_password.text = ""
         self.is_registering = False
         self.password_visible = False
         self.confirm_password_visible = False

@@ -9,7 +9,7 @@ from . import views
 from projects.views import ProjectViewSet
 from sync.views import SyncQueueViewSet
 from analytics_results.views import AnalyticsResultViewSet
-from forms.views import QuestionViewSet
+from forms.views_modern import ModernQuestionViewSet as QuestionViewSet
 from responses.views import ResponseViewSet, RespondentViewSet
 
 # Create a router and register the ViewSets

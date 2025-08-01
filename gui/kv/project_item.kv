@@ -3,24 +3,34 @@
 <ProjectItem>:
     orientation: "horizontal"
     size_hint_y: None
-    height: dp(72)
-    padding: dp(8), dp(8), dp(4), dp(8)
-    spacing: dp(12)
+    height: dp(104)
+    padding: [dp(28), dp(24), dp(24), dp(24)]
+    spacing: dp(28)
     style: "elevated"
-    radius: [dp(12)]
-    elevation: 1
-    md_bg_color: app.theme_cls.surfaceColor
+    radius: [dp(20)]
+    elevation: 4
+    md_bg_color: app.theme_cls.surfaceContainerColor
+    ripple_behavior: True
+    focus_behavior: True
+    line_color: app.theme_cls.outlineColor
+    size_hint: 1, None
+    # Add subtle shadow for depth
+    shadow_color: [0, 0, 0, 0.1]
 
     # Date Circle
     MDCard:
         id: date_circle
         size_hint: None, None
-        size: dp(56), dp(56)
-        radius: [dp(28)]
+        size: dp(68), dp(68)
+        radius: [dp(34)]
         md_bg_color: app.theme_cls.primaryColor
         ripple_behavior: False
-        elevation: 0
-        padding: dp(4)
+        elevation: 3
+        padding: dp(8)
+        style: "filled"
+        # Add gradient-like effect with shadow
+        shadow_color: app.theme_cls.primaryColor
+        shadow_radius: dp(6)
 
         MDBoxLayout:
             orientation: "vertical"
@@ -34,9 +44,9 @@
                 text_size: self.width, None
                 halign: 'center'
                 font_style: "Headline"
-
                 role: "small"
-                theme_text_color: "Primary"
+                theme_text_color: "Custom"
+                text_color: 1, 1, 1, 1
                 adaptive_height: True
                 size_hint_y: None
                 height: self.texture_size[1]
@@ -45,9 +55,9 @@
                 id: month_label
                 halign: 'center'
                 font_style: "Label"
-
                 role: "small"
-                theme_text_color: "Primary"
+                theme_text_color: "Custom"
+                text_color: 1, 1, 1, 1
                 adaptive_height: True
                 size_hint_y: None
                 height: self.texture_size[1]
@@ -64,8 +74,7 @@
             id: name_label
             text: root.name
             font_style: "Title"
-
-            role: "large"
+            role: "medium"
             adaptive_height: True
             size_hint_y: None
             height: self.texture_size[1]
@@ -75,13 +84,13 @@
             shorten: True
             shorten_from: 'right'
             theme_text_color: "Primary"
+            bold: True
 
         MDLabel:
             id: desc_label
             text: root.description
             font_style: "Body"
-
-            role: "medium"
+            role: "small"
             theme_text_color: "Secondary"
             adaptive_height: True
             size_hint_y: None
@@ -91,6 +100,7 @@
             valign: 'middle'
             shorten: True
             shorten_from: 'right'
+            opacity: 0.7
 
     # Right Aligned Items
     MDBoxLayout:
@@ -99,19 +109,42 @@
         spacing: dp(8)
         pos_hint: {'center_y': 0.5}
 
-        # Sync Status Label
-        MDLabel:
-            id: sync_status_label
-            text: "Unknown"
-            font_style: "Label"
-
-            role: "small"
-            halign: "right"
+        # Sync Status Chip
+        MDCard:
             size_hint: None, None
-            size: dp(72), dp(24)
+            size: dp(100), dp(32)
+            radius: [dp(16)]
+            elevation: 2
             pos_hint: {'center_y': 0.5}
-            theme_text_color: "Custom"
-            text_color: 0.5, 0.5, 0.5, 1
+            md_bg_color: app.theme_cls.surfaceContainerHighestColor
+            style: "filled"
+            
+            MDBoxLayout:
+                orientation: "horizontal"
+                spacing: dp(6)
+                size_hint: None, None
+                size: dp(92), dp(24)
+                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                
+                MDIcon:
+                    id: sync_status_icon
+                    icon: "sync"
+                    size_hint: None, None
+                    size: dp(14), dp(14)
+                    theme_icon_color: "Primary"
+                    pos_hint: {"center_y": 0.5}
+                
+                MDLabel:
+                    id: sync_status_label
+                    text: "Unknown"
+                    font_style: "Label"
+                    role: "small"
+                    theme_text_color: "Primary"
+                    pos_hint: {"center_y": 0.5}
+                    bold: True
+                    adaptive_width: True
+                    size_hint_x: None
+                    width: self.texture_size[0]
 
         # Options Menu
         MDIconButton:
@@ -119,6 +152,9 @@
             icon: 'dots-vertical'
             size_hint: None, None
             size: dp(44), dp(44)
-            icon_size: "20dp"
+            icon_size: "24dp"
             on_release: root.open_menu(self)
-            pos_hint: {'center_y': 0.5} 
+            pos_hint: {'center_y': 0.5}
+            theme_icon_color: "Secondary"
+            style: "standard"
+            radius: [dp(22)] 

@@ -11,7 +11,7 @@ import pandas as pd
 from typing import Dict, List, Any, Optional
 
 # Load the KV file
-Builder.load_file("kv/chart_widget.kv")
+# KV file loaded by main app after theme initialization
 
 
 class ChartWidget(MDCard):

@@ -15,7 +15,7 @@ import uuid
 from widgets.loading_overlay import LoadingOverlay
 from widgets.responsive_layout import ResponsiveHelper
 
-Builder.load_file("kv/collect_data.kv")
+# KV file loaded by main app after theme initialization
 
 class DataCollectionScreen(Screen):
     project_id = StringProperty(None, allownone=True)
@@ -232,7 +232,7 @@ class DataCollectionScreen(Screen):
         self.project_menu = MDDropdownMenu(
             caller=self.ids.project_spinner,
             items=menu_items,
-            width_mult=4
+            width=dp(200)
         )
         self.project_menu.open()
 

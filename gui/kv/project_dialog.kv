@@ -1,62 +1,150 @@
 #:import dp kivy.metrics.dp
 
 <ProjectDialog>:
-    orientation: 'vertical'
-    spacing: dp(24)
-    padding: dp(24)
-    size_hint_y: None
-    height: dp(280)
+    # Streamlined dialog content with clean layout
+    MDScrollView:
+        do_scroll_x: False
+        size_hint: 1, 1
+        
+        MDCard:
+            orientation: 'vertical'
+            adaptive_height: True
+            size_hint: 1, None
+            height: self.minimum_height
+            padding: [dp(24), dp(24), dp(24), dp(20)]
+            spacing: dp(16)
+            radius: [dp(12)]
+            style: "elevated"
+            elevation: 0
 
-    # Modern project name field
-    MDTextField:
-        id: name_field
-        mode: "outlined"
-        size_hint_y: None
-        height: dp(56)
-        required: True
-        max_text_length: 100
+            # Simple header section
+            MDBoxLayout:
+                orientation: "horizontal"
+                adaptive_height: True
+                size_hint_y: None
+                height: dp(40)
+                spacing: dp(10)
+                
+                MDIcon:
+                    icon: "folder-plus-outline"
+                    size_hint: None, None
+                    size: dp(28), dp(28)
+                    theme_icon_color: "Primary"
+                
+                MDLabel:
+                    text: "Project Details"
+                    font_style: "Headline"
+                    role: "small"
+                    theme_text_color: "Primary"
 
-        MDTextFieldHintText:
-            text: "Project Name"
+            # Project name field
+            MDTextField:
+                id: name_field
+                mode: "outlined"
+                size_hint_y: None
+                height: dp(64)
+                required: True
+                max_text_length: 100
+                radius: [dp(8)]
 
-        MDTextFieldHelperText:
-            text: "Enter a descriptive name for your project"
-            mode: "persistent"
+                MDTextFieldHintText:
+                    text: "Project Name *"
 
-        MDTextFieldMaxLengthText:
-            max_text_length: 100
+                MDTextFieldHelperText:
+                    text: "2-100 characters, descriptive name"
+                    mode: "on_focus"
 
-    # Modern project description field
-    MDTextField:
-        id: desc_field
-        mode: "outlined"
-        multiline: True
-        size_hint_y: None
-        height: dp(120)
-        max_text_length: 500
+                MDTextFieldMaxLengthText:
+                    max_text_length: 100
 
-        MDTextFieldHintText:
-            text: "Project Description (Optional)"
+                MDTextFieldLeadingIcon:
+                    icon: "folder-outline"
 
-        MDTextFieldHelperText:
-            text: "Provide additional details about your project"
-            mode: "on_focus"
 
-        MDTextFieldMaxLengthText:
-            max_text_length: 500
 
-    # Validation status indicator
-    MDLabel:
-        id: validation_label
-        text: ""
-        theme_text_color: "Error"
-        theme_font_size: "Custom"
-        font_size: dp(12)
-        size_hint_y: None
-        height: dp(20)
-        opacity: 0  # Initially hidden
+            # Project description field
+            MDTextField:
+                id: desc_field
+                mode: "outlined"
+                multiline: True
+                size_hint_y: None
+                height: dp(88)
+                max_text_length: 500
+                radius: [dp(8)]
 
-    # Spacer
-    Widget:
-        size_hint_y: None
-        height: dp(16)
+                MDTextFieldHintText:
+                    text: "Project Description (Optional)"
+
+                MDTextFieldHelperText:
+                    text: "Additional details, goals, or notes"
+                    mode: "on_focus"
+
+                MDTextFieldMaxLengthText:
+                    max_text_length: 500
+
+                MDTextFieldLeadingIcon:
+                    icon: "text-box-outline"
+
+            # Validation status
+            MDBoxLayout:
+                id: validation_container
+                orientation: "horizontal"
+                adaptive_height: True
+                size_hint_y: None
+                height: dp(28)
+                spacing: dp(6)
+                opacity: 0
+                
+                MDIcon:
+                    icon: "alert-circle-outline"
+                    size_hint: None, None
+                    size: dp(14), dp(14)
+                    theme_icon_color: "Error"
+                
+                MDLabel:
+                    id: validation_label
+                    text: ""
+                    theme_text_color: "Error"
+                    font_style: "Body"
+                    role: "small"
+
+            # Info text
+            MDLabel:
+                text: "Required fields are marked with *"
+                font_style: "Body"
+                role: "small"
+                theme_text_color: "Secondary"
+                size_hint_y: None
+                height: dp(20)
+
+            # Action buttons
+            MDBoxLayout:
+                orientation: "horizontal"
+                adaptive_height: True
+                size_hint_y: None
+                height: dp(44)
+                spacing: dp(10)
+                padding: [0, dp(4), 0, 0]
+                
+                Widget:  # Spacer
+                
+                MDButton:
+                    id: cancel_btn
+                    style: "outlined"
+                    size_hint: None, None
+                    size: dp(80), dp(32)
+                    on_release: root.on_cancel_pressed()
+                    
+                    MDButtonText:
+                        text: "Cancel"
+                
+                MDButton:
+                    id: save_btn
+                    style: "filled"
+                    size_hint: None, None
+                    size: dp(80), dp(32)
+                    disabled: True
+                    on_release: root.on_save_pressed()
+                    
+                    MDButtonText:
+                        text: "Save"

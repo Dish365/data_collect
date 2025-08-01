@@ -4,7 +4,7 @@ from kivy.lang import Builder
 from kivymd.app import MDApp
 from utils.cross_platform_toast import toast
 
-Builder.load_file("kv/forgot_password_popup.kv")  # Adjust path if needed
+# KV file loaded by main app after theme initialization  # Adjust path if needed
 
 class ForgotPasswordPopup(Popup):
     is_processing = BooleanProperty(False)
@@ -79,14 +79,16 @@ class ForgotPasswordPopup(Popup):
         
         content.add_widget(MDLabel(
             text="Development Mode: Reset Token Generated",
-            font_style="Subtitle1",
+                            font_style="Title",
+                role="medium",
             size_hint_y=None,
             height="30dp"
         ))
         
         content.add_widget(MDLabel(
             text="Use this token to reset your password:",
-            font_style="Body1",
+                            font_style="Body",
+                role="large",
             size_hint_y=None,
             height="30dp"
         ))

@@ -13,14 +13,14 @@
 
 <LoginScreen>:
     name: "login"
-    md_bg_color: app.theme_cls.primaryColor
+    md_bg_color: app.theme_cls.backgroundColor
 
     AnchorLayout:
         anchor_x: "center"
         anchor_y: "center"
 
         MDCard:
-            elevation: 0
+            elevation: 8
             radius: [dp(16)]
             padding: [dp(16), dp(24), dp(16), dp(24)]
             size_hint: 0.9, None
@@ -28,6 +28,8 @@
             height: self.minimum_height
             orientation: "vertical"
             size: dp(400), dp(420)
+            md_bg_color: app.theme_cls.surfaceColor
+            style: "elevated"
 
             MDBoxLayout:
                 orientation: "vertical"

@@ -66,7 +66,8 @@ class CrossPlatformToast:
                 text=str(text),
                 theme_text_color="Custom",
                 text_color=(1, 1, 1, 1),
-                font_style="Body1",
+                font_style="Body",
+            role="large",
                 halign="center",
                 valign="center"
             )

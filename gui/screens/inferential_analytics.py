@@ -17,7 +17,7 @@ from typing import Dict, List, Any, Optional, Union
 from widgets.loading_overlay import LoadingOverlay
 from services.inferential_analytics import InferentialAnalyticsHandler
 
-Builder.load_file("kv/inferential_analytics.kv")
+# KV file loaded by main app after theme initialization
 
 class InferentialAnalyticsScreen(Screen):
     """Inferential Analytics Screen - handles UI interactions and delegates logic to service"""
@@ -139,13 +139,13 @@ class InferentialAnalyticsScreen(Screen):
         for analysis in self.analysis_types:
             menu_items.append({
                 "text": analysis['name'],
-                "viewclass": "OneLineListItem",
+                "viewclass": "MDListItem",
                 "on_release": lambda x=analysis['id']: self.select_analysis_type(x),
             })
         
         self.analysis_menu = MDDropdownMenu(
             items=menu_items,
-            width_mult=4,
+            width=dp(200),
         )
     
     def show_analysis_menu(self, caller):
@@ -181,13 +181,13 @@ class InferentialAnalyticsScreen(Screen):
         for method in methods:
             menu_items.append({
                 "text": method.replace('_', ' ').title(),
-                "viewclass": "OneLineListItem",
+                "viewclass": "MDListItem",
                 "on_release": lambda x=method: self.select_test_method(x),
             })
         
         self.test_method_menu = MDDropdownMenu(
             items=menu_items,
-            width_mult=4,
+            width=dp(200),
         )
     
     def show_test_method_menu(self, caller):

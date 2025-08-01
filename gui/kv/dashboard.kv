@@ -1,4 +1,5 @@
 #:import dp kivy.metrics.dp
+#:import app kivy.app.App
 #:import Window kivy.core.window.Window
 
 <DashboardScreen>:
@@ -15,27 +16,30 @@
             size_hint_y: None
             height: dp(64)
 
-        # Main content with proper Material Design 3 layout
+        # Main content with enhanced Material Design 3 layout
         RelativeLayout:
             size_hint: 1, 1
             
-            # Main scrollable content
+            # Main scrollable content with improved styling
             MDScrollView:
                 id: main_scroll_view
                 size_hint: 1, 1
                 do_scroll_x: False
-                bar_width: dp(4)
-                bar_color: app.theme_cls.onSurfaceVariantColor
-                bar_inactive_color: app.theme_cls.outlineVariantColor
+                bar_width: dp(6)
+                # Using default bar colors for KivyMD 2.0.1 compatibility
+                effect_cls: "ScrollEffect"
+                smooth_scroll_end: 10
+                scroll_timeout: 55
                 
                 MDBoxLayout:
                     id: content_layout
                     orientation: 'vertical'
-                    padding: dp(24), dp(16), dp(24), dp(24)
-                    spacing: dp(24)
+                    padding: dp(32), dp(20), dp(32), dp(28)
+                    spacing: dp(32)
                     adaptive_height: True
                     size_hint_y: None
                     height: self.minimum_height
+                    md_bg_color: app.theme_cls.backgroundColor
 
                     # Page title with Material Design 3 typography
                     MDLabel:
@@ -59,59 +63,78 @@
                         height: self.texture_size[1] + dp(12)
                         halign: "left"
 
-                    # Stats cards container with responsive grid
-                    MDBoxLayout:
-                        id: stats_container
+                    # Stats cards container with enhanced responsive grid
+                    MDCard:
                         orientation: 'vertical'
                         adaptive_height: True
                         size_hint_y: None
                         height: self.minimum_height
-                        spacing: dp(16)
+                        elevation: 0
+                        style: "outlined"
+                        md_bg_color: app.theme_cls.surfaceContainerColor
+                        padding: dp(20)
+                        radius: [dp(16)]
                         
-                        MDGridLayout:
-                            id: stats_grid
+                        MDBoxLayout:
+                            id: stats_container
+                            orientation: 'vertical'
                             adaptive_height: True
                             size_hint_y: None
                             height: self.minimum_height
-                            spacing: dp(16)
-                            cols: 1  # Updated dynamically by Python
-
-                            StatCard:
-                                id: total_responses_card
-                                title: "Total Respondents"
-                                value: "Loading..."
-                                icon: "account-group"
+                            spacing: dp(20)
+                            
+                            MDGridLayout:
+                                id: stats_grid
+                                adaptive_height: True
                                 size_hint_y: None
-                                height: dp(120)
-                                on_press: root.navigate_to("responses")
+                                height: self.minimum_height
+                                spacing: dp(20)
+                                cols: 1  # Updated dynamically by Python
 
-                            StatCard:
-                                id: active_projects_card
-                                title: "Active Projects"
-                                value: "Loading..."
-                                icon: "folder-multiple"
-                                size_hint_y: None
-                                height: dp(120)
-                                on_press: root.navigate_to("projects")
+                                StatCard:
+                                    id: total_responses_card
+                                    title: "Total Respondents"
+                                    value: "Loading..."
+                                    icon: "account-group"
+                                    size_hint_y: None
+                                    height: dp(140)
+                                    elevation: 2
+                                    style: "elevated"
+                                    on_press: root.navigate_to("responses")
 
-                            StatCard:
-                                id: pending_sync_card
-                                title: "Pending Sync"
-                                value: "Loading..."
-                                icon: "sync"
-                                size_hint_y: None
-                                height: dp(120)
-                                on_press: root.navigate_to("sync")
+                                StatCard:
+                                    id: active_projects_card
+                                    title: "Active Projects"
+                                    value: "Loading..."
+                                    icon: "folder-multiple"
+                                    size_hint_y: None
+                                    height: dp(140)
+                                    elevation: 2
+                                    style: "elevated"
+                                    on_press: root.navigate_to("projects")
 
-                            StatCard:
-                                id: team_members_card
-                                title: "Team Members"
-                                value: "Loading..."
-                                note: "Click to manage"
-                                icon: "account-multiple"
-                                size_hint_y: None
-                                height: dp(120)
-                                on_press: root.open_team_management()
+                                StatCard:
+                                    id: pending_sync_card
+                                    title: "Pending Sync"
+                                    value: "Loading..."
+                                    icon: "sync"
+                                    size_hint_y: None
+                                    height: dp(140)
+                                    elevation: 2
+                                    style: "elevated"
+                                    on_press: root.navigate_to("sync")
+
+                                StatCard:
+                                    id: team_members_card
+                                    title: "Team Members"
+                                    value: "Loading..."
+                                    note: "Click to manage"
+                                    icon: "account-multiple"
+                                    size_hint_y: None
+                                    height: dp(140)
+                                    elevation: 2
+                                    style: "elevated"
+                                    on_press: root.open_team_management()
 
                     # Quick Actions section
                     MDLabel:
@@ -124,107 +147,164 @@
                         height: self.texture_size[1] + dp(12)
                         halign: "left"
 
-                    # Action buttons with Material Design 3 styling
-                    MDBoxLayout:
-                        id: actions_container
+                    # Action buttons with enhanced Material Design 3 styling
+                    MDCard:
                         orientation: 'vertical'
                         adaptive_height: True
                         size_hint_y: None
                         height: self.minimum_height
-                        spacing: dp(16)
+                        elevation: 0
+                        style: "outlined"
+                        md_bg_color: app.theme_cls.surfaceContainerColor
+                        padding: dp(20)
+                        radius: [dp(16)]
                         
-                        MDGridLayout:
-                            id: actions_grid
+                        MDBoxLayout:
+                            id: actions_container
+                            orientation: 'vertical'
                             adaptive_height: True
                             size_hint_y: None
                             height: self.minimum_height
-                            spacing: dp(16)
-                            cols: 2  # Updated dynamically by Python
-                            row_default_height: dp(56)
-                            row_force_default: True
+                            spacing: dp(20)
                             
-                            MDButton:
-                                style: "filled"
-                                size_hint: 1, None
-                                height: dp(56)
-                                on_release: root.navigate_to("projects")
-                                
-                                MDButtonText:
-                                    text: "Manage Projects"
-                                    font_style: "Label"
-                                    role: "large"
+                            MDGridLayout:
+                                id: actions_grid
+                                adaptive_height: True
+                                size_hint_y: None
+                                height: self.minimum_height
+                                spacing: dp(16)
+                                cols: 2  # Updated dynamically by Python
+                                row_default_height: dp(64)
+                                row_force_default: True
+                            
+                                MDButton:
+                                    style: "elevated"
+                                    size_hint: 1, None
+                                    height: dp(64)
+                                    elevation: 2
+                                    on_release: root.navigate_to("projects")
+                                    
+                                    MDButtonIcon:
+                                        icon: "folder-multiple"
+                                        theme_icon_color: "Custom"
+                                        icon_color: app.theme_cls.primaryColor
+                                    
+                                    MDButtonText:
+                                        text: "Manage Projects"
+                                        font_style: "Label"
+                                        role: "large"
 
-                            MDButton:
-                                style: "filled"
-                                size_hint: 1, None
-                                height: dp(56)
-                                on_release: root.navigate_to("data_collection")
-                                
-                                MDButtonText:
-                                    text: "Collect Data"
-                                    font_style: "Label"
-                                    role: "large"
+                                MDButton:
+                                    style: "elevated"
+                                    size_hint: 1, None
+                                    height: dp(64)
+                                    elevation: 2
+                                    on_release: root.navigate_to("data_collection")
+                                    
+                                    MDButtonIcon:
+                                        icon: "database-plus"
+                                        theme_icon_color: "Custom"
+                                        icon_color: app.theme_cls.primaryColor
+                                    
+                                    MDButtonText:
+                                        text: "Collect Data"
+                                        font_style: "Label"
+                                        role: "large"
 
-                            MDButton:
-                                style: "filled"
-                                size_hint: 1, None
-                                height: dp(56)
-                                on_release: root.navigate_to("analytics")
-                                
-                                MDButtonText:
-                                    text: "View Analytics"
-                                    font_style: "Label"
-                                    role: "large"
+                                MDButton:
+                                    style: "elevated"
+                                    size_hint: 1, None
+                                    height: dp(64)
+                                    elevation: 2
+                                    on_release: root.navigate_to("analytics")
+                                    
+                                    MDButtonIcon:
+                                        icon: "chart-line"
+                                        theme_icon_color: "Custom"
+                                        icon_color: app.theme_cls.primaryColor
+                                    
+                                    MDButtonText:
+                                        text: "View Analytics"
+                                        font_style: "Label"
+                                        role: "large"
 
-                            MDButton:
-                                style: "filled"
-                                size_hint: 1, None
-                                height: dp(56)
-                                on_release: root.navigate_to("data_exploration")
-                                
-                                MDButtonText:
-                                    text: "Explore Data"
-                                    font_style: "Label"
-                                    role: "large"
+                                MDButton:
+                                    style: "elevated"
+                                    size_hint: 1, None
+                                    height: dp(64)
+                                    elevation: 2
+                                    on_release: root.navigate_to("data_exploration")
+                                    
+                                    MDButtonIcon:
+                                        icon: "compass"
+                                        theme_icon_color: "Custom"
+                                        icon_color: app.theme_cls.primaryColor
+                                    
+                                    MDButtonText:
+                                        text: "Explore Data"
+                                        font_style: "Label"
+                                        role: "large"
 
-                            MDButton:
-                                style: "filled"
-                                size_hint: 1, None
-                                height: dp(56)
-                                on_release: root.navigate_to("qualitative_analytics")
-                                
-                                MDButtonText:
-                                    text: "Qualitative Analysis"
-                                    font_style: "Label"
-                                    role: "large"
+                                MDButton:
+                                    style: "elevated"
+                                    size_hint: 1, None
+                                    height: dp(64)
+                                    elevation: 2
+                                    on_release: root.navigate_to("qualitative_analytics")
+                                    
+                                    MDButtonIcon:
+                                        icon: "text-search"
+                                        theme_icon_color: "Custom"
+                                        icon_color: app.theme_cls.primaryColor
+                                    
+                                    MDButtonText:
+                                        text: "Qualitative Analysis"
+                                        font_style: "Label"
+                                        role: "large"
 
-                            MDButton:
-                                style: "filled"
-                                size_hint: 1, None
-                                height: dp(56)
-                                on_release: root.navigate_to("form_builder")
-                                
-                                MDButtonText:
-                                    text: "Build Forms"
-                                    font_style: "Label"
-                                    role: "large"
+                                MDButton:
+                                    style: "elevated"
+                                    size_hint: 1, None
+                                    height: dp(64)
+                                    elevation: 2
+                                    on_release: root.navigate_to("form_builder")
+                                    
+                                    MDButtonIcon:
+                                        icon: "form-select"
+                                        theme_icon_color: "Custom"
+                                        icon_color: app.theme_cls.primaryColor
+                                    
+                                    MDButtonText:
+                                        text: "Build Forms"
+                                        font_style: "Label"
+                                        role: "large"
 
-                            MDButton:
-                                style: "outlined"
-                                size_hint: 1, None
-                                height: dp(56)
-                                on_release: root.open_team_management()
-                                
-                                MDButtonText:
-                                    text: "Team Members"
-                                    font_style: "Label"
-                                    role: "large"
+                                MDButton:
+                                    style: "tonal"
+                                    size_hint: 1, None
+                                    height: dp(64)
+                                    on_release: root.open_team_management()
+                                    
+                                    MDButtonIcon:
+                                        icon: "account-multiple"
+                                        theme_icon_color: "Custom"
+                                        icon_color: app.theme_cls.primaryColor
+                                    
+                                    MDButtonText:
+                                        text: "Team Members"
+                                        font_style: "Label"
+                                        role: "large"
 
-                            MDButton:
-                                style: "outlined"
-                                size_hint: 1, None
-                                height: dp(56)
-                                on_release: root.navigate_to("sync")
+                                MDButton:
+                                    style: "tonal"
+                                    size_hint: 1, None
+                                    height: dp(64)
+                                    on_release: root.navigate_to("sync")
+                                    
+                                    MDButtonIcon:
+                                        icon: "sync"
+                                        theme_icon_color: "Custom"
+                                        icon_color: app.theme_cls.primaryColor
                                 
                                 MDButtonText:
                                     text: "Sync Status"

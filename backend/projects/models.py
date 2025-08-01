@@ -170,9 +170,26 @@ class Project(models.Model):
             return True
         if self.members.filter(user=user).exists():
             return True
-        if user.role in ['admin', 'researcher']:
+        if hasattr(user, 'role') and user.role in ['admin', 'researcher']:
             return True
         return False
+    
+    def can_user_edit(self, user):
+        """Check if a user can edit this project (create/modify questions, etc.)"""
+        if user.is_superuser:
+            return True
+        if self.created_by == user:
+            return True
+        # Check if user is a team member with edit permissions
+        try:
+            member = self.members.get(user=user)
+            permissions = member.permissions.split(',') if member.permissions else []
+            return 'all' in permissions or 'edit_project' in permissions or 'manage_questions' in permissions
+        except ProjectMember.DoesNotExist:
+            # Check if user has admin/researcher role
+            if hasattr(user, 'role') and user.role in ['admin', 'researcher']:
+                return True
+            return False
     
     def get_user_permissions(self, user):
         """Get specific permissions for a user in this project"""

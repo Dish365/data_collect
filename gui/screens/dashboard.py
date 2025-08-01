@@ -46,7 +46,7 @@ except ImportError:
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDIconButton
 
-Builder.load_file("kv/dashboard.kv")
+# KV file loaded by main app after theme initialization
 
 class DashboardScreen(MDScreen):
     def __init__(self, **kwargs):

@@ -5,7 +5,7 @@ from kivy.core.window import Window
 from kivy.metrics import dp
 
 # Load the KV file
-Builder.load_file("kv/activity_item.kv")
+# KV file loaded by main app after theme initialization
 
 
 class ActivityItem(MDCard):
@@ -17,6 +17,10 @@ class ActivityItem(MDCard):
     is_team_activity = BooleanProperty(False)
     activity_type = StringProperty("")
     
+    # Add properties that KV file is expecting
+    title = StringProperty("")
+    icon = StringProperty("information")
+    
     def __init__(self, activity_text="", activity_time="", activity_icon="information", activity_type="", **kwargs):
         super().__init__(**kwargs)
         self.activity_text = activity_text
@@ -24,6 +28,10 @@ class ActivityItem(MDCard):
         self.activity_icon = activity_icon
         self.activity_type = activity_type
         self.is_team_activity = activity_type == 'team_member'
+        
+        # Set KV properties - use activity_text as title for now
+        self.title = activity_text
+        self.icon = activity_icon
         
         # Setup responsive properties
         self.update_responsive_properties()
@@ -73,4 +81,8 @@ class ActivityItem(MDCard):
         self.activity_time = time
         self.activity_icon = icon
         self.activity_type = activity_type
-        self.is_team_activity = activity_type == 'team_member' 
+        self.is_team_activity = activity_type == 'team_member'
+        
+        # Update KV properties
+        self.title = text
+        self.icon = icon 

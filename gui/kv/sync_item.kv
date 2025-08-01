@@ -79,12 +79,14 @@
             # Sync button
             MDButton:
                 id: sync_button
-                text: "Sync"
                 style: "filled"
                 size_hint_x: 1
                 size_hint_y: None
                 height: dp(36)
                 on_release: root.on_sync_button_pressed(self)
+                
+                MDButtonText:
+                    text: "Sync"
 
             # Status indicator
             MDLabel:

@@ -2,10 +2,12 @@
 
 <ProjectsScreen>:
     name: "projects"
+    md_bg_color: app.theme_cls.backgroundColor
 
     MDBoxLayout:
         orientation: "vertical"
         spacing: dp(12)
+        md_bg_color: app.theme_cls.backgroundColor
 
         # Modern TopBar with enhanced styling
         TopBar:
@@ -17,8 +19,8 @@
         MDBoxLayout:
             orientation: "vertical"
             id: content_layout
-            padding: dp(16)
-            spacing: dp(20)
+            padding: [dp(20), dp(16), dp(20), dp(20)]
+            spacing: dp(24)
 
             # Enhanced Header Section with modern cards
             MDCard:
@@ -26,10 +28,11 @@
                 adaptive_height: True
                 size_hint_y: None
                 height: self.minimum_height
-                padding: dp(20)
+                padding: [dp(24), dp(20), dp(24), dp(20)]
                 spacing: dp(20)
-                elevation: 3
-                radius: dp(16)
+                elevation: 2
+                radius: dp(20)
+                style: "elevated"
                 md_bg_color: app.theme_cls.surfaceContainerColor
 
                 # Title and Navigation Row
@@ -61,9 +64,8 @@
 
                         MDLabel:
                             text: "Projects"
-                            theme_font_size: "Custom"
-                            font_size: dp(24)
-                            bold: True
+                            font_style: "Headline"
+                            role: "large"
                             theme_text_color: "Primary"
                             pos_hint: {"center_y": 0.5}
                             adaptive_width: True
@@ -84,146 +86,208 @@
                         MDButton:
                             style: "filled"
                             size_hint: None, None
-                            size: dp(140), dp(48)
-                            on_release: root.open_project_dialog()
+                            size: dp(160), dp(52)
+                            on_release: root.navigate_to_project_creation()
+                            md_bg_color: app.theme_cls.primaryColor
+                            elevation: 3
+                            radius: [dp(26)]
+
+                            MDButtonIcon:
+                                icon: "plus"
 
                             MDButtonText:
                                 text: "New Project"
-                                theme_font_size: "Custom"
-                                font_size: dp(14)
+                                font_style: "Label"
+                                role: "large"
 
                         MDIconButton:
                             icon: "refresh"
                             size_hint: None, None
-                            size: dp(48), dp(48)
+                            size: dp(52), dp(52)
                             theme_icon_color: "Primary"
                             pos_hint: {"center_y": 0.5}
                             on_release: root.check_and_sync_projects()
+                            style: "filled"
+                            md_bg_color: app.theme_cls.surfaceContainerHighColor
 
                 # Search Section
                 MDTextField:
                     id: search_field
                     mode: "outlined"
                     size_hint_y: None
-                    height: dp(56)
+                    height: dp(60)
                     on_text: root.search_projects(self.text)
+                    radius: [dp(30)]
 
                     MDTextFieldHintText:
-                        text: "Search projects by name..."
+                        text: "Search projects by name or description..."
+
+                    MDTextFieldLeadingIcon:
+                        icon: "magnify"
+                        theme_icon_color: "Secondary"
 
                 # Filter and Sort Toolbar
                 MDCard:
-                    orientation: "horizontal"
+                    orientation: "vertical"
                     adaptive_height: True
                     size_hint_y: None
-                    height: dp(64)
-                    padding: dp(12)
-                    spacing: dp(12)
+                    height: self.minimum_height
+                    padding: [dp(24), dp(16), dp(24), dp(16)]
+                    spacing: dp(16)
                     elevation: 1
-                    radius: dp(12)
+                    radius: dp(16)
+                    style: "elevated"
                     md_bg_color: app.theme_cls.surfaceContainerLowColor
-
-                    MDLabel:
-                        text: "Filter:"
-                        theme_font_size: "Custom"
-                        font_size: dp(14)
-                        bold: True
-                        theme_text_color: "Primary"
-                        size_hint_x: None
-                        width: dp(60)
-                        pos_hint: {"center_y": 0.5}
-
-                    MDButton:
-                        id: filter_all_btn
-                        style: "filled"
-                        size_hint_x: None
-                        width: dp(100)
+                    
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        adaptive_height: True
                         size_hint_y: None
-                        height: dp(40)
-                        on_release: root.filter_projects("all")
+                        height: dp(48)
+                        spacing: dp(16)
 
-                        MDButtonText:
-                            text: "All"
-                            theme_font_size: "Custom"
-                            font_size: dp(12)
+                        # Filter section with icon
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            adaptive_width: True
+                            size_hint_x: None
+                            width: self.minimum_width
+                            spacing: dp(12)
+                            pos_hint: {"center_y": 0.5}
+                            
+                            MDIcon:
+                                icon: "filter-variant"
+                                size_hint: None, None
+                                size: dp(20), dp(20)
+                                theme_icon_color: "Primary"
+                                pos_hint: {"center_y": 0.5}
+                            
+                            MDLabel:
+                                text: "Filter:"
+                                font_style: "Label"
+                                role: "large"
+                                theme_text_color: "Primary"
+                                adaptive_width: True
+                                size_hint_x: None
+                                width: self.texture_size[0]
+                                pos_hint: {"center_y": 0.5}
 
-                    MDButton:
-                        id: filter_recent_btn
-                        style: "outlined"
-                        size_hint_x: None
-                        width: dp(100)
-                        size_hint_y: None
-                        height: dp(40)
-                        on_release: root.filter_projects("recent")
+                        # Filter buttons container
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            adaptive_width: True
+                            size_hint_x: None
+                            width: self.minimum_width
+                            spacing: dp(8)
+                            pos_hint: {"center_y": 0.5}
 
-                        MDButtonText:
-                            text: "Recent"
-                            theme_font_size: "Custom"
-                            font_size: dp(12)
+                            MDButton:
+                                id: filter_all_btn
+                                style: "filled"
+                                size_hint_x: None
+                                width: dp(72)
+                                size_hint_y: None
+                                height: dp(36)
+                                on_release: root.filter_projects("all")
+                                md_bg_color: app.theme_cls.primaryColor
+                                radius: [dp(18)]
 
-                    MDButton:
-                        id: filter_synced_btn
-                        style: "outlined"
-                        size_hint_x: None
-                        width: dp(100)
-                        size_hint_y: None
-                        height: dp(40)
-                        on_release: root.filter_projects("synced")
+                                MDButtonText:
+                                    text: "All"
+                                    font_style: "Label"
+                                    role: "medium"
 
-                        MDButtonText:
-                            text: "Synced"
-                            theme_font_size: "Custom"
-                            font_size: dp(12)
+                            MDButton:
+                                id: filter_recent_btn
+                                style: "outlined"
+                                size_hint_x: None
+                                width: dp(80)
+                                size_hint_y: None
+                                height: dp(36)
+                                on_release: root.filter_projects("recent")
+                                line_color: app.theme_cls.outlineColor
+                                radius: [dp(18)]
 
-                    MDButton:
-                        id: filter_pending_btn
-                        style: "outlined"
-                        size_hint_x: None
-                        width: dp(100)
-                        size_hint_y: None
-                        height: dp(40)
-                        on_release: root.filter_projects("pending")
+                                MDButtonText:
+                                    text: "Recent"
+                                    font_style: "Label"
+                                    role: "medium"
 
-                        MDButtonText:
-                            text: "Pending"
-                            theme_font_size: "Custom"
-                            font_size: dp(12)
+                            MDButton:
+                                id: filter_synced_btn
+                                style: "outlined"
+                                size_hint_x: None
+                                width: dp(80)
+                                size_hint_y: None
+                                height: dp(36)
+                                on_release: root.filter_projects("synced")
+                                line_color: app.theme_cls.outlineColor
+                                radius: [dp(18)]
 
-                    Widget:  # Spacer
+                                MDButtonText:
+                                    text: "Synced"
+                                    font_style: "Label"
+                                    role: "medium"
 
-                    # Sort and View Controls
-                    MDIconButton:
-                        icon: "sort"
-                        size_hint: None, None
-                        size: dp(40), dp(40)
-                        theme_icon_color: "Primary"
-                        pos_hint: {"center_y": 0.5}
-                        on_release: root.show_sort_menu()
+                            MDButton:
+                                id: filter_pending_btn
+                                style: "outlined"
+                                size_hint_x: None
+                                width: dp(84)
+                                size_hint_y: None
+                                height: dp(36)
+                                on_release: root.filter_projects("pending")
+                                line_color: app.theme_cls.outlineColor
+                                radius: [dp(18)]
 
-                    MDIconButton:
-                        id: view_toggle_btn
-                        icon: "view-grid"
-                        size_hint: None, None
-                        size: dp(40), dp(40)
-                        theme_icon_color: "Primary"
-                        pos_hint: {"center_y": 0.5}
-                        on_release: root.toggle_view_mode()
+                                MDButtonText:
+                                    text: "Pending"
+                                    font_style: "Label"
+                                    role: "medium"
+
+                        Widget:  # Spacer
+
+                        # Sort and View Controls
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            adaptive_width: True
+                            size_hint_x: None
+                            width: self.minimum_width
+                            spacing: dp(8)
+                            pos_hint: {"center_y": 0.5}
+
+                            MDIconButton:
+                                id: sort_btn
+                                icon: "sort"
+                                size_hint: None, None
+                                size: dp(40), dp(40)
+                                theme_icon_color: "Primary"
+                                on_release: root.show_sort_menu()
+                                style: "standard"
+
+                            MDIconButton:
+                                id: view_toggle_btn
+                                icon: "view-grid"
+                                size_hint: None, None
+                                size: dp(40), dp(40)
+                                theme_icon_color: "Primary"
+                                on_release: root.toggle_view_mode()
+                                style: "standard"
 
             # Projects Grid Container with modern scrolling
             MDCard:
                 orientation: "vertical"
-                adaptive_height: True
-                size_hint_y: None
-                height: self.minimum_height
-                padding: dp(16)
+                size_hint_y: 1  # Take full available height
+                padding: [dp(24), dp(20)]
                 elevation: 2
-                radius: dp(16)
+                radius: dp(20)
+                style: "elevated"
                 md_bg_color: app.theme_cls.surfaceContainerColor
 
                 MDScrollView:
                     size_hint: 1, 1
                     do_scroll_x: False
-                    bar_width: dp(4)
+                    bar_width: dp(6)
 
                     MDGridLayout:
                         id: projects_grid
@@ -232,3 +296,4 @@
                         adaptive_height: True
                         size_hint_y: None
                         height: self.minimum_height
+                        padding: [dp(8), dp(8), dp(8), dp(8)]

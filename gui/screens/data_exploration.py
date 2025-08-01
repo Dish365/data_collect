@@ -17,7 +17,7 @@ from typing import Dict, List, Any, Optional
 from widgets.loading_overlay import LoadingOverlay
 from services.data_exploration_service import DataExplorationService
 
-Builder.load_file("kv/data_exploration.kv")
+# KV file loaded by main app after theme initialization
 
 class DataExplorationScreen(Screen):
     """Data Exploration Screen - handles UI interactions and delegates logic to service"""
@@ -132,8 +132,9 @@ class DataExplorationScreen(Screen):
                         lambda dt: self._handle_projects_loaded(projects), 0.1
                     )
                 except Exception as e:
+                    error_msg = str(e)  # Capture the error message in local scope
                     Clock.schedule_once(
-                        lambda dt: toast(f"Failed to load projects: {str(e)}"), 0.1
+                        lambda dt: toast(f"Failed to load projects: {error_msg}"), 0.1
                     )
             
             threading.Thread(target=load_projects_thread, daemon=True).start()
@@ -173,7 +174,7 @@ class DataExplorationScreen(Screen):
         menu_items = []
         for project_name in self.project_list:
             menu_items.append({
-                "viewclass": "OneLineListItem",
+                "viewclass": "MDListItem",
                 "text": project_name,
                 "height": dp(48),
                 "on_release": lambda x=project_name: self.select_project(x)
@@ -182,7 +183,7 @@ class DataExplorationScreen(Screen):
         self.project_menu = MDDropdownMenu(
             caller=self.ids.project_selector,
             items=menu_items,
-            width_mult=4,
+            width=dp(200),
             max_height=dp(300)
         )
         self.project_menu.open()

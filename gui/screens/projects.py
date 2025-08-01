@@ -1,4 +1,3 @@
-from kivy.uix.screenmanager import Screen
 from kivy.uix.label import Label
 from kivy.metrics import dp
 from kivy.lang import Builder
@@ -10,6 +9,7 @@ import json
 from datetime import datetime
 
 # KivyMD 2.0 imports
+from kivymd.uix.screen import MDScreen
 from kivymd.uix.dialog import (
     MDDialog, 
     MDDialogHeadlineText, 
@@ -52,9 +52,9 @@ except ImportError:
     print("Warning: ProjectService not found")
     ProjectService = None
 
-Builder.load_file("kv/projects.kv")
+# KV file loaded by main app after theme initialization
 
-class ProjectsScreen(Screen):
+class ProjectsScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         app = App.get_running_app()
@@ -97,7 +97,7 @@ class ProjectsScreen(Screen):
             self.ids.top_bar.set_title("Projects")
             self.ids.top_bar.set_current_screen("projects")
         
-        # Initialize responsive layout
+        # Update responsive layout
         self.update_responsive_layout()
         
         self.check_and_sync_projects()
@@ -105,90 +105,66 @@ class ProjectsScreen(Screen):
     def on_window_resize(self, width, height):
         """Handle window resize for responsive layout adjustments"""
         try:
-            from widgets.responsive_layout import ResponsiveHelper
-            
-            category = ResponsiveHelper.get_screen_size_category()
-            is_landscape = ResponsiveHelper.is_landscape()
-            
-            print(f"Projects: Window resized to {width}x{height} - {category} {'landscape' if is_landscape else 'portrait'}")
-            
             self.update_responsive_layout()
-            
         except Exception as e:
-            print(f"Error handling window resize in projects: {e}")
+            pass
     
     def update_responsive_layout(self):
-        """Update layout based on current screen size"""
-        try:
-            try:
-                from widgets.responsive_layout import ResponsiveHelper
-                
-                category = ResponsiveHelper.get_screen_size_category()
-                is_landscape = ResponsiveHelper.is_landscape()
-                
-                print(f"Projects: Updating responsive layout for {category} {'landscape' if is_landscape else 'portrait'}")
-                
-                # Update grid columns based on screen size
-                self.update_grid_columns(category, is_landscape)
-                
-                # Update TopBar height for tablets
-                if hasattr(self.ids, 'top_bar'):
-                    if category in ["tablet", "large_tablet"]:
-                        self.ids.top_bar.height = dp(64)
-                    else:
-                        self.ids.top_bar.height = dp(56)
-                        
-            except ImportError:
-                # Fallback when ResponsiveHelper not available
-                self._fallback_responsive_layout()
-            
-        except Exception as e:
-            print(f"Error updating responsive layout in projects: {e}")
-    
-    def _fallback_responsive_layout(self):
-        """Fallback responsive layout when ResponsiveHelper is not available"""
+        """Update layout based on current screen size using KivyMD 2.0 responsive patterns"""
         try:
             from kivy.core.window import Window
-            window_width = Window.width
             
-            if window_width < 800:
+            window_width = Window.width
+            window_height = Window.height
+            
+            # Determine screen category based on density-independent pixels
+            if window_width < dp(600):
+                category = "phone"
                 cols = 1
-            elif window_width < 1200:
+            elif window_width < dp(840):
+                category = "small_tablet"
                 cols = 2
-            else:
+            elif window_width < dp(1200):
+                category = "tablet"
                 cols = 3
-                
+            else:
+                category = "large_tablet"
+                cols = 4
+            
+            is_landscape = window_width > window_height
+            
+
+            
+            # Update grid columns
             if hasattr(self.ids, 'projects_grid'):
                 self.ids.projects_grid.cols = cols
-                
-        except Exception as e:
-            print(f"Error in fallback responsive layout: {e}")
-    
-    def update_grid_columns(self, category, is_landscape):
-        """Update grid column count based on screen size and orientation"""
-        if not hasattr(self.ids, 'projects_grid'):
-            return
             
-        grid = self.ids.projects_grid
-        
-        # Determine optimal column count
-        if category == "large_tablet":
-            cols = 4 if is_landscape else 3
-        elif category == "tablet":
-            cols = 3 if is_landscape else 2
-        elif category == "small_tablet":
-            cols = 2 if is_landscape else 1
-        else:  # phone
-            cols = 1
-        
-        if grid.cols != cols:
-            grid.cols = cols
-            print(f"Projects: Updated grid to {cols} columns for {category} {'landscape' if is_landscape else 'portrait'}")
+            # Update TopBar height based on screen size
+            if hasattr(self.ids, 'top_bar'):
+                if category in ["tablet", "large_tablet"]:
+                    self.ids.top_bar.height = dp(72)
+                else:
+                    self.ids.top_bar.height = dp(64)
+            
+            # Adjust card spacing based on screen size
+            if hasattr(self.ids, 'projects_grid'):
+                if category == "phone":
+                    self.ids.projects_grid.spacing = dp(12)
+                elif category == "small_tablet":
+                    self.ids.projects_grid.spacing = dp(16)
+                else:
+                    self.ids.projects_grid.spacing = dp(20)
+                        
+        except Exception as e:
+            # Fallback to single column
+            if hasattr(self.ids, 'projects_grid'):
+                self.ids.projects_grid.cols = 1
+    
+
     
     def filter_projects(self, filter_type):
         """Filter projects by type"""
         self.current_filter = filter_type
-        print(f"Projects: Filtering by {filter_type}")
         
         # Update button states
         self.update_filter_button_states(filter_type)
@@ -214,9 +190,13 @@ class ProjectsScreen(Screen):
                 if filter_name == active_filter:
                     # Active button styling
                     button.style = "filled"
+                    button.md_bg_color = self.theme_cls.primaryColor
+                    button.elevation = 3
                 else:
                     # Inactive button styling
                     button.style = "outlined"
+                    button.line_color = self.theme_cls.outlineColor
+                    button.elevation = 1
     
     def apply_current_filter(self):
         """Apply the current filter to projects data"""
@@ -274,22 +254,39 @@ class ProjectsScreen(Screen):
         """Show sort options menu"""
         try:
             menu_items = [
-                {"text": "Name (A-Z)", "viewclass": "OneLineListItem", "on_release": lambda: self.sort_projects("name")},
-                {"text": "Newest First", "viewclass": "OneLineListItem", "on_release": lambda: self.sort_projects("date_new")},
-                {"text": "Oldest First", "viewclass": "OneLineListItem", "on_release": lambda: self.sort_projects("date_old")},
-                {"text": "Sync Status", "viewclass": "OneLineListItem", "on_release": lambda: self.sort_projects("status")},
+                {
+                    "text": "Name (A-Z)",
+                    "leading_icon": "sort-alphabetical-ascending",
+                    "on_release": lambda: self.sort_projects("name")
+                },
+                {
+                    "text": "Newest First", 
+                    "leading_icon": "sort-calendar-descending",
+                    "on_release": lambda: self.sort_projects("date_new")
+                },
+                {
+                    "text": "Oldest First", 
+                    "leading_icon": "sort-calendar-ascending",
+                    "on_release": lambda: self.sort_projects("date_old")
+                },
+                {
+                    "text": "Sync Status", 
+                    "leading_icon": "sync",
+                    "on_release": lambda: self.sort_projects("status")
+                },
             ]
             
             self.sort_menu = MDDropdownMenu(
-                caller=self.ids.view_toggle_btn,
+                caller=self.ids.sort_btn if hasattr(self.ids, 'sort_btn') else self.ids.view_toggle_btn,
                 items=menu_items,
-                width_mult=4
+                width=dp(200),
+                position="bottom"
             )
             self.sort_menu.open()
             
         except Exception as e:
             print(f"Error showing sort menu: {e}")
-            toast("Sort options coming soon")
+            toast("Sort options unavailable")
     
     def sort_projects(self, sort_type):
         """Sort projects by specified type"""
@@ -297,7 +294,6 @@ class ProjectsScreen(Screen):
             self.sort_menu.dismiss()
             
         self.current_sort = sort_type
-        print(f"Projects: Sorting by {sort_type}")
         
         # Apply sort to current filtered data
         self.apply_current_sort()
@@ -318,11 +314,9 @@ class ProjectsScreen(Screen):
         
         view_mode = "Grid" if self.is_grid_view else "List"
         toast(f"Switched to {view_mode} view")
-        
-        print(f"Projects: Toggled to {'grid' if self.is_grid_view else 'list'} view")
     
     def refresh_projects_ui(self):
-        """Refresh the projects UI with current filtered/sorted data"""
+        """Refresh the projects UI with current filtered/sorted data"""        
         if not hasattr(self.ids, 'projects_grid'):
             return
             
@@ -330,8 +324,11 @@ class ProjectsScreen(Screen):
         self.ids.projects_grid.clear_widgets()
         
         # Remove any existing load more button
-        if hasattr(self.ids, 'load_more_button') and self.ids.load_more_button.parent:
-            self.ids.content_layout.remove_widget(self.ids.load_more_button)
+        if hasattr(self.ids, 'load_more_button') and hasattr(self.ids.load_more_button, 'parent') and self.ids.load_more_button.parent:
+            try:
+                self.ids.content_layout.remove_widget(self.ids.load_more_button)
+            except:
+                pass
         
         # Display filtered projects
         if not self.filtered_projects_data:
@@ -347,7 +344,7 @@ class ProjectsScreen(Screen):
         try:
             if not ProjectItem:
                 return None
-                
+            
             project_item = ProjectItem(
                 project_id=str(project.get('id', '')),
                 name=project.get('name', 'No Name'),
@@ -370,10 +367,12 @@ class ProjectsScreen(Screen):
             return None
     
     def show_empty_state(self):
-        """Show appropriate empty state message"""
+        """Show appropriate empty state message with modern styling"""
         try:
             if self.current_filter == "all":
-                message = "No projects found. Create your first project to get started!"
+                title = "No Projects Yet"
+                message = "Create your first project to get started!"
+                icon = "plus-circle-outline"
             else:
                 filter_names = {
                     "recent": "recent projects",
@@ -381,18 +380,77 @@ class ProjectsScreen(Screen):
                     "pending": "pending projects"
                 }
                 filter_name = filter_names.get(self.current_filter, "projects")
-                message = f"No {filter_name} found. Try a different filter."
+                title = f"No {filter_name.title()} Found"
+                message = "Try a different filter or create a new project."
+                icon = "filter-variant-remove"
             
-            empty_label = MDLabel(
-                text=message,
-                size_hint_y=None,
-                height=dp(100),
-                halign='center',
-                theme_font_size="Custom",
-                font_size=dp(16),
-                theme_text_color="Secondary"
+            # Create modern empty state card
+            from kivymd.uix.card import MDCard
+            from kivymd.uix.boxlayout import MDBoxLayout
+            from kivymd.uix.label import MDLabel
+            from kivymd.uix.button import MDButton, MDButtonText
+            from kivymd.uix.button import MDIconButton
+            
+            empty_card = MDCard(
+                orientation="vertical",
+                size_hint=(None, None),
+                size=(dp(300), dp(200)),
+                pos_hint={'center_x': 0.5},
+                padding=dp(24),
+                spacing=dp(16),
+                elevation=0,
+                style="outlined"
             )
-            self.ids.projects_grid.add_widget(empty_label)
+            
+            # Icon
+            icon_widget = MDIconButton(
+                icon=icon,
+                theme_icon_color="Secondary",
+                size_hint=(None, None),
+                size=(dp(48), dp(48)),
+                pos_hint={'center_x': 0.5}
+            )
+            
+            # Title
+            title_label = MDLabel(
+                text=title,
+                font_style="Headline",
+                role="small",
+                theme_text_color="Primary",
+                halign="center",
+                size_hint_y=None,
+                height=dp(32)
+            )
+            
+            # Message
+            message_label = MDLabel(
+                text=message,
+                font_style="Body",
+                role="medium",
+                theme_text_color="Secondary",
+                halign="center",
+                size_hint_y=None,
+                height=dp(48),
+                text_size=(dp(250), None)
+            )
+            
+            empty_card.add_widget(icon_widget)
+            empty_card.add_widget(title_label)
+            empty_card.add_widget(message_label)
+            
+            # Add action button for "all" filter
+            if self.current_filter == "all":
+                create_button = MDButton(
+                    MDButtonText(text="Create Project"),
+                    style="filled",
+                    size_hint=(None, None),
+                    size=(dp(140), dp(40)),
+                    pos_hint={'center_x': 0.5},
+                    on_release=lambda x: self.navigate_to_project_creation()
+                )
+                empty_card.add_widget(create_button)
+            
+            self.ids.projects_grid.add_widget(empty_card)
             
         except Exception as e:
             print(f"Error showing empty state: {e}")
@@ -431,94 +489,77 @@ class ProjectsScreen(Screen):
         threading.Thread(target=_check_network_and_sync, daemon=True).start()
 
     def show_loader(self, show=True, message="Loading..."):
-        """Show/hide loading overlay"""
+        """Show/hide loading overlay with progress indicator"""
         if self.loading_overlay:
             if show:
                 self.loading_overlay.show(message)
             else:
                 self.loading_overlay.hide()
+        elif show:
+            # Simple toast feedback if no loading overlay available
+            toast(message)
 
     def open_project_dialog(self, is_edit=False, existing_data=None):
-        """Open project dialog with modern KivyMD 2.0 structure"""
+        """Open project dialog with streamlined responsive layout"""
         try:
             if not ProjectDialog:
                 toast("Project dialog not available")
                 return
                 
-            # Create dialog content
-            content = ProjectDialog()
-
+            # Store dialog content reference
+            self.dialog_content = ProjectDialog()
+            self.dialog_content.projects_screen = self
+            
             if is_edit and existing_data:
-                content.set_data(**existing_data)
+                self.dialog_content.set_data(**existing_data)
                 self.current_project_id = existing_data.get('id')
             else:
                 self.current_project_id = None
             
-            # Create dialog with KivyMD 2.0 structure
+            # Use responsive helper for clean dialog sizing
+            from widgets.responsive_layout import ResponsiveHelper
+            
+            # Get optimal dialog dimensions
+            dialog_width, dialog_height = ResponsiveHelper.get_dialog_size()
+            
+            # Create dialog with simple, consistent properties
             self.dialog = MDDialog(
-                MDDialogHeadlineText(
-                    text="Edit Project" if is_edit else "New Project"
-                ),
-                MDDialogSupportingText(
-                    text="Enter the project details below"
-                ),
-                MDDialogButtonContainer(
-                    Widget(),  # Spacer
-                    MDButton(
-                        MDButtonText(text="Cancel"),
-                        style="text",
-                        on_release=lambda x: self.dialog.dismiss()
-                    ),
-                    MDButton(
-                        MDButtonText(text="Save"),
-                        style="text",
-                        on_release=self.save_project,
-                        disabled=True
-                    ),
-                    spacing="8dp",
-                ),
-                # Custom content handling
-                size_hint=(0.8, None),
-                height=dp(400),
+                size_hint=(None, None),
+                size=(dialog_width, dialog_height),
+                auto_dismiss=False,
+                pos_hint={'center_x': 0.5, 'center_y': 0.5},
+                radius=[dp(16)],
+                elevation=4
             )
             
-            # Add content to dialog (this might need adjustment based on KivyMD 2.0 specifics)
-            self.dialog.add_widget(content)
+            # Add content to dialog
+            self.dialog.add_widget(self.dialog_content)
             
-            # Enhanced validation with real-time feedback
-            def on_name_change(instance, value):
-                is_valid = content.validate_name()
-                save_button = self.dialog.buttons[1]  # Get save button
-                save_button.disabled = not is_valid
+            # Set dialog reference in content for button handling
+            self.dialog_content.set_dialog_reference(self.dialog)
             
-            # Bind validation events
-            content.ids.name_field.bind(text=on_name_change)
-            
-            # Set initial state
-            initial_valid = bool(content.ids.name_field.text.strip())
-            self.dialog.buttons[1].disabled = not initial_valid
-            
+            # Open dialog and focus first field
             self.dialog.open()
+            Clock.schedule_once(lambda dt: self.dialog_content.focus_first_field(), 0.2)
 
         except Exception as e:
             print(f"Error opening project dialog: {str(e)}")
-            toast(f"Error opening dialog: {str(e)}")
+            toast(f"Error opening dialog")
 
     def save_project(self, instance):
         """Save project with enhanced validation"""
-        if not self.project_service:
+        if not self.project_service or not self.dialog_content:
             toast("Project service not available")
             return
             
         self.show_loader(True, "Saving project...")
         
         try:
-            # Get data from the dialog's content
-            content = self.dialog.content_cls
-            project_data = content.get_data()
+            # Get data from the dialog content
+            project_data = self.dialog_content.get_data()
             
             # Enhanced validation check
-            if not content.is_valid():
+            if not self.dialog_content.is_valid():
                 toast("Please check your input and try again")
                 self.show_loader(False)
                 return
@@ -536,13 +577,10 @@ class ProjectsScreen(Screen):
 
             if self.current_project_id:
                 self._execute_api_call(self.project_service.update_project, self.current_project_id, api_data)
-                toast("Project updated successfully")
             else:
                 self._execute_api_call(self.project_service.create_project, api_data)
-                toast("Project created successfully")
 
-            if self.dialog:
-                self.dialog.dismiss()
+            self.close_dialog()
 
         except Exception as e:
             print(f"Error in save_project: {str(e)}")
@@ -562,13 +600,35 @@ class ProjectsScreen(Screen):
                 Clock.schedule_once(lambda dt: self._process_api_result(result))
 
         threading.Thread(target=run_in_thread, daemon=True).start()
+    
+    def close_dialog(self, *args):
+        """Close the current dialog"""
+        if self.dialog:
+            self.dialog.dismiss()
+            self.dialog = None
+            self.dialog_content = None
+    
+    def _update_save_button_state(self):
+        """Update save button state based on dialog content validation"""
+        try:
+            if self.dialog_content:
+                # The dialog content now handles its own save button state
+                self.dialog_content._update_save_button()
+        except Exception as e:
+            print(f"Error updating save button state: {e}")
 
     def _process_api_result(self, result):
         """Process API call result"""
         self.show_loader(False)
         if result.get('message'):
             toast(result['message'])
-        if result.get('reload', False):
+        else:
+            # Default success messages
+            if self.current_project_id:
+                toast("Project updated successfully")
+            else:
+                toast("Project created successfully")
+        if result.get('reload', True):  # Default to True for refresh
             self.load_projects(clear_existing=True)
 
     def search_projects(self, query):
@@ -577,7 +637,11 @@ class ProjectsScreen(Screen):
 
     def load_projects(self, search_query=None, clear_existing=False):
         """Load projects from service"""
-        if self.is_loading or not self.project_service:
+        if self.is_loading:
+            return
+            
+        if not self.project_service:
+            self.show_empty_state()
             return
             
         self.is_loading = True
@@ -588,8 +652,11 @@ class ProjectsScreen(Screen):
             self.projects_data = []
             if hasattr(self.ids, 'projects_grid'):
                 self.ids.projects_grid.clear_widgets()
-            if hasattr(self.ids, 'load_more_button'):
-                self.ids.content_layout.remove_widget(self.ids.load_more_button)
+            if hasattr(self.ids, 'load_more_button') and hasattr(self.ids, 'content_layout'):
+                try:
+                    self.ids.content_layout.remove_widget(self.ids.load_more_button)
+                except:
+                    pass
 
         def _load_in_thread():
             try:
@@ -606,7 +673,7 @@ class ProjectsScreen(Screen):
                 
                 Clock.schedule_once(lambda dt: self._update_ui_with_projects(projects, len(projects) < self.page_limit))
             except Exception as e:
-                print(f"Error in load_projects: {str(e)}")
+                print(f"Error loading projects: {str(e)}")
                 toast(f"Error loading projects: {str(e)}")
             finally:
                 self.is_loading = False
@@ -657,6 +724,11 @@ class ProjectsScreen(Screen):
             toast("Project service not available")
             return
             
+        project_name = "Unknown"
+        project_data = next((p for p in self.projects_data if str(p.get('id')) == str(project_id)), None)
+        if project_data:
+            project_name = project_data.get('name', 'Unknown')
+        
         def confirm_delete(instance):
             self.show_loader(True, "Deleting project...")
             self._execute_api_call(self.project_service.delete_project, project_id)
@@ -667,20 +739,20 @@ class ProjectsScreen(Screen):
                 text="Delete Project?"
             ),
             MDDialogSupportingText(
-                text="This action cannot be undone. All project data will be permanently deleted."
+                text=f"Are you sure you want to delete '{project_name}'? This action cannot be undone and all project data will be permanently deleted."
             ),
             MDDialogButtonContainer(
                 Widget(),  # Spacer
                 MDButton(
                     MDButtonText(text="Cancel"),
-                    style="text",
+                    style="outlined",
                     on_release=lambda x: delete_dialog.dismiss()
                 ),
                 MDButton(
                     MDButtonText(text="Delete"),
-                    style="text",
-                    theme_text_color="Custom",
-                    text_color=(1, 0, 0, 1),  # Red text
+                    style="filled",
+                    theme_bg_color="Custom",
+                    md_bg_color=(0.8, 0.2, 0.2, 1),  # Red background
                     on_release=confirm_delete
                 ),
                 spacing="8dp",
@@ -697,4 +769,15 @@ class ProjectsScreen(Screen):
 
     def create_new_project(self, instance):
         """Create new project"""
-        self.open_project_dialog()
+        self.navigate_to_project_creation()
+    
+    def navigate_to_project_creation(self):
+        """Navigate to project creation screen"""
+        try:
+            app = App.get_running_app()
+            if hasattr(app.root, 'current'):
+                app.root.current = 'project_creation'
+        except Exception as e:
+            print(f"Error navigating to project creation: {e}")
+            toast("Error opening project creation screen")
+    

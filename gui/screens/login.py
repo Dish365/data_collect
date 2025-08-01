@@ -1,13 +1,11 @@
 from kivymd.uix.screen import MDScreen
-from kivy.lang import Builder
 from kivymd.app import MDApp
 from kivy.properties import BooleanProperty
 # Assuming you have these imports - adjust as needed
 # from utils.cross_platform_toast import toast
 # from widgets.forgot_password_popup import ForgotPasswordPopup
 
-# Load the KV file
-Builder.load_file("kv/login.kv")
+# KV file will be loaded by main app after theme initialization
 
 class LoginScreen(MDScreen):
     is_authenticating = BooleanProperty(False)
@@ -137,8 +135,9 @@ class LoginScreen(MDScreen):
     
     def on_enter(self):
         """Called when screen is entered"""
-        # Clear previous input and errors
-        self.ids.username.text = ""
-        self.ids.password.text = ""
+        # Clear previous input and errors (only if IDs are loaded)
+        if hasattr(self, 'ids') and 'username' in self.ids and 'password' in self.ids:
+            self.ids.username.text = ""
+            self.ids.password.text = ""
         self.is_authenticating = False
         self.password_visible = False

@@ -1,4 +1,6 @@
 #:kivy 2.0.0
+#:import dp kivy.metrics.dp
+#:import app kivy.app.App
 #:import Window kivy.core.window.Window
 
 <DataCollectionScreen>:
@@ -49,7 +51,7 @@
                         text: "Data Collection"
                         font_style: "Headline"
 
-                        role: "small" if Window.width > dp(600) else "Subtitle1"
+                        role: "small" if Window.width > dp(600) else "medium"
                         theme_text_color: "Primary"
                         bold: True
                         pos_hint: {"center_y": 0.5}
@@ -174,7 +176,7 @@
             do_scroll_x: False
             do_scroll_y: True
             bar_width: dp(6) if Window.width < dp(600) else dp(8)
-            bar_color: app.theme_cls.outlineColor
+            # Using default bar color for KivyMD 2.0.1 compatibility
 
             # Form Container - Responsive Layout
             MDBoxLayout:
@@ -221,7 +223,7 @@
                             text: "No form loaded"
                             font_style: "Headline"
 
-                            role: "small" if Window.width > dp(600) else "Subtitle1"
+                            role: "small" if Window.width > dp(600) else "medium"
                             text_size: self.width, None
                             theme_text_color: "Secondary"
                             halign: "center"
@@ -240,19 +242,20 @@
                             size_hint_y: None
                             height: dp(20)
 
-                # Side Panel - Responsive
+                # Side Panel - Enhanced Responsive Design
                 MDCard:
                     id: side_panel
                     orientation: 'vertical'
-                    spacing: dp(12)
+                    spacing: dp(16)
                     size_hint_x: 0.3 if Window.width > dp(900) else 0
                     size_hint_y: None
-                    height: dp(400) if Window.width > dp(900) else 0
-                    elevation: 1
-                    padding: dp(16) if Window.width > dp(900) else 0
-                    opacity: 0
-                    radius: [dp(8)]
-                    md_bg_color: app.theme_cls.surfaceColor
+                    height: dp(450) if Window.width > dp(900) else 0
+                    elevation: 2
+                    style: "elevated"
+                    padding: dp(20) if Window.width > dp(900) else 0
+                    opacity: 1 if Window.width > dp(900) else 0
+                    radius: [dp(16)]
+                    md_bg_color: app.theme_cls.surfaceContainerColor
 
                     MDLabel:
                         text: "Form Overview"
@@ -265,11 +268,16 @@
                         bold: True
 
                     MDScrollView:
+                        do_scroll_x: False
+                        bar_width: dp(4)
+                        # Using default bar colors for KivyMD 2.0.1 compatibility
+                        
                         MDBoxLayout:
                             id: question_overview
                             orientation: 'vertical'
-                            spacing: dp(6)
+                            spacing: dp(8)
                             adaptive_height: True
+                            padding: dp(8)
 
         # Action Buttons - Responsive Footer
         MDCard:
@@ -381,8 +389,7 @@
     MDLabel:
         text: root.question_text
         font_style: "Title"
-
-        role: "medium" if Window.width < dp(600) else "Subtitle1"
+        role: "medium" if Window.width < dp(600) else "small"
         theme_text_color: "Primary"
         size_hint_y: None
         height: dp(32) if Window.width < dp(600) else dp(40)

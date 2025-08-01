@@ -9,15 +9,68 @@ from kivymd.app import MDApp
 from kivy.properties import StringProperty
 from kivy.clock import Clock
 from kivy.metrics import dp
+from kivy.lang import Builder
 
+# Workaround for KivyMD 2.0.1 app reference issues
+class SafeScreenManager:
+    """Safe screen manager that doesn't crash when screens don't exist"""
+    def __init__(self):
+        self._real_screen_manager = None
+    
+    def set_real_manager(self, manager):
+        self._real_screen_manager = manager
+    
+    def get_screen(self, name):
+        if self._real_screen_manager and hasattr(self._real_screen_manager, 'get_screen'):
+            try:
+                return self._real_screen_manager.get_screen(name)
+            except:
+                # Return a dummy object with common screen attributes
+                class DummyScreen:
+                    current_project_id = None
+                    def __getattr__(self, attr):
+                        def dummy_method(*args, **kwargs):
+                            pass
+                        return dummy_method
+                return DummyScreen()
+        else:
+            class DummyScreen:
+                current_project_id = None
+                def __getattr__(self, attr):
+                    def dummy_method(*args, **kwargs):
+                        pass
+                    return dummy_method
+            return DummyScreen()
+    
+    def __getattr__(self, attr):
+        if self._real_screen_manager:
+            return getattr(self._real_screen_manager, attr)
+        else:
+            def dummy_method(*args, **kwargs):
+                pass
+            return dummy_method
+
+def setup_app_theme_workaround():
+    """Set up workaround for KivyMD app reference issues"""
+    # Make sure App class has theme_cls attribute for KV files
+    if not hasattr(App, 'theme_cls'):
+        App.theme_cls = None
+    
+    # Set up safe screen manager
+    if not hasattr(App, 'root'):
+        App.root = SafeScreenManager()
+
+# Call workaround immediately
+setup_app_theme_workaround()
 
 # Import screens
 from screens.login import LoginScreen
 from screens.dashboard import DashboardScreen
 from screens.projects import ProjectsScreen
+from screens.project_creation import ProjectCreationScreen
 from screens.data_collection import DataCollectionScreen
 from screens.analytics import AnalyticsScreen
-from screens.form_builder import FormBuilderScreen
+from screens.form_builder_modern import FormBuilderScreen
 from screens.sync import SyncScreen
 from screens.signup import SignUpScreen
 from screens.responses import ResponsesScreen
@@ -33,17 +86,25 @@ from kivy.modules import inspector
 from services.database import DatabaseService
 from services.sync_service import SyncService
 from services.auth_service import AuthService
-from services.form_service import FormService
+from services.form_service_modern import ModernFormService as FormService
 
 class ResearchCollectorApp(MDApp):
     user_display_name = StringProperty("Guest")
-
-    def build(self):
-        # Modern Material Design 3 theme
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Initialize theme immediately to prevent KV loading issues
+        self.theme_cls.material_style = "M3"
         self.theme_cls.primary_palette = "Blue"    
         self.theme_cls.primary_hue = "500"
-        self.theme_cls.theme_style = "Light"  # Use Light theme by default
+        self.theme_cls.theme_style = "Light"
+        self.theme_cls.dynamic_color = True
         
+        # Set App class attributes to this instance for KV files
+        App.theme_cls = self.theme_cls
+        App.user_display_name = self.user_display_name
+    
+    def build(self):
         # Responsive window sizing for tablet optimization
         if platform != 'android':
             # Detect screen size and set appropriate window dimensions
@@ -60,59 +121,70 @@ class ResearchCollectorApp(MDApp):
         from services.data_collection_service import DataCollectionService
         self.data_collection_service = DataCollectionService(self.auth_service, self.db_service, self.sync_service)
         
-        # Create screen manager
+        # Create screen manager (screens will be added in on_start)
         sm = ScreenManager()
         
-        # Add screens
-        sm.add_widget(LoginScreen(name='login'))
-        sm.add_widget(SignUpScreen(name='signup'))
-        sm.add_widget(DashboardScreen(name='dashboard'))
-        sm.add_widget(ProjectsScreen(name='projects'))
-        sm.add_widget(DataCollectionScreen(name='data_collection'))
-        sm.add_widget(AnalyticsScreen(name='analytics'))
-        sm.add_widget(FormBuilderScreen(name='form_builder'))
-        sm.add_widget(SyncScreen(name='sync'))
-        sm.add_widget(ResponsesScreen(name='responses'))
-        sm.add_widget(DataExplorationScreen(name='data_exploration'))
-        sm.add_widget(AutoDetectionScreen(name='auto_detection'))
-        sm.add_widget(DescriptiveAnalyticsScreen(name='descriptive_analytics'))
-        sm.add_widget(InferentialAnalyticsScreen(name='inferential_analytics'))
-        sm.add_widget(QualitativeAnalyticsScreen(name='qualitative_analytics'))
-
+        # Set root for KV files - use our safe wrapper
+        App.root.set_real_manager(sm)
+        
         inspector.create_inspector(Window, sm)
         
         return sm
     
+    def load_kv_files(self):
+        """Load all KV files now that theme is ready"""
+        from kivy.lang import Builder
+        import os
+        
+        kv_files = [
+            # Screen KV files
+            "kv/login.kv",
+            "kv/dashboard.kv", 
+            "kv/projects.kv",
+            "kv/project_creation.kv",
+            "kv/collect_data.kv",
+            "kv/analytics.kv",
+            "kv/form_builder_modern.kv",
+            "kv/sync.kv",
+            "kv/signup.kv",
+            "kv/responses.kv",
+            "kv/data_exploration.kv",
+            "kv/qualitative_analytics.kv",
+            "kv/auto_detection.kv",
+            "kv/descriptive_analytics.kv",
+            "kv/inferential_analytics.kv",
+            # Widget KV files
+            "kv/topbar.kv",
+            "kv/team_member_dialog.kv",
+            "kv/sync_item.kv",
+            "kv/stat_card.kv",
+            "kv/project_item.kv",
+            "kv/project_dialog.kv",
+            "kv/form_field_modern.kv",
+            "kv/forgot_password_popup.kv",
+            "kv/chart_widget.kv",
+            "kv/activity_item.kv",
+            "kv/loading_overlay.kv"
+        ]
+        
+        for kv_file in kv_files:
+            if os.path.exists(kv_file):
+                try:
+                    Builder.load_file(kv_file)
+                    print(f"Loaded KV file: {kv_file}")
+                except Exception as e:
+                    print(f"Error loading KV file {kv_file}: {e}")
+    
     def setup_responsive_window(self):
         """Setup responsive window sizing for tablet optimization"""
-        try:
-            # Get screen dimensions
-            from tkinter import Tk
-            root = Tk()
-            screen_width = root.winfo_screenwidth()
-            screen_height = root.winfo_screenheight()
-            root.destroy()
-            
-            # Calculate optimal tablet window size (80% of screen for development)
-            tablet_width = min(int(screen_width * 0.8), 1200)  # Max 1200px width
-            tablet_height = min(int(screen_height * 0.8), 900)  # Max 900px height
-            
-            # Ensure minimum tablet-friendly dimensions
-            tablet_width = max(tablet_width, 800)   # Minimum 800px width
-            tablet_height = max(tablet_height, 600)  # Minimum 600px height
-            
-            Window.size = (tablet_width, tablet_height)
-            Window.minimum_width = 800
-            Window.minimum_height = 600
-            
-            print(f"Tablet window initialized: {tablet_width}x{tablet_height}")
-            
-        except Exception as e:
-            # Fallback to default tablet size
-            print(f"Could not detect screen size: {e}")
-            Window.size = (1024, 768)  # Standard tablet landscape
-            Window.minimum_width = 800
-            Window.minimum_height = 600
+        # Set minimum window constraints
+        Window.minimum_width = 800
+        Window.minimum_height = 600
+        
+        # Set default tablet-friendly size if not on mobile
+        Window.size = (1024, 768)
+        
+        print(f"Window initialized: {Window.size[0]}x{Window.size[1]}")
     
     def on_window_resize(self, window, width, height):
         """Handle window resize events for responsive layout"""
@@ -181,6 +253,18 @@ class ResearchCollectorApp(MDApp):
     
     def on_start(self):
         """Called when app starts"""
+        # Use Clock to delay initialization to ensure app is fully running
+        from kivy.clock import Clock
+        Clock.schedule_once(self._delayed_init, 0.1)
+    
+    def _delayed_init(self, dt):
+        """Delayed initialization after app is fully running"""
+        # Load KV files now that theme and app are fully initialized
+        self.load_kv_files()
+        
+        # Add screens after KV files are loaded
+        self.add_screens()
+        
         # Initialize database
         self.db_service.init_database()
         
@@ -193,6 +277,25 @@ class ResearchCollectorApp(MDApp):
         else:
             # User needs to login
             self.root.current = "login"
+    
+    def add_screens(self):
+        """Add all screens to the screen manager"""
+        # Add screens
+        self.root.add_widget(LoginScreen(name='login'))
+        self.root.add_widget(SignUpScreen(name='signup'))
+        self.root.add_widget(DashboardScreen(name='dashboard'))
+        self.root.add_widget(ProjectsScreen(name='projects'))
+        self.root.add_widget(ProjectCreationScreen(name='project_creation'))
+        self.root.add_widget(DataCollectionScreen(name='data_collection'))
+        self.root.add_widget(AnalyticsScreen(name='analytics'))
+        self.root.add_widget(FormBuilderScreen(name='form_builder'))
+        self.root.add_widget(SyncScreen(name='sync'))
+        self.root.add_widget(ResponsesScreen(name='responses'))
+        self.root.add_widget(DataExplorationScreen(name='data_exploration'))
+        self.root.add_widget(AutoDetectionScreen(name='auto_detection'))
+        self.root.add_widget(DescriptiveAnalyticsScreen(name='descriptive_analytics'))
+        self.root.add_widget(InferentialAnalyticsScreen(name='inferential_analytics'))
+        self.root.add_widget(QualitativeAnalyticsScreen(name='qualitative_analytics'))
         
     def handle_successful_login(self):
         """Handle successful login - set up user context and navigate to dashboard"""

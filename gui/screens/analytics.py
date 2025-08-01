@@ -15,7 +15,7 @@ from typing import Dict, List
 
 #:kivy 2.0
 
-Builder.load_file('kv/analytics.kv')
+# KV file loaded by main app after theme initialization
 
 class AnalyticsScreen(Screen):
     """Analytics Screen - Navigation hub for analytics features"""
@@ -175,7 +175,7 @@ class AnalyticsScreen(Screen):
         self.project_menu = MDDropdownMenu(
             caller=self.ids.project_selector,
             items=menu_items,
-            width_mult=5,
+            width=dp(240),
             max_height=dp(400)
         )
         self.project_menu.open()

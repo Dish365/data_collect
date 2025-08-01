@@ -36,7 +36,7 @@
             MDLabel:
                 text: root.title
                 font_style: "Body"
-                role: "medium"
+                role: "large"
                 bold: True
                 adaptive_height: True
                 size_hint_y: None
@@ -47,8 +47,8 @@
             # Activity description - updated to KivyMD 2.0.1
             MDLabel:
                 text: root.activity_text
-                font_style: "Label"
-                role: "small"
+                font_style: "Body"
+                role: "medium"
                 adaptive_height: True
                 size_hint_y: None
                 height: self.texture_size[1] if self.text else 0
@@ -59,7 +59,7 @@
         # Time section
         MDLabel:
             text: root.activity_time
-            font_style: "Label"
+            font_style: "Body"
             role: "small"
             size_hint_x: None
             width: dp(80)

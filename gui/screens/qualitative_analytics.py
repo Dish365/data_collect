@@ -29,7 +29,7 @@ class QualitativeResultsCard(MDCard):
     """Custom card widget for displaying qualitative analysis results"""
     current_analysis_type = StringProperty("")
 
-Builder.load_file("kv/qualitative_analytics.kv")
+# KV file loaded by main app after theme initialization
 
 class QualitativeAnalyticsScreen(Screen):
     """Qualitative Analytics Screen - handles UI interactions and delegates logic to service"""
@@ -279,7 +279,7 @@ class QualitativeAnalyticsScreen(Screen):
         menu_items = []
         for project_name in self.project_list:
             menu_items.append({
-                "viewclass": "OneLineListItem",
+                "viewclass": "MDListItem",
                 "text": project_name,
                 "height": dp(48),
                 "on_release": lambda x=project_name: self.select_project(x)
@@ -288,7 +288,7 @@ class QualitativeAnalyticsScreen(Screen):
         self.project_menu = MDDropdownMenu(
             caller=self.ids.project_selector,
             items=menu_items,
-            width_mult=4,
+            width=dp(200),
             max_height=dp(300)
         )
         self.project_menu.open()
@@ -719,13 +719,13 @@ class QualitativeAnalyticsScreen(Screen):
             for analysis_type in analysis_types:
                 menu_items.append({
                     "text": analysis_type['name'],
-                    "viewclass": "OneLineListItem",
+                    "viewclass": "MDListItem",
                     "on_release": lambda x=analysis_type['id']: self.select_analysis_type(x),
                 })
                 
             self.analysis_type_menu = MDDropdownMenu(
                 items=menu_items,
-                width_mult=4,
+                width=dp(200),
                 max_height=dp(300)
             )
         
@@ -750,13 +750,13 @@ class QualitativeAnalyticsScreen(Screen):
         for method in methods:
             menu_items.append({
                 "text": method.replace('_', ' ').title(),
-                "viewclass": "OneLineListItem", 
+                "viewclass": "MDListItem", 
                 "on_release": lambda x=method: self.select_analysis_method(x),
             })
             
         method_menu = MDDropdownMenu(
             items=menu_items,
-            width_mult=4,
+            width=dp(200),
             max_height=dp(200)
         )
         

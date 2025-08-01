@@ -82,7 +82,7 @@
         size_hint_x: None
         width: dp(36)
         icon_size: "20dp"
-        disabled: True
+        disabled: not (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id)
     
     MDLabel:
         text: "Analytics"
@@ -266,7 +266,7 @@
             icon: "database-search"
             theme_icon_color: "Custom"
             icon_color: 0.2, 0.6, 1.0, 1
-            disabled: True
+            disabled: not (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id)
             size_hint_x: None
             width: dp(48)
             icon_size: "32dp"
@@ -308,7 +308,7 @@
             icon_color: 0.2, 0.6, 1.0, 1
             size_hint_x: None
             width: dp(40)
-            disabled: True
+            disabled: not (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id)
 
 <AutoDetectionNavigationCard@MDCard>:
     orientation: 'vertical'
@@ -332,7 +332,7 @@
             icon: "auto-fix"
             theme_icon_color: "Custom"
             icon_color: 0.2, 0.8, 0.6, 1
-            disabled: True
+            disabled: not (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id)
             size_hint_x: None
             width: dp(48)
             icon_size: "32dp"
@@ -374,7 +374,7 @@
             icon_color: 0.2, 0.8, 0.6, 1
             size_hint_x: None
             width: dp(40)
-            disabled: True
+            disabled: not (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id)
 
 <DescriptiveAnalyticsNavigationCard@MDCard>:
     orientation: 'vertical'
@@ -398,7 +398,7 @@
             icon: "chart-bar"
             theme_icon_color: "Custom"
             icon_color: 0.8, 0.2, 0.6, 1
-            disabled: True
+            disabled: not (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id)
             size_hint_x: None
             width: dp(48)
             icon_size: "32dp"
@@ -440,7 +440,7 @@
             icon_color: 0.8, 0.2, 0.6, 1
             size_hint_x: None
             width: dp(40)
-            disabled: True
+            disabled: not (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id)
 
 <InferentialAnalyticsNavigationCard@MDCard>:
     orientation: 'vertical'
@@ -464,7 +464,7 @@
             icon: "chart-scatter-plot"
             theme_icon_color: "Custom"
             icon_color: 0.2, 0.4, 0.8, 1
-            disabled: True
+            disabled: not (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id)
             size_hint_x: None
             width: dp(48)
             icon_size: "32dp"
@@ -506,7 +506,7 @@
             icon_color: 0.2, 0.4, 0.8, 1
             size_hint_x: None
             width: dp(40)
-            disabled: True
+            disabled: not (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id)
 
 <QualitativeAnalyticsNavigationCard@MDCard>:
     orientation: 'vertical'
@@ -530,7 +530,7 @@
             icon: "text-box"
             theme_icon_color: "Custom"
             icon_color: 0.6, 0.2, 0.8, 1
-            disabled: True
+            disabled: not (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id)
             size_hint_x: None
             width: dp(48)
             icon_size: "32dp"
@@ -572,7 +572,7 @@
             icon_color: 0.6, 0.2, 0.8, 1
             size_hint_x: None
             width: dp(40)
-            disabled: True
+            disabled: not (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id)
 
 # Analytics Card Components
 <AnalyticsCard@MDCard>:
@@ -605,7 +605,7 @@
         size: dp(64), dp(64)
         icon_size: "48dp"
         pos_hint: {'center_x': 0.5}
-        disabled: True
+        disabled: not (app.root and hasattr(app.root, 'get_screen') and app.root.get_screen('analytics').current_project_id)
     
     MDLabel:
         text: "Analytics Hub"

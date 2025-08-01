@@ -23,7 +23,7 @@ from kivymd.uix.menu import MDDropdownMenu
 from kivy.uix.widget import Widget
 
 # Load the KV file
-Builder.load_file("kv/team_member_dialog.kv")
+# KV file loaded by main app after theme initialization
 
 class AutocompleteTextField(MDTextField):
     """Custom text field with autocomplete functionality for KivyMD 2.0"""
@@ -149,14 +149,14 @@ class TeamMemberDialogContent(MDBoxLayout):
         for project in self.projects:
             items.append({
                 "text": project['name'],
-                "viewclass": "OneLineListItem",
+                "viewclass": "MDListItem",
                 "on_release": lambda x=project: self.select_project(x)
             })
         
         self.project_menu = MDDropdownMenu(
             caller=self.ids.project_button,
             items=items,
-            width_mult=4
+            width=dp(200)
         )
         self.project_menu.open()
 

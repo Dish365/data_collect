@@ -2,6 +2,7 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.lang import Builder
 from kivymd.app import MDApp
 from kivy.clock import Clock
+from kivy.metrics import dp
 import threading
 
 # Updated imports for KivyMD 2.0
@@ -19,7 +20,7 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.menu import MDDropdownMenu
 from kivy.uix.widget import Widget
 
-Builder.load_file("kv/topbar.kv")
+# KV file loaded by main app after theme initialization
 
 class TopBar(MDBoxLayout):
     def __init__(self, **kwargs):
@@ -134,7 +135,7 @@ class TopBar(MDBoxLayout):
             self.navigation_menu = MDDropdownMenu(
                 caller=self.ids.hamburger_menu,
                 items=navigation_items,
-                width_mult=4,
+                width=dp(200),
             )
         else:
             self.navigation_menu.items = navigation_items

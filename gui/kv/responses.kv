@@ -1,4 +1,5 @@
 #:import dp kivy.metrics.dp
+#:import app kivy.app.App
 #:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
 #:import MDCard kivymd.uix.card.MDCard
 #:import MDButton kivymd.uix.button.MDButton
@@ -211,25 +212,34 @@
                             halign: "center"
                             theme_text_color: "Primary"
 
-                # Scrollable content area - Enhanced for tablets
-                ScrollView:
+                # Scrollable content area - Enhanced for tablets with better scroll styling
+                MDScrollView:
+                    do_scroll_x: False
+                    bar_width: dp(6)
+                    # Using default bar colors for KivyMD 2.0.1 compatibility
+                    effect_cls: "ScrollEffect"
+                    smooth_scroll_end: 10
+                    
                     MDBoxLayout:
                         id: responses_grid
                         orientation: "vertical"
-                        spacing: dp(4)  # Increased spacing between rows
-                        padding: [0, dp(12), 0, dp(12)]  # Increased padding
+                        spacing: dp(8)  # Increased spacing between rows
+                        padding: [dp(16), dp(16), dp(16), dp(16)]  # Increased padding
                         adaptive_height: True
                         
-            # Right Panel (Detail View) - Responsive visibility
+            # Right Panel (Detail View) - Enhanced with better Material Design 3 styling
             MDCard:
                 id: detail_panel
                 size_hint_x: 0.4 if root.tablet_view or root.desktop_view else 0
                 opacity: 1 if root.tablet_view or root.desktop_view else 0
                 disabled: not (root.tablet_view or root.desktop_view)
-                elevation: 2
-                padding: dp(20)
+                elevation: 3
+                style: "elevated"
+                md_bg_color: app.theme_cls.surfaceContainerColor
+                padding: dp(24)
+                radius: [dp(16)]
                 orientation: "vertical"
-                spacing: dp(16)
+                spacing: dp(20)
                 
                 MDLabel:
                     text: "Response Details"
@@ -240,15 +250,18 @@
                     size_hint_y: None
                     height: dp(40)
                     
-                ScrollView:
+                MDScrollView:
                     id: detail_scroll
+                    do_scroll_x: False
+                    bar_width: dp(4)
+                    # Using default bar colors for KivyMD 2.0.1 compatibility
                     
                     MDBoxLayout:
                         id: detail_content
                         orientation: "vertical"
-                        spacing: dp(12)
+                        spacing: dp(16)
                         adaptive_height: True
-                        padding: dp(16)
+                        padding: dp(20)
                         
                         MDLabel:
                             text: "Select a respondent to view their responses"
@@ -383,22 +396,30 @@
         height: dp(30)
     
     # Responses list
-    ScrollView:
+    MDScrollView:
+        do_scroll_x: False
+        bar_width: dp(4)
+        bar_color: app.theme_cls.primaryColor
+        bar_inactive_color: app.theme_cls.outlineVariantColor
+        
         MDBoxLayout:
             id: responses_layout
             orientation: "vertical"
-            spacing: dp(8)
+            spacing: dp(12)
             adaptive_height: True
-            padding: dp(10)
+            padding: dp(16)
 
-# Modern Response Card Component
+# Modern Response Card Component - Enhanced Material Design 3
 <ResponseCard>:
     orientation: "vertical"
-    padding: dp(10)
-    spacing: dp(5)
+    padding: dp(16)
+    spacing: dp(8)
     size_hint_y: None
-    height: dp(80)
+    height: dp(96)
     elevation: 2
+    style: "elevated"
+    radius: [dp(12)]
+    md_bg_color: app.theme_cls.surfaceContainerColor
     
     MDLabel:
         id: question_label

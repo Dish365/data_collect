@@ -6,7 +6,7 @@ from kivy.core.window import Window
 from datetime import datetime
 
 # Load the KV file
-Builder.load_file("kv/sync_item.kv")
+# KV file loaded by main app after theme initialization
 
 
 class SyncItem(MDCard):

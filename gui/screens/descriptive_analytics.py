@@ -19,7 +19,7 @@ from services.descriptive_analytics import DescriptiveAnalyticsHandler
 from services.distribution_analytics import DistributionAnalyticsHandler
 from services.categorical_analytics import CategoricalAnalyticsHandler
 
-Builder.load_file("kv/descriptive_analytics.kv")
+# KV file loaded by main app after theme initialization
 
 class DescriptiveAnalyticsScreen(Screen):
     """Descriptive Analytics Screen - handles UI interactions and delegates logic to service"""
@@ -200,7 +200,7 @@ class DescriptiveAnalyticsScreen(Screen):
         menu_items = []
         for project_name in self.project_list:
             menu_items.append({
-                "viewclass": "OneLineListItem",
+                "viewclass": "MDListItem",
                 "text": project_name,
                 "height": dp(48),
                 "on_release": lambda x=project_name: self.select_project(x)
@@ -209,7 +209,7 @@ class DescriptiveAnalyticsScreen(Screen):
         self.project_menu = MDDropdownMenu(
             caller=self.ids.project_selector,
             items=menu_items,
-            width_mult=4,
+            width=dp(200),
             max_height=dp(300)
         )
         self.project_menu.open()

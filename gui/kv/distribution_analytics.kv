@@ -9,8 +9,8 @@
 #:import MDCircularProgressIndicator kivymd.uix.spinner.MDCircularProgressIndicator
 #:import MDCheckbox kivymd.uix.selectioncontrol.MDCheckbox
 #:import MDDropdownMenu kivymd.uix.menu.MDDropdownMenu
-#:import OneLineListItem kivymd.uix.list.OneLineListItem
-#:import TwoLineListItem kivymd.uix.list.TwoLineListItem
+#:import MDListItem kivymd.uix.list.MDListItem
+# TwoLineListItem deprecated in KivyMD 2.x, using MDListItem instead
 
 # Distribution Analytics Components
 <DistributionAnalyticsCard@MDCard>:
@@ -228,12 +228,17 @@
 
 # Additional analysis options
 <DistributionAdditionalAnalysisMenu@MDDropdownMenu>:
-    width_mult: 5
+    width: dp(240)
     position: "center"
 
-<DistributionAnalysisOption@TwoLineListItem>:
+<DistributionAnalysisOption@MDListItem>:
     height: dp(72)
-    font_size: "16sp"
+    
+    MDListItemLeadingIcon:
+        icon: "chart-bar"
+        
+    MDListItemSupportingText:
+        text: root.secondary_text if hasattr(root, 'secondary_text') else ""
 
 # Results dialog components
 <DistributionResultsDialog@MDDialog>:

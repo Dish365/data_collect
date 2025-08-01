@@ -15,7 +15,7 @@ from kivymd.uix.selectioncontrol import MDCheckbox
 import threading
 from datetime import datetime
 
-Builder.load_file("kv/responses.kv")
+# KV file loaded by main app after theme initialization
 
 
 class ResponseDetailDialog(MDDialog):
@@ -431,7 +431,8 @@ class ResponsesScreen(MDScreen, MDResponsiveLayout):
             
             project_label = MDLabel(
                 text=f"Project: {respondent_data.get('project_name', 'Unknown')}",
-                font_style="Subtitle1",
+                font_style="Title",
+                role="medium",
                 font_size="16sp",
                 size_hint_y=None,
                 height=dp(25)
@@ -439,7 +440,8 @@ class ResponsesScreen(MDScreen, MDResponsiveLayout):
             
             id_label = MDLabel(
                 text=f"ID: {respondent_data.get('respondent_id', 'Unknown')}",
-                font_style="Body2",
+                font_style="Body",
+                role="medium",
                 font_size="14sp",
                 size_hint_y=None,
                 height=dp(25)

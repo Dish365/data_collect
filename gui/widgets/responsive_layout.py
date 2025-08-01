@@ -191,7 +191,7 @@ class ResponsiveHelper(EventDispatcher):
                 "title": "16sp",
                 "subtitle": "14sp",
                 "body": "13sp",
-                "caption": "11sp",
+                "small": "11sp",
                 "hint": "10sp"
             }
         elif category == cls.SMALL_TABLET:
@@ -200,7 +200,7 @@ class ResponsiveHelper(EventDispatcher):
                 "title": "18sp",
                 "subtitle": "16sp",
                 "body": "14sp",
-                "caption": "12sp",
+                "small": "12sp",
                 "hint": "11sp"
             }
         elif category in [cls.TABLET, cls.LARGE_TABLET]:
@@ -209,7 +209,7 @@ class ResponsiveHelper(EventDispatcher):
                 "title": "20sp",
                 "subtitle": "18sp",
                 "body": "16sp",
-                "caption": "14sp",
+                "small": "14sp",
                 "hint": "12sp"
             }
         else:  # Desktop
@@ -218,7 +218,7 @@ class ResponsiveHelper(EventDispatcher):
                 "title": "24sp",
                 "subtitle": "20sp",
                 "body": "18sp",
-                "caption": "16sp",
+                "small": "16sp",
                 "hint": "14sp"
             }
     
@@ -321,6 +321,25 @@ class ResponsiveHelper(EventDispatcher):
             default=1.0
         )
         return base_height * multiplier
+    
+    @classmethod
+    def get_dialog_size(cls, base_width=500, base_height=550):
+        """Get responsive dialog size for optimal positioning"""
+        from kivy.core.window import Window
+        
+        category = cls.get_screen_size_category()
+        
+        if category == cls.PHONE:
+            width = min(dp(base_width * 0.95), Window.width * 0.95)
+            height = min(dp(base_height), Window.height * 0.85)
+        elif category == cls.SMALL_TABLET:
+            width = min(dp(base_width * 1.1), Window.width * 0.8)
+            height = min(dp(base_height * 1.1), Window.height * 0.75)
+        else:  # TABLET, LARGE_TABLET, DESKTOP
+            width = min(dp(base_width * 1.4), Window.width * 0.7)
+            height = min(dp(base_height * 1.2), Window.height * 0.7)
+        
+        return width, height
 
 
 # Responsive Layout Classes
@@ -491,10 +510,11 @@ class ResponsiveButtonGrid(ResponsiveGridLayout):
 
 # Responsive Typography
 class ResponsiveLabel(MDLabel):
-    """Label that automatically scales typography for responsive use"""
+    """Label that automatically scales typography for responsive use with KivyMD 2.0"""
     
-    def __init__(self, base_font_style="Body1", **kwargs):
+    def __init__(self, base_font_style="Body", base_role="large", **kwargs):
         self.base_font_style = base_font_style
+        self.base_role = base_role
         super().__init__(**kwargs)
         self.update_typography()
         Window.bind(on_resize=self._on_window_resize)
@@ -504,38 +524,73 @@ class ResponsiveLabel(MDLabel):
         self.update_typography()
     
     def update_typography(self):
-        """Update typography based on screen size"""
+        """Update typography based on screen size using KivyMD 2.0 font styles"""
         category = ResponsiveHelper.get_screen_size_category()
         
-        # Font style mapping for different screen sizes
+        # Font style and role mapping for different screen sizes (KivyMD 2.0)
         style_scaling = {
             ResponsiveHelper.PHONE: {
-                "H1": "H2", "H2": "H3", "H3": "H4", "H4": "H5", "H5": "H6", "H6": "Subtitle1",
-                "Subtitle1": "Subtitle2", "Subtitle2": "Body1", "Body1": "Body2", "Body2": "Caption"
+                ("Display", "large"): ("Display", "medium"),
+                ("Display", "medium"): ("Display", "small"),
+                ("Display", "small"): ("Headline", "large"),
+                ("Headline", "large"): ("Headline", "medium"),
+                ("Headline", "medium"): ("Headline", "small"),
+                ("Headline", "small"): ("Title", "large"),
+                ("Title", "large"): ("Title", "medium"),
+                ("Title", "medium"): ("Title", "small"),
+                ("Title", "small"): ("Body", "large"),
+                ("Body", "large"): ("Body", "medium"),
+                ("Body", "medium"): ("Body", "small"),
+                ("Body", "small"): ("Label", "small"),
+                ("Label", "large"): ("Label", "medium"),
+                ("Label", "medium"): ("Label", "small"),
+                ("Label", "small"): ("Label", "small")
             },
             ResponsiveHelper.SMALL_TABLET: {
-                "H1": "H1", "H2": "H2", "H3": "H3", "H4": "H4", "H5": "H5", "H6": "H6",
-                "Subtitle1": "Subtitle1", "Subtitle2": "Subtitle2", "Body1": "Body1", "Body2": "Body2"
+                # Keep original sizes for small tablets
+                ("Display", "large"): ("Display", "large"),
+                ("Display", "medium"): ("Display", "medium"),
+                ("Display", "small"): ("Display", "small"),
+                ("Headline", "large"): ("Headline", "large"),
+                ("Headline", "medium"): ("Headline", "medium"),
+                ("Headline", "small"): ("Headline", "small"),
+                ("Title", "large"): ("Title", "large"),
+                ("Title", "medium"): ("Title", "medium"),
+                ("Title", "small"): ("Title", "small"),
+                ("Body", "large"): ("Body", "large"),
+                ("Body", "medium"): ("Body", "medium"),
+                ("Body", "small"): ("Body", "small"),
+                ("Label", "large"): ("Label", "large"),
+                ("Label", "medium"): ("Label", "medium"),
+                ("Label", "small"): ("Label", "small")
             },
             ResponsiveHelper.TABLET: {
-                "H1": "H1", "H2": "H1", "H3": "H2", "H4": "H3", "H5": "H4", "H6": "H5",
-                "Subtitle1": "H6", "Subtitle2": "Subtitle1", "Body1": "Subtitle2", "Body2": "Body1"
-            },
-            ResponsiveHelper.LARGE_TABLET: {
-                "H1": "H1", "H2": "H1", "H3": "H2", "H4": "H3", "H5": "H4", "H6": "H5",
-                "Subtitle1": "H6", "Subtitle2": "Subtitle1", "Body1": "Subtitle2", "Body2": "Body1"
-            },
-            ResponsiveHelper.DESKTOP: {
-                "H1": "H1", "H2": "H1", "H3": "H2", "H4": "H3", "H5": "H4", "H6": "H5",
-                "Subtitle1": "H6", "Subtitle2": "Subtitle1", "Body1": "Subtitle2", "Body2": "Body1"
+                # Scale up for tablets
+                ("Display", "small"): ("Display", "medium"),
+                ("Display", "medium"): ("Display", "large"),
+                ("Headline", "small"): ("Headline", "medium"),
+                ("Headline", "medium"): ("Headline", "large"),
+                ("Title", "small"): ("Title", "medium"),
+                ("Title", "medium"): ("Title", "large"),
+                ("Body", "small"): ("Body", "medium"),
+                ("Body", "medium"): ("Body", "large"),
+                ("Label", "small"): ("Label", "medium"),
+                ("Label", "medium"): ("Label", "large")
             }
         }
         
+        # Use tablet scaling for larger screens too
+        if category in [ResponsiveHelper.LARGE_TABLET, ResponsiveHelper.DESKTOP]:
+            category = ResponsiveHelper.TABLET
+        
         scaling = style_scaling.get(category, style_scaling[ResponsiveHelper.SMALL_TABLET])
-        new_style = scaling.get(self.base_font_style, self.base_font_style)
+        style_role_key = (self.base_font_style, self.base_role)
+        new_style, new_role = scaling.get(style_role_key, (self.base_font_style, self.base_role))
         
         if hasattr(self, 'font_style'):
             self.font_style = new_style
+        if hasattr(self, 'role'):
+            self.role = new_role
 
 
 # Convenience functions for common responsive patterns
