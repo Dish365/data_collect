@@ -53,9 +53,19 @@ class DatabaseService:
                 order_index INTEGER,
                 user_id TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                sync_status TEXT DEFAULT 'pending'
+                sync_status TEXT DEFAULT 'pending',
+                is_required BOOLEAN DEFAULT 1
             )
         ''')
+        
+        # Migration: Add is_required column if it doesn't exist
+        try:
+            cursor.execute("ALTER TABLE questions ADD COLUMN is_required BOOLEAN DEFAULT 1")
+            print("Added is_required column to questions table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" not in str(e).lower():
+                print(f"Migration warning: {e}")
+            # Column already exists, continue
         
         # Respondents table - tracks individual survey participants
         cursor.execute('''
@@ -108,9 +118,19 @@ class DatabaseService:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 attempts INTEGER DEFAULT 0,
                 last_attempt TIMESTAMP,
-                status TEXT DEFAULT 'pending'
+                status TEXT DEFAULT 'pending',
+                priority INTEGER DEFAULT 1
             )
         ''')
+        
+        # Migration: Add priority column if it doesn't exist
+        try:
+            cursor.execute("ALTER TABLE sync_queue ADD COLUMN priority INTEGER DEFAULT 1")
+            print("Added priority column to sync_queue table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" not in str(e).lower():
+                print(f"Migration warning: {e}")
+            # Column already exists, continue
         
         conn.commit()
         conn.close()

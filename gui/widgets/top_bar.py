@@ -47,7 +47,7 @@ class TopBar(MDBoxLayout):
         app = MDApp.get_running_app()
         if hasattr(app, 'root') and hasattr(app.root, 'current'):
             # Set transition direction based on screen hierarchy
-            if screen_name in ['dashboard', 'projects', 'analytics', 'data_exploration', 'qualitative_analytics', 'data_collection', 'responses']:
+            if screen_name in ['dashboard', 'projects', 'analytics', 'data_exploration', 'qualitative_analytics', 'data_collection']:
                 app.root.transition.direction = "left"
             else:
                 app.root.transition.direction = "right"
@@ -63,7 +63,7 @@ class TopBar(MDBoxLayout):
                 'data_exploration': 'Data Exploration',
                 'qualitative_analytics': 'Qualitative Analytics',
                 'data_collection': 'Data Collection',
-                'responses': 'Responses',
+
                 'sync': 'Sync',
                 'form_builder': 'Form Builder',
                 'login': 'Login',
@@ -124,11 +124,7 @@ class TopBar(MDBoxLayout):
                 "icon": "clipboard-text",
                 "on_release": lambda x="data_collection": self._navigate_and_close_menu(x),
             },
-            {
-                "text": "Responses",
-                "icon": "format-list-bulleted",
-                "on_release": lambda x="responses": self._navigate_and_close_menu(x),
-            },
+
         ]
         
         if not self.navigation_menu:
@@ -171,7 +167,7 @@ class TopBar(MDBoxLayout):
     
     def get_navigation_screens(self):
         """Get list of available navigation screens"""
-        return ['dashboard', 'projects', 'analytics', 'data_collection', 'responses']
+        return ['dashboard', 'projects', 'analytics', 'data_collection']
     
     def logout(self):
         """Show logout confirmation dialog with KivyMD 2.0.1 syntax"""

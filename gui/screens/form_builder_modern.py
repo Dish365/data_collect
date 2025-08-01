@@ -477,10 +477,6 @@ EmptyFormState:
     
     def add_question(self, response_type):
         """Add a new question to the form"""
-        print("="*50)
-        print(f"DEBUG: add_question() called with response_type: {response_type}")
-        print(f"DEBUG: self.project_id = {self.project_id}")
-        print("="*50)
         
         if not self.project_id:
             toast("Please select a project first to start building your form.", duration=3)
@@ -528,10 +524,6 @@ EmptyFormState:
     
     def save_form(self):
         """Save the current form with enhanced user feedback"""
-        print("="*50)
-        print("DEBUG: save_form() called!")
-        print(f"DEBUG: self.project_id = {self.project_id}")
-        print("="*50)
         
         if not self.project_id:
             toast("Please select a project first to save your form.", duration=3)
@@ -551,10 +543,17 @@ EmptyFormState:
             # Validate and collect questions
             questions_to_save = []
             validation_errors = []
+            empty_questions = []
             
             for i, field in enumerate(form_fields, 1):
                 # Update question number
                 field.question_number = str(i)
+                
+                # Check if question is empty
+                question_text = field.get_question_text().strip()
+                if not question_text:
+                    empty_questions.append(i)
+                    continue
                 
                 # Validate field
                 is_valid, errors = field.validate()
@@ -567,6 +566,21 @@ EmptyFormState:
                 question_data['order_index'] = i - 1
                 questions_to_save.append(question_data)
             
+            # Check for empty questions first
+            if empty_questions and not questions_to_save:
+                # All questions are empty
+                if len(empty_questions) == 1:
+                    toast("Please enter text for your question before saving.", duration=3)
+                else:
+                    toast(f"Please enter text for your {len(empty_questions)} questions before saving.", duration=3)
+                return
+            elif empty_questions:
+                # Some questions are empty but others have content
+                empty_list = ", ".join([f"Q{q}" for q in empty_questions[:3]])
+                if len(empty_questions) > 3:
+                    empty_list += f" and {len(empty_questions) - 3} more"
+                toast(f"Skipping empty questions: {empty_list}", duration=3)
+            
             # Check for validation errors
             if validation_errors:
                 error_count = len(validation_errors)
@@ -574,6 +588,11 @@ EmptyFormState:
                     toast(f"Please fix: {validation_errors[0]}", duration=4)
                 else:
                     toast(f"Please fix {error_count} validation errors. Check question fields.", duration=4)
+                return
+            
+            # Check if we have any questions to save after filtering
+            if not questions_to_save:
+                toast("No valid questions to save. Please add and complete at least one question.", duration=3)
                 return
             
             # Show progress and save
@@ -615,9 +634,6 @@ EmptyFormState:
     
     def preview_form(self):
         """Preview the current form"""
-        print("="*50)
-        print("DEBUG: preview_form() called!")
-        print("="*50)
         
         try:
             # Collect all form fields
@@ -627,12 +643,17 @@ EmptyFormState:
                 toast("Add questions to preview the form.")
                 return
             
-            # Reverse order and create preview data
+            # Reverse order to match actual form order (since children are in reverse)
             form_fields.reverse()
             questions = []
             
             for i, field in enumerate(form_fields, 1):
-                question_text = field.get_question_text() or f"[Question {i} - no text entered]"
+                # Get current question text from the field
+                question_text = field.get_question_text()
+                
+                if not question_text.strip():
+                    question_text = f"[Question {i} - no text entered]"
+                
                 display_name = self.response_type_display.get(field.response_type, field.response_type)
                 
                 question_info = {
@@ -642,111 +663,321 @@ EmptyFormState:
                     'required': field.is_required
                 }
                 
-                # Add options for choice fields
-                if field.response_type in ['choice_single', 'choice_multiple'] and field.options:
-                    question_info['options'] = field.options
+                # Add options for choice fields - get current options from the field
+                if field.response_type in ['choice_single', 'choice_multiple']:
+                    # Filter out empty options
+                    current_options = [opt.strip() for opt in field.options if opt.strip()] if field.options else []
+                    if current_options:
+                        question_info['options'] = current_options
+                    else:
+                        question_info['options'] = ['[No options set]']
+                
+                # Add scale info for rating fields
+                if field.response_type == 'scale_rating':
+                    question_info['scale_info'] = f"Scale: {field.min_value} to {field.max_value}"
                 
                 questions.append(question_info)
+            
+            print(f"DEBUG: Preview showing {len(questions)} questions")
+            for q in questions:
+                print(f"DEBUG: Q{q['number']}: {q['question'][:50]}... ({q['type']})")
             
             # Show preview dialog
             self._show_preview_dialog(questions)
             
         except Exception as e:
             print(f"Error creating preview: {e}")
+            import traceback
+            traceback.print_exc()
             toast(f"Error creating preview: {str(e)}")
     
     def _show_preview_dialog(self, questions):
-        """Show the form preview dialog"""
-        from kivymd.uix.dialog import MDDialog
-        from kivymd.uix.button import MDButton, MDButtonText
-        from kivy.lang import Builder
-        
-        # Create preview content
-        preview_content = Builder.load_string(f'''
-MDScrollView:
-    size_hint_y: None
-    height: dp(400)
-    
-    MDBoxLayout:
-        orientation: 'vertical'
-        spacing: dp(12)
-        padding: [dp(16), dp(16)]
-        size_hint_y: None
-        height: self.minimum_height
-        
-        MDLabel:
-            text: "Form Preview ({len(questions)} questions)"
-            font_style: "Headline"
-            role: "small"
-            theme_text_color: "Primary"
-            bold: True
-            size_hint_y: None
-            height: dp(32)
+        """Show the form preview dialog with improved UI"""
+        try:
+            from kivymd.uix.card import MDCard
+            from kivymd.uix.label import MDLabel, MDIcon
+            from kivymd.uix.button import MDButton, MDButtonText, MDButtonIcon
+            from kivymd.uix.boxlayout import MDBoxLayout
+            from kivy.uix.popup import Popup
+            from kivymd.uix.scrollview import MDScrollView
+            from kivy.metrics import dp
+            from kivy.app import App
             
-        # Questions will be added programmatically
-''')
-        
-        # Add questions to preview
-        questions_layout = preview_content.children[0]
-        for q in questions:
-            question_card = Builder.load_string(f'''
-MDCard:
-    orientation: 'vertical'
-    size_hint_y: None
-    height: dp(80)
-    padding: [dp(12), dp(8)]
-    spacing: dp(4)
-    elevation: 1
-    md_bg_color: app.theme_cls.surfaceColor
-    
-    MDLabel:
-        text: "Q{q['number']}: {q['question']}"
-        font_style: "Body"
-        role: "large"
-        theme_text_color: "Primary"
-        text_size: self.width, None
-        size_hint_y: None
-        height: dp(40)
-    
-    MDBoxLayout:
-        orientation: 'horizontal'
-        size_hint_y: None
-        height: dp(24)
-        
-        MDLabel:
-            text: "Type: {q['type']}"
-            font_style: "Label"
-            role: "small"
-            theme_text_color: "Secondary"
-            size_hint_x: 1
-        
-        MDLabel:
-            text: "{'Required' if q.get('required', True) else 'Optional'}"
-            font_style: "Label"
-            role: "small"
-            theme_text_color: "Primary" if q.get('required', True) else "Secondary"
-            size_hint: None, None
-            width: dp(80)
-''')
-            questions_layout.add_widget(question_card)
-        
-        # Create dialog
-        dialog = MDDialog(
-            title="Form Preview",
-            type="custom",
-            content_cls=preview_content,
-            auto_dismiss=True
-        )
-        
-        # Add close button
-        close_button = MDButton(
-            style="text",
-            on_release=lambda x: dialog.dismiss()
-        )
-        close_button.add_widget(MDButtonText(text="Close"))
-        dialog.buttons = [close_button]
-        
-        dialog.open()
+            app = App.get_running_app()
+            
+            # Main container with Material Design styling
+            main_container = MDBoxLayout(
+                orientation='vertical',
+                spacing=0,
+                md_bg_color=(0.97, 0.97, 0.97, 1)  # Light gray background
+            )
+            
+            # Header with better contrast
+            header = MDCard(
+                orientation='vertical',
+                size_hint_y=None,
+                height=dp(70),
+                elevation=3,
+                md_bg_color=(0.1, 0.4, 0.8, 1),  # Darker blue for better contrast
+                padding=dp(16),
+                radius=[12, 12, 0, 0]
+            )
+            
+            header_layout = MDBoxLayout(
+                orientation='horizontal',
+                spacing=dp(12)
+            )
+            
+            # Preview icon
+            header_icon = MDIcon(
+                icon="eye",  # Eye icon for preview
+                size_hint=(None, None),
+                size=(dp(32), dp(32)),
+                theme_icon_color="Custom",
+                icon_color=(1, 1, 1, 1)
+            )
+            header_layout.add_widget(header_icon)
+            
+            # Title and subtitle
+            title_container = MDBoxLayout(orientation='vertical', spacing=dp(2))
+            
+            title_label = MDLabel(
+                text="Form Preview",
+                font_style="Headline",
+                role="medium",
+                theme_text_color="Custom",
+                text_color=(1, 1, 1, 1),  # Pure white for maximum contrast
+                bold=True
+            )
+            title_container.add_widget(title_label)
+            
+            subtitle_label = MDLabel(
+                text=f"{len(questions)} question{'s' if len(questions) != 1 else ''} ready for review",
+                font_style="Body",
+                role="small",
+                theme_text_color="Custom",
+                text_color=(0.95, 0.95, 0.95, 1)  # Lighter for better readability
+            )
+            title_container.add_widget(subtitle_label)
+            
+            header_layout.add_widget(title_container)
+            header.add_widget(header_layout)
+            main_container.add_widget(header)
+            
+            # Content area with proper padding
+            content_container = MDBoxLayout(
+                orientation='vertical',
+                padding=[dp(16), dp(12), dp(16), dp(12)],
+                spacing=dp(8)
+            )
+            
+            # Scrollable questions area
+            scroll = MDScrollView(
+                bar_width=dp(4),
+                scroll_type=['bars'],
+                do_scroll_x=False
+            )
+            
+            questions_layout = MDBoxLayout(
+                orientation='vertical',
+                spacing=dp(12),
+                size_hint_y=None,
+                height=dp(0),  # Will be calculated
+                padding=[0, dp(8), 0, dp(8)]
+            )
+            
+            total_height = 0
+            
+            # Create individual question cards
+            for i, q in enumerate(questions):
+                question_text = q.get('question', 'No question text')
+                question_number = q.get('number', i + 1)
+                question_type = q.get('type', 'Unknown')
+                is_required = q.get('required', True)
+                
+                # Question card with nice styling
+                question_card = MDCard(
+                    orientation='vertical',
+                    size_hint_y=None,
+                    height=dp(90) if 'options' not in q or not q['options'] else dp(120),
+                    elevation=2,
+                    md_bg_color=(1, 1, 1, 1),  # Pure white for cards
+                    padding=dp(12),
+                    spacing=dp(6),
+                    radius=[8, 8, 8, 8]
+                )
+                
+                # Question header
+                question_header = MDBoxLayout(
+                    orientation='horizontal',
+                    spacing=dp(8),
+                    size_hint_y=None,
+                    height=dp(24)
+                )
+                
+                # Question number badge
+                number_badge = MDLabel(
+                    text=f"Q{question_number}",
+                    font_style="Label",
+                    role="medium",
+                    theme_text_color="Custom",
+                    text_color=(0.1, 0.4, 0.8, 1),  # Dark blue for good contrast
+                    bold=True,
+                    size_hint=(None, None),
+                    size=(dp(32), dp(24)),
+                    halign="center"
+                )
+                question_header.add_widget(number_badge)
+                
+                # Question type and required status
+                type_required_layout = MDBoxLayout(orientation='horizontal', spacing=dp(8))
+                
+                type_label = MDLabel(
+                    text=question_type,
+                    font_style="Label",
+                    role="small",
+                    theme_text_color="Custom",
+                    text_color=(0.4, 0.4, 0.4, 1),  # Dark gray for better readability
+                    size_hint_x=1
+                )
+                type_required_layout.add_widget(type_label)
+                
+                if is_required:
+                    required_layout = MDBoxLayout(
+                        orientation='horizontal',
+                        spacing=dp(4),
+                        size_hint=(None, None),
+                        size=(dp(80), dp(20))
+                    )
+                    
+                    required_icon = MDIcon(
+                        icon="star",
+                        size_hint=(None, None),
+                        size=(dp(14), dp(14)),
+                        theme_icon_color="Custom",
+                        icon_color=(0.8, 0.2, 0.2, 1)
+                    )
+                    required_layout.add_widget(required_icon)
+                    
+                    required_label = MDLabel(
+                        text="Required",
+                        font_style="Label",
+                        role="small",
+                        theme_text_color="Custom",
+                        text_color=(0.8, 0.2, 0.2, 1),
+                        size_hint_x=1
+                    )
+                    required_layout.add_widget(required_label)
+                    type_required_layout.add_widget(required_layout)
+                
+                question_header.add_widget(type_required_layout)
+                question_card.add_widget(question_header)
+                
+                # Question text
+                question_label = MDLabel(
+                    text=question_text if question_text else "[No question text]",
+                    font_style="Body",
+                    role="medium",
+                    theme_text_color="Custom",
+                    text_color=(0.1, 0.1, 0.1, 1) if question_text else (0.5, 0.5, 0.5, 1),  # Dark text for readability
+                    text_size=(None, None),
+                    size_hint_y=None,
+                    height=dp(20),
+                    italic=not bool(question_text)
+                )
+                question_card.add_widget(question_label)
+                
+                # Options (if any)
+                if 'options' in q and q['options']:
+                    options_text = ', '.join(q['options'][:3])
+                    if len(q['options']) > 3:
+                        options_text += f" (+{len(q['options']) - 3} more)"
+                    
+                    options_label = MDLabel(
+                        text=f"Options: {options_text}",
+                        font_style="Body",
+                        role="small",
+                        theme_text_color="Custom",
+                        text_color=(0.3, 0.3, 0.3, 1),  # Medium gray for options
+                        text_size=(None, None),
+                        size_hint_y=None,
+                        height=dp(16)
+                    )
+                    question_card.add_widget(options_label)
+                
+                # Scale info (if any)
+                if 'scale_info' in q:
+                    scale_label = MDLabel(
+                        text=q['scale_info'],
+                        font_style="Body",
+                        role="small",
+                        theme_text_color="Custom",
+                        text_color=(0.3, 0.3, 0.3, 1),  # Medium gray for scale info
+                        text_size=(None, None),
+                        size_hint_y=None,
+                        height=dp(16)
+                    )
+                    question_card.add_widget(scale_label)
+                
+                questions_layout.add_widget(question_card)
+                total_height += question_card.height + dp(12)
+            
+            # Set the calculated height
+            questions_layout.height = total_height
+            scroll.add_widget(questions_layout)
+            content_container.add_widget(scroll)
+            
+            main_container.add_widget(content_container)
+            
+            # Footer with action buttons
+            footer = MDBoxLayout(
+                orientation='horizontal',
+                spacing=dp(12),
+                size_hint_y=None,
+                height=dp(60),
+                padding=[dp(16), dp(8), dp(16), dp(16)]
+            )
+            
+            # Add spacer
+            footer.add_widget(MDBoxLayout(size_hint_x=1))
+            
+            # Close button with icon
+            close_btn = MDButton(
+                style="filled",
+                size_hint=(None, None),
+                size=(dp(100), dp(40)),
+                md_bg_color=(0.1, 0.4, 0.8, 1)  # Same as header for consistency
+            )
+            close_btn.add_widget(MDButtonIcon(icon="close", icon_color=(1, 1, 1, 1)))
+            close_btn.add_widget(MDButtonText(text="Close", text_color=(1, 1, 1, 1)))
+            footer.add_widget(close_btn)
+            
+            main_container.add_widget(footer)
+            
+            # Create popup with better styling
+            popup = Popup(
+                title="",
+                content=main_container,
+                size_hint=(0.85, 0.85),
+                auto_dismiss=True,
+                background_color=(0, 0, 0, 0.3),  # Semi-transparent background
+                separator_color=(0, 0, 0, 0)  # Hide default separator
+            )
+            
+            close_btn.on_release = popup.dismiss
+            popup.open()
+            
+        except Exception as e:
+            print(f"Error creating preview dialog: {e}")
+            import traceback
+            traceback.print_exc()
+            # Fallback to simple toast
+            preview_summary = f"Form has {len(questions)} questions"
+            if questions:
+                preview_summary += f": {', '.join([q.get('question', f'Q{i}')[:20] + ('...' if len(q.get('question', '')) > 20 else '') for i, q in enumerate(questions[:3], 1)])}"
+                if len(questions) > 3:
+                    preview_summary += f" and {len(questions)-3} more"
+            toast(preview_summary, duration=4)
     
     def reset_form(self):
         """Reset the form to initial state"""

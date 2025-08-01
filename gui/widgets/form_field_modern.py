@@ -256,7 +256,10 @@ class ModernFormField(MDCard):
             size_hint_y=None,
             height=field_height,
             multiline=is_multiline,
-            on_text=self._on_question_input_change
+            on_text=self._on_question_input_change,
+            helper_text="Question text is required" if not self.question_text.strip() else "",
+            helper_text_mode="on_error" if not self.question_text.strip() else "none",
+            error=not self.question_text.strip() and hasattr(self, '_show_validation_error')
         )
     
     def _create_actions(self):
@@ -400,9 +403,13 @@ class ModernFormField(MDCard):
         """Create the options editor with proper height management"""
         from kivymd.uix.scrollview import MDScrollView
         
-        # Ensure minimum 2 options before creating editor
-        while len(self.options) < 2:
-            self.options.append(f"Option {len(self.options) + 1}")
+        # Ensure minimum 2 options before creating editor - use proper list copying
+        if len(self.options) < 2:
+            new_options = list(self.options)
+            while len(new_options) < 2:
+                new_options.append(f"Option {len(new_options) + 1}")
+            self.options = new_options
+            print(f"DEBUG: Ensured minimum options, total: {len(self.options)}")
         
         # Better height calculation - account for padding and spacing
         option_height_with_spacing = dp(33)  # 30dp option + 3dp spacing
@@ -688,9 +695,11 @@ class ModernFormField(MDCard):
     
     def _on_options_change(self, instance, value):
         """Handle options changes"""
+        print(f"DEBUG: Options changed to: {value} (length: {len(value)})")
         if hasattr(self, 'content_area') and self.response_type in ['choice_single', 'choice_multiple']:
             if self.is_expanded:
-                self._update_content()
+                # Use a small delay to ensure the options property is fully updated
+                Clock.schedule_once(lambda dt: self._update_content(), 0.05)
     
     def _on_question_text_change(self, instance, value):
         """Handle question text changes"""
@@ -773,7 +782,8 @@ class ModernFormField(MDCard):
             instance.md_bg_color = (0.2, 0.6, 1.0, 1)
         else:
             instance.style = "outlined"
-            instance.md_bg_color = None
+            # Use transparent color instead of None for KivyMD 2.0.1
+            instance.md_bg_color = (0, 0, 0, 0)
         
         status = "required" if self.is_required else "optional"
         toast(f"✓ Question is now {status}", duration=1.5)
@@ -781,10 +791,15 @@ class ModernFormField(MDCard):
     def _add_option(self, instance):
         """Add a new option and refresh editor"""
         new_option = f"Option {len(self.options) + 1}"
-        self.options = self.options + [new_option]
+        # Create completely new list to trigger property change
+        new_options = list(self.options)
+        new_options.append(new_option)
+        self.options = new_options
+        print(f"DEBUG: Added option, total options: {len(self.options)}")
         
-        # Refresh the options editor if expanded
+        # Update the height and content to accommodate new option
         if self.is_expanded:
+            self.height = self._get_base_height()
             Clock.schedule_once(lambda dt: self._update_content(), 0.1)
         
         toast(f"✓ Added option {len(self.options)}", duration=1.5)
@@ -793,10 +808,14 @@ class ModernFormField(MDCard):
         """Remove the last option and refresh editor"""
         if len(self.options) > 2:
             removed_count = len(self.options)
-            self.options = self.options[:-1]
+            # Create completely new list to trigger property change
+            new_options = list(self.options[:-1])
+            self.options = new_options
+            print(f"DEBUG: Removed option, total options: {len(self.options)}")
             
-            # Refresh the options editor if expanded
+            # Update the height and content to accommodate removed option
             if self.is_expanded:
+                self.height = self._get_base_height()
                 Clock.schedule_once(lambda dt: self._update_content(), 0.1)
             
             toast(f"✓ Removed option {removed_count}", duration=1.5)
@@ -804,11 +823,14 @@ class ModernFormField(MDCard):
             toast("⚠ Choice questions need at least 2 options", duration=2)
     
     def _update_option(self, index, value):
-        """Update a specific option"""
+        """Update a specific option preserving all existing options"""
         if 0 <= index < len(self.options):
+            # Create a complete copy of current options
             new_options = list(self.options)
             new_options[index] = value
+            # Update options property while preserving all other options
             self.options = new_options
+            print(f"DEBUG: Updated option {index} to '{value}', total options: {len(self.options)}")
     
     # Utility methods
     def _get_response_type_icon(self):
@@ -860,6 +882,10 @@ class ModernFormField(MDCard):
     # Data methods
     def get_question_text(self):
         """Get the current question text"""
+        # Try to get text from the actual input field first (most up-to-date)
+        if hasattr(self, 'question_input') and hasattr(self.question_input, 'text'):
+            return self.question_input.text.strip()
+        # Fallback to property
         return self.question_text.strip()
     
     def get_value(self):
@@ -870,22 +896,30 @@ class ModernFormField(MDCard):
         """Validate the field configuration"""
         errors = []
         
-        # Validate question text
-        if not self.get_question_text():
+        # Validate question text - be more lenient for new questions
+        question_text = self.get_question_text()
+        if not question_text:
+            # Mark for validation display
+            self._show_validation_error = True
             errors.append("Question text is required")
-        elif len(self.get_question_text()) < 3:
-            errors.append("Question text must be at least 3 characters long")
+        elif len(question_text) < 3:
+            errors.append(f"Question text must be at least 3 characters long (currently {len(question_text)})")
+        else:
+            # Clear validation error flag
+            if hasattr(self, '_show_validation_error'):
+                delattr(self, '_show_validation_error')
         
-        # Validate choice options
+        # Validate choice options only if they exist
         if self.response_type in ['choice_single', 'choice_multiple']:
-            valid_options = [opt.strip() for opt in self.options if opt.strip()]
-            if len(valid_options) < 2:
-                errors.append("Choice questions need at least 2 options")
+            if self.options:  # Only validate if options exist
+                valid_options = [opt.strip() for opt in self.options if opt.strip()]
+                if len(valid_options) < 2:
+                    errors.append("Choice questions need at least 2 non-empty options")
         
         # Validate rating scale
         if self.response_type == 'scale_rating':
             if self.min_value >= self.max_value:
-                errors.append("Maximum value must be greater than minimum value")
+                errors.append(f"Maximum value ({self.max_value}) must be greater than minimum value ({self.min_value})")
         
         return len(errors) == 0, errors
     

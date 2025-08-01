@@ -98,15 +98,7 @@
                 md_bg_color: (1, 1, 1, 0.15) if root.current_screen == "data_collection" else (0, 0, 0, 0)
                 on_release: root.navigate_to_screen('data_collection')
 
-            MDIconButton:
-                icon: "format-list-bulleted"
-                theme_icon_color: "Custom"
-                icon_color: (1, 1, 1, 1) if root.current_screen == "responses" else (1, 1, 1, 0.7)
-                size_hint: None, None
-                size: dp(40), dp(40)
-                theme_bg_color: "Custom"
-                md_bg_color: (1, 1, 1, 0.15) if root.current_screen == "responses" else (0, 0, 0, 0)
-                on_release: root.navigate_to_screen('responses')
+
 
     # Spacer
     Widget:
@@ -125,7 +117,7 @@
         width: self.texture_size[0]
         pos_hint: {"center_y": 0.5}
         halign: "center"
-        opacity: 0 if (root.current_screen in ["dashboard", "projects", "analytics", "data_collection", "responses", "sync", "qualitative_analytics", "descriptive_analytics", "data_exploration", "inferential_analytics", "form_builder"]) else (1 if Window.width > dp(600) else 0)
+        opacity: 0 if (root.current_screen in ["dashboard", "projects", "analytics", "data_collection", "sync", "qualitative_analytics", "descriptive_analytics", "data_exploration", "inferential_analytics", "form_builder"]) else (1 if Window.width > dp(600) else 0)
 
     # Spacer
     Widget:

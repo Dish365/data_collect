@@ -423,9 +423,6 @@ QuestionCard:
             option_text: '{option_text}'
             group_name: '{group_name}'
             question_id: '{q_id}'
-
-            MDCheckbox:
-                on_active: root.parent.parent.parent.parent.parent.track_answer_progress('{q_id}')
 """
         
         kv_string = f"""

@@ -73,7 +73,7 @@ from screens.analytics import AnalyticsScreen
 from screens.form_builder_modern import FormBuilderScreen
 from screens.sync import SyncScreen
 from screens.signup import SignUpScreen
-from screens.responses import ResponsesScreen
+
 from screens.data_exploration import DataExplorationScreen
 from screens.qualitative_analytics import QualitativeAnalyticsScreen
 from screens.auto_detection import AutoDetectionScreen
@@ -290,7 +290,7 @@ class ResearchCollectorApp(MDApp):
         self.root.add_widget(AnalyticsScreen(name='analytics'))
         self.root.add_widget(FormBuilderScreen(name='form_builder'))
         self.root.add_widget(SyncScreen(name='sync'))
-        self.root.add_widget(ResponsesScreen(name='responses'))
+
         self.root.add_widget(DataExplorationScreen(name='data_exploration'))
         self.root.add_widget(AutoDetectionScreen(name='auto_detection'))
         self.root.add_widget(DescriptiveAnalyticsScreen(name='descriptive_analytics'))
@@ -300,14 +300,12 @@ class ResearchCollectorApp(MDApp):
     def handle_successful_login(self):
         """Handle successful login - set up user context and navigate to dashboard"""
         try:
-            print("=== Handling successful login ===")
             self.update_user_display_name()
             
             # Get user data and set database context
             user_data = self.auth_service.get_user_data()
             if user_data and 'id' in user_data:
                 user_id = user_data['id']
-                print(f"Setting up session for user: {user_id}")
                 
                 # Set database user context
                 self.db_service.set_current_user(user_id)
@@ -321,7 +319,6 @@ class ResearchCollectorApp(MDApp):
                 # Verify database context was set correctly
                 db_user = self.db_service.get_current_user()
                 if db_user != user_id:
-                    print(f"Warning: Database context mismatch after login. Expected: {user_id}, Got: {db_user}")
                     # Try setting it again
                     self.db_service.set_current_user(user_id)
                     db_user = self.db_service.get_current_user()
@@ -331,21 +328,15 @@ class ResearchCollectorApp(MDApp):
                 # Reset dashboard for new user
                 dashboard_screen = self.get_dashboard_screen()
                 if dashboard_screen:
-                    print("Resetting dashboard for new user")
                     dashboard_screen.reset_for_new_user()
                 
-                print(f"User session initialized successfully for: {user_id}")
-                print(f"Database context verified: {db_user}")
-                
-                # Add a longer delay to ensure everything is set up
+                # Navigate to dashboard with delay to ensure everything is set up
                 def navigate_to_dashboard(dt):
-                    print("Navigating to dashboard after initialization delay")
                     self.root.current = 'dashboard'
                 
-                Clock.schedule_once(navigate_to_dashboard, 0.3)  # Increased delay
+                Clock.schedule_once(navigate_to_dashboard, 0.3)
                 
             else:
-                print("Warning: No user ID found in user data")
                 # Still navigate to dashboard but with error handling
                 self.root.current = "dashboard"
             
@@ -357,7 +348,6 @@ class ResearchCollectorApp(MDApp):
     def handle_logout(self):
         """Handle user logout - clean up user context"""
         try:
-            print("Handling user logout")
             
             # Get current user ID before clearing auth
             user_data = self.auth_service.get_user_data()
@@ -411,6 +401,7 @@ class ResearchCollectorApp(MDApp):
         """Fetches user data and updates the display name property."""
         if self.auth_service.is_authenticated():
             user_data = self.auth_service.get_user_data()
+            
             if user_data:
                 username = user_data.get('username')
                 first_name = user_data.get('first_name')
@@ -425,6 +416,29 @@ class ResearchCollectorApp(MDApp):
                 self.user_display_name = "User"
         else:
             self.user_display_name = "Guest"
+        
+        # Force update all topbars in all screens
+        try:
+            self._update_all_topbars()
+        except Exception as e:
+            print(f"Error updating topbars: {e}")
+    
+    def _update_all_topbars(self):
+        """Update all topbars in all screens"""
+        if not hasattr(self, 'root') or not self.root:
+            return
+        
+        # Check all screens in the screen manager
+        if hasattr(self.root, 'screens'):
+            for screen in self.root.screens:
+                if hasattr(screen, 'ids') and hasattr(screen.ids, 'top_bar'):
+                    screen.ids.top_bar.update_user_display()
+        
+        # Also check if there are any direct children with topbars
+        if hasattr(self.root, 'children'):
+            for child in self.root.children:
+                if hasattr(child, 'ids') and hasattr(child.ids, 'top_bar'):
+                    child.ids.top_bar.update_user_display()
 
     def on_pause(self):
         # Handle app pause (Android)

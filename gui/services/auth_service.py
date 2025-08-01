@@ -212,12 +212,16 @@ class AuthService:
     def get_user_data(self):
         """Get current user data"""
         if not self.user_data and self.store.exists('auth'):
-            user_data_str = self.store.get('auth').get('user_data')
+            auth_data = self.store.get('auth')
+            user_data_str = auth_data.get('user_data')
+            
             if user_data_str:
                 try:
                     self.user_data = json.loads(user_data_str)
-                except:
+                except Exception as e:
+                    print(f"Error parsing user_data JSON: {e}")
                     self.user_data = {}
+        
         return self.user_data
     
     def make_authenticated_request(self, endpoint, method='GET', data=None, timeout=30):

@@ -166,10 +166,15 @@ class ModernQuestionViewSet(BaseModelViewSet):
                         if request.query_params.get('replace', '').lower() == 'true':
                             Question.objects.filter(project=project).delete()
                         
-                        # Create questions using the manager
-                        questions = Question.objects.bulk_create_with_validation(
-                            project_questions, project
-                        )
+                        # Create questions using standard bulk_create
+                        # First, convert data to Question instances
+                        question_objects = []
+                        for question_data in project_questions:
+                            serializer = self.get_serializer(data=question_data)
+                            if serializer.is_valid(raise_exception=True):
+                                question_objects.append(Question(**serializer.validated_data, project=project))
+                        
+                        questions = Question.objects.bulk_create(question_objects)
                         created_questions.extend(questions)
                         
                         # Clear cache
