@@ -78,9 +78,9 @@ class ModernFormField(MDCard):
         content_heights = {
             'text_short': dp(50),
             'text_long': dp(50),
-            'choice_single': dp(60) if not self.is_expanded else dp(180),
-            'choice_multiple': dp(60) if not self.is_expanded else dp(200),
-            'scale_rating': dp(120),
+            'choice_single': dp(60) if not self.is_expanded else dp(200),
+            'choice_multiple': dp(60) if not self.is_expanded else dp(220),
+            'scale_rating': dp(100),
             'date': dp(50),
             'datetime': dp(50),
             'numeric_integer': dp(50),
@@ -107,10 +107,15 @@ class ModernFormField(MDCard):
         """Get content area height based on response type, state, and content"""
         if self.response_type in ['choice_single', 'choice_multiple']:
             if self.is_expanded:
-                # Calculate height based on number of options - constrained for card fit
+                # Calculate height based on number of options - with proper spacing and padding
                 option_count = len(self.options) if self.options else 2
-                # Compact layout: label (20dp) + options (30dp each, max 4) + buttons (32dp) + spacing (16dp)
-                return dp(20) + (min(option_count, 4) * dp(30)) + dp(32) + dp(16)
+                # Account for padding and spacing in scroll calculation
+                option_height_with_spacing = dp(33)  # 30dp option + 3dp spacing
+                max_visible_options = 4
+                scroll_height = min(option_height_with_spacing * option_count + dp(6), 
+                                  option_height_with_spacing * max_visible_options)
+                # Layout: label (16dp) + scroll area + spacer (4dp) + buttons (32dp) + spacing (8dp)  
+                return dp(16) + scroll_height + dp(4) + dp(32) + dp(8)
             else:
                 # Compact preview height
                 return dp(50)
@@ -399,24 +404,29 @@ class ModernFormField(MDCard):
         while len(self.options) < 2:
             self.options.append(f"Option {len(self.options) + 1}")
         
-        # Very compact height calculation - max 3 visible options at 30dp each
-        options_height = min(dp(30) * len(self.options), dp(90))  # Further reduced
+        # Better height calculation - account for padding and spacing
+        option_height_with_spacing = dp(33)  # 30dp option + 3dp spacing
+        max_visible_options = 4
+        options_height = min(option_height_with_spacing * len(self.options) + dp(6), 
+                           option_height_with_spacing * max_visible_options)  # Include padding in calculation
         
-        # Options container with scroll
+        # Options container with scroll - better positioning
         scroll = MDScrollView(
             size_hint_y=None,
             height=options_height,
             do_scroll_x=False,
-            bar_width=dp(2)  # Even thinner scroll bar
+            do_scroll_y=True,
+            bar_width=dp(3),  # Slightly thicker for better visibility
+            scroll_type=['bars']  # Ensure scroll bars are visible
         )
         
         options_container = MDBoxLayout(
             id='options_container',
             orientation='vertical',
-            spacing=dp(2),  # Minimal spacing
+            spacing=dp(3),  # Better spacing between options
             size_hint_y=None,
-            height=dp(30) * len(self.options),  # More compact height
-            padding=[0, dp(1), 0, dp(1)]  # Minimal padding
+            height=dp(33) * len(self.options) + dp(6),  # Account for 30dp layout + 3dp spacing per option
+            padding=[dp(2), dp(4), dp(2), dp(4)]  # Proper padding to prevent cutoff at top/bottom
         )
         
         # Add existing options
@@ -427,12 +437,22 @@ class ModernFormField(MDCard):
         scroll.add_widget(options_container)
         self.content_area.add_widget(scroll)
         
-        # Add/Remove buttons with very compact layout
+        # Ensure scroll starts at top to show first option properly
+        Clock.schedule_once(lambda dt: setattr(scroll, 'scroll_y', 1), 0.1)
+        
+        # Add spacing between scroll and buttons
+        spacer = MDBoxLayout(
+            size_hint_y=None,
+            height=dp(4)  # Small spacer to separate scroll from buttons
+        )
+        self.content_area.add_widget(spacer)
+        
+        # Add/Remove buttons with proper spacing
         btn_layout = MDBoxLayout(
             orientation='horizontal',
-            spacing=dp(4),  # Minimal spacing
+            spacing=dp(6),  # Better spacing
             size_hint_y=None,
-            height=dp(28),  # Very compact height
+            height=dp(32),  # Better height
             padding=[0, dp(2), 0, 0]
         )
         
@@ -440,22 +460,22 @@ class ModernFormField(MDCard):
             style="filled",
             md_bg_color=(0.27, 0.65, 0.27, 1),
             size_hint=(None, None),
-            size=(dp(68), dp(24)),  # Very compact
+            size=(dp(76), dp(28)),  # Better size
             on_release=self._add_option
         )
         add_btn.add_widget(MDButtonIcon(icon="plus"))
-        add_btn.add_widget(MDButtonText(text="Add", font_size="10sp"))  # Smaller font
+        add_btn.add_widget(MDButtonText(text="Add", font_size="11sp"))  # Better font size
         btn_layout.add_widget(add_btn)
         
         remove_btn = MDButton(
             style="outlined",
             size_hint=(None, None),
-            size=(dp(72), dp(24)),  # Very compact
+            size=(dp(88), dp(28)),  # Better size
             on_release=self._remove_option,
             disabled=len(self.options) <= 2
         )
         remove_btn.add_widget(MDButtonIcon(icon="minus"))
-        remove_btn.add_widget(MDButtonText(text="Remove", font_size="10sp"))  # Smaller font
+        remove_btn.add_widget(MDButtonText(text="Remove", font_size="11sp"))  # Better font size
         btn_layout.add_widget(remove_btn)
         
         btn_layout.add_widget(BoxLayout(size_hint_x=1))  # Spacer
@@ -463,34 +483,36 @@ class ModernFormField(MDCard):
         self.content_area.add_widget(btn_layout)
     
     def _create_option_widget(self, index, text):
-        """Create a single option input widget with compact layout"""
+        """Create a single option input widget with proper layout"""
         option_layout = MDBoxLayout(
             orientation='horizontal',
-            spacing=dp(4),  # Minimal spacing
+            spacing=dp(6),  # Better spacing for readability
             size_hint_y=None,
-            height=dp(30)  # Very compact height
+            height=dp(30),  # Fixed height
+            padding=[dp(2), 0, dp(2), 0]  # Small horizontal padding
         )
         
-        # Option number label - very compact
+        # Option number label - properly sized
         number_label = MDLabel(
             text=f"{index + 1}.",
             size_hint=(None, None),
-            size=(dp(16), dp(30)),  # Smaller label
+            size=(dp(18), dp(30)),  # Slightly wider for better alignment
             font_style="Body",
             role="small",
             theme_text_color="Primary",
-            valign="center"
+            valign="center",
+            halign="center"
         )
         option_layout.add_widget(number_label)
         
-        # Option input field - very compact
+        # Option input field - properly contained
         option_input = MDTextField(
             text=text,
             hint_text=f"Option {index + 1}",
             mode="outlined",
             size_hint_x=1,
             size_hint_y=None,
-            height=dp(28),  # Very compact height
+            height=dp(32),  # Slightly taller for better visibility
             on_text=lambda instance, value: self._update_option(index, value)
         )
         option_layout.add_widget(option_input)
