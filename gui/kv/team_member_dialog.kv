@@ -431,4 +431,4 @@
     MDListItemTrailingIcon:
         icon: "delete" if not root.member_data.get('is_creator', False) else "crown"
         theme_icon_color: "Error" if not root.member_data.get('is_creator', False) else "Primary"
-        on_release: root.on_trailing_icon_press() if not root.member_data.get('is_creator', False) else None
+        on_press: root.on_trailing_icon_press() if not root.member_data.get('is_creator', False) else None

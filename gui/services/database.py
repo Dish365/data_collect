@@ -328,14 +328,130 @@ class DatabaseService:
             
         except Exception as e:
             print(f"Error during migration: {e}")
-            # If migration fails, we'll continue anyway
+            # If migration fails, recreate tables with correct schema
+            print("Migration failed, recreating database with correct schema...")
+            try:
+                conn.rollback()
+                self._recreate_database_schema(cursor)
+                conn.commit()
+                print("Database recreated successfully")
+            except Exception as recreate_error:
+                print(f"Error recreating database: {recreate_error}")
         finally:
             conn.close()
+
+    def _recreate_database_schema(self, cursor):
+        """Recreate database with correct schema when migration fails"""
+        try:
+            # Drop all tables and recreate them
+            cursor.execute('DROP TABLE IF EXISTS sync_queue')
+            cursor.execute('DROP TABLE IF EXISTS responses')
+            cursor.execute('DROP TABLE IF EXISTS respondents')
+            cursor.execute('DROP TABLE IF EXISTS questions')
+            cursor.execute('DROP TABLE IF EXISTS projects')
+            cursor.execute('DROP TABLE IF EXISTS user_session')
+            
+            # Recreate tables with correct schema
+            cursor.execute('''
+                CREATE TABLE projects (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    created_by TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    sync_status TEXT DEFAULT 'pending'
+                )
+            ''')
+            
+            cursor.execute('''
+                CREATE TABLE questions (
+                    id TEXT PRIMARY KEY,
+                    project_id TEXT REFERENCES projects(id),
+                    question_text TEXT NOT NULL,
+                    question_type TEXT NOT NULL,
+                    response_type TEXT,
+                    options TEXT,
+                    validation_rules TEXT,
+                    order_index INTEGER,
+                    user_id TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    sync_status TEXT DEFAULT 'pending',
+                    is_required BOOLEAN DEFAULT 1
+                )
+            ''')
+            
+            cursor.execute('''
+                CREATE TABLE respondents (
+                    id TEXT PRIMARY KEY,
+                    respondent_id TEXT UNIQUE NOT NULL,
+                    project_id TEXT REFERENCES projects(id),
+                    is_anonymous BOOLEAN DEFAULT 1,
+                    consent_given BOOLEAN DEFAULT 0,
+                    demographics TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_response_at TIMESTAMP,
+                    sync_status TEXT DEFAULT 'pending',
+                    user_id TEXT NOT NULL
+                )
+            ''')
+            
+            cursor.execute('''
+                CREATE TABLE responses (
+                    response_id TEXT PRIMARY KEY,
+                    project_id TEXT REFERENCES projects(id),
+                    question_id TEXT REFERENCES questions(id),
+                    respondent_id TEXT,
+                    response_value TEXT,
+                    response_metadata TEXT,
+                    location_data TEXT,
+                    device_info TEXT,
+                    collected_by TEXT,
+                    collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    sync_status TEXT DEFAULT 'pending',
+                    user_id TEXT NOT NULL
+                )
+            ''')
+            
+            cursor.execute('''
+                CREATE TABLE sync_queue (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    table_name TEXT NOT NULL,
+                    record_id TEXT NOT NULL,
+                    operation TEXT NOT NULL,
+                    data TEXT,
+                    user_id TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    attempts INTEGER DEFAULT 0,
+                    priority INTEGER DEFAULT 1,
+                    status TEXT DEFAULT 'pending'
+                )
+            ''')
+            
+            cursor.execute('''
+                CREATE TABLE user_session (
+                    id INTEGER PRIMARY KEY,
+                    current_user_id TEXT,
+                    session_start TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            print("Database schema recreated successfully")
+            
+        except Exception as e:
+            print(f"Error recreating database schema: {e}")
+            raise
 
     def _migrate_responses_table_structure(self, cursor, conn):
         """Migrate responses table from old schema (id) to new schema (response_id)"""
         try:
             print("Migrating responses table to new structure...")
+            
+            # First, check what columns exist in the old table
+            cursor.execute("PRAGMA table_info(responses)")
+            old_columns = {col[1]: col for col in cursor.fetchall()}
+            print(f"Old responses table columns: {list(old_columns.keys())}")
             
             # Create new responses table with correct schema
             cursor.execute('''
@@ -355,24 +471,31 @@ class DatabaseService:
                 )
             ''')
             
-            # Copy data from old table to new table, generating new response_ids
-            cursor.execute('''
+            # Build dynamic SELECT based on available columns
+            select_parts = []
+            select_parts.append("COALESCE(id, hex(randomblob(16))) as response_id")
+            select_parts.append("project_id" if "project_id" in old_columns else "NULL as project_id")
+            select_parts.append("question_id" if "question_id" in old_columns else "NULL as question_id")
+            select_parts.append("respondent_id" if "respondent_id" in old_columns else "NULL as respondent_id")
+            select_parts.append("response_value" if "response_value" in old_columns else "NULL as response_value")
+            select_parts.append("COALESCE(response_metadata, '{}') as response_metadata" if "response_metadata" in old_columns else "'{}' as response_metadata")
+            select_parts.append("location_data" if "location_data" in old_columns else "NULL as location_data")
+            select_parts.append("device_info" if "device_info" in old_columns else "NULL as device_info")
+            select_parts.append("collected_by" if "collected_by" in old_columns else "NULL as collected_by")
+            select_parts.append("COALESCE(collected_at, datetime('now')) as collected_at" if "collected_at" in old_columns else "datetime('now') as collected_at")
+            select_parts.append("COALESCE(sync_status, 'pending') as sync_status" if "sync_status" in old_columns else "'pending' as sync_status")
+            select_parts.append("COALESCE(user_id, 'unknown') as user_id" if "user_id" in old_columns else "'unknown' as user_id")
+            
+            # Copy data from old table to new table
+            select_query = f"""
                 INSERT INTO responses_new 
                 (response_id, project_id, question_id, respondent_id, response_value, 
-                 response_metadata, collected_by, collected_at, sync_status, user_id)
-                SELECT 
-                    COALESCE(id, hex(randomblob(16))) as response_id,
-                    project_id,
-                    question_id,
-                    respondent_id,
-                    response_value,
-                    COALESCE(response_metadata, '{}') as response_metadata,
-                    collected_by,
-                    COALESCE(collected_at, datetime('now')) as collected_at,
-                    COALESCE(sync_status, 'pending') as sync_status,
-                    COALESCE(user_id, 'unknown') as user_id
+                 response_metadata, location_data, device_info, collected_by, collected_at, sync_status, user_id)
+                SELECT {', '.join(select_parts)}
                 FROM responses
-            ''')
+            """
+            
+            cursor.execute(select_query)
             
             # Drop old table and rename new one
             cursor.execute('DROP TABLE responses')
@@ -383,7 +506,29 @@ class DatabaseService:
             
         except Exception as e:
             print(f"Error migrating responses table structure: {e}")
-            # If this fails, the init_database will recreate the table with correct schema
+            # If this fails, just drop and recreate the table
+            try:
+                cursor.execute('DROP TABLE IF EXISTS responses_new')
+                cursor.execute('DROP TABLE IF EXISTS responses')
+                cursor.execute('''
+                    CREATE TABLE responses (
+                        response_id TEXT PRIMARY KEY,
+                        project_id TEXT REFERENCES projects(id),
+                        question_id TEXT REFERENCES questions(id),
+                        respondent_id TEXT,
+                        response_value TEXT,
+                        response_metadata TEXT,
+                        location_data TEXT,
+                        device_info TEXT,
+                        collected_by TEXT,
+                        collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        sync_status TEXT DEFAULT 'pending',
+                        user_id TEXT NOT NULL
+                    )
+                ''')
+                print("Recreated responses table with correct schema")
+            except Exception as recreate_error:
+                print(f"Error recreating responses table: {recreate_error}")
 
     def clear_all_sessions(self):
         """Clear all user sessions - useful for complete logout"""
@@ -486,7 +631,7 @@ class DatabaseService:
             other_sync = cursor.fetchone()[0]
             
             if other_projects > 0 or other_sync > 0:
-                print(f"Warning: Found data belonging to other users (Projects: {other_projects}, Sync: {other_sync})")
+                print(f"Info: Database contains data from other users (Projects: {other_projects}, Sync: {other_sync})")
             
             # Get user-specific counts
             cursor.execute("SELECT COUNT(*) FROM projects WHERE user_id = ?", (user_id,))

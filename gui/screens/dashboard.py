@@ -53,8 +53,10 @@ class DashboardScreen(MDScreen):
         super().__init__(**kwargs)
         app = App.get_running_app()
         
-        # Initialize dashboard service with fallback
-        if DashboardService and hasattr(app, 'auth_service') and hasattr(app, 'db_service'):
+        # Use the app's dashboard service if available
+        if hasattr(app, 'dashboard_service') and app.dashboard_service:
+            self.dashboard_service = app.dashboard_service
+        elif DashboardService and hasattr(app, 'auth_service') and hasattr(app, 'db_service'):
             self.dashboard_service = DashboardService(app.auth_service, app.db_service)
         else:
             print("Warning: Dashboard service not available - using fallback mode")
@@ -87,9 +89,9 @@ class DashboardScreen(MDScreen):
             # Show error message if initialization completely fails
             self._handle_error("Failed to initialize dashboard. Please try logging out and back in.")
         
-        # Schedule auto-refresh every 30 seconds if enabled
+        # Schedule auto-refresh every 3600 seconds if enabled (reduced from 30 for less frequent logs)
         if self.auto_refresh_enabled:
-            Clock.schedule_interval(self.auto_refresh_stats, 30)
+            Clock.schedule_interval(self.auto_refresh_stats, 3600)
 
     def _force_layout_refresh(self, dt):
         """Force a complete layout refresh to ensure responsive layout is applied"""
@@ -578,7 +580,7 @@ class DashboardScreen(MDScreen):
         """Toggle auto-refresh functionality"""
         self.auto_refresh_enabled = not self.auto_refresh_enabled
         if self.auto_refresh_enabled:
-            Clock.schedule_interval(self.auto_refresh_stats, 30)
+            Clock.schedule_interval(self.auto_refresh_stats, 60)
         else:
             Clock.unschedule(self.auto_refresh_stats)
         print(f"Auto-refresh {'enabled' if self.auto_refresh_enabled else 'disabled'}")

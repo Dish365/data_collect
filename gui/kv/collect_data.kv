@@ -420,6 +420,7 @@
         size_hint_y: None
         height: dp(40) if not self.multiline else dp(80)
         font_size: "13sp" if Window.width < dp(600) else "14sp"
+        on_text: app.root.get_screen('data_collection').track_answer_progress(root.parent.question_id) if hasattr(root.parent, 'question_id') else None
 
         MDTextFieldHintText:
             text: root.hint_text
@@ -451,7 +452,7 @@
         size_hint: None, None
         size: dp(24) if Window.width < dp(600) else dp(28), dp(24) if Window.width < dp(600) else dp(28)
         pos_hint: {'center_y': 0.5}
-        on_active: root.parent.parent.parent.parent.track_answer_progress(root.question_id)
+        on_active: app.root.get_screen('data_collection').track_answer_progress(root.question_id)
 
     MDLabel:
         text: root.option_text

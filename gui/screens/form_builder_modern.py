@@ -410,10 +410,11 @@ EmptyFormState:
         # Sort questions by order_index to ensure proper ordering
         sorted_questions = sorted(self.questions_data, key=lambda x: x.get('order_index', 0))
         
-        # Create form fields from questions data
-        question_number = 1
-        for q_data in sorted_questions:
+        # Create form fields from questions data in reverse order since we add with index=0
+        for i, q_data in enumerate(reversed(sorted_questions)):
             try:
+                # Calculate correct question number (reverse the index)
+                question_number = len(sorted_questions) - i
                 print(f"DEBUG: Processing question {question_number}: {q_data}")
                 
                 # Get response type and question text
@@ -447,11 +448,10 @@ EmptyFormState:
                 field.question_number = str(question_number)
                 field.question_id = q_data.get('id')
                 
-                # Add to canvas with proper spacing
-                self.ids.form_canvas.add_widget(field)
-                question_number += 1
+                # Add to canvas in correct order (insert at beginning to maintain question order)
+                self.ids.form_canvas.add_widget(field, index=0)
                 
-                print(f"DEBUG: Successfully added field {question_number - 1}")
+                print(f"DEBUG: Successfully added field {question_number}")
                 
             except Exception as e:
                 print(f"ERROR: Error creating form field for question {question_number}: {e}")
@@ -467,13 +467,12 @@ EmptyFormState:
                     )
                     field.question_number = str(question_number)
                     field.question_id = q_data.get('id')
-                    self.ids.form_canvas.add_widget(field)
-                    question_number += 1
-                    print(f"DEBUG: Added fallback field for question {question_number - 1}")
+                    self.ids.form_canvas.add_widget(field, index=0)
+                    print(f"DEBUG: Added fallback field for question {question_number}")
                 except Exception as fallback_error:
                     print(f"ERROR: Failed to create fallback field: {fallback_error}")
         
-        print(f"DEBUG: Finished creating form fields. Total: {question_number - 1}")
+        print(f"DEBUG: Finished creating form fields. Total: {len(sorted_questions)}")
     
     def add_question(self, response_type):
         """Add a new question to the form"""

@@ -728,12 +728,50 @@ class ModernFormField(MDCard):
         def cancel_delete(dialog_instance):
             dialog_instance.dismiss()
         
-        # Create confirmation dialog
-        dialog = MDDialog(
-            title="Delete Question?",
-            text=f'Are you sure you want to delete "{question_preview}"?',
-            auto_dismiss=False
+        # Create confirmation dialog for KivyMD 2.0+
+        from kivymd.uix.label import MDLabel
+        from kivymd.uix.card import MDCard
+        from kivymd.uix.boxlayout import MDBoxLayout
+        
+        dialog_content = MDBoxLayout(
+            orientation="vertical",
+            spacing="12dp",
+            size_hint_y=None,
+            height="180dp",
+            padding="20dp"
         )
+        
+        title_label = MDLabel(
+            text="Delete Question?",
+            font_style="Headline",
+            role="small",
+            size_hint_y=None,
+            height="40dp",
+            theme_text_color="Primary"
+        )
+        dialog_content.add_widget(title_label)
+        
+        text_label = MDLabel(
+            text=f'Are you sure you want to delete "{question_preview}"?',
+            font_style="Body",
+            role="medium", 
+            size_hint_y=None,
+            height="60dp",
+            theme_text_color="Secondary"
+        )
+        dialog_content.add_widget(text_label)
+        
+        # Add button container
+        button_layout = MDBoxLayout(
+            orientation="horizontal",
+            spacing="12dp",
+            size_hint_y=None,
+            height="48dp",
+            adaptive_width=True
+        )
+        
+        # Add spacer to push buttons to the right
+        button_layout.add_widget(MDBoxLayout(size_hint_x=1))
         
         # Add buttons
         cancel_btn = MDButton(
@@ -741,16 +779,25 @@ class ModernFormField(MDCard):
             on_release=lambda x: cancel_delete(dialog)
         )
         cancel_btn.add_widget(MDButtonText(text="Cancel"))
+        button_layout.add_widget(cancel_btn)
         
         delete_btn = MDButton(
-            style="text",
+            style="filled",
             theme_bg_color="Custom",
             md_bg_color=(0.9, 0.2, 0.2, 1),
             on_release=lambda x: confirm_delete(dialog)
         )
-        delete_btn.add_widget(MDButtonText(text="Delete", text_color=(1, 1, 1, 1)))
+        delete_btn.add_widget(MDButtonText(text="Delete", theme_text_color="Custom", text_color=(1, 1, 1, 1)))
+        button_layout.add_widget(delete_btn)
         
-        dialog.buttons = [cancel_btn, delete_btn]
+        dialog_content.add_widget(button_layout)
+        
+        dialog = MDDialog(
+            auto_dismiss=False,
+            size_hint=(0.8, None),
+            height="180dp"
+        )
+        dialog.add_widget(dialog_content)
         dialog.open()
     
     def _toggle_expanded(self, instance):
@@ -925,10 +972,18 @@ class ModernFormField(MDCard):
     
     def to_dict(self):
         """Convert field to dictionary for saving"""
+        # Get current options from UI if it's a choice field
+        current_options = []
+        if self.response_type in ['choice_single', 'choice_multiple']:
+            current_options = self._get_current_options_from_ui()
+            # Fallback to stored options if UI extraction fails
+            if not current_options:
+                current_options = [opt.strip() for opt in self.options if opt.strip()]
+        
         return {
             'question_text': self.get_question_text(),
             'response_type': self.response_type,
-            'options': [opt.strip() for opt in self.options if opt.strip()] if self.response_type in ['choice_single', 'choice_multiple'] else [],
+            'options': current_options,
             'allow_multiple': self.response_type == 'choice_multiple',
             'is_required': self.is_required,
             'validation_rules': {
@@ -936,6 +991,22 @@ class ModernFormField(MDCard):
                 'max_value': self.max_value
             } if self.response_type == 'scale_rating' else {}
         }
+    
+    def _get_current_options_from_ui(self):
+        """Extract current option values from the UI text fields"""
+        current_options = []
+        try:
+            # Look for option input fields in the content area
+            for widget in self.walk(restrict=True):
+                if hasattr(widget, 'text') and hasattr(widget, 'hint_text'):
+                    if widget.hint_text and 'option' in widget.hint_text.lower():
+                        option_text = widget.text.strip()
+                        if option_text:
+                            current_options.append(option_text)
+        except Exception as e:
+            print(f"Error extracting options from UI: {e}")
+            
+        return current_options
 
 
 def create_form_field(response_type, question_text="", options=None, **kwargs):

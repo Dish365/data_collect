@@ -114,14 +114,25 @@ class InferentialAnalyticsScreen(Screen):
     def load_projects(self):
         """Load available projects"""
         try:
-            projects = self.analytics_service.get_projects()
+            # Use project service to get projects
+            app = App.get_running_app()
+            if hasattr(app, 'auth_service') and hasattr(app, 'db_service') and hasattr(app, 'sync_service'):
+                from services.project_service import ProjectService
+                project_service = ProjectService(app.auth_service, app.db_service, app.sync_service)
+                projects, error = project_service.load_projects()
+                if error:
+                    print(f"Error loading projects: {error}")
+                    return
+            else:
+                print("Error: Required services not available")
+                return
             self.project_list = []
             self.project_map = {}
             
             for project in projects:
                 project_item = {
                     'id': project['id'],
-                    'name': project['title'],
+                    'name': project['name'],  # Fixed: use 'name' instead of 'title'
                     'description': project.get('description', ''),
                     'created_at': project.get('created_at', ''),
                     'responses_count': project.get('responses_count', 0)

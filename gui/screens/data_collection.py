@@ -167,12 +167,13 @@ class DataCollectionScreen(Screen):
             for project in api_projects:
                 cursor.execute("""
                     INSERT OR REPLACE INTO projects 
-                    (id, name, description, user_id, sync_status, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    (id, name, description, created_by, user_id, sync_status, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     project.get('id'),
                     project.get('name'),
                     project.get('description', ''),
+                    project.get('created_by', user_id),  # Use created_by from API or fallback to user_id
                     user_id,
                     'synced',
                     project.get('created_at'),
@@ -196,6 +197,7 @@ class DataCollectionScreen(Screen):
             self.project_id = None
             self.current_respondent_id = None
             self._update_project_spinner_text('No Projects Available')
+            self.hide_form_overview()
             self._show_empty_state("No projects found", "Go to the Projects page to create a new project first.")
             self._update_submit_button()
             return
@@ -206,6 +208,7 @@ class DataCollectionScreen(Screen):
         self.current_respondent_id = None
         self._update_project_spinner_text('Select Project')
         self.ids.form_canvas.clear_widgets()
+        self.hide_form_overview()
         self._update_submit_button()
         print(f"Loaded {len(projects)} projects for user {user_id}")
 
@@ -249,6 +252,7 @@ class DataCollectionScreen(Screen):
                 self.current_respondent_id = None
                 self._update_project_spinner_text('Select Project')
                 self.ids.form_canvas.clear_widgets()
+                self.hide_form_overview()
                 self._update_submit_button()
                 return
                 
@@ -270,6 +274,7 @@ class DataCollectionScreen(Screen):
             self.current_respondent_id = None
             self._update_project_spinner_text('Select Project')
             self.ids.form_canvas.clear_widgets()
+            self.hide_form_overview()
             self._update_submit_button()
             self.loading_overlay.hide()
 
@@ -313,12 +318,12 @@ class DataCollectionScreen(Screen):
             self.questions_data = questions
             self.total_questions = len(questions)
             
-            # Create question widgets using KV templates
+            # Create question widgets using KV templates in their original order
             for i, q in enumerate(questions):
                 try:
                     widget = self.create_question_widget_kv(q, i)
                     if widget:
-                        self.ids.form_canvas.add_widget(widget)
+                        self.ids.form_canvas.add_widget(widget, index=0)  # Add at beginning to maintain order
                         self.response_widgets.append((q, widget))
                         self.track_answer_progress(q.get('id', ''))
                 except Exception as e:
@@ -329,7 +334,7 @@ class DataCollectionScreen(Screen):
             
             self.show_form_controls()
             self.update_progress()
-            self.populate_question_overview()
+            self.hide_form_overview()
             
             print(f"[DEBUG] Current form_canvas children after load: {len(self.ids.form_canvas.children)}")
             print("Form loading completed successfully")
@@ -399,10 +404,6 @@ QuestionCard:
         hint_text: '{hint_text}'
         multiline: {multiline}
         input_filter: {input_filter}
-
-        MDTextField:
-            height: {height}
-            on_text: root.parent.parent.parent.track_answer_progress('{q_id}')
 """
         
         widget = Builder.load_string(kv_string)
@@ -459,7 +460,7 @@ QuestionCard:
         question_id: '{q_id}'
 
         MDSlider:
-            on_value: root.parent.parent.parent.track_answer_progress('{q_id}'); root.parent.children[0].text = str(int(self.value))
+            on_value: app.root.get_screen('data_collection').track_answer_progress('{q_id}'); root.parent.children[0].text = str(int(self.value))
 """
         
         widget = Builder.load_string(kv_string)
@@ -482,9 +483,6 @@ QuestionCard:
         hint_text: '{hint_text}'
         multiline: False
         input_filter: None
-
-        MDTextField:
-            on_text: root.parent.parent.parent.track_answer_progress('{q_id}')
 """
         
         widget = Builder.load_string(kv_string)
@@ -695,6 +693,19 @@ MDCard:
         except Exception as e:
             print(f"Error showing form controls: {e}")
 
+    def hide_form_overview(self):
+        """Hide the form overview side panel"""
+        try:
+            if hasattr(self.ids, 'side_panel'):
+                self.ids.side_panel.opacity = 0
+                self.ids.side_panel.size_hint_x = 0
+                self.ids.side_panel.width = 0
+            # Expand the main form canvas to take full width
+            if hasattr(self.ids, 'form_canvas'):
+                self.ids.form_canvas.size_hint_x = 1
+        except Exception as e:
+            print(f"Error hiding form overview: {e}")
+
     def populate_question_overview(self):
         """Populate the side panel with question overview"""
         try:
@@ -750,8 +761,6 @@ OverviewItem:
             self._clear_form()
             self.answered_questions.clear()
             self.update_progress()
-            if hasattr(self.ids, 'question_overview'):
-                self.ids.question_overview.clear_widgets()
             toast("Form cleared")
         except Exception as e:
             print(f"Error clearing form: {e}")
@@ -922,8 +931,7 @@ OverviewItem:
                 self.ids.progress_section.opacity = 0
             if hasattr(self.ids, 'form_actions'):
                 self.ids.form_actions.opacity = 0
-            if hasattr(self.ids, 'side_panel'):
-                self.ids.side_panel.opacity = 0
+            self.hide_form_overview()
         except Exception as e:
             print(f"Error hiding form controls: {e}")
 
@@ -954,6 +962,7 @@ OverviewItem:
         try:
             self.ids.form_canvas.clear_widgets()
             self.hide_form_controls()
+            self.hide_form_overview()
             
             # Show the empty state defined in KV
             if hasattr(self.ids, 'empty_state'):

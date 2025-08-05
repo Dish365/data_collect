@@ -172,7 +172,9 @@ class ModernQuestionViewSet(BaseModelViewSet):
                         for question_data in project_questions:
                             serializer = self.get_serializer(data=question_data)
                             if serializer.is_valid(raise_exception=True):
-                                question_objects.append(Question(**serializer.validated_data, project=project))
+                                validated_data = serializer.validated_data.copy()
+                                validated_data['project'] = project
+                                question_objects.append(Question(**validated_data))
                         
                         questions = Question.objects.bulk_create(question_objects)
                         created_questions.extend(questions)

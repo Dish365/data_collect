@@ -120,6 +120,10 @@ class ResearchCollectorApp(MDApp):
         self.form_service = FormService(self.auth_service, self.db_service, self.sync_service)
         from services.data_collection_service import DataCollectionService
         self.data_collection_service = DataCollectionService(self.auth_service, self.db_service, self.sync_service)
+        from services.dashboard_service import DashboardService
+        self.dashboard_service = DashboardService(self.auth_service, self.db_service)
+        from services.analytics_service import AnalyticsService
+        self.analytics_service = AnalyticsService(self.auth_service, self.db_service)
         
         # Create screen manager (screens will be added in on_start)
         sm = ScreenManager()

@@ -229,8 +229,16 @@ class ModernFormService:
         )
         
         if 'error' not in response:
-            # Update local database with returned data
-            self._sync_to_local_db(project_id, response)
+            # Only sync if response contains question data
+            if isinstance(response, list):
+                # Response is a list of questions, sync directly
+                self._sync_to_local_db(project_id, response)
+            elif isinstance(response, dict) and 'questions' in response:
+                # Response contains questions in a wrapper
+                self._sync_to_local_db(project_id, response['questions'])
+            else:
+                # Response is likely a success message, don't try to sync
+                print(f"Bulk create success, but no question data to sync: {response}")
             return True
         
         return False
@@ -279,8 +287,25 @@ class ModernFormService:
             if conn:
                 conn.close()
     
-    def _sync_to_local_db(self, project_id: str, api_questions: List[Dict]):
+    def _sync_to_local_db(self, project_id: str, api_questions):
         """Sync API questions to local database"""
+        # Validate input - ensure api_questions is a list of dictionaries
+        if not isinstance(api_questions, list):
+            print(f"Warning: Expected list of questions, got {type(api_questions)}: {api_questions}")
+            return
+        
+        # Filter out non-dictionary items
+        valid_questions = []
+        for item in api_questions:
+            if isinstance(item, dict):
+                valid_questions.append(item)
+            else:
+                print(f"Warning: Skipping non-dictionary item in questions: {type(item)} - {item}")
+        
+        if not valid_questions:
+            print("No valid question dictionaries found to sync")
+            return
+        
         conn = self.db_service.get_db_connection()
         try:
             cursor = conn.cursor()
@@ -300,25 +325,29 @@ class ModernFormService:
                 )
             
             # Insert API questions
-            for question in api_questions:
-                response_type = question.get('response_type', question.get('question_type', 'text_short'))
-                cursor.execute("""
-                    INSERT OR REPLACE INTO questions 
-                    (id, project_id, question_text, question_type, options, validation_rules, 
-                     order_index, user_id, sync_status, is_required) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    question.get('id'),
-                    project_id,
-                    question.get('question_text'),
-                    response_type,
-                    json.dumps(question.get('options')),
-                    json.dumps(question.get('validation_rules')),
-                    question.get('order_index'),
-                    user_id,
-                    'synced',
-                    question.get('is_required', True)
-                ))
+            for question in valid_questions:
+                try:
+                    response_type = question.get('response_type', question.get('question_type', 'text_short'))
+                    cursor.execute("""
+                        INSERT OR REPLACE INTO questions 
+                        (id, project_id, question_text, question_type, options, validation_rules, 
+                         order_index, user_id, sync_status, is_required) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        question.get('id'),
+                        project_id,
+                        question.get('question_text'),
+                        response_type,
+                        json.dumps(question.get('options')),
+                        json.dumps(question.get('validation_rules')),
+                        question.get('order_index'),
+                        user_id,
+                        'synced',
+                        question.get('is_required', True)
+                    ))
+                except Exception as question_error:
+                    print(f"Error syncing individual question {question.get('id', 'unknown')}: {question_error}")
+                    continue
             
             conn.commit()
             

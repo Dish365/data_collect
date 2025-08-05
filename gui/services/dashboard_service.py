@@ -152,13 +152,24 @@ class DashboardService:
                 # Handle different timestamp formats
                 timestamp_str = item.get('timestamp', '')
                 if timestamp_str:
-                    # Remove Z suffix if present and parse
-                    timestamp_str = timestamp_str.replace('Z', '')
-                    if '+' in timestamp_str:
-                        timestamp_str = timestamp_str.split('+')[0]
-                    
-                    timestamp = datetime.fromisoformat(timestamp_str)
-                    time_ago = humanize.naturaltime(datetime.now() - timestamp)
+                    try:
+                        # Parse timestamp with timezone info
+                        if timestamp_str.endswith('Z'):
+                            timestamp_str = timestamp_str.replace('Z', '+00:00')
+                        
+                        timestamp = datetime.fromisoformat(timestamp_str)
+                        
+                        # Convert to local time for humanize (it expects naive datetime)
+                        if timestamp.tzinfo is not None:
+                            # Convert to local timezone and make naive
+                            local_timestamp = timestamp.astimezone().replace(tzinfo=None)
+                        else:
+                            local_timestamp = timestamp
+                        
+                        time_ago = humanize.naturaltime(local_timestamp)
+                    except Exception as dt_error:
+                        print(f"Error processing timestamp '{timestamp_str}': {dt_error}")
+                        time_ago = "Unknown time"
                 else:
                     time_ago = "Unknown time"
 

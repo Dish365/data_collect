@@ -50,6 +50,12 @@ class AnalyticsScreen(Screen):
         width = Window.width
         return 768 <= width <= 1366
 
+    def _get_project_selector(self):
+        """Helper method to get the project selector widget"""
+        if hasattr(self.ids, 'project_selector') and self.ids.project_selector:
+            return self.ids.project_selector
+        return None
+
 
 
     def on_enter(self):
@@ -67,6 +73,9 @@ class AnalyticsScreen(Screen):
         self.update_responsive_layout()
         self.update_quick_stats()
         self.update_project_overview_collapse_state()
+        
+        # Ensure project selector is initialized
+        Clock.schedule_once(self._initialize_project_selector, 0.2)
 
     def setup_analytics_service(self):
         """Initialize basic analytics service"""
@@ -130,9 +139,11 @@ class AnalyticsScreen(Screen):
             
             self.project_map = {p['name']: p['id'] for p in projects}
             
-            if hasattr(self.ids, 'project_selector'):
-                self.ids.project_selector.text = "Select Project for Analysis"
-                self.ids.project_selector.font_size = self.FONT_SIZE
+            project_selector = self._get_project_selector()
+            
+            if project_selector:
+                project_selector.text = "Select Project for Analysis"
+                project_selector.font_size = self.FONT_SIZE
                 
         except Exception as e:
             print(f"Error loading projects: {e}")
@@ -141,9 +152,23 @@ class AnalyticsScreen(Screen):
             if conn:
                 conn.close()
 
+    def _initialize_project_selector(self, dt):
+        """Initialize project selector with better error handling"""
+        # Debug: Print all available IDs
+        print(f"Available IDs in analytics screen: {list(self.ids.keys())}")
+        
+        project_selector = self._get_project_selector()
+        
+        if project_selector:
+            if not self.current_project_id:
+                project_selector.text = "Select Project for Analysis"
+            print("Project selector initialized successfully")
+        else:
+            print("Warning: project_selector still not found, will retry on user interaction")
+            # Try one more time with a longer delay
+            Clock.schedule_once(self._initialize_project_selector, 1.0)
 
-
-    def open_project_menu(self):
+    def open_project_menu(self, retry_count=0):
         """Open project selection dropdown menu"""
         if self.project_menu:
             self.project_menu.dismiss()
@@ -152,10 +177,16 @@ class AnalyticsScreen(Screen):
             toast("No projects available")
             return
         
-        # Check if project_selector exists
-        if not hasattr(self.ids, 'project_selector') or not self.ids.project_selector:
-            print("Warning: project_selector not found in analytics screen")
-            toast("Project selector not available")
+        project_selector = self._get_project_selector()
+        
+        # Check if project_selector exists, retry with delay if not available
+        if not project_selector:
+            if retry_count < 3:  # Limit retries to prevent infinite loop
+                print(f"Warning: project_selector not found in analytics screen, retrying... (attempt {retry_count + 1})")
+                Clock.schedule_once(lambda dt: self.open_project_menu(retry_count + 1), 0.5)
+            else:
+                print("Error: project_selector not found after 3 attempts, showing toast instead")
+                toast("Project selector not available")
             return
             
         menu_items = []
@@ -173,7 +204,7 @@ class AnalyticsScreen(Screen):
             })
             
         self.project_menu = MDDropdownMenu(
-            caller=self.ids.project_selector,
+            caller=project_selector,
             items=menu_items,
             width=dp(240),
             max_height=dp(400)
@@ -188,11 +219,13 @@ class AnalyticsScreen(Screen):
         self.current_project_id = project['id']
         self.current_project_name = project['name']
         
-        if hasattr(self.ids, 'project_selector'):
+        project_selector = self._get_project_selector()
+        
+        if project_selector:
             selector_text = f"{project['name']}"
             if project['response_count'] > 0:
                 selector_text += f" ({project['response_count']} responses)"
-            self.ids.project_selector.text = selector_text
+            project_selector.text = selector_text
         
         self.update_quick_stats()
         
