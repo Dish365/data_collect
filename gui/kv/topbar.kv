@@ -68,6 +68,18 @@
                 md_bg_color: (1, 1, 1, 0.15) if root.current_screen == "analytics" else (0, 0, 0, 0)
                 on_release: root.navigate_to_screen('analytics')
 
+            # Analytics submenu dropdown
+            MDIconButton:
+                id: analytics_dropdown_btn
+                icon: "chevron-down" if root.current_screen in ["data_exploration", "qualitative_analytics", "descriptive_analytics", "inferential_analytics", "auto_detection"] else "database-search"
+                theme_icon_color: "Custom"
+                icon_color: (1, 1, 1, 1) if root.current_screen in ["data_exploration", "qualitative_analytics", "descriptive_analytics", "inferential_analytics", "auto_detection"] else (1, 1, 1, 0.7)
+                size_hint: None, None
+                size: dp(40), dp(40)
+                theme_bg_color: "Custom"
+                md_bg_color: (1, 1, 1, 0.15) if root.current_screen in ["data_exploration", "qualitative_analytics", "descriptive_analytics", "inferential_analytics", "auto_detection"] else (0, 0, 0, 0)
+                on_release: root.show_analytics_submenu()
+                
             MDIconButton:
                 icon: "database-search"
                 theme_icon_color: "Custom"

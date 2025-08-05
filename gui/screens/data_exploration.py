@@ -77,6 +77,20 @@ class DataExplorationScreen(Screen):
         # Bind to window resize for responsive updates
         Window.bind(size=self.on_window_resize)
 
+    def find_widget_by_id(self, parent_widget, widget_id):
+        """Helper method to find a widget by ID within a parent widget"""
+        if hasattr(parent_widget, 'ids') and widget_id in parent_widget.ids:
+            return parent_widget.ids[widget_id]
+        
+        # Search recursively through children
+        for child in parent_widget.children:
+            if hasattr(child, 'ids') and widget_id in child.ids:
+                return child.ids[widget_id]
+            result = self.find_widget_by_id(child, widget_id)
+            if result:
+                return result
+        return None
+
     def on_enter(self):
         """Called when the screen is entered"""
         if hasattr(self.ids, 'top_bar') and self.ids.top_bar:
@@ -119,23 +133,67 @@ class DataExplorationScreen(Screen):
     def load_projects(self):
         """Load available projects for selection"""
         try:
-            if not self.auth_service:
-                toast("Authentication service not available")
+            app = App.get_running_app()
+            if not hasattr(app, 'db_service') or not app.db_service:
+                toast("Database service not available")
                 return
             
             def load_projects_thread():
                 try:
-                    # Get projects from local database
-                    projects = self.auth_service.get_user_projects()
+                    conn = app.db_service.get_db_connection()
+                    if conn is None:
+                        Clock.schedule_once(
+                            lambda dt: toast("Database not initialized"), 0.1
+                        )
+                        return
+                    
+                    cursor = conn.cursor()
+                    user_data = app.auth_service.get_user_data() if app.auth_service else None
+                    user_id = user_data.get('id') if user_data else None
+                    
+                    if user_id:
+                        cursor.execute("""
+                            SELECT id, name, description, created_at,
+                                   (SELECT COUNT(*) FROM responses WHERE project_id = projects.id) as response_count
+                            FROM projects 
+                            WHERE user_id = ? 
+                            ORDER BY name
+                        """, (user_id,))
+                    else:
+                        cursor.execute("""
+                            SELECT id, name, description, created_at,
+                                   (SELECT COUNT(*) FROM responses WHERE project_id = projects.id) as response_count
+                            FROM projects 
+                            ORDER BY name
+                        """)
+                    
+                    projects = cursor.fetchall()
+                    conn.close()
+                    
+                    # Convert to list of dictionaries
+                    project_list = [
+                        {
+                            'id': p['id'],
+                            'name': p['name'],
+                            'description': p['description'] or '',
+                            'response_count': p['response_count'] or 0,
+                            'created_at': p['created_at']
+                        }
+                        for p in projects
+                    ]
                     
                     Clock.schedule_once(
-                        lambda dt: self._handle_projects_loaded(projects), 0.1
+                        lambda dt: self._handle_projects_loaded(project_list), 0.1
                     )
+                    
                 except Exception as e:
                     error_msg = str(e)  # Capture the error message in local scope
                     Clock.schedule_once(
                         lambda dt: toast(f"Failed to load projects: {error_msg}"), 0.1
                     )
+                finally:
+                    if 'conn' in locals() and conn:
+                        conn.close()
             
             threading.Thread(target=load_projects_thread, daemon=True).start()
             
@@ -145,22 +203,32 @@ class DataExplorationScreen(Screen):
     def _handle_projects_loaded(self, projects):
         """Handle loaded projects"""
         try:
-            self.project_list = []
+            self.project_list = projects  # Store full project objects
             self.project_map = {}
             
+            # Create name-to-id mapping for compatibility
             for project in projects:
                 project_name = project.get('name', 'Unnamed Project')
                 project_id = project.get('id', '')
-                
-                self.project_list.append(project_name)
                 self.project_map[project_name] = project_id
             
-            # Update project selector
-            if hasattr(self.ids, 'project_selector'):
+            # Update project selector UI
+            project_selector = self.find_widget_by_id(self.ids.project_selection_card, 'project_selector') if hasattr(self.ids, 'project_selection_card') else None
+            if project_selector:
                 if self.project_list:
-                    self.ids.project_selector.text = "Select Project"
+                    project_selector.text = "Select Project"
                 else:
-                    self.ids.project_selector.text = "No Projects Available"
+                    project_selector.text = "No Projects Available"
+            
+            # Update project info label
+            project_info_label = self.find_widget_by_id(self.ids.project_selection_card, 'project_info_label') if hasattr(self.ids, 'project_selection_card') else None
+            if project_info_label:
+                if self.project_list:
+                    total_projects = len(self.project_list)
+                    total_responses = sum(p.get('response_count', 0) for p in self.project_list)
+                    project_info_label.text = f"{total_projects} projects • {total_responses} responses"
+                else:
+                    project_info_label.text = "No projects found"
                     
         except Exception as e:
             toast(f"Error processing projects: {str(e)}")
@@ -171,39 +239,80 @@ class DataExplorationScreen(Screen):
             toast("No projects available")
             return
         
+        # Import the two-line menu item class
+        from widgets.two_line_menu_item import TwoLineMenuItem
+        
         menu_items = []
-        for project_name in self.project_list:
+        for project in self.project_list:
+            # Create separate headline and supporting text
+            headline_text = project['name']
+            supporting_text = f"{project['response_count']} responses"
+            if project.get('description'):
+                supporting_text += f" • {project['description'][:30]}{'...' if len(project['description']) > 30 else ''}"
+            
             menu_items.append({
-                "viewclass": "MDListItem",
-                "text": project_name,
-                "height": dp(48),
-                "on_release": lambda x=project_name: self.select_project(x)
+                "headline": headline_text,
+                "supporting": supporting_text,
+                "viewclass": "TwoLineMenuItem",
+                "height": dp(72),
+                "on_release": lambda x=project: self.select_project(x)
             })
         
+        project_selector = self.find_widget_by_id(self.ids.project_selection_card, 'project_selector') if hasattr(self.ids, 'project_selection_card') else None
+        if not project_selector:
+            toast("Project selector not found")
+            return
+            
         self.project_menu = MDDropdownMenu(
-            caller=self.ids.project_selector,
+            caller=project_selector,
             items=menu_items,
-            width=dp(200),
-            max_height=dp(300)
+            width=dp(280),
+            max_height=dp(400)
         )
         self.project_menu.open()
 
-    def select_project(self, project_name: str):
+    def select_project(self, project):
         """Select a project and start data exploration"""
         if hasattr(self, 'project_menu') and self.project_menu:
             self.project_menu.dismiss()
         
-        project_id = self.project_map.get(project_name)
-        if not project_id:
-            toast("Invalid project selection")
-            return
+        # Handle both old string format and new project object format
+        if isinstance(project, str):
+            # Legacy format - project name only
+            project_id = self.project_map.get(project)
+            project_name = project
+            if not project_id:
+                toast("Invalid project selection")
+                return
+        else:
+            # New format - full project object
+            project_id = project.get('id')
+            project_name = project.get('name')
+            if not project_id or not project_name:
+                toast("Invalid project data")
+                return
         
         self.current_project_id = project_id
         self.current_project_name = project_name
         
         # Update UI
-        if hasattr(self.ids, 'project_selector'):
-            self.ids.project_selector.text = project_name
+        project_selector = self.find_widget_by_id(self.ids.project_selection_card, 'project_selector') if hasattr(self.ids, 'project_selection_card') else None
+        if project_selector:
+            if isinstance(project, dict) and project.get('response_count', 0) > 0:
+                project_selector.text = f"{project_name} ({project['response_count']} responses)"
+            else:
+                project_selector.text = project_name
+        
+        # Update project info
+        project_info_label = self.find_widget_by_id(self.ids.project_selection_card, 'project_info_label') if hasattr(self.ids, 'project_selection_card') else None
+        if project_info_label:
+            if isinstance(project, dict):
+                response_count = project.get('response_count', 0)
+                project_info_label.text = f"Selected • {response_count} responses"
+            else:
+                project_info_label.text = "Selected"
+        
+        toast(f"Selected project: {project_name}")
         
         # Start data exploration
         self.start_data_exploration()
@@ -347,17 +456,19 @@ class DataExplorationScreen(Screen):
     def update_filter_status(self, filters_applied: List[str]):
         """Update filter status indicators"""
         try:
-            if hasattr(self.ids, 'filter_status_label'):
+            filter_status_label = self.find_widget_by_id(self.ids.filters_card, 'filter_status_label') if hasattr(self.ids, 'filters_card') else None
+            if filter_status_label:
                 if filters_applied:
-                    self.ids.filter_status_label.text = f"{len(filters_applied)} active"
+                    filter_status_label.text = f"{len(filters_applied)} active"
                 else:
-                    self.ids.filter_status_label.text = ""
+                    filter_status_label.text = ""
             
-            if hasattr(self.ids, 'filter_summary_label'):
+            filter_summary_label = self.find_widget_by_id(self.ids.filters_card, 'filter_summary_label') if hasattr(self.ids, 'filters_card') else None
+            if filter_summary_label:
                 if filters_applied:
-                    self.ids.filter_summary_label.text = "Active filters: " + " • ".join(filters_applied)
+                    filter_summary_label.text = "Active filters: " + " • ".join(filters_applied)
                 else:
-                    self.ids.filter_summary_label.text = ""
+                    filter_summary_label.text = ""
                     
         except Exception as e:
             print(f"Error updating filter status: {e}")
@@ -365,13 +476,14 @@ class DataExplorationScreen(Screen):
     def update_selection_info(self, selection_count: int):
         """Update selection information"""
         try:
-            if hasattr(self.ids, 'selection_info_label'):
+            selection_info_label = self.find_widget_by_id(self.ids.selection_card, 'selection_info_label') if hasattr(self.ids, 'selection_card') else None
+            if selection_info_label:
                 if selection_count == 0:
-                    self.ids.selection_info_label.text = "No responses selected"
+                    selection_info_label.text = "No responses selected"
                 elif selection_count == 1:
-                    self.ids.selection_info_label.text = "1 response selected"
+                    selection_info_label.text = "1 response selected"
                 else:
-                    self.ids.selection_info_label.text = f"{selection_count:,} responses selected"
+                    selection_info_label.text = f"{selection_count:,} responses selected"
         except Exception as e:
             print(f"Error updating selection info: {e}")
 
@@ -383,19 +495,23 @@ class DataExplorationScreen(Screen):
     def _update_pagination_info(self):
         """Update pagination information"""
         try:
-            if hasattr(self.ids, 'page_info_label'):
+            page_info_label = self.find_widget_by_id(self.ids.preview_card, 'page_info_label') if hasattr(self.ids, 'preview_card') else None
+            if page_info_label:
                 if self.total_count > 0:
                     start_record = ((self.current_page - 1) * self.page_size) + 1
                     end_record = min(self.current_page * self.page_size, self.total_count)
-                    self.ids.page_info_label.text = f"Page {self.current_page}/{self.total_pages} • {start_record}-{end_record} of {self.total_count:,}"
+                    page_info_label.text = f"Page {self.current_page}/{self.total_pages} • {start_record}-{end_record} of {self.total_count:,}"
                 else:
-                    self.ids.page_info_label.text = "No records found"
+                    page_info_label.text = "No records found"
             
             # Update button states
-            if hasattr(self.ids, 'prev_btn'):
-                self.ids.prev_btn.disabled = self.current_page <= 1
-            if hasattr(self.ids, 'next_btn'):
-                self.ids.next_btn.disabled = self.current_page >= self.total_pages
+            prev_btn = self.find_widget_by_id(self.ids.preview_card, 'prev_btn') if hasattr(self.ids, 'preview_card') else None
+            if prev_btn:
+                prev_btn.disabled = self.current_page <= 1
+                
+            next_btn = self.find_widget_by_id(self.ids.preview_card, 'next_btn') if hasattr(self.ids, 'preview_card') else None
+            if next_btn:
+                next_btn.disabled = self.current_page >= self.total_pages
                 
         except Exception as e:
             print(f"Error updating pagination info: {e}")
@@ -411,20 +527,93 @@ class DataExplorationScreen(Screen):
     def get_sample_size(self) -> int:
         """Get sample size from UI input"""
         try:
-            if hasattr(self.ids, 'sample_size_field') and self.ids.sample_size_field.text:
-                return int(self.ids.sample_size_field.text)
+            sample_size_field = self.find_widget_by_id(self.ids.selection_card, 'sample_size_field') if hasattr(self.ids, 'selection_card') else None
+            if sample_size_field and sample_size_field.text:
+                return int(sample_size_field.text)
             return self.sample_size
         except ValueError:
             return self.sample_size
 
     def get_search_text(self) -> str:
         """Get search text from UI input"""
-        if hasattr(self.ids, 'search_field'):
-            return self.ids.search_field.text
+        search_field = self.find_widget_by_id(self.ids.filters_card, 'search_field') if hasattr(self.ids, 'filters_card') else None
+        if search_field:
+            return search_field.text
         return ""
 
     def get_respondent_filter(self) -> str:
         """Get respondent filter from UI input"""
-        if hasattr(self.ids, 'respondent_field'):
-            return self.ids.respondent_field.text
-        return "" 
+        respondent_field = self.find_widget_by_id(self.ids.filters_card, 'respondent_field') if hasattr(self.ids, 'filters_card') else None
+        if respondent_field:
+            return respondent_field.text
+        return ""
+    
+    # Navigation methods
+    def navigate_to_analytics_hub(self):
+        """Navigate back to analytics hub"""
+        app = App.get_running_app()
+        app.root.current = 'analytics'
+        toast("Returning to Analytics Hub...")
+    
+    def navigate_to_descriptive_analytics(self):
+        """Navigate to descriptive analytics"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+        self._navigate_with_project_data('descriptive_analytics', 'Descriptive Analytics')
+    
+    def navigate_to_qualitative_analytics(self):
+        """Navigate to qualitative analytics"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+        self._navigate_with_project_data('qualitative_analytics', 'Qualitative Analytics')
+    
+    def navigate_to_inferential_analytics(self):
+        """Navigate to inferential analytics"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+        self._navigate_with_project_data('inferential_analytics', 'Inferential Analytics')
+    
+    def navigate_to_auto_detection(self):
+        """Navigate to auto detection"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+        self._navigate_with_project_data('auto_detection', 'Auto Detection')
+    
+    def _navigate_with_project_data(self, screen_name: str, display_name: str):
+        """Navigate to another screen while passing current project data"""
+        try:
+            app = App.get_running_app()
+            
+            # Get target screen and pass project data
+            if hasattr(app.root, 'get_screen'):
+                target_screen = app.root.get_screen(screen_name)
+                if hasattr(target_screen, 'current_project_id'):
+                    target_screen.current_project_id = self.current_project_id
+                if hasattr(target_screen, 'current_project_name'):
+                    target_screen.current_project_name = self.current_project_name
+                if hasattr(target_screen, 'analytics_service'):
+                    target_screen.analytics_service = self.analytics_service
+            
+            app.root.current = screen_name
+            toast(f"Opening {display_name}...")
+            
+        except Exception as e:
+            print(f"Error navigating to {screen_name}: {e}")
+            toast(f"Could not navigate to {display_name}")
+    
+    def set_project_from_analytics_hub(self, project_id: str, project_name: str):
+        """Set project when navigating from analytics hub"""
+        self.current_project_id = project_id
+        self.current_project_name = project_name
+        
+        # Update UI
+        project_selector = self.find_widget_by_id(self.ids.project_selection_card, 'project_selector') if hasattr(self.ids, 'project_selection_card') else None
+        if project_selector:
+            project_selector.text = project_name
+            
+        # Start data exploration automatically
+        Clock.schedule_once(lambda dt: self.start_data_exploration(), 0.1) 

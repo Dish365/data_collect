@@ -7,6 +7,7 @@ from kivy.app import App
 from utils.cross_platform_toast import toast
 from kivy.core.window import Window
 from widgets.top_bar import TopBar
+from widgets.two_line_menu_item import TwoLineMenuItem
 from kivymd.uix.menu import MDDropdownMenu
 
 import threading
@@ -18,7 +19,17 @@ from typing import Dict, List
 # KV file loaded by main app after theme initialization
 
 class AnalyticsScreen(Screen):
-    """Analytics Screen - Navigation hub for analytics features"""
+    """Analytics Screen - Navigation hub for analytics features
+    
+    This screen serves as the central hub for all analytics capabilities:
+    - Descriptive Analytics: 22 functions for basic statistics, distributions, and patterns
+    - Qualitative Analytics: 36 functions for text analysis, sentiment, and themes
+    - Inferential Analytics: 89 functions for hypothesis testing, regression, and statistical inference
+    - Auto Detection: Automated analysis recommendations and pattern detection
+    - Data Exploration: Interactive data browsing and visualization
+    
+    Total: 147+ individual analytics methods available across all modules
+    """
     
     # Properties
     current_project_id = StringProperty(None, allownone=True)
@@ -28,6 +39,45 @@ class AnalyticsScreen(Screen):
     
     # UI state
     is_project_overview_collapsed = BooleanProperty(False)
+    
+    # Analytics capabilities metadata
+    analytics_categories = {
+        'descriptive': {
+            'name': 'Descriptive Analytics',
+            'description': 'Statistical summaries, distributions, and data patterns',
+            'function_count': 22,
+            'categories': ['Basic Statistics', 'Categorical Analysis', 'Distribution Analysis', 'Geospatial Analysis', 'Temporal Analysis'],
+            'key_features': ['Central tendency measures', 'Correlation analysis', 'Distribution fitting', 'Spatial patterns', 'Time series patterns']
+        },
+        'qualitative': {
+            'name': 'Qualitative Analytics',  
+            'description': 'Text analysis, sentiment detection, and thematic exploration',
+            'function_count': 36,
+            'categories': ['Content Analysis', 'Sentiment Analysis', 'Thematic Analysis', 'Survey Analysis', 'Text Processing'],
+            'key_features': ['Sentiment scoring', 'Theme identification', 'Content categorization', 'Response quality assessment', 'Linguistic analysis']
+        },
+        'inferential': {
+            'name': 'Inferential Analytics',
+            'description': 'Statistical testing, confidence intervals, and predictive modeling',
+            'function_count': 89,
+            'categories': ['Hypothesis Testing', 'Regression Analysis', 'Bayesian Inference', 'Bootstrap Methods', 'Power Analysis'],
+            'key_features': ['Statistical significance testing', 'Effect size calculations', 'Confidence intervals', 'Model diagnostics', 'Sample size planning']
+        },
+        'auto_detection': {
+            'name': 'Auto Detection',
+            'description': 'Automated analysis recommendations and pattern recognition',
+            'function_count': 'AI-Powered',
+            'categories': ['Pattern Detection', 'Analysis Recommendations', 'Data Quality Assessment', 'Anomaly Detection'],
+            'key_features': ['Smart analysis suggestions', 'Data quality scoring', 'Automated insights', 'Pattern recognition', 'Outlier detection']
+        },
+        'data_exploration': {
+            'name': 'Data Exploration',
+            'description': 'Interactive data browsing, filtering, and visualization',
+            'function_count': 'Interactive',
+            'categories': ['Data Browsing', 'Filtering', 'Visualization', 'Export Tools'],
+            'key_features': ['Raw data inspection', 'Advanced filtering', 'Interactive charts', 'Data export options', 'Response tracking']
+        }
+    }
     
     # UI references
     project_menu = None
@@ -54,6 +104,13 @@ class AnalyticsScreen(Screen):
         """Helper method to get the project selector widget"""
         if hasattr(self.ids, 'project_selector') and self.ids.project_selector:
             return self.ids.project_selector
+        return None
+        
+    def _get_project_name_label(self):
+        """Helper method to get the project name label widget"""
+        project_selector = self._get_project_selector()
+        if project_selector and hasattr(project_selector.ids, 'project_name_label'):
+            return project_selector.ids.project_name_label
         return None
 
 
@@ -139,12 +196,6 @@ class AnalyticsScreen(Screen):
             
             self.project_map = {p['name']: p['id'] for p in projects}
             
-            project_selector = self._get_project_selector()
-            
-            if project_selector:
-                project_selector.text = "Select Project for Analysis"
-                project_selector.font_size = self.FONT_SIZE
-                
         except Exception as e:
             print(f"Error loading projects: {e}")
             toast("Error loading projects")
@@ -158,10 +209,13 @@ class AnalyticsScreen(Screen):
         print(f"Available IDs in analytics screen: {list(self.ids.keys())}")
         
         project_selector = self._get_project_selector()
+        project_name_label = self._get_project_name_label()
         
         if project_selector:
             if not self.current_project_id:
-                project_selector.text = "Select Project for Analysis"
+                # Update the project name label
+                if project_name_label:
+                    project_name_label.text = "No project selected - Click to choose"
             print("Project selector initialized successfully")
         else:
             print("Warning: project_selector still not found, will retry on user interaction")
@@ -191,15 +245,15 @@ class AnalyticsScreen(Screen):
             
         menu_items = []
         for project in self.project_list:
-            item_text = f"{project['name']}\n" + \
-                       f"{project['response_count']} responses • " + \
-                       f"{project['respondent_count']} respondents"
+            # Create separate headline and supporting text
+            headline_text = project['name']
+            supporting_text = f"{project['response_count']} responses • {project['respondent_count']} respondents"
             
             menu_items.append({
-                "text": item_text,
+                "headline": headline_text,
+                "supporting": supporting_text,
                 "viewclass": "TwoLineMenuItem",
                 "height": dp(72),
-                "font_size": self.FONT_SIZE,
                 "on_release": lambda x=project: self.select_project(x)
             })
             
@@ -219,63 +273,209 @@ class AnalyticsScreen(Screen):
         self.current_project_id = project['id']
         self.current_project_name = project['name']
         
-        project_selector = self._get_project_selector()
-        
-        if project_selector:
-            selector_text = f"{project['name']}"
+        # Update the project name label in the new ProjectSelectorCard
+        project_name_label = self._get_project_name_label()
+        if project_name_label:
+            label_text = f"{project['name']}"
             if project['response_count'] > 0:
-                selector_text += f" ({project['response_count']} responses)"
-            project_selector.text = selector_text
+                label_text += f" ({project['response_count']} responses)"
+            project_name_label.text = label_text
         
-        self.update_quick_stats()
+        # Update the project overview header text
+        if hasattr(self.ids, 'project_overview_header') and hasattr(self.ids.project_overview_header.ids, 'project_overview_label'):
+            self.ids.project_overview_header.ids.project_overview_label.text = f"{project['name']} Overview"
+        
+        # Update the stats immediately
+        print(f"Project selected: {project['name']} (ID: {project['id']})")
+        Clock.schedule_once(lambda dt: self.update_quick_stats(), 0.1)
+        
+        # Refresh project overview
+        Clock.schedule_once(lambda dt: self.refresh_project_overview(), 0.2)
         
         toast(f"Selected: {project['name']}")
 
+    def refresh_project_overview(self):
+        """Refresh the project overview card"""
+        try:
+            # Update the project overview header text
+            if hasattr(self.ids, 'project_overview_header') and hasattr(self.ids.project_overview_header.ids, 'project_overview_label'):
+                if self.current_project_name:
+                    self.ids.project_overview_header.ids.project_overview_label.text = f"{self.current_project_name} Overview"
+                else:
+                    self.ids.project_overview_header.ids.project_overview_label.text = "Project Overview"
+            
+            # Update the stats
+            self.update_quick_stats()
+            
+            # Ensure the project overview is expanded
+            if self.is_project_overview_collapsed:
+                self.toggle_project_overview()
+                
+        except Exception as e:
+            print(f"Error refreshing project overview: {e}")
+
     # Navigation methods
+    def _navigate_to_screen(self, screen_name, display_name, pass_project_data=True):
+        """Common navigation method with project data passing"""
+        if not self.current_project_id:
+            toast("Please select a project first")
+            return
+            
+        app = App.get_running_app()
+        
+        # Pass current project data to the target screen if supported
+        if pass_project_data and hasattr(app.root, 'get_screen'):
+            try:
+                target_screen = app.root.get_screen(screen_name)
+                if hasattr(target_screen, 'current_project_id'):
+                    target_screen.current_project_id = self.current_project_id
+                if hasattr(target_screen, 'current_project_name'):
+                    target_screen.current_project_name = self.current_project_name
+                if hasattr(target_screen, 'analytics_service'):
+                    target_screen.analytics_service = self.analytics_service
+            except Exception as e:
+                print(f"Could not pass project data to {screen_name}: {e}")
+        
+        app.root.current = screen_name
+        toast(f"Opening {display_name}...")
+
     def navigate_to_data_exploration(self):
         """Navigate to data exploration screen"""
         if not self.current_project_id:
             toast("Please select a project first")
             return
+        
         app = App.get_running_app()
-        app.root.current = 'data_exploration'
-        toast("Opening Data Exploration...")
+        
+        # Pass project data to data exploration screen
+        try:
+            data_exploration_screen = app.root.get_screen('data_exploration')
+            if hasattr(data_exploration_screen, 'set_project_from_analytics_hub'):
+                data_exploration_screen.set_project_from_analytics_hub(
+                    self.current_project_id, 
+                    self.current_project_name
+                )
+        except Exception as e:
+            print(f"Could not pass project data to data exploration: {e}")
+        
+        self._navigate_to_screen('data_exploration', 'Data Exploration', pass_project_data=True)
 
     def navigate_to_qualitative_analytics(self):
         """Navigate to qualitative analytics screen"""
         if not self.current_project_id:
             toast("Please select a project first")
             return
-        app = App.get_running_app()
-        app.root.current = 'qualitative_analytics'
-        toast("Opening Qualitative Analytics...")
+        self._navigate_to_screen('qualitative_analytics', 'Qualitative Analytics', pass_project_data=True)
 
     def navigate_to_descriptive_analytics(self):
         """Navigate to descriptive analytics screen"""
         if not self.current_project_id:
             toast("Please select a project first")
             return
-        app = App.get_running_app()
-        app.root.current = 'descriptive_analytics'
-        toast("Opening Descriptive Analytics...")
+        self._navigate_to_screen('descriptive_analytics', 'Descriptive Analytics', pass_project_data=True)
 
     def navigate_to_inferential_analytics(self):
         """Navigate to inferential analytics screen"""
         if not self.current_project_id:
             toast("Please select a project first")
             return
-        app = App.get_running_app()
-        app.root.current = 'inferential_analytics'
-        toast("Opening Inferential Analytics...")
+        self._navigate_to_screen('inferential_analytics', 'Inferential Analytics', pass_project_data=True)
 
     def navigate_to_auto_detection(self):
         """Navigate to auto detection screen"""
         if not self.current_project_id:
             toast("Please select a project first")
             return
-        app = App.get_running_app()
-        app.root.current = 'auto_detection'
-        toast("Opening Auto Detection...")
+        self._navigate_to_screen('auto_detection', 'Auto Detection', pass_project_data=True)
+        
+    def get_available_analytics_summary(self):
+        """Get a summary of all available analytics capabilities"""
+        total_functions = sum(
+            cat['function_count'] for cat in self.analytics_categories.values() 
+            if isinstance(cat['function_count'], int)
+        )
+        
+        summary = f"Analytics Hub - {total_functions}+ Statistical Functions Available\n\n"
+        
+        for key, category in self.analytics_categories.items():
+            summary += f"{category['name']}: "
+            if isinstance(category['function_count'], int):
+                summary += f"{category['function_count']} functions\n"
+            else:
+                summary += f"{category['function_count']}\n"
+            summary += f"  {category['description']}\n\n"
+            
+        return summary
+        
+    def show_analytics_overview(self):
+        """Show comprehensive analytics overview"""
+        overview = self.get_available_analytics_summary()
+        # Show detailed overview
+        overview_text = "Analytics Hub Overview:\n\n"
+        overview_text += "• Descriptive Analytics: 22 functions for statistical summaries\n"
+        overview_text += "• Qualitative Analytics: 36 functions for text & sentiment analysis\n" 
+        overview_text += "• Inferential Analytics: 89 functions for hypothesis testing\n"
+        overview_text += "• Data Exploration: Interactive data browsing & filtering\n"
+        overview_text += "• Auto Detection: AI-powered analysis recommendations\n\n"
+        overview_text += "Select a project above to unlock all analytics capabilities!"
+        toast(overview_text)
+        
+    def get_analytics_capabilities_by_category(self):
+        """Get detailed breakdown of analytics capabilities"""
+        capabilities = {}
+        
+        # Extract from analytics markdown documentation
+        capabilities['descriptive'] = {
+            'basic_statistics': ['calculate_basic_stats', 'calculate_percentiles', 'calculate_grouped_stats', 'calculate_weighted_stats', 'calculate_correlation_matrix', 'calculate_covariance_matrix'],
+            'categorical_analysis': ['analyze_categorical', 'calculate_chi_square', 'calculate_cramers_v', 'analyze_cross_tabulation', 'calculate_diversity_metrics', 'analyze_categorical_associations'],
+            'distribution_analysis': ['analyze_distribution', 'test_normality', 'calculate_skewness_kurtosis', 'fit_distribution'],
+            'geospatial_analysis': ['analyze_spatial_distribution', 'calculate_spatial_autocorrelation', 'create_location_clusters'],
+            'temporal_analysis': ['analyze_temporal_patterns', 'calculate_time_series_stats', 'detect_seasonality']
+        }
+        
+        capabilities['qualitative'] = {
+            'content_analysis': ['analyze_content_structure', 'analyze_content_categories', 'analyze_linguistic_features', 'analyze_content_patterns', 'analyze_content_by_metadata', 'analyze_content_comprehensively'],
+            'sentiment_analysis': ['analyze_sentiment', 'analyze_sentiment_batch', 'analyze_emotions', 'analyze_sentiment_trends', 'analyze_sentiment_by_question', 'detect_sentiment_patterns', 'generate_sentiment_summary'],
+            'text_analysis': ['preprocess_text', 'analyze_text_frequency', 'analyze_text_similarity', 'extract_key_phrases', 'analyze_text_patterns'],
+            'thematic_analysis': ['extract_key_concepts', 'identify_themes_clustering', 'identify_themes_lda', 'analyze_theme_evolution', 'extract_quotes_by_theme', 'analyze_theme_relationships', 'generate_theme_report', 'analyze_themes'],
+            'survey_analysis': ['analyze_response_quality', 'analyze_survey_by_questions', 'compare_questions', 'analyze_respondent_patterns', 'generate_survey_report', 'analyze_survey_data']
+        }
+        
+        capabilities['inferential'] = {
+            'hypothesis_testing': ['perform_t_test', 'perform_paired_t_test', 'perform_welch_t_test', 'perform_anova', 'perform_two_way_anova', 'perform_repeated_measures_anova', 'perform_chi_square_test', 'perform_fisher_exact_test', 'perform_mcnemar_test', 'perform_correlation_test', 'perform_partial_correlation', 'hypothesis_test_summary'],
+            'regression_analysis': ['perform_linear_regression', 'perform_multiple_regression', 'perform_logistic_regression', 'perform_poisson_regression', 'calculate_regression_diagnostics', 'calculate_vif', 'perform_ridge_regression', 'perform_lasso_regression', 'perform_robust_regression'],
+            'bayesian_inference': ['bayesian_t_test', 'bayesian_proportion_test', 'calculate_bayes_factor', 'calculate_posterior_distribution', 'calculate_credible_interval', 'bayesian_ab_test'],
+            'bootstrap_methods': ['bootstrap_mean', 'bootstrap_median', 'bootstrap_correlation', 'bootstrap_regression', 'bootstrap_std', 'bootstrap_quantile', 'bootstrap_difference_means', 'bootstrap_ratio_means', 'permutation_test', 'jackknife_estimate', 'bootstrap_hypothesis_test'],
+            'power_analysis': ['calculate_sample_size_t_test', 'calculate_sample_size_anova', 'calculate_sample_size_proportion', 'calculate_sample_size_correlation', 'calculate_power_t_test', 'calculate_power_anova', 'calculate_effect_size_needed', 'post_hoc_power_analysis']
+        }
+        
+        return capabilities
+        
+    def get_function_documentation_summary(self):
+        """Get summary of key function categories and their purposes"""
+        return {
+            'descriptive_highlights': [
+                'Basic Statistics: Mean, median, mode, standard deviation, variance, correlation matrices',
+                'Categorical Analysis: Chi-square tests, Cramér\'s V, cross-tabulation, diversity metrics', 
+                'Distribution Analysis: Normality testing, distribution fitting, skewness/kurtosis',
+                'Geospatial Analysis: Spatial clustering, hotspot analysis, autocorrelation',
+                'Temporal Analysis: Time series patterns, seasonality detection, trend analysis'
+            ],
+            'qualitative_highlights': [
+                'Content Analysis: Text structure, linguistic features, content categorization',
+                'Sentiment Analysis: Polarity scoring, emotion detection, sentiment trends',
+                'Text Processing: Frequency analysis, similarity, key phrase extraction',
+                'Thematic Analysis: Topic modeling, theme identification, concept extraction',
+                'Survey Analysis: Response quality, question comparison, pattern analysis'
+            ],
+            'inferential_highlights': [
+                'Hypothesis Testing: t-tests, ANOVA, chi-square, correlation significance',
+                'Regression Analysis: Linear, logistic, Poisson, robust regression with diagnostics',
+                'Bayesian Inference: Bayesian t-tests, credible intervals, Bayes factors',
+                'Bootstrap Methods: Non-parametric confidence intervals, permutation tests',
+                'Power Analysis: Sample size calculations, effect size estimation'
+            ]
+        }
 
     def toggle_project_overview(self):
         """Toggle the project overview collapsible state"""
@@ -285,11 +485,32 @@ class AnalyticsScreen(Screen):
     def update_project_overview_collapse_state(self):
         """Update the visual state of the collapsible project overview"""
         try:
-            if not hasattr(self.ids, 'project_overview_content') or not hasattr(self.ids, 'stats_toggle_button'):
+            # Try to access content through different paths
+            content = None
+            
+            # Try direct access
+            if hasattr(self.ids, 'project_overview_content'):
+                content = self.ids.project_overview_content
+                print("Found project_overview_content directly")
+            # Try through project_overview_card
+            elif hasattr(self.ids, 'project_overview_card') and hasattr(self.ids.project_overview_card.ids, 'project_overview_content'):
+                content = self.ids.project_overview_card.ids.project_overview_content
+                print("Found project_overview_content through project_overview_card")
+            else:
+                print("Warning: project_overview_content not found")
+                print(f"Available IDs in project_overview_card: {list(self.ids.project_overview_card.ids.keys()) if hasattr(self.ids, 'project_overview_card') else 'No project_overview_card'}")
                 return
             
-            content = self.ids.project_overview_content
-            toggle_button = self.ids.stats_toggle_button
+            # Access toggle button through the header
+            toggle_button = None
+            if hasattr(self.ids, 'project_overview_header') and hasattr(self.ids.project_overview_header.ids, 'stats_toggle_button'):
+                toggle_button = self.ids.project_overview_header.ids.stats_toggle_button
+            elif hasattr(self.ids, 'project_overview_card') and hasattr(self.ids.project_overview_card.ids, 'project_overview_header') and hasattr(self.ids.project_overview_card.ids.project_overview_header.ids, 'stats_toggle_button'):
+                toggle_button = self.ids.project_overview_card.ids.project_overview_header.ids.stats_toggle_button
+            else:
+                print("Warning: stats_toggle_button not found")
+                return
+                
             project_overview_card = self.ids.project_overview_card
             
             if self.is_project_overview_collapsed:
@@ -297,28 +518,70 @@ class AnalyticsScreen(Screen):
                 content.opacity = 0
                 toggle_button.icon = "chevron-right"
                 project_overview_card.height = dp(88)
+                print("Project overview collapsed")
             else:
                 content.height = dp(176)
                 content.opacity = 1
                 toggle_button.icon = "chevron-down"
                 project_overview_card.height = dp(264)
+                print("Project overview expanded")
                 
         except Exception as e:
             print(f"Error updating project overview collapse state: {e}")
 
     def update_quick_stats(self):
         """Update quick statistics using existing StatCard widget"""
-        if not hasattr(self.ids, 'stats_container'):
-            return
-            
         try:
-            stats_container = self.ids.stats_container
+            # Try to access stats_container through different paths
+            stats_container = None
+            
+            # Try direct access
+            if hasattr(self.ids, 'stats_container'):
+                stats_container = self.ids.stats_container
+                print(f"Found stats_container directly, clearing widgets...")
+            # Try through project_overview_content
+            elif hasattr(self.ids, 'project_overview_content') and hasattr(self.ids.project_overview_content.ids, 'stats_container'):
+                stats_container = self.ids.project_overview_content.ids.stats_container
+                print(f"Found stats_container through project_overview_content, clearing widgets...")
+            # Try through project_overview_card
+            elif hasattr(self.ids, 'project_overview_card') and hasattr(self.ids.project_overview_card.ids, 'project_overview_content') and hasattr(self.ids.project_overview_card.ids.project_overview_content.ids, 'stats_container'):
+                stats_container = self.ids.project_overview_card.ids.project_overview_content.ids.stats_container
+                print(f"Found stats_container through project_overview_card, clearing widgets...")
+            else:
+                print("Warning: stats_container not found")
+                print(f"Available IDs in analytics screen: {list(self.ids.keys())}")
+                if hasattr(self.ids, 'project_overview_card'):
+                    print(f"Available IDs in project_overview_card: {list(self.ids.project_overview_card.ids.keys())}")
+                return
+                
             stats_container.clear_widgets()
             
             if not self.current_project_id:
+                # Show message when no project is selected
+                from widgets.stat_card import StatCard
+                no_project_card = StatCard(
+                    title="No Project Selected",
+                    value="Select a project above",
+                    icon="database-off",
+                    note="Choose a project to view statistics"
+                )
+                stats_container.add_widget(no_project_card)
                 return
                 
             stats = self.get_project_stats()
+            print(f"Project stats: {stats}")
+            
+            if not stats:
+                # Show error message when stats are not available
+                from widgets.stat_card import StatCard
+                error_card = StatCard(
+                    title="Statistics Unavailable",
+                    value="No data found",
+                    icon="alert-circle",
+                    note="Unable to load project statistics"
+                )
+                stats_container.add_widget(error_card)
+                return
             
             # Import the existing StatCard widget
             from widgets.stat_card import StatCard
@@ -348,6 +611,29 @@ class AnalyticsScreen(Screen):
                     
         except Exception as e:
             print(f"Error updating quick stats: {e}")
+            # Show error message
+            try:
+                # Try to find stats_container through different paths
+                stats_container = None
+                if hasattr(self.ids, 'stats_container'):
+                    stats_container = self.ids.stats_container
+                elif hasattr(self.ids, 'project_overview_content') and hasattr(self.ids.project_overview_content.ids, 'stats_container'):
+                    stats_container = self.ids.project_overview_content.ids.stats_container
+                elif hasattr(self.ids, 'project_overview_card') and hasattr(self.ids.project_overview_card.ids, 'project_overview_content') and hasattr(self.ids.project_overview_card.ids.project_overview_content.ids, 'stats_container'):
+                    stats_container = self.ids.project_overview_card.ids.project_overview_content.ids.stats_container
+                
+                if stats_container:
+                    stats_container.clear_widgets()
+                    from widgets.stat_card import StatCard
+                    error_card = StatCard(
+                        title="Error Loading Stats",
+                        value="Please try again",
+                        icon="alert-circle",
+                        note="Failed to load project statistics"
+                    )
+                    stats_container.add_widget(error_card)
+            except:
+                pass
 
     def get_project_stats(self):
         """Get enhanced project statistics"""
@@ -355,10 +641,15 @@ class AnalyticsScreen(Screen):
             return {}
             
         try:
+            # Try to get stats from analytics backend first
             stats = self.analytics_service.get_project_stats(self.current_project_id)
             
             if 'error' in stats:
-                print(f"Error getting project stats: {stats['error']}")
+                print(f"Error getting project stats from backend: {stats['error']}")
+                # Fallback to database query
+                stats = self._get_project_stats_from_db()
+            
+            if not stats:
                 return {}
             
             completion_rate = 0
@@ -381,11 +672,111 @@ class AnalyticsScreen(Screen):
             
         except Exception as e:
             print(f"Error getting project stats: {e}")
-            return {}
+            # Fallback to database query
+            return self._get_project_stats_from_db()
 
+    def _get_project_stats_from_db(self):
+        """Get project statistics directly from database as fallback"""
+        try:
+            app = App.get_running_app()
+            conn = app.db_service.get_db_connection()
+            
+            if conn is None:
+                return {}
+                
+            cursor = conn.cursor()
+            
+            # Get total responses
+            cursor.execute("""
+                SELECT COUNT(*) as total_responses
+                FROM responses 
+                WHERE project_id = ?
+            """, (self.current_project_id,))
+            total_responses = cursor.fetchone()['total_responses'] or 0
+            
+            # Get unique respondents
+            cursor.execute("""
+                SELECT COUNT(DISTINCT respondent_id) as unique_respondents
+                FROM responses 
+                WHERE project_id = ?
+            """, (self.current_project_id,))
+            unique_respondents = cursor.fetchone()['unique_respondents'] or 0
+            
+            # Get total questions
+            cursor.execute("""
+                SELECT COUNT(*) as total_questions
+                FROM questions 
+                WHERE project_id = ?
+            """, (self.current_project_id,))
+            total_questions = cursor.fetchone()['total_questions'] or 0
+            
+            return {
+                'total_responses': total_responses,
+                'total_questions': total_questions,
+                'unique_respondents': unique_respondents
+            }
+            
+        except Exception as e:
+            print(f"Error getting project stats from database: {e}")
+            return {}
+        finally:
+            if conn:
+                conn.close()
+
+    def get_analytics_info(self, category_key):
+        """Get detailed information about an analytics category"""
+        if category_key not in self.analytics_categories:
+            return None
+            
+        category = self.analytics_categories[category_key]
+        info = f"{category['name']}\n\n"
+        info += f"{category['description']}\n\n"
+        
+        if isinstance(category['function_count'], int):
+            info += f"Available Functions: {category['function_count']}\n\n"
+        else:
+            info += f"Type: {category['function_count']}\n\n"
+            
+        info += "Key Categories:\n"
+        for cat in category['categories']:
+            info += f"• {cat}\n"
+            
+        info += "\nKey Features:\n"
+        for feature in category['key_features']:
+            info += f"• {feature}\n"
+            
+        return info
+    
+    def show_descriptive_info(self):
+        """Show information about descriptive analytics"""
+        info = self.get_analytics_info('descriptive')
+        if info:
+            # For now, show as toast - could be enhanced with a popup dialog
+            toast("Descriptive Analytics: 22 functions for statistical summaries and patterns")
+        
+    def show_qualitative_info(self):
+        """Show information about qualitative analytics"""
+        info = self.get_analytics_info('qualitative')
+        if info:
+            toast("Qualitative Analytics: 36 functions for text analysis and sentiment detection")
+    
     def show_inferential_info(self):
-        """Show information about inferential statistics"""
-        toast("Inferential Statistics: Advanced statistical testing coming soon!")
+        """Show information about inferential analytics"""
+        info = self.get_analytics_info('inferential')
+        if info:
+            toast("Inferential Analytics: 89 functions for hypothesis testing and statistical inference")
+            
+    def show_auto_detection_info(self):
+        """Show information about auto detection"""
+        info = self.get_analytics_info('auto_detection')
+        if info:
+            toast("Auto Detection: AI-powered analysis recommendations and pattern recognition")
+            
+    def show_data_exploration_info(self):
+        """Show information about data exploration"""
+        info = self.get_analytics_info('data_exploration')
+        if info:
+            toast("Data Exploration: Interactive data browsing, filtering, and visualization tools")
 
 
     # Callback methods

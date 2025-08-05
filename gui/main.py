@@ -90,7 +90,6 @@ from services.form_service_modern import ModernFormService as FormService
 
 class ResearchCollectorApp(MDApp):
     user_display_name = StringProperty("Guest")
-    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Initialize theme immediately to prevent KV loading issues

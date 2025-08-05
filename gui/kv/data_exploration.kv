@@ -17,32 +17,48 @@
     name: 'data_exploration'
     
     MDBoxLayout:
-        id: main_content
         orientation: 'vertical'
-        spacing: dp(16)
-        padding: [dp(24), dp(8), dp(24), dp(20)]
+        spacing: 0
         
-        # Top Navigation Bar
+        # Top Navigation Bar (fixed at top)
         TopBar:
             id: top_bar
             size_hint_y: None
             height: dp(56)
         
-        # Project Selection Card
-        DataExplorationProjectCard:
-            id: project_selection_card
-        
-        # Filters Card
-        DataExplorationFiltersCard:
-            id: filters_card
-        
-        # Selection and Sampling Card
-        DataExplorationSelectionCard:
-            id: selection_card
-        
-        # Data Preview Card
-        DataExplorationPreviewCard:
-            id: preview_card
+        # Scrollable main content
+        MDScrollView:
+            do_scroll_x: False
+            do_scroll_y: True
+            bar_width: dp(8)
+            
+            MDBoxLayout:
+                id: main_content
+                orientation: 'vertical'
+                spacing: dp(16)
+                padding: [dp(24), dp(16), dp(24), dp(20)]
+                size_hint_y: None
+                height: self.minimum_height
+                
+                # Project Selection Card
+                DataExplorationProjectCard:
+                    id: project_selection_card
+                
+                # Filters Card
+                DataExplorationFiltersCard:
+                    id: filters_card
+                
+                # Selection and Sampling Card
+                DataExplorationSelectionCard:
+                    id: selection_card
+                
+                # Analytics Navigation Card
+                DataExplorationAnalyticsNav:
+                    id: analytics_nav_card
+                
+                # Data Preview Card
+                DataExplorationPreviewCard:
+                    id: preview_card
 
 # Project Selection Card Component
 <DataExplorationProjectCard@MDCard>:
@@ -88,7 +104,7 @@
         size_hint_x: 0.4
         theme_bg_color: "Custom"
         md_bg_color: app.theme_cls.primaryColor
-        on_release: root.show_project_menu()
+        on_release: app.root.get_screen('data_exploration').show_project_menu()
     
     # Project Info
     MDLabel:
@@ -160,7 +176,7 @@
             mode: "outlined"
             helper_text: "Search responses..."
             size_hint_x: 0.35
-            on_text_validate: root.apply_filters()
+            on_text_validate: app.root.get_screen('data_exploration').apply_filters()
         
         # Question filter button
         MDButton:
@@ -170,7 +186,7 @@
             size_hint_x: 0.25
             theme_bg_color: "Custom"
             md_bg_color: 0.95, 0.97, 1.0, 1
-            on_release: root.show_question_filter_menu()
+            on_release: app.root.get_screen('data_exploration').show_question_filter_menu()
         
         # Respondent filter field
         MDTextField:
@@ -178,7 +194,7 @@
             mode: "outlined"
             helper_text: "Respondent ID..."
             size_hint_x: 0.2
-            on_text_validate: root.apply_filters()
+            on_text_validate: app.root.get_screen('data_exploration').apply_filters()
         
         # Action buttons
         MDBoxLayout:
@@ -192,14 +208,14 @@
                 size_hint_x: 0.6
                 theme_bg_color: "Custom"
                 md_bg_color: app.theme_cls.primaryColor
-                on_release: root.apply_filters()
+                on_release: app.root.get_screen('data_exploration').apply_filters()
             
             MDIconButton:
                 icon: "filter-remove"
                 theme_icon_color: "Custom"
                 icon_color: 0.76, 0.76, 0.76, 1
                 size_hint_x: 0.4
-                on_release: root.clear_filters()
+                on_release: app.root.get_screen('data_exploration').clear_filters()
     
     # Filter summary row
     MDBoxLayout:
@@ -276,7 +292,7 @@
             size_hint_x: 0.2
             theme_bg_color: "Custom"
             md_bg_color: 0.2, 0.7, 0.2, 1
-            on_release: root.sample_random()
+            on_release: app.root.get_screen('data_exploration').sample_random()
         
         # Select all button
         MDButton:
@@ -285,7 +301,7 @@
             size_hint_x: 0.15
             theme_bg_color: "Custom"
             md_bg_color: app.theme_cls.primaryColor
-            on_release: root.select_all_responses()
+            on_release: app.root.get_screen('data_exploration').select_all_responses()
         
         # Clear selection button
         MDButton:
@@ -294,7 +310,7 @@
             size_hint_x: 0.1
             theme_outline_color: "Custom"
             line_color: 0.6, 0.6, 0.6, 1
-            on_release: root.clear_selection()
+            on_release: app.root.get_screen('data_exploration').clear_selection()
         
         # Selection info label
         MDLabel:
@@ -321,7 +337,7 @@
             size_hint_x: 0.12
             theme_text_color: "Custom"
             text_color: app.theme_cls.primaryColor
-            on_release: root.sample_first_n()
+            on_release: app.root.get_screen('data_exploration').sample_first_n()
         
         # Latest N responses
         MDButton:
@@ -330,7 +346,7 @@
             size_hint_x: 0.12
             theme_text_color: "Custom"
             text_color: app.theme_cls.primaryColor
-            on_release: root.sample_latest_n()
+            on_release: app.root.get_screen('data_exploration').sample_latest_n()
         
         # High quality only
         MDButton:
@@ -339,7 +355,7 @@
             size_hint_x: 0.15
             theme_text_color: "Custom"
             text_color: app.theme_cls.primaryColor
-            on_release: root.sample_high_quality()
+            on_release: app.root.get_screen('data_exploration').sample_high_quality()
         
         # Spacer
         MDLabel:
@@ -352,7 +368,7 @@
             size_hint_x: 0.2
             theme_bg_color: "Custom"
             md_bg_color: 0.8, 0.4, 0.2, 1
-            on_release: root.export_selected_responses()
+            on_release: app.root.get_screen('data_exploration').export_selected_responses()
 
 # Data Preview Card Component
 <DataExplorationPreviewCard@MDCard>:
@@ -426,7 +442,7 @@
             disabled: True
             size_hint: None, None
             size: dp(32), dp(32)
-            on_release: root.load_previous_page()
+            on_release: app.root.get_screen('data_exploration').load_previous_page()
         
         MDIconButton:
             id: next_btn
@@ -436,7 +452,7 @@
             disabled: True
             size_hint: None, None
             size: dp(32), dp(32)
-            on_release: root.load_next_page()
+            on_release: app.root.get_screen('data_exploration').load_next_page()
         
         # Spacer
         MDLabel:
@@ -720,4 +736,134 @@
         theme_text_color: "Hint"
         font_style: "Body"
         role: "medium"
-        halign: "center" 
+        halign: "center"
+
+# Analytics Navigation Card Component
+<DataExplorationAnalyticsNav@MDCard>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(180)
+    elevation: 2
+    md_bg_color: 0.96, 0.98, 1.0, 1
+    radius: [12, 12, 12, 12]
+    padding: [dp(16), dp(16), dp(16), dp(16)]
+    spacing: dp(12)
+    
+    # Header
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(36)
+        
+        MDIconButton:
+            icon: "chart-multiple"
+            theme_icon_color: "Custom"
+            icon_color: app.theme_cls.primaryColor
+            disabled: True
+            size_hint: None, None
+            size: dp(32), dp(32)
+        
+        MDLabel:
+            text: "Analytics Tools"
+            theme_text_color: "Primary"
+            font_style: "Headline"
+            role: "small"
+            bold: True
+            size_hint_y: None
+            height: dp(36)
+        
+        MDButton:
+            text: "Back to Hub"
+            style: "outlined"
+            size_hint_x: None
+            width: dp(120)
+            height: dp(32)
+            theme_outline_color: "Custom"
+            line_color: app.theme_cls.primaryColor
+            on_release: app.root.current = 'analytics'
+    
+    # Analytics buttons row 1
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(48)
+        
+        AnalyticsNavButton:
+            text: "Descriptive Analytics"
+            icon: "chart-bar"
+            bg_color: 0.8, 0.2, 0.6, 1
+            on_release: app.root.current = 'descriptive_analytics'
+        
+        AnalyticsNavButton:
+            text: "Qualitative Analytics"
+            icon: "text-box"
+            bg_color: 0.6, 0.2, 0.8, 1
+            on_release: app.root.current = 'qualitative_analytics'
+        
+        AnalyticsNavButton:
+            text: "Inferential Analytics"
+            icon: "chart-scatter-plot"
+            bg_color: 0.2, 0.4, 0.8, 1
+            on_release: app.root.current = 'inferential_analytics'
+    
+    # Analytics buttons row 2
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(12)
+        size_hint_y: None
+        height: dp(48)
+        
+        AnalyticsNavButton:
+            text: "Auto Detection"
+            icon: "auto-fix"
+            bg_color: 0.2, 0.8, 0.6, 1
+            on_release: app.root.current = 'auto_detection'
+        
+        # Spacer for current screen indicator
+        MDCard:
+            orientation: 'horizontal'
+            size_hint_x: 1
+            elevation: 1
+            md_bg_color: 0.9, 0.95, 1.0, 1
+            radius: [8, 8, 8, 8]
+            padding: [dp(12), dp(8), dp(12), dp(8)]
+            
+            MDIconButton:
+                icon: "database-search"
+                theme_icon_color: "Custom"
+                icon_color: 0.2, 0.6, 1.0, 1
+                disabled: True
+                size_hint_x: None
+                width: dp(32)
+                icon_size: "20dp"
+            
+            MDLabel:
+                text: "Data Exploration (Current)"
+                theme_text_color: "Primary"
+                font_style: "Body"
+                role: "medium"
+                bold: True
+                pos_hint: {"center_y": 0.5}
+        
+        # Empty space to balance layout
+        MDLabel:
+            size_hint_x: 1
+
+# Analytics Navigation Button Component
+<AnalyticsNavButton@MDButton>:
+    icon: "chart-line"
+    bg_color: 0.2, 0.6, 1.0, 1
+    
+    style: "filled"
+    size_hint_x: 1
+    theme_bg_color: "Custom"
+    md_bg_color: root.bg_color
+    
+    MDButtonIcon:
+        icon: root.icon
+        
+    MDButtonText:
+        text: root.text
+        font_size: "14sp" 

@@ -144,6 +144,54 @@ class TopBar(MDBoxLayout):
             self.navigation_menu.dismiss()
         self.navigate_to_screen(screen_name)
     
+    def show_analytics_submenu(self):
+        """Show analytics submenu with all analytics screens"""
+        analytics_items = [
+            {
+                "text": "Analytics Hub",
+                "icon": "chart-line",
+                "on_release": lambda x="analytics": self._navigate_and_close_analytics_menu(x),
+            },
+            {
+                "text": "Data Exploration",
+                "icon": "database-search",
+                "on_release": lambda x="data_exploration": self._navigate_and_close_analytics_menu(x),
+            },
+            {
+                "text": "Descriptive Analytics",
+                "icon": "chart-bar",
+                "on_release": lambda x="descriptive_analytics": self._navigate_and_close_analytics_menu(x),
+            },
+            {
+                "text": "Qualitative Analytics", 
+                "icon": "text-box",
+                "on_release": lambda x="qualitative_analytics": self._navigate_and_close_analytics_menu(x),
+            },
+            {
+                "text": "Inferential Analytics",
+                "icon": "chart-scatter-plot",
+                "on_release": lambda x="inferential_analytics": self._navigate_and_close_analytics_menu(x),
+            },
+            {
+                "text": "Auto Detection",
+                "icon": "auto-fix",
+                "on_release": lambda x="auto_detection": self._navigate_and_close_analytics_menu(x),
+            },
+        ]
+        
+        analytics_menu = MDDropdownMenu(
+            caller=self.ids.analytics_dropdown_btn,
+            items=analytics_items,
+            width=dp(220),
+            max_height=dp(400)
+        )
+        analytics_menu.open()
+    
+    def _navigate_and_close_analytics_menu(self, screen_name):
+        """Navigate to analytics screen and close menu"""
+        # The menu will auto-close, just navigate
+        self.navigate_to_screen(screen_name)
+    
     def show_toast(self, message):
         """Show toast message with KivyMD 2.0.1 snackbar"""
         try:
